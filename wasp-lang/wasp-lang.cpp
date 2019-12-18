@@ -24,7 +24,7 @@ int main()
 	cout << " Wasp Language Interpreter " << endl;
 
 	string raw_source = read_source();
-	//cout << raw_source << endl;
+	cout << raw_source << endl;
 
 	Lexer lexer(raw_source);
 	vector<unique_ptr<Token>> tokens = lexer.execute();

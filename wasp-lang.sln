@@ -5,6 +5,12 @@ VisualStudioVersion = 16.0.29519.181
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wasp-lang", "wasp-lang\wasp-lang.vcxproj", "{B200FF60-2E28-4E28-8A5A-6E77B472E413}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5927DEC4-5C3F-4590-83FC-93EA6F69791F}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		wasp-lang\specs.md = wasp-lang\specs.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
