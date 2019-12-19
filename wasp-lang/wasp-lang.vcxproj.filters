@@ -46,9 +46,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="specs.md" />
-  </ItemGroup>
-  <ItemGroup>
     <Text Include="main.wsp">
       <Filter>Resource Files</Filter>
     </Text>
