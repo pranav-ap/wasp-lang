@@ -1,35 +1,68 @@
 #pragma once
 #include <iostream>
 #include <string>
-#include <variant>
-#include <memory>
 #include "Position.h"
 #include "Keyword.h"
 #include "Punctuation.h"
 
-template <class T>
-class Token {
-	T value;
-	std::string pos;
+// Base Class
+
+class TokenType
+{
 public:
-	Token(T val, std::string pos) : value(val), pos(pos) {};
-
-	friend std::ostream& operator<< (std::ostream& out, TokenType const& token) {
-		visit([&out](auto const& t) { out << t.value << " - " << t.pos; }, token);
-		return out;
-	}
-
-	friend std::ostream& operator<< (std::ostream& out, unique_ptr<TokenType> const& token) {
-		visit([&out](auto const& t) { out << t.value << " - " << t.pos; }, *token);
-		return out;
-	}
+	int line_num;
+	int column_num;
+	TokenType(int line_num, int column_num) : line_num(line_num), column_num(column_num) {};
 };
 
-typedef Token<double> NumberLiteral;
-typedef Token<std::string> StringLiteral;
-typedef Token<bool> BooleanLiteral;
-typedef Token<KeywordType> Keyword;
-typedef Token<PunctuationType> Punctuation;
-typedef Token<char> Unknown;
+// Sub Classes
 
-typedef variant<NumberLiteral, StringLiteral, BooleanLiteral, Keyword, Punctuation, Unknown> TokenType;
+class NumberLiteral : public TokenType
+{
+public:
+	double value;
+	NumberLiteral(double value, int line_num, int col_num) : value(value), TokenType(line_num, col_num) {};
+};
+
+class StringLiteral : public TokenType
+{
+public:
+	std::string value;
+	StringLiteral(std::string value, int line_num, int col_num) : TokenType(line_num, col_num) {};
+};
+
+class BooleanLiteral : public TokenType
+{
+public:
+	bool value;
+	BooleanLiteral(bool value, int line_num, int col_num) : value(value), TokenType(line_num, col_num) {};
+};
+
+class Identifier : public TokenType
+{
+public:
+	std::string value;
+	bool is_function;
+	Identifier(std::string value, bool is_function, int line_num, int col_num) : value(value), is_function(is_function), TokenType(line_num, col_num) {};
+};
+
+class Keyword : public TokenType
+{
+public:
+	KeywordType value;
+	Keyword(KeywordType value, int line_num, int col_num) : value(value), TokenType(line_num, col_num) {};
+};
+
+class Punctuation : public TokenType
+{
+public:
+	PunctuationType value;
+	Punctuation(PunctuationType value, int line_num, int col_num) : value(value), TokenType(line_num, col_num) {};
+};
+
+class Unknown : public TokenType
+{
+public:
+	std::string value;
+	Unknown(std::string value, int line_num, int col_num) : value(value), TokenType(line_num, col_num) {};
+};

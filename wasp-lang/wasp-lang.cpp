@@ -2,13 +2,13 @@
 #include <iostream>
 #include <fstream>
 #include <memory>
-#include "Token.h"
+#include <vector>
 #include "Lexer.h"
 
 using namespace std;
 
 string read_source() {
-	ifstream infile("main.wsp");
+	ifstream infile("main.wasp");
 	string line;
 	string raw_source;
 
@@ -33,6 +33,6 @@ int main()
 
 	for (auto const& token : tokens)
 	{
-		cout << token;
+		cout << &token << endl;
 	}
 }
