@@ -1,11 +1,10 @@
 #include "Lexer.h"
-#include <iostream>
 
 using namespace std;
 
-vector<unique_ptr<Token>> Lexer::execute()
+vector<unique_ptr<TokenType>> Lexer::execute()
 {
-	vector<unique_ptr<Token>> tokens;
+	vector<unique_ptr<TokenType>> tokens;
 
 	while (true)
 	{
@@ -36,15 +35,21 @@ vector<unique_ptr<Token>> Lexer::execute()
 		}
 		}
 
-		unique_ptr<Token> token;
-
 		if (std::isdigit(static_cast<unsigned char>(ch)))
 		{
-			token = this->consume_number_literal(ch);
+			auto token = this->consume_number_literal(ch);
+
+			if (token != nullptr) {
+				tokens.push_back(move(token));
+			}
 		}
 		else if (std::isalpha(ch) || ch == '_')
 		{
-			token = this->consume_identifier(ch);
+			auto token = this->consume_identifier(ch);
+
+			if (token != nullptr) {
+				tokens.push_back(move(token));
+			}
 		}
 		else
 		{
@@ -52,7 +57,12 @@ vector<unique_ptr<Token>> Lexer::execute()
 			{
 			case '"':
 			{
-				token = this->consume_string_literal();
+				auto token = this->consume_string_literal();
+
+				if (token != nullptr) {
+					tokens.push_back(move(token));
+				}
+
 				break;
 			}
 
@@ -69,81 +79,136 @@ vector<unique_ptr<Token>> Lexer::execute()
 			case ':':
 			case '|':
 			{
-				token = this->consume_single_char_punctuation(ch);
+				auto token = this->consume_single_char_punctuation(ch);
+
+				if (token != nullptr) {
+					tokens.push_back(move(token));
+				}
+
 				break;
 			}
 
 			case '+':
 			{
-				token = this->handle_plus();
+				auto token = this->handle_plus();
+
+				if (token != nullptr) {
+					tokens.push_back(move(token));
+				}
+
 				break;
 			}
 
 			case '-':
 			{
-				token = this->handle_minus();
+				auto token = this->handle_minus();
+
+				if (token != nullptr) {
+					tokens.push_back(move(token));
+				}
+
 				break;
 			}
 
 			case '*':
 			{
-				token = this->handle_star();
+				auto token = this->handle_star();
+
+				if (token != nullptr) {
+					tokens.push_back(move(token));
+				}
+
 				break;
 			}
 
 			case '/':
 			{
-				token = this->handle_division();
+				auto token = this->handle_division();
+
+				if (token != nullptr) {
+					tokens.push_back(move(token));
+				}
+
 				break;
 			}
 
 			case '%':
 			{
-				token = this->handle_reminder();
+				auto token = this->handle_reminder();
+
+				if (token != nullptr) {
+					tokens.push_back(move(token));
+				}
+
 				break;
 			}
 
 			case '^':
 			{
-				token = this->handle_power();
+				auto token = this->handle_power();
+
+				if (token != nullptr) {
+					tokens.push_back(move(token));
+				}
+
 				break;
 			}
 
 			case '=':
 			{
-				token = this->handle_equal();
+				auto token = this->handle_equal();
+
+				if (token != nullptr) {
+					tokens.push_back(move(token));
+				}
+
 				break;
 			}
 
 			case '!':
 			{
-				token = this->handle_bang();
+				auto token = this->handle_bang();
+
+				if (token != nullptr) {
+					tokens.push_back(move(token));
+				}
+
 				break;
 			}
 
 			case '<':
 			{
-				token = this->handle_lesser_than();
+				auto token = this->handle_lesser_than();
+
+				if (token != nullptr) {
+					tokens.push_back(move(token));
+				}
+
 				break;
 			}
 
 			case '>':
 			{
-				token = this->handle_greater_than();
+				auto token = this->handle_greater_than();
+
+				if (token != nullptr) {
+					tokens.push_back(move(token));
+				}
+
 				break;
 			}
 
 			default:
 			{
-				token = this->consume_unknown_token(ch);
+				auto token = this->consume_unknown_token(ch);
+
+				if (token != nullptr) {
+					tokens.push_back(move(token));
+				}
+
 				break;
 			}
 			}
-		}
-
-		if (token != NULL)
-		{
-			tokens.push_back(token);
 		}
 	}
 
@@ -152,7 +217,7 @@ vector<unique_ptr<Token>> Lexer::execute()
 
 // Consumers
 
-unique_ptr<NumberLiteral> Lexer::consume_number_literal(char ch)
+unique_ptr<TokenType> Lexer::consume_number_literal(char ch)
 {
 	string number_literal;
 	number_literal.push_back(ch);
@@ -161,7 +226,7 @@ unique_ptr<NumberLiteral> Lexer::consume_number_literal(char ch)
 
 	while (ch = this->get_right_char())
 	{
-		if (std::isdigit(static_cast<unsigned char>(ch)) || (ch != '.' && !reached_decimal_point))
+		if (isdigit(static_cast<unsigned char>(ch)) || (ch != '.' && !reached_decimal_point))
 		{
 			number_literal.push_back(ch);
 			this->pos.increment_column_number();
@@ -172,12 +237,14 @@ unique_ptr<NumberLiteral> Lexer::consume_number_literal(char ch)
 		break;
 	}
 
-	double number = std::stod(number_literal);
+	double number = stod(number_literal);
 
-	return make_unique<NumberLiteral>(number, this->pos.to_string());
+	TokenType token = NumberLiteral(number, this->pos.to_string());
+
+	return make_unique<TokenType>(token);
 }
 
-unique_ptr<StringLiteral> Lexer::consume_string_literal()
+unique_ptr<TokenType> Lexer::consume_string_literal()
 {
 	string string_literal;
 
@@ -194,10 +261,12 @@ unique_ptr<StringLiteral> Lexer::consume_string_literal()
 		break;
 	}
 
-	return make_unique<StringLiteral>(string_literal, this->pos.to_string());
+	TokenType token = StringLiteral(string_literal, this->pos.to_string());
+
+	return make_unique<TokenType>(token);
 }
 
-unique_ptr<Token> Lexer::consume_identifier(char ch)
+unique_ptr<TokenType> Lexer::consume_identifier(char ch)
 {
 	string identifier;
 	identifier.push_back(ch);
@@ -220,154 +289,154 @@ unique_ptr<Token> Lexer::consume_identifier(char ch)
 	if (keyword_map.count(identifier) > 0)
 	{
 		KeywordType keyword_type = keyword_map[identifier];
-		return make_unique<Keyword>(keyword_type, this->pos.to_string());
+		return make_unique<TokenType>(keyword_type, this->pos.to_string());
 	}
 
 	if (this->get_right_char() == '(')
 	{
-		return make_unique<FunctionIdentifier>(identifier, this->pos.to_string());
+		return make_unique<TokenType>(identifier, this->pos.to_string());
 	}
 
-	return make_unique<Identifier>(identifier, this->pos.to_string());
+	return make_unique<TokenType>(identifier, this->pos.to_string());
 }
 
-unique_ptr<Punctuation> Lexer::handle_plus()
+unique_ptr<TokenType> Lexer::handle_plus()
 {
 	if (this->peek_and_move('='))
 	{
 		this->pos.increment_column_number();
 		this->advance();
-		return make_unique<Punctuation>(PLUS_EQUAL, this->pos.to_string());
+		return make_unique<TokenType>(PunctuationType::PLUS_EQUAL, this->pos.to_string());
 	}
 
 	this->advance();
-	return make_unique<Punctuation>(PLUS, this->pos.to_string());
+	return make_unique<TokenType>(PunctuationType::PLUS, this->pos.to_string());
 }
 
-unique_ptr<Punctuation> Lexer::handle_minus()
+unique_ptr<TokenType> Lexer::handle_minus()
 {
 	if (this->peek_and_move('='))
 	{
 		this->pos.increment_column_number();
 		this->advance();
-		return make_unique<Punctuation>(MINUS_EQUAL, this->pos.to_string());
+		return make_unique<TokenType>(PunctuationType::MINUS_EQUAL, this->pos.to_string());
 	}
 	else if (this->peek_and_move('>'))
 	{
 		this->pos.increment_column_number();
 		this->advance();
-		return make_unique<Punctuation>(ARROW, this->pos.to_string());
+		return make_unique<TokenType>(PunctuationType::ARROW, this->pos.to_string());
 	}
 
 	this->advance();
-	return make_unique<Punctuation>(MINUS, this->pos.to_string());
+	return make_unique<TokenType>(PunctuationType::MINUS, this->pos.to_string());
 }
 
-unique_ptr<Punctuation> Lexer::handle_star()
+unique_ptr<TokenType> Lexer::handle_star()
 {
 	if (this->peek_and_move('='))
 	{
 		this->pos.increment_column_number();
 		this->advance();
-		return make_unique<Punctuation>(STAR_EQUAL, this->pos.to_string());
+		return make_unique<TokenType>(PunctuationType::STAR_EQUAL, this->pos.to_string());
 	}
 
 	this->advance();
-	return make_unique<Punctuation>(STAR, this->pos.to_string());
+	return make_unique<TokenType>(PunctuationType::STAR, this->pos.to_string());
 }
 
-unique_ptr<Punctuation> Lexer::handle_division()
+unique_ptr<TokenType> Lexer::handle_division()
 {
 	if (this->peek_and_move('='))
 	{
 		this->pos.increment_column_number();
 		this->advance();
-		return make_unique<Punctuation>(DIVISION_EQUAL, this->pos.to_string());
+		return make_unique<TokenType>(PunctuationType::DIVISION_EQUAL, this->pos.to_string());
 	}
 
 	this->advance();
-	return make_unique<Punctuation>(DIVISION, this->pos.to_string());
+	return make_unique<TokenType>(PunctuationType::DIVISION, this->pos.to_string());
 }
 
-unique_ptr<Punctuation> Lexer::handle_reminder()
+unique_ptr<TokenType> Lexer::handle_reminder()
 {
 	if (this->peek_and_move('='))
 	{
 		this->pos.increment_column_number();
 		this->advance();
-		return make_unique<Punctuation>(REMINDER_EQUAL, this->pos.to_string());
+		return make_unique<TokenType>(PunctuationType::REMINDER_EQUAL, this->pos.to_string());
 	}
 
 	this->advance();
-	return make_unique<Punctuation>(REMINDER, this->pos.to_string());
+	return make_unique<TokenType>(PunctuationType::REMINDER, this->pos.to_string());
 }
 
-unique_ptr<Punctuation> Lexer::handle_power()
+unique_ptr<TokenType> Lexer::handle_power()
 {
 	if (this->peek_and_move('='))
 	{
 		this->pos.increment_column_number();
 		this->advance();
-		return make_unique<Punctuation>(POWER_EQUAL, this->pos.to_string());
+		return make_unique<TokenType>(PunctuationType::POWER_EQUAL, this->pos.to_string());
 	}
 
 	this->advance();
-	return make_unique<Punctuation>(POWER, this->pos.to_string());
+	return make_unique<TokenType>(PunctuationType::POWER, this->pos.to_string());
 }
 
-unique_ptr<Punctuation> Lexer::handle_bang()
+unique_ptr<TokenType> Lexer::handle_bang()
 {
 	if (this->peek_and_move('='))
 	{
 		this->pos.increment_column_number();
 		this->advance();
-		return make_unique<Punctuation>(BANG_EQUAL, this->pos.to_string());
+		return make_unique<TokenType>(PunctuationType::BANG_EQUAL, this->pos.to_string());
 	}
 
 	this->advance();
-	return make_unique<Punctuation>(BANG, this->pos.to_string());
+	return make_unique<TokenType>(PunctuationType::BANG, this->pos.to_string());
 }
 
-unique_ptr<Punctuation> Lexer::handle_equal()
+unique_ptr<TokenType> Lexer::handle_equal()
 {
 	if (this->peek_and_move('='))
 	{
 		this->pos.increment_column_number();
 		this->advance();
-		return make_unique<Punctuation>(EQUAL_EQUAL, this->pos.to_string());
+		return make_unique<TokenType>(PunctuationType::EQUAL_EQUAL, this->pos.to_string());
 	}
 
 	this->advance();
-	return make_unique<Punctuation>(EQUAL, this->pos.to_string());
+	return make_unique<TokenType>(PunctuationType::EQUAL, this->pos.to_string());
 }
 
-unique_ptr<Punctuation> Lexer::handle_greater_than()
+unique_ptr<TokenType> Lexer::handle_greater_than()
 {
 	if (this->peek_and_move('='))
 	{
 		this->pos.increment_column_number();
 		this->advance();
-		return make_unique<Punctuation>(GREATER_THAN_EQUAL, this->pos.to_string());
+		return make_unique<TokenType>(PunctuationType::GREATER_THAN_EQUAL, this->pos.to_string());
 	}
 
 	this->advance();
-	return make_unique<Punctuation>(GREATER_THAN, this->pos.to_string());
+	return make_unique<TokenType>(PunctuationType::GREATER_THAN, this->pos.to_string());
 }
 
-unique_ptr<Punctuation> Lexer::handle_lesser_than()
+unique_ptr<TokenType> Lexer::handle_lesser_than()
 {
 	if (this->peek_and_move('='))
 	{
 		this->pos.increment_column_number();
 		this->advance();
-		return make_unique<Punctuation>(LESSER_THAN_EQUAL, this->pos.to_string());
+		return make_unique<TokenType>(PunctuationType::LESSER_THAN_EQUAL, this->pos.to_string());
 	}
 
 	this->advance();
-	return make_unique<Punctuation>(LESSER_THAN, this->pos.to_string());
+	return make_unique<TokenType>(PunctuationType::LESSER_THAN, this->pos.to_string());
 }
 
-unique_ptr<Punctuation> Lexer::consume_single_char_punctuation(char ch)
+unique_ptr<TokenType> Lexer::consume_single_char_punctuation(char ch)
 {
 	this->pos.increment_column_number();
 	this->advance();
@@ -376,56 +445,56 @@ unique_ptr<Punctuation> Lexer::consume_single_char_punctuation(char ch)
 	{
 	case '\\':
 	{
-		return make_unique<Punctuation>(BACKWARD_SLASH, this->pos.to_string());
+		return make_unique<TokenType>(PunctuationType::BACKWARD_SLASH, this->pos.to_string());
 	}
 	case ';':
 	{
-		return make_unique<Punctuation>(SEMICOLON, this->pos.to_string());
+		return make_unique<TokenType>(PunctuationType::SEMICOLON, this->pos.to_string());
 	}
 	case '(':
 	{
-		return make_unique<Punctuation>(OPEN_PARENTHESIS, this->pos.to_string());
+		return make_unique<TokenType>(PunctuationType::OPEN_PARENTHESIS, this->pos.to_string());
 	}
 	case ')':
 	{
-		return make_unique<Punctuation>(CLOSE_PARENTHESIS, this->pos.to_string());
+		return make_unique<TokenType>(PunctuationType::CLOSE_PARENTHESIS, this->pos.to_string());
 	}
 	case '{':
 	{
-		return make_unique<Punctuation>(OPEN_CURLY_BRACE, this->pos.to_string());
+		return make_unique<TokenType>(PunctuationType::OPEN_CURLY_BRACE, this->pos.to_string());
 	}
 	case '}':
 	{
-		return make_unique<Punctuation>(CLOSE_CURLY_BRACE, this->pos.to_string());
+		return make_unique<TokenType>(PunctuationType::CLOSE_CURLY_BRACE, this->pos.to_string());
 	}
 	case '[':
 	{
-		return make_unique<Punctuation>(OPEN_BRACKET, this->pos.to_string());
+		return make_unique<TokenType>(PunctuationType::OPEN_BRACKET, this->pos.to_string());
 	}
 	case ']':
 	{
-		return make_unique<Punctuation>(CLOSE_BRACKET, this->pos.to_string());
+		return make_unique<TokenType>(PunctuationType::CLOSE_BRACKET, this->pos.to_string());
 	}
 	case ',':
 	{
-		return make_unique<Punctuation>(COMMA, this->pos.to_string());
+		return make_unique<TokenType>(PunctuationType::COMMA, this->pos.to_string());
 	}
 	case '.':
 	{
-		return make_unique<Punctuation>(DOT, this->pos.to_string());
+		return make_unique<TokenType>(PunctuationType::DOT, this->pos.to_string());
 	}
 	case ':':
 	{
-		return make_unique<Punctuation>(COLON, this->pos.to_string());
+		return make_unique<TokenType>(PunctuationType::COLON, this->pos.to_string());
 	}
 	case '|':
 	{
-		return make_unique<Punctuation>(BAR, this->pos.to_string());
+		return make_unique<TokenType>(PunctuationType::BAR, this->pos.to_string());
 	}
 	}
 }
 
-unique_ptr<Unknown> Lexer::consume_unknown_token(char ch)
+unique_ptr<TokenType> Lexer::consume_unknown_token(char ch)
 {
 	string unknown_token;
 	unknown_token.push_back(ch);
@@ -443,7 +512,7 @@ unique_ptr<Unknown> Lexer::consume_unknown_token(char ch)
 		break;
 	}
 
-	return make_unique<Unknown>(unknown_token, this->pos.to_string());
+	return make_unique<TokenType>(unknown_token, this->pos.to_string());
 }
 
 // UTILS

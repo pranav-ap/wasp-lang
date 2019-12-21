@@ -2,7 +2,7 @@
 #include <map>
 #include <string>
 
-enum KeywordType
+enum class KeywordType
 {
 	IF,
 	ELSE,
@@ -39,36 +39,36 @@ enum KeywordType
 };
 
 std::map<std::string, KeywordType> keyword_map = {
-	{"if", IF},
-	{"else", ELSE},
+	{"if", KeywordType::IF},
+	{"else", KeywordType::ELSE},
 
-	{"and", AND},
-	{"or", OR},
+	{"and", KeywordType::AND},
+	{"or", KeywordType::OR},
 
-	{"let", LET},
-	{"const", CONST},
+	{"let", KeywordType::LET},
+	{"const", KeywordType::CONST},
 
-	{"loop", LOOP},
-	{"for", FOR},
-	{"break", BREAK},
-	{"continue", CONTINUE},
+	{"loop", KeywordType::LOOP},
+	{"for", KeywordType::FOR},
+	{"break", KeywordType::BREAK},
+	{"continue", KeywordType::CONTINUE},
 
-	{"fn", FN},
-	{"return", RETURN},
+	{"fn", KeywordType::FN},
+	{"return", KeywordType::RETURN},
 
-	{"num", NUM},
-	{"str", STR},
-	{"bool", BOOL},
-	{"enum", ENUM},
-	{"type", TYPE},
-	{"opt", OPT},
+	{"num", KeywordType::NUM},
+	{"str", KeywordType::STR},
+	{"bool", KeywordType::BOOL},
+	{"enum", KeywordType::ENUM},
+	{"type", KeywordType::TYPE},
+	{"opt", KeywordType::OPT},
 
-	{"true", TRUE},
-	{"false", FALSE},
+	{"true", KeywordType::TRUE},
+	{"false", KeywordType::FALSE},
 
-	{"import", IMPORT},
-	{"from", FROM},
+	{"import", KeywordType::IMPORT},
+	{"from", KeywordType::FROM},
 
-	{"pub", PUB},
-	{"pure", PURE}
+	{"pub", KeywordType::PUB},
+	{"pure", KeywordType::PURE}
 };

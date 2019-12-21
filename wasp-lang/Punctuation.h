@@ -1,6 +1,6 @@
 #pragma once
 
-enum PunctuationType
+enum class PunctuationType
 {
 	OPEN_PARENTHESIS,
 	CLOSE_PARENTHESIS,

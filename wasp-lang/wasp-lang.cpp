@@ -1,6 +1,8 @@
+#pragma once
 #include <iostream>
 #include <fstream>
 #include <memory>
+#include "Token.h"
 #include "Lexer.h"
 
 using namespace std;
@@ -27,10 +29,10 @@ int main()
 	cout << raw_source << endl;
 
 	Lexer lexer(raw_source);
-	vector<unique_ptr<Token>> tokens = lexer.execute();
+	vector<unique_ptr<TokenType>> tokens = lexer.execute();
 
 	for (auto const& token : tokens)
 	{
-		token->print();
+		cout << token;
 	}
 }

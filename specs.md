@@ -4,7 +4,7 @@
 
 - Scalar - str, bool, num
 - Composite - vector, map, record, enum
-- optional - opt
+- Optional - opt
 
 ## Variables
 
@@ -67,7 +67,7 @@ for x in vector { }
 
 break;
 continue;
-
+s
 # Functions
 
 fn add (a: num, b: num) -> num {
@@ -82,8 +82,9 @@ fn add (a: num, b: num) -> num {
 import { foo, bar } from "path/to/filename";
 
 import { foo, bar } from "path/to/folder_name";
-- folder must have a file named mod.wsp
+- folder must have a file named mod.wasp
 
 pub fn add (a: num, b: num) -> num {
 	return a + b;
 }
+ 

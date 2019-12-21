@@ -1,104 +1,35 @@
 #pragma once
+#include <iostream>
+#include <string>
+#include <variant>
+#include <memory>
 #include "Position.h"
 #include "Keyword.h"
 #include "Punctuation.h"
-#include <iostream>
-#include <string>
-#include <vector>
 
-class Token
-{
+template <class T>
+class Token {
+	T value;
+	std::string pos;
 public:
-	std::string position;
-	virtual void print();
+	Token(T val, std::string pos) : value(val), pos(pos) {};
+
+	friend std::ostream& operator<< (std::ostream& out, TokenType const& token) {
+		visit([&out](auto const& t) { out << t.value << " - " << t.pos; }, token);
+		return out;
+	}
+
+	friend std::ostream& operator<< (std::ostream& out, unique_ptr<TokenType> const& token) {
+		visit([&out](auto const& t) { out << t.value << " - " << t.pos; }, *token);
+		return out;
+	}
 };
 
-// NumberLiteral
+typedef Token<double> NumberLiteral;
+typedef Token<std::string> StringLiteral;
+typedef Token<bool> BooleanLiteral;
+typedef Token<KeywordType> Keyword;
+typedef Token<PunctuationType> Punctuation;
+typedef Token<char> Unknown;
 
-class NumberLiteral : public Token
-{
-	double number;
-
-public:
-	NumberLiteral(double value, std::string pos);
-	void print();
-};
-
-// StringLiteral
-
-class StringLiteral : public Token
-{
-	std::string string_literal;
-
-public:
-	StringLiteral(std::string value, std::string pos);
-	void print();
-};
-
-// BooleanLiteral
-
-class BooleanLiteral : public Token
-{
-	bool truth_value;
-
-public:
-	BooleanLiteral(bool value, std::string pos);
-	void print();
-};
-
-// Identifier
-
-class Identifier : public Token
-{
-	std::string name;
-
-public:
-	Identifier(std::string value, std::string pos);
-	void print();
-};
-
-// FunctionIdentifier
-
-class FunctionIdentifier : public Token
-{
-	std::string name;
-
-public:
-	FunctionIdentifier(std::string value, std::string pos);
-	void print();
-};
-
-// Punctuation
-
-class Punctuation : public Token
-{
-	PunctuationType punc;
-
-public:
-	Punctuation(PunctuationType value, std::string pos);
-	void print();
-	bool type_is(PunctuationType punctuation_type);
-};
-
-// Keyword
-
-class Keyword : public Token
-{
-	KeywordType keyword;
-
-public:
-	Keyword(KeywordType value, std::string pos);
-	void print();
-	bool type_is(KeywordType keyword_type);
-};
-
-// Unknown
-
-class Unknown : public Token
-{
-	std::string word;
-
-public:
-	Unknown(std::string value, std::string pos);
-	void print();
-};
+typedef variant<NumberLiteral, StringLiteral, BooleanLiteral, Keyword, Punctuation, Unknown> TokenType;
