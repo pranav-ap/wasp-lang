@@ -4,333 +4,383 @@
 
 using namespace std;
 
-// << Overloading
+// Print out Tokens
 
-ostream& operator<< (ostream& out, unique_ptr<TokenType> const& token) {
-	out << " - Ln : " << token->line_num << "Col : " << token->column_num;
-	return out;
-}
-
-ostream& operator<< (ostream& out, unique_ptr<NumberLiteral> const& token) {
-	out << token->value << " - Ln : " << token->line_num << "Col : " << token->column_num;
-	return out;
-}
-
-ostream &operator<<(ostream &out, unique_ptr<StringLiteral> const &token)
+void NumberLiteral::print()
 {
-	out << token->value << " - Ln : " << token->line_num << "Col : " << token->column_num;
-	return out;
+	cout << "NumberLiteral : " << this->value << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 }
 
-ostream &operator<<(ostream &out, unique_ptr<BooleanLiteral> const &token)
+void StringLiteral::print()
 {
-	out << token->value << " - Ln : " << token->line_num << "Col : " << token->column_num;
-	return out;
+	cout << "StringLiteral : " << this->value << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 }
 
-ostream &operator<<(ostream &out, unique_ptr<Keyword> const &token)
+void BooleanLiteral::print()
 {
-	switch (token->value) {
+	cout << "BooleanLiteral : " << this->value << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
+}
+
+void Identifier::print()
+{
+	cout << "Identifier : " << this->value << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
+}
+
+void Keyword::print()
+{
+	switch (this->value)
+	{
 	case KeywordType::IF:
 	{
-		out << "Keyword : IF - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Keyword : IF "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case KeywordType::ELSE:
 	{
-		out << "Keyword : ELSE - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Keyword : ELSE "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case KeywordType::AND:
 	{
-		out << "Keyword : AND - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Keyword : AND "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case KeywordType::OR:
 	{
-		out << "Keyword : OR - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Keyword : OR "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case KeywordType::LET:
 	{
-		out << "Keyword : LET - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Keyword : LET "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case KeywordType::CONST:
 	{
-		out << "Keyword : CONST - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Keyword : CONST "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case KeywordType::LOOP:
 	{
-		out << "Keyword : LOOP - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Keyword : LOOP "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case KeywordType::FOR:
 	{
-		out << "Keyword : FOR - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Keyword : FOR "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case KeywordType::BREAK:
 	{
-		out << "Keyword : BREAK - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Keyword : BREAK "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case KeywordType::CONTINUE:
 	{
-		out << "Keyword : CONTINUE - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Keyword : CONTINUE "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case KeywordType::FN:
 	{
-		out << "Keyword : FN - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Keyword : FN "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case KeywordType::RETURN:
 	{
-		out << "Keyword : RETURN - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Keyword : RETURN "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case KeywordType::NUM:
 	{
-		out << "Keyword : NUM - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Keyword : NUM "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case KeywordType::STR:
 	{
-		out << "Keyword : STR - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Keyword : STR "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case KeywordType::BOOL:
 	{
-		out << "Keyword : BOOL - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Keyword : BOOL "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case KeywordType::ENUM:
 	{
-		out << "Keyword : ENUM - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Keyword : ENUM "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case KeywordType::TYPE:
 	{
-		out << "Keyword : TYPE - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Keyword : TYPE "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case KeywordType::OPT:
 	{
-		out << "Keyword : OPT - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Keyword : OPT "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case KeywordType::TRUE:
 	{
-		out << "Keyword : TRUE - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Keyword : TRUE "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case KeywordType::FALSE:
 	{
-		out << "Keyword : FALSE - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Keyword : FALSE "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case KeywordType::IMPORT:
 	{
-		out << "Keyword : IMPORT - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Keyword : IMPORT "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case KeywordType::FROM:
 	{
-		out << "Keyword : FROM - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Keyword : FROM "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case KeywordType::PUB:
 	{
-		out << "Keyword : PUB - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Keyword : PUB "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case KeywordType::PURE:
 	{
-		out << "Keyword : PURE - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Keyword : PURE "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	default:
 		break;
 	}
-
-	return out;
 }
 
-ostream &operator<<(ostream &out, unique_ptr<Punctuation> const &token)
+void Punctuation::print()
 {
-	switch (token->value)
+	switch (this->value)
 	{
 	case PunctuationType::OPEN_PARENTHESIS:
 	{
-		out << "Punctuation : OPEN_PARENTHESIS - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Punctuation : OPEN_PARENTHESIS "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case PunctuationType::CLOSE_PARENTHESIS:
 	{
-		out << "Punctuation : CLOSE_PARENTHESIS - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Punctuation : CLOSE_PARENTHESIS "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case PunctuationType::OPEN_CURLY_BRACE:
 	{
-		out << "Punctuation : OPEN_CURLY_BRACE - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Punctuation : OPEN_CURLY_BRACE "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case PunctuationType::CLOSE_CURLY_BRACE:
 	{
-		out << "Punctuation : CLOSE_CURLY_BRACE - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Punctuation : CLOSE_CURLY_BRACE "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case PunctuationType::OPEN_BRACKET:
 	{
-		out << "Punctuation : OPEN_BRACKET - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Punctuation : OPEN_BRACKET "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case PunctuationType::CLOSE_BRACKET:
 	{
-		out << "Punctuation : CLOSE_BRACKET - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Punctuation : CLOSE_BRACKET "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case PunctuationType::BACKWARD_SLASH:
 	{
-		out << "Punctuation : BACKWARD_SLASH - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Punctuation : BACKWARD_SLASH "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case PunctuationType::SEMICOLON:
 	{
-		out << "Punctuation : SEMICOLON - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Punctuation : SEMICOLON "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case PunctuationType::COMMA:
 	{
-		out << "Punctuation : COMMA - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Punctuation : COMMA "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case PunctuationType::COLON:
 	{
-		out << "Punctuation : COLON - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Punctuation : COLON "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case PunctuationType::BAR:
 	{
-		out << "Punctuation : BAR - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Punctuation : BAR "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case PunctuationType::ARROW:
 	{
-		out << "Punctuation : ARROW - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Punctuation : ARROW "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case PunctuationType::PLUS:
 	{
-		out << "Punctuation : PLUS - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Punctuation : PLUS "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case PunctuationType::PLUS_EQUAL:
 	{
-		out << "Punctuation : PLUS_EQUAL - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Punctuation : PLUS_EQUAL "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case PunctuationType::MINUS:
 	{
-		out << "Punctuation : MINUS - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Punctuation : MINUS "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case PunctuationType::MINUS_EQUAL:
 	{
-		out << "Punctuation : MINUS_EQUAL - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Punctuation : MINUS_EQUAL "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case PunctuationType::STAR:
 	{
-		out << "Punctuation : STAR - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Punctuation : STAR "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case PunctuationType::STAR_EQUAL:
 	{
-		out << "Punctuation : STAR_EQUAL - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Punctuation : STAR_EQUAL "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case PunctuationType::DIVISION:
 	{
-		out << "Punctuation : DIVISION - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Punctuation : DIVISION "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case PunctuationType::DIVISION_EQUAL:
 	{
-		out << "Punctuation : DIVISION_EQUAL - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Punctuation : DIVISION_EQUAL "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case PunctuationType::REMINDER:
 	{
-		out << "Punctuation : REMINDER - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Punctuation : REMINDER "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case PunctuationType::REMINDER_EQUAL:
 	{
-		out << "Punctuation : REMINDER_EQUAL - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Punctuation : REMINDER_EQUAL "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case PunctuationType::POWER:
 	{
-		out << "Punctuation : POWER - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Punctuation : POWER "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case PunctuationType::POWER_EQUAL:
 	{
-		out << "Punctuation : POWER_EQUAL - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Punctuation : POWER_EQUAL "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case PunctuationType::EQUAL:
 	{
-		out << "Punctuation : EQUAL - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Punctuation : EQUAL "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case PunctuationType::EQUAL_EQUAL:
 	{
-		out << "Punctuation : EQUAL_EQUAL - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Punctuation : EQUAL_EQUAL "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case PunctuationType::BANG:
 	{
-		out << "Punctuation : BANG - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Punctuation : BANG "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case PunctuationType::BANG_EQUAL:
 	{
-		out << "Punctuation : BANG_EQUAL - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Punctuation : BANG_EQUAL "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case PunctuationType::LESSER_THAN:
 	{
-		out << "Punctuation : LESSER_THAN - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Punctuation : LESSER_THAN "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case PunctuationType::LESSER_THAN_EQUAL:
 	{
-		out << "Punctuation : LESSER_THAN_EQUAL - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Punctuation : LESSER_THAN_EQUAL "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case PunctuationType::GREATER_THAN:
 	{
-		out << "Punctuation : GREATER_THAN - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Punctuation : GREATER_THAN "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	case PunctuationType::GREATER_THAN_EQUAL:
 	{
-		out << "Punctuation : GREATER_THAN_EQUAL - " << " - Ln : " << token->line_num << "Col : " << token->column_num;
+		cout << "Punctuation : GREATER_THAN_EQUAL "
+			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 		break;
 	}
 	default:
 		break;
 	}
-
-	return out;
 }
 
-ostream &operator<<(ostream &out, unique_ptr<Unknown> const &token)
+void Unknown::print()
 {
-	out << token->value << " - Ln : " << token->line_num << "Col : " << token->column_num;
-	return out;
+	cout << this->value << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
 }

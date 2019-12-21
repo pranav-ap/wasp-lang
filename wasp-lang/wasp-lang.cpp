@@ -33,6 +33,6 @@ int main()
 
 	for (auto const& token : tokens)
 	{
-		cout << &token << endl;
+		token->print();
 	}
 }

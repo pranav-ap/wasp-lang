@@ -267,11 +267,9 @@ unique_ptr<NumberLiteral> Lexer::consume_number_literal(char ch)
 	string number_literal;
 	number_literal.push_back(ch);
 
-	bool reached_decimal_point = false;
-
 	while (ch = this->get_right_char())
 	{
-		if (isdigit(static_cast<unsigned char>(ch)) || (ch != '.' && !reached_decimal_point))
+		if (isdigit(static_cast<unsigned char>(ch)) || ch == '.')
 		{
 			number_literal.push_back(ch);
 			this->pos.increment_column_number();
@@ -282,6 +280,9 @@ unique_ptr<NumberLiteral> Lexer::consume_number_literal(char ch)
 		break;
 	}
 
+	this->pos.increment_column_number();
+	this->advance();
+
 	double number = stod(number_literal);
 
 	return make_unique<NumberLiteral>(number, this->pos.line_num, this->pos.column_num);
@@ -291,19 +292,24 @@ unique_ptr<StringLiteral> Lexer::consume_string_literal()
 {
 	string string_literal;
 
-	while (char ch = this->get_right_char())
+	this->pos.increment_column_number();
+	this->advance();
+
+	while (char ch = this->get_current_char())
 	{
-		if (ch != '"' && ch != '\n')
+		if (ch == '"')
 		{
-			string_literal.push_back(ch);
-			this->pos.increment_column_number();
-			this->advance();
 			break;
 		}
-
-		break;
+		
+		string_literal.push_back(ch);
+		this->pos.increment_column_number();
+		this->advance();
 	}
 
+	this->pos.increment_column_number();
+	this->advance();
+	
 	return make_unique<StringLiteral>(string_literal, this->pos.line_num, this->pos.column_num);
 }
 

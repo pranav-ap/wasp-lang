@@ -1,1 +1,1 @@
-let a : num = 5;
+let a : str = "hello world";
