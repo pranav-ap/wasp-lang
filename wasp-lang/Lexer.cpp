@@ -1,6 +1,5 @@
 #pragma once
 #include <map>
-#include <string>
 #include "Lexer.h"
 
 using namespace std;
@@ -319,6 +318,7 @@ unique_ptr<Identifier> Lexer::consume_identifier(char ch)
 	identifier.push_back(ch);
 
 	this->advance();
+	this->pos.increment_column_number();
 
 	while (ch = this->get_current_char())
 	{
@@ -342,12 +342,13 @@ unique_ptr<Punctuation> Lexer::handle_plus()
 {
 	if (this->peek_and_move('='))
 	{
-		this->pos.increment_column_number();
 		this->advance();
+		this->pos.increment_column_number();
 		return make_unique<Punctuation>(PunctuationType::PLUS_EQUAL, this->pos.line_num, this->pos.column_num);
 	}
 
 	this->advance();
+	this->pos.increment_column_number();
 	return make_unique<Punctuation>(PunctuationType::PLUS, this->pos.line_num, this->pos.column_num);
 }
 
@@ -366,6 +367,7 @@ unique_ptr<Punctuation> Lexer::handle_minus()
 		return make_unique<Punctuation>(PunctuationType::ARROW, this->pos.line_num, this->pos.column_num);
 	}
 
+	this->pos.increment_column_number();
 	this->advance();
 	return make_unique<Punctuation>(PunctuationType::MINUS, this->pos.line_num, this->pos.column_num);
 }
@@ -379,6 +381,7 @@ unique_ptr<Punctuation> Lexer::handle_star()
 		return make_unique<Punctuation>(PunctuationType::STAR_EQUAL, this->pos.line_num, this->pos.column_num);
 	}
 
+	this->pos.increment_column_number();
 	this->advance();
 	return make_unique<Punctuation>(PunctuationType::STAR, this->pos.line_num, this->pos.column_num);
 }
@@ -392,6 +395,7 @@ unique_ptr<Punctuation> Lexer::handle_division()
 		return make_unique<Punctuation>(PunctuationType::DIVISION_EQUAL, this->pos.line_num, this->pos.column_num);
 	}
 
+	this->pos.increment_column_number();
 	this->advance();
 	return make_unique<Punctuation>(PunctuationType::DIVISION, this->pos.line_num, this->pos.column_num);
 }
@@ -405,6 +409,7 @@ unique_ptr<Punctuation> Lexer::handle_reminder()
 		return make_unique<Punctuation>(PunctuationType::REMINDER_EQUAL, this->pos.line_num, this->pos.column_num);
 	}
 
+	this->pos.increment_column_number();
 	this->advance();
 	return make_unique<Punctuation>(PunctuationType::REMINDER, this->pos.line_num, this->pos.column_num);
 }
@@ -418,6 +423,7 @@ unique_ptr<Punctuation> Lexer::handle_power()
 		return make_unique<Punctuation>(PunctuationType::POWER_EQUAL, this->pos.line_num, this->pos.column_num);
 	}
 
+	this->pos.increment_column_number();
 	this->advance();
 	return make_unique<Punctuation>(PunctuationType::POWER, this->pos.line_num, this->pos.column_num);
 }
@@ -431,6 +437,7 @@ unique_ptr<Punctuation> Lexer::handle_bang()
 		return make_unique<Punctuation>(PunctuationType::BANG_EQUAL, this->pos.line_num, this->pos.column_num);
 	}
 
+	this->pos.increment_column_number();
 	this->advance();
 	return make_unique<Punctuation>(PunctuationType::BANG, this->pos.line_num, this->pos.column_num);
 }
@@ -444,6 +451,7 @@ unique_ptr<Punctuation> Lexer::handle_equal()
 		return make_unique<Punctuation>(PunctuationType::EQUAL_EQUAL, this->pos.line_num, this->pos.column_num);
 	}
 
+	this->pos.increment_column_number();
 	this->advance();
 	return make_unique<Punctuation>(PunctuationType::EQUAL, this->pos.line_num, this->pos.column_num);
 }
@@ -457,6 +465,7 @@ unique_ptr<Punctuation> Lexer::handle_greater_than()
 		return make_unique<Punctuation>(PunctuationType::GREATER_THAN_EQUAL, this->pos.line_num, this->pos.column_num);
 	}
 
+	this->pos.increment_column_number();
 	this->advance();
 	return make_unique<Punctuation>(PunctuationType::GREATER_THAN, this->pos.line_num, this->pos.column_num);
 }
@@ -470,6 +479,7 @@ unique_ptr<Punctuation> Lexer::handle_lesser_than()
 		return make_unique<Punctuation>(PunctuationType::LESSER_THAN_EQUAL, this->pos.line_num, this->pos.column_num);
 	}
 
+	this->pos.increment_column_number();
 	this->advance();
 	return make_unique<Punctuation>(PunctuationType::LESSER_THAN, this->pos.line_num, this->pos.column_num);
 }
@@ -529,6 +539,9 @@ unique_ptr<Punctuation> Lexer::consume_single_char_punctuation(char ch)
 	{
 		return make_unique<Punctuation>(PunctuationType::BAR, this->pos.line_num, this->pos.column_num);
 	}
+
+	default:
+		break;
 	}
 }
 

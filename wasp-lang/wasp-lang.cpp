@@ -33,6 +33,7 @@ int main()
 
 	for (auto const& token : tokens)
 	{
+		auto g = token.get();
 		token->print();
 	}
 }
