@@ -1,76 +1,119 @@
 #pragma once
-#include <iostream>
 #include <string>
-#include "Position.h"
-#include "Keyword.h"
-#include "Punctuation.h"
 
-// Base Class
-
-class TokenType
+enum class TokenType
 {
-public:
+	// Literals
+
+	NumberLiteral,
+	StringLiteral,
+	BooleanLiteral,
+
+	// Identifiers
+
+	Identifier,
+	FunctionIdentifier,
+
+	// Punctuations
+
+	OPEN_PARENTHESIS,
+	CLOSE_PARENTHESIS,
+	OPEN_CURLY_BRACE,
+	CLOSE_CURLY_BRACE,
+	OPEN_BRACKET,
+	CLOSE_BRACKET,
+
+	BACKWARD_SLASH,
+	COMMA,
+	DOT,
+	COLON,
+	BAR,
+	ARROW,
+
+	PLUS,
+	PLUS_EQUAL,
+
+	MINUS,
+	MINUS_EQUAL,
+
+	STAR,
+	STAR_EQUAL,
+
+	DIVISION,
+	DIVISION_EQUAL,
+
+	REMINDER,
+	REMINDER_EQUAL,
+
+	POWER,
+	POWER_EQUAL,
+
+	EQUAL,
+	EQUAL_EQUAL,
+
+	BANG,
+	BANG_EQUAL,
+
+	LESSER_THAN,
+	LESSER_THAN_EQUAL,
+
+	GREATER_THAN,
+	GREATER_THAN_EQUAL,
+
+	// Keywords
+
+	IF,
+	ELSE,
+
+	AND,
+	OR,
+
+	LET,
+	CONST,
+
+	LOOP,
+	FOR,
+	BREAK,
+	CONTINUE,
+
+	FN,
+	RETURN,
+
+	NUM,
+	STR,
+	BOOL,
+	ENUM,
+	TYPE,
+	OPT,
+
+	TRUE,
+	FALSE,
+
+	IMPORT,
+	FROM,
+
+	PUB,
+	PURE,
+
+	// Other
+
+	EOL,
+	UNKNOWN
+};
+
+class Token
+{
+	TokenType type;
+	std::string value;
+
 	int line_num;
 	int column_num;
-	TokenType(int line_num, int column_num) : line_num(line_num), column_num(column_num) {};
-	virtual void print() = 0;
-};
 
-// Sub Classes
-
-class NumberLiteral : public TokenType
-{
 public:
-	double value;
-	NumberLiteral(double value, int line_num, int col_num) : value(value), TokenType(line_num, col_num) {};
-	void print();
-};
+	Token(TokenType type, std::string value, int line_num, int column_num) : type(type), value(value), line_num(line_num), column_num(column_num) {};
+	
+	std::string get_value() const;
+	TokenType get_type() const;
 
-class StringLiteral : public TokenType
-{
-public:
-	std::string value;
-	StringLiteral(std::string value, int line_num, int col_num) : value(value), TokenType(line_num, col_num) {};
-	void print();
-};
-
-class BooleanLiteral : public TokenType
-{
-public:
-	bool value;
-	BooleanLiteral(bool value, int line_num, int col_num) : value(value), TokenType(line_num, col_num) {};
-	void print();
-};
-
-class Identifier : public TokenType
-{
-public:
-	std::string value;
-	bool is_function;
-	Identifier(std::string value, bool is_function, int line_num, int col_num) : value(value), is_function(is_function), TokenType(line_num, col_num) {};
-	void print();
-};
-
-class Keyword : public TokenType
-{
-public:
-	KeywordType value;
-	Keyword(KeywordType value, int line_num, int col_num) : value(value), TokenType(line_num, col_num) {};
-	void print();
-};
-
-class Punctuation : public TokenType
-{
-public:
-	PunctuationType value;
-	Punctuation(PunctuationType value, int line_num, int col_num) : value(value), TokenType(line_num, col_num) {};
-	void print();
-};
-
-class Unknown : public TokenType
-{
-public:
-	std::string value;
-	Unknown(std::string value, int line_num, int col_num) : value(value), TokenType(line_num, col_num) {};
-	void print();
+	void print() const;
 };

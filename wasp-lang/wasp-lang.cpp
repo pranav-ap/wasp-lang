@@ -7,8 +7,8 @@
 
 using namespace std;
 
-string read_source() {
-	ifstream infile("main.wasp");
+string read_source(string path) {
+	ifstream infile(path);
 	string line;
 	string raw_source;
 
@@ -25,15 +25,14 @@ int main()
 {
 	cout << " Wasp Language Interpreter " << endl;
 
-	string raw_source = read_source();
+	string raw_source = read_source("main.wasp");
 	cout << raw_source << endl;
 
 	Lexer lexer(raw_source);
-	vector<unique_ptr<TokenType>> tokens = lexer.execute();
-
+	vector<unique_ptr<Token>> tokens = lexer.execute();
+	
 	for (auto const& token : tokens)
 	{
-		auto g = token.get();
 		token->print();
 	}
 }

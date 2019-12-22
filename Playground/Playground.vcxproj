@@ -20,9 +20,9 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
-    <ProjectGuid>{B200FF60-2E28-4E28-8A5A-6E77B472E413}</ProjectGuid>
+    <ProjectGuid>{BC237DB4-FB5F-4F55-BCEE-3E44451F3D6E}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>wasplang</RootNamespace>
+    <RootNamespace>Playground</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -90,7 +90,6 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -148,18 +147,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Lexer.cpp" />
-    <ClCompile Include="Position.cpp" />
-    <ClCompile Include="Token.cpp" />
-    <ClCompile Include="wasp-lang.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Lexer.h" />
-    <ClInclude Include="Position.h" />
-    <ClInclude Include="Token.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="main.wasp" />
+    <ClCompile Include="Playground.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

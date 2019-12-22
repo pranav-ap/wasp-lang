@@ -4,44 +4,44 @@
 
 using namespace std;
 
-map<string, KeywordType> keyword_map = {
-	{"if", KeywordType::IF},
-	{ "else", KeywordType::ELSE },
+map<string, TokenType> keyword_map = {
+	{"if", TokenType::IF},
+	{ "else", TokenType::ELSE },
 
-	{ "and", KeywordType::AND },
-	{ "or", KeywordType::OR },
+	{ "and", TokenType::AND },
+	{ "or", TokenType::OR },
 
-	{ "let", KeywordType::LET },
-	{ "const", KeywordType::CONST },
+	{ "let", TokenType::LET },
+	{ "const", TokenType::CONST },
 
-	{ "loop", KeywordType::LOOP },
-	{ "for", KeywordType::FOR },
-	{ "break", KeywordType::BREAK },
-	{ "continue", KeywordType::CONTINUE },
+	{ "loop", TokenType::LOOP },
+	{ "for", TokenType::FOR },
+	{ "break", TokenType::BREAK },
+	{ "continue", TokenType::CONTINUE },
 
-	{ "fn", KeywordType::FN },
-	{ "return", KeywordType::RETURN },
+	{ "fn", TokenType::FN },
+	{ "return", TokenType::RETURN },
 
-	{ "num", KeywordType::NUM },
-	{ "str", KeywordType::STR },
-	{ "bool", KeywordType::BOOL },
-	{ "enum", KeywordType::ENUM },
-	{ "type", KeywordType::TYPE },
-	{ "opt", KeywordType::OPT },
+	{ "num", TokenType::NUM },
+	{ "str", TokenType::STR },
+	{ "bool", TokenType::BOOL },
+	{ "enum", TokenType::ENUM },
+	{ "type", TokenType::TYPE },
+	{ "opt", TokenType::OPT },
 
-	{ "true", KeywordType::TRUE },
-	{ "false", KeywordType::FALSE },
+	{ "true", TokenType::TRUE },
+	{ "false", TokenType::FALSE },
 
-	{ "import", KeywordType::IMPORT },
-	{ "from", KeywordType::FROM },
+	{ "import", TokenType::IMPORT },
+	{ "from", TokenType::FROM },
 
-	{ "pub", KeywordType::PUB },
-	{ "pure", KeywordType::PURE }
+	{ "pub", TokenType::PUB },
+	{ "pure", TokenType::PURE }
 };
 
-vector<unique_ptr<TokenType>> Lexer::execute()
+vector<unique_ptr<Token>> Lexer::execute()
 {
-	vector<unique_ptr<TokenType>> tokens;
+	vector<unique_ptr<Token>> tokens;
 
 	while (true)
 	{
@@ -53,47 +53,25 @@ vector<unique_ptr<TokenType>> Lexer::execute()
 		}
 
 		// skip whitespaces
-		switch (ch)
-		{
-		case '\t':
-		case ' ':
+		if (ch == ' ' || ch == '\t')
 		{
 			this->advance();
 			this->pos.increment_column_number();
 			continue;
 		}
 
-		case '\n':
-		{
-			this->advance();
-			this->pos.increment_line_number();
-			this->pos.reset_column_number();
-			continue;
-		}
-		}
+		unique_ptr<Token> token;
 
 		if (std::isdigit(static_cast<unsigned char>(ch)))
 		{
-			auto token = this->consume_number_literal(ch);
-
-			if (token != nullptr) {
-				tokens.push_back(move(token));
-			}
+			token = this->consume_number_literal(ch);
 		}
 		else if (std::isalpha(ch) || ch == '_')
 		{
-			auto token = this->consume_identifier(ch);
-
-			if (keyword_map.count(token->value) > 0)
-			{
-				KeywordType keyword_type = keyword_map[token->value];
-				token.reset();
-				tokens.push_back(make_unique<Keyword>(keyword_type, this->pos.line_num, this->pos.column_num));
-			} 
-			else if (token != nullptr) 
-			{
-				tokens.push_back(move(token));
-			}
+			token = this->consume_identifier(ch);
+		}
+		else if (ch == '\n') {
+			token = this->consume_eol();
 		}
 		else
 		{
@@ -101,17 +79,11 @@ vector<unique_ptr<TokenType>> Lexer::execute()
 			{
 			case '"':
 			{
-				auto token = this->consume_string_literal();
-
-				if (token != nullptr) {
-					tokens.push_back(move(token));
-				}
-
+				token = this->consume_string_literal();
 				break;
 			}
 
 			case '\\':
-			case ';':
 			case '(':
 			case ')':
 			case '{':
@@ -123,136 +95,81 @@ vector<unique_ptr<TokenType>> Lexer::execute()
 			case ':':
 			case '|':
 			{
-				auto token = this->consume_single_char_punctuation(ch);
-
-				if (token != nullptr) {
-					tokens.push_back(move(token));
-				}
-
+				token = this->consume_single_char_punctuation(ch);
 				break;
 			}
 
 			case '+':
 			{
-				auto token = this->handle_plus();
-
-				if (token != nullptr) {
-					tokens.push_back(move(token));
-				}
-
+				token = this->handle_plus();
 				break;
 			}
 
 			case '-':
 			{
-				auto token = this->handle_minus();
-
-				if (token != nullptr) {
-					tokens.push_back(move(token));
-				}
-
+				token = this->handle_minus();
 				break;
 			}
 
 			case '*':
 			{
-				auto token = this->handle_star();
-
-				if (token != nullptr) {
-					tokens.push_back(move(token));
-				}
-
+				token = this->handle_star();
 				break;
 			}
 
 			case '/':
 			{
-				auto token = this->handle_division();
-
-				if (token != nullptr) {
-					tokens.push_back(move(token));
-				}
-
+				token = this->handle_division();
 				break;
 			}
 
 			case '%':
 			{
-				auto token = this->handle_reminder();
-
-				if (token != nullptr) {
-					tokens.push_back(move(token));
-				}
-
+				token = this->handle_reminder();
 				break;
 			}
 
 			case '^':
 			{
-				auto token = this->handle_power();
-
-				if (token != nullptr) {
-					tokens.push_back(move(token));
-				}
-
+				token = this->handle_power();
 				break;
 			}
 
 			case '=':
 			{
-				auto token = this->handle_equal();
-
-				if (token != nullptr) {
-					tokens.push_back(move(token));
-				}
-
+				token = this->handle_equal();
 				break;
 			}
 
 			case '!':
 			{
-				auto token = this->handle_bang();
-
-				if (token != nullptr) {
-					tokens.push_back(move(token));
-				}
-
+				token = this->handle_bang();
 				break;
 			}
 
 			case '<':
 			{
-				auto token = this->handle_lesser_than();
-
-				if (token != nullptr) {
-					tokens.push_back(move(token));
-				}
-
+				token = this->handle_lesser_than();
 				break;
 			}
 
 			case '>':
 			{
-				auto token = this->handle_greater_than();
-
-				if (token != nullptr) {
-					tokens.push_back(move(token));
-				}
-
+				token = this->handle_greater_than();
 				break;
 			}
 
 			default:
 			{
-				auto token = this->consume_unknown_token(ch);
-
-				if (token != nullptr) {
-					tokens.push_back(move(token));
-				}
-
+				token = this->consume_unknown_token(ch);
 				break;
 			}
 			}
+		}
+
+		if (token != nullptr)
+		{
+			tokens.push_back(move(token));
 		}
 	}
 
@@ -261,7 +178,7 @@ vector<unique_ptr<TokenType>> Lexer::execute()
 
 // Consumers
 
-unique_ptr<NumberLiteral> Lexer::consume_number_literal(char ch)
+unique_ptr<Token> Lexer::consume_number_literal(char ch)
 {
 	string number_literal;
 	number_literal.push_back(ch);
@@ -282,12 +199,10 @@ unique_ptr<NumberLiteral> Lexer::consume_number_literal(char ch)
 	this->pos.increment_column_number();
 	this->advance();
 
-	double number = stod(number_literal);
-
-	return make_unique<NumberLiteral>(number, this->pos.line_num, this->pos.column_num);
+	return make_unique<Token>(TokenType::NumberLiteral, number_literal, this->pos.line_num, this->pos.column_num);
 }
 
-unique_ptr<StringLiteral> Lexer::consume_string_literal()
+unique_ptr<Token> Lexer::consume_string_literal()
 {
 	string string_literal;
 
@@ -300,7 +215,7 @@ unique_ptr<StringLiteral> Lexer::consume_string_literal()
 		{
 			break;
 		}
-		
+
 		string_literal.push_back(ch);
 		this->pos.increment_column_number();
 		this->advance();
@@ -308,11 +223,11 @@ unique_ptr<StringLiteral> Lexer::consume_string_literal()
 
 	this->pos.increment_column_number();
 	this->advance();
-	
-	return make_unique<StringLiteral>(string_literal, this->pos.line_num, this->pos.column_num);
+
+	return make_unique<Token>(TokenType::StringLiteral, string_literal, this->pos.line_num, this->pos.column_num);
 }
 
-unique_ptr<Identifier> Lexer::consume_identifier(char ch)
+unique_ptr<Token> Lexer::consume_identifier(char ch)
 {
 	string identifier;
 	identifier.push_back(ch);
@@ -333,158 +248,166 @@ unique_ptr<Identifier> Lexer::consume_identifier(char ch)
 		break;
 	}
 
-	bool is_function = this->get_right_char() == '(';
+	if (keyword_map.count(identifier) > 0)
+	{
+		TokenType keyword_type = keyword_map[identifier];
+		return make_unique<Token>(keyword_type, identifier, this->pos.line_num, this->pos.column_num);
+	}
 
-	return make_unique<Identifier>(identifier, is_function, this->pos.line_num, this->pos.column_num);
+	if (this->get_current_char() == '(') {
+		return make_unique<Token>(TokenType::FunctionIdentifier, identifier, this->pos.line_num, this->pos.column_num);
+	}
+
+	return make_unique<Token>(TokenType::Identifier, identifier, this->pos.line_num, this->pos.column_num);
 }
 
-unique_ptr<Punctuation> Lexer::handle_plus()
+unique_ptr<Token> Lexer::handle_plus()
 {
 	if (this->peek_and_move('='))
 	{
 		this->advance();
 		this->pos.increment_column_number();
-		return make_unique<Punctuation>(PunctuationType::PLUS_EQUAL, this->pos.line_num, this->pos.column_num);
+		return make_unique<Token>(TokenType::PLUS_EQUAL, "+=", this->pos.line_num, this->pos.column_num);
 	}
 
 	this->advance();
 	this->pos.increment_column_number();
-	return make_unique<Punctuation>(PunctuationType::PLUS, this->pos.line_num, this->pos.column_num);
+	return make_unique<Token>(TokenType::PLUS, "+", this->pos.line_num, this->pos.column_num);
 }
 
-unique_ptr<Punctuation> Lexer::handle_minus()
+unique_ptr<Token> Lexer::handle_minus()
 {
 	if (this->peek_and_move('='))
 	{
 		this->pos.increment_column_number();
 		this->advance();
-		return make_unique<Punctuation>(PunctuationType::MINUS_EQUAL, this->pos.line_num, this->pos.column_num);
+		return make_unique<Token>(TokenType::MINUS_EQUAL, "-=", this->pos.line_num, this->pos.column_num);
 	}
 	else if (this->peek_and_move('>'))
 	{
 		this->pos.increment_column_number();
 		this->advance();
-		return make_unique<Punctuation>(PunctuationType::ARROW, this->pos.line_num, this->pos.column_num);
+		return make_unique<Token>(TokenType::ARROW, "->", this->pos.line_num, this->pos.column_num);
 	}
 
 	this->pos.increment_column_number();
 	this->advance();
-	return make_unique<Punctuation>(PunctuationType::MINUS, this->pos.line_num, this->pos.column_num);
+	return make_unique<Token>(TokenType::MINUS, "-", this->pos.line_num, this->pos.column_num);
 }
 
-unique_ptr<Punctuation> Lexer::handle_star()
+unique_ptr<Token> Lexer::handle_star()
 {
 	if (this->peek_and_move('='))
 	{
 		this->pos.increment_column_number();
 		this->advance();
-		return make_unique<Punctuation>(PunctuationType::STAR_EQUAL, this->pos.line_num, this->pos.column_num);
+		return make_unique<Token>(TokenType::STAR_EQUAL, "*=", this->pos.line_num, this->pos.column_num);
 	}
 
 	this->pos.increment_column_number();
 	this->advance();
-	return make_unique<Punctuation>(PunctuationType::STAR, this->pos.line_num, this->pos.column_num);
+	return make_unique<Token>(TokenType::STAR, "*", this->pos.line_num, this->pos.column_num);
 }
 
-unique_ptr<Punctuation> Lexer::handle_division()
+unique_ptr<Token> Lexer::handle_division()
 {
 	if (this->peek_and_move('='))
 	{
 		this->pos.increment_column_number();
 		this->advance();
-		return make_unique<Punctuation>(PunctuationType::DIVISION_EQUAL, this->pos.line_num, this->pos.column_num);
+		return make_unique<Token>(TokenType::DIVISION_EQUAL, "/=", this->pos.line_num, this->pos.column_num);
 	}
 
 	this->pos.increment_column_number();
 	this->advance();
-	return make_unique<Punctuation>(PunctuationType::DIVISION, this->pos.line_num, this->pos.column_num);
+	return make_unique<Token>(TokenType::DIVISION, "/", this->pos.line_num, this->pos.column_num);
 }
 
-unique_ptr<Punctuation> Lexer::handle_reminder()
+unique_ptr<Token> Lexer::handle_reminder()
 {
 	if (this->peek_and_move('='))
 	{
 		this->pos.increment_column_number();
 		this->advance();
-		return make_unique<Punctuation>(PunctuationType::REMINDER_EQUAL, this->pos.line_num, this->pos.column_num);
+		return make_unique<Token>(TokenType::REMINDER_EQUAL, "%=", this->pos.line_num, this->pos.column_num);
 	}
 
 	this->pos.increment_column_number();
 	this->advance();
-	return make_unique<Punctuation>(PunctuationType::REMINDER, this->pos.line_num, this->pos.column_num);
+	return make_unique<Token>(TokenType::REMINDER, "%", this->pos.line_num, this->pos.column_num);
 }
 
-unique_ptr<Punctuation> Lexer::handle_power()
+unique_ptr<Token> Lexer::handle_power()
 {
 	if (this->peek_and_move('='))
 	{
 		this->pos.increment_column_number();
 		this->advance();
-		return make_unique<Punctuation>(PunctuationType::POWER_EQUAL, this->pos.line_num, this->pos.column_num);
+		return make_unique<Token>(TokenType::POWER_EQUAL, "^=" ,this->pos.line_num, this->pos.column_num);
 	}
 
 	this->pos.increment_column_number();
 	this->advance();
-	return make_unique<Punctuation>(PunctuationType::POWER, this->pos.line_num, this->pos.column_num);
+	return make_unique<Token>(TokenType::POWER, "^", this->pos.line_num, this->pos.column_num);
 }
 
-unique_ptr<Punctuation> Lexer::handle_bang()
+unique_ptr<Token> Lexer::handle_bang()
 {
 	if (this->peek_and_move('='))
 	{
 		this->pos.increment_column_number();
 		this->advance();
-		return make_unique<Punctuation>(PunctuationType::BANG_EQUAL, this->pos.line_num, this->pos.column_num);
+		return make_unique<Token>(TokenType::BANG_EQUAL, "!=", this->pos.line_num, this->pos.column_num);
 	}
 
 	this->pos.increment_column_number();
 	this->advance();
-	return make_unique<Punctuation>(PunctuationType::BANG, this->pos.line_num, this->pos.column_num);
+	return make_unique<Token>(TokenType::BANG, "!", this->pos.line_num, this->pos.column_num);
 }
 
-unique_ptr<Punctuation> Lexer::handle_equal()
+unique_ptr<Token> Lexer::handle_equal()
 {
 	if (this->peek_and_move('='))
 	{
 		this->pos.increment_column_number();
 		this->advance();
-		return make_unique<Punctuation>(PunctuationType::EQUAL_EQUAL, this->pos.line_num, this->pos.column_num);
+		return make_unique<Token>(TokenType::EQUAL_EQUAL, "==", this->pos.line_num, this->pos.column_num);
 	}
 
 	this->pos.increment_column_number();
 	this->advance();
-	return make_unique<Punctuation>(PunctuationType::EQUAL, this->pos.line_num, this->pos.column_num);
+	return make_unique<Token>(TokenType::EQUAL, "=", this->pos.line_num, this->pos.column_num);
 }
 
-unique_ptr<Punctuation> Lexer::handle_greater_than()
+unique_ptr<Token> Lexer::handle_greater_than()
 {
 	if (this->peek_and_move('='))
 	{
 		this->pos.increment_column_number();
 		this->advance();
-		return make_unique<Punctuation>(PunctuationType::GREATER_THAN_EQUAL, this->pos.line_num, this->pos.column_num);
+		return make_unique<Token>(TokenType::GREATER_THAN_EQUAL, ">=", this->pos.line_num, this->pos.column_num);
 	}
 
 	this->pos.increment_column_number();
 	this->advance();
-	return make_unique<Punctuation>(PunctuationType::GREATER_THAN, this->pos.line_num, this->pos.column_num);
+	return make_unique<Token>(TokenType::GREATER_THAN, ">", this->pos.line_num, this->pos.column_num);
 }
 
-unique_ptr<Punctuation> Lexer::handle_lesser_than()
+unique_ptr<Token> Lexer::handle_lesser_than()
 {
 	if (this->peek_and_move('='))
 	{
 		this->pos.increment_column_number();
 		this->advance();
-		return make_unique<Punctuation>(PunctuationType::LESSER_THAN_EQUAL, this->pos.line_num, this->pos.column_num);
+		return make_unique<Token>(TokenType::LESSER_THAN_EQUAL, "<=", this->pos.line_num, this->pos.column_num);
 	}
 
 	this->pos.increment_column_number();
 	this->advance();
-	return make_unique<Punctuation>(PunctuationType::LESSER_THAN, this->pos.line_num, this->pos.column_num);
+	return make_unique<Token>(TokenType::LESSER_THAN, "<", this->pos.line_num, this->pos.column_num);
 }
 
-unique_ptr<Punctuation> Lexer::consume_single_char_punctuation(char ch)
+unique_ptr<Token> Lexer::consume_single_char_punctuation(char ch)
 {
 	this->pos.increment_column_number();
 	this->advance();
@@ -493,59 +416,66 @@ unique_ptr<Punctuation> Lexer::consume_single_char_punctuation(char ch)
 	{
 	case '\\':
 	{
-		return make_unique<Punctuation>(PunctuationType::BACKWARD_SLASH, this->pos.line_num, this->pos.column_num);
-	}
-	case ';':
-	{
-		return make_unique<Punctuation>(PunctuationType::SEMICOLON, this->pos.line_num, this->pos.column_num);
+		return make_unique<Token>(TokenType::BACKWARD_SLASH, "\\", this->pos.line_num, this->pos.column_num);
 	}
 	case '(':
 	{
-		return make_unique<Punctuation>(PunctuationType::OPEN_PARENTHESIS, this->pos.line_num, this->pos.column_num);
+		return make_unique<Token>(TokenType::OPEN_PARENTHESIS, "(", this->pos.line_num, this->pos.column_num);
 	}
 	case ')':
 	{
-		return make_unique<Punctuation>(PunctuationType::CLOSE_PARENTHESIS, this->pos.line_num, this->pos.column_num);
+		return make_unique<Token>(TokenType::CLOSE_PARENTHESIS, ")", this->pos.line_num, this->pos.column_num);
 	}
 	case '{':
 	{
-		return make_unique<Punctuation>(PunctuationType::OPEN_CURLY_BRACE, this->pos.line_num, this->pos.column_num);
+		return make_unique<Token>(TokenType::OPEN_CURLY_BRACE, "{", this->pos.line_num, this->pos.column_num);
 	}
 	case '}':
 	{
-		return make_unique<Punctuation>(PunctuationType::CLOSE_CURLY_BRACE, this->pos.line_num, this->pos.column_num);
+		return make_unique<Token>(TokenType::CLOSE_CURLY_BRACE, "}", this->pos.line_num, this->pos.column_num);
 	}
 	case '[':
 	{
-		return make_unique<Punctuation>(PunctuationType::OPEN_BRACKET, this->pos.line_num, this->pos.column_num);
+		return make_unique<Token>(TokenType::OPEN_BRACKET, "[", this->pos.line_num, this->pos.column_num);
 	}
 	case ']':
 	{
-		return make_unique<Punctuation>(PunctuationType::CLOSE_BRACKET, this->pos.line_num, this->pos.column_num);
+		return make_unique<Token>(TokenType::CLOSE_BRACKET, "]", this->pos.line_num, this->pos.column_num);
 	}
 	case ',':
 	{
-		return make_unique<Punctuation>(PunctuationType::COMMA, this->pos.line_num, this->pos.column_num);
+		return make_unique<Token>(TokenType::COMMA, ",", this->pos.line_num, this->pos.column_num);
 	}
 	case '.':
 	{
-		return make_unique<Punctuation>(PunctuationType::DOT, this->pos.line_num, this->pos.column_num);
+		return make_unique<Token>(TokenType::DOT, ".", this->pos.line_num, this->pos.column_num);
 	}
 	case ':':
 	{
-		return make_unique<Punctuation>(PunctuationType::COLON, this->pos.line_num, this->pos.column_num);
+		return make_unique<Token>(TokenType::COLON, ":", this->pos.line_num, this->pos.column_num);
 	}
 	case '|':
 	{
-		return make_unique<Punctuation>(PunctuationType::BAR, this->pos.line_num, this->pos.column_num);
+		return make_unique<Token>(TokenType::BAR, "|", this->pos.line_num, this->pos.column_num);
 	}
-
 	default:
-		break;
+		return nullptr;
 	}
 }
 
-unique_ptr<Unknown> Lexer::consume_unknown_token(char ch)
+unique_ptr<Token> Lexer::consume_eol()
+{
+	int line_num = this->pos.line_num;
+	int column_num = this->pos.column_num;
+
+	this->advance();
+	this->pos.increment_line_number();
+	this->pos.reset_column_number();
+
+	return make_unique<Token>(TokenType::EOL, "\\n", line_num, column_num);
+}
+
+unique_ptr<Token> Lexer::consume_unknown_token(char ch)
 {
 	string unknown_token;
 	unknown_token.push_back(ch);
@@ -563,7 +493,7 @@ unique_ptr<Unknown> Lexer::consume_unknown_token(char ch)
 		break;
 	}
 
-	return make_unique<Unknown>(unknown_token, this->pos.line_num, this->pos.column_num);
+	return make_unique<Token>(TokenType::UNKNOWN, unknown_token, this->pos.line_num, this->pos.column_num);
 }
 
 // UTILS

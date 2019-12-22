@@ -1,386 +1,139 @@
 #pragma once
+#include <iostream>
+#include <iomanip>
+#include <vector>
 #include "Token.h"
-#include <memory>
 
 using namespace std;
 
-// Print out Tokens
-
-void NumberLiteral::print()
+string to_string(TokenType type)
 {
-	cout << "NumberLiteral : " << this->value << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
+	switch (type)
+	{
+
+	// Literals
+
+	case TokenType::NumberLiteral:
+	{
+		return "NumberLiteral";
+	}
+	case TokenType::StringLiteral:
+	{
+		return "StringLiteral";
+	}
+	case TokenType::BooleanLiteral:
+	{
+		return "BooleanLiteral";
+	}
+
+	// Identifiers
+
+	case TokenType::Identifier:
+	{
+		return "Identifier";
+	}
+	case TokenType::FunctionIdentifier:
+	{
+		return "FunctionIdentifier";
+	}
+
+	// Punctuations
+
+	case TokenType::OPEN_PARENTHESIS:
+	case TokenType::CLOSE_PARENTHESIS:
+	case TokenType::OPEN_CURLY_BRACE:
+	case TokenType::CLOSE_CURLY_BRACE:
+	case TokenType::OPEN_BRACKET:
+	case TokenType::CLOSE_BRACKET:
+	case TokenType::BACKWARD_SLASH:
+	case TokenType::COMMA:
+	case TokenType::DOT:
+	case TokenType::COLON:
+	case TokenType::BAR:
+	case TokenType::ARROW:
+	case TokenType::PLUS:
+	case TokenType::PLUS_EQUAL:
+	case TokenType::MINUS:
+	case TokenType::MINUS_EQUAL:
+	case TokenType::STAR:
+	case TokenType::STAR_EQUAL:
+	case TokenType::DIVISION:
+	case TokenType::DIVISION_EQUAL:
+	case TokenType::REMINDER:
+	case TokenType::REMINDER_EQUAL:
+	case TokenType::POWER:
+	case TokenType::POWER_EQUAL:
+	case TokenType::EQUAL:
+	case TokenType::EQUAL_EQUAL:
+	case TokenType::BANG:
+	case TokenType::BANG_EQUAL:
+	case TokenType::LESSER_THAN:
+	case TokenType::LESSER_THAN_EQUAL:
+	case TokenType::GREATER_THAN:
+	case TokenType::GREATER_THAN_EQUAL:
+	{
+		return "Punctuation";
+	}
+
+	// Keywords
+
+	case TokenType::IF:
+	case TokenType::ELSE:
+	case TokenType::AND:
+	case TokenType::OR:
+	case TokenType::LET:
+	case TokenType::CONST:
+	case TokenType::LOOP:
+	case TokenType::FOR:
+	case TokenType::BREAK:
+	case TokenType::CONTINUE:
+	case TokenType::FN:
+	case TokenType::RETURN:
+	case TokenType::NUM:
+	case TokenType::STR:
+	case TokenType::BOOL:
+	case TokenType::ENUM:
+	case TokenType::TYPE:
+	case TokenType::OPT:
+	case TokenType::TRUE:
+	case TokenType::FALSE:
+	case TokenType::IMPORT:
+	case TokenType::FROM:
+	case TokenType::PUB:
+	case TokenType::PURE:
+	{
+		return "Keyword";
+	}
+
+	// Other
+
+	case TokenType::EOL:
+	{
+		return "EOL";
+	}
+	case TokenType::UNKNOWN:
+	{
+		return "UNKNOWN";
+	}
+	}
+
+	return "";
 }
 
-void StringLiteral::print()
+string Token::get_value() const
 {
-	cout << "StringLiteral : " << this->value << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
+	return this->value;
 }
 
-void BooleanLiteral::print()
+TokenType Token::get_type() const
 {
-	cout << "BooleanLiteral : " << this->value << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
+	return this->type;
 }
 
-void Identifier::print()
+void Token::print() const
 {
-	cout << "Identifier : " << this->value << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-}
-
-void Keyword::print()
-{
-	switch (this->value)
-	{
-	case KeywordType::IF:
-	{
-		cout << "Keyword : IF "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case KeywordType::ELSE:
-	{
-		cout << "Keyword : ELSE "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case KeywordType::AND:
-	{
-		cout << "Keyword : AND "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case KeywordType::OR:
-	{
-		cout << "Keyword : OR "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case KeywordType::LET:
-	{
-		cout << "Keyword : LET "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case KeywordType::CONST:
-	{
-		cout << "Keyword : CONST "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case KeywordType::LOOP:
-	{
-		cout << "Keyword : LOOP "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case KeywordType::FOR:
-	{
-		cout << "Keyword : FOR "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case KeywordType::BREAK:
-	{
-		cout << "Keyword : BREAK "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case KeywordType::CONTINUE:
-	{
-		cout << "Keyword : CONTINUE "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case KeywordType::FN:
-	{
-		cout << "Keyword : FN "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case KeywordType::RETURN:
-	{
-		cout << "Keyword : RETURN "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case KeywordType::NUM:
-	{
-		cout << "Keyword : NUM "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case KeywordType::STR:
-	{
-		cout << "Keyword : STR "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case KeywordType::BOOL:
-	{
-		cout << "Keyword : BOOL "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case KeywordType::ENUM:
-	{
-		cout << "Keyword : ENUM "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case KeywordType::TYPE:
-	{
-		cout << "Keyword : TYPE "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case KeywordType::OPT:
-	{
-		cout << "Keyword : OPT "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case KeywordType::TRUE:
-	{
-		cout << "Keyword : TRUE "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case KeywordType::FALSE:
-	{
-		cout << "Keyword : FALSE "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case KeywordType::IMPORT:
-	{
-		cout << "Keyword : IMPORT "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case KeywordType::FROM:
-	{
-		cout << "Keyword : FROM "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case KeywordType::PUB:
-	{
-		cout << "Keyword : PUB "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case KeywordType::PURE:
-	{
-		cout << "Keyword : PURE "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	default:
-		break;
-	}
-}
-
-void Punctuation::print()
-{
-	switch (this->value)
-	{
-	case PunctuationType::OPEN_PARENTHESIS:
-	{
-		cout << "Punctuation : OPEN_PARENTHESIS "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case PunctuationType::CLOSE_PARENTHESIS:
-	{
-		cout << "Punctuation : CLOSE_PARENTHESIS "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case PunctuationType::OPEN_CURLY_BRACE:
-	{
-		cout << "Punctuation : OPEN_CURLY_BRACE "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case PunctuationType::CLOSE_CURLY_BRACE:
-	{
-		cout << "Punctuation : CLOSE_CURLY_BRACE "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case PunctuationType::OPEN_BRACKET:
-	{
-		cout << "Punctuation : OPEN_BRACKET "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case PunctuationType::CLOSE_BRACKET:
-	{
-		cout << "Punctuation : CLOSE_BRACKET "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case PunctuationType::BACKWARD_SLASH:
-	{
-		cout << "Punctuation : BACKWARD_SLASH "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case PunctuationType::SEMICOLON:
-	{
-		cout << "Punctuation : SEMICOLON "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case PunctuationType::COMMA:
-	{
-		cout << "Punctuation : COMMA "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case PunctuationType::COLON:
-	{
-		cout << "Punctuation : COLON "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case PunctuationType::BAR:
-	{
-		cout << "Punctuation : BAR "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case PunctuationType::ARROW:
-	{
-		cout << "Punctuation : ARROW "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case PunctuationType::PLUS:
-	{
-		cout << "Punctuation : PLUS "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case PunctuationType::PLUS_EQUAL:
-	{
-		cout << "Punctuation : PLUS_EQUAL "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case PunctuationType::MINUS:
-	{
-		cout << "Punctuation : MINUS "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case PunctuationType::MINUS_EQUAL:
-	{
-		cout << "Punctuation : MINUS_EQUAL "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case PunctuationType::STAR:
-	{
-		cout << "Punctuation : STAR "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case PunctuationType::STAR_EQUAL:
-	{
-		cout << "Punctuation : STAR_EQUAL "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case PunctuationType::DIVISION:
-	{
-		cout << "Punctuation : DIVISION "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case PunctuationType::DIVISION_EQUAL:
-	{
-		cout << "Punctuation : DIVISION_EQUAL "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case PunctuationType::REMINDER:
-	{
-		cout << "Punctuation : REMINDER "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case PunctuationType::REMINDER_EQUAL:
-	{
-		cout << "Punctuation : REMINDER_EQUAL "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case PunctuationType::POWER:
-	{
-		cout << "Punctuation : POWER "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case PunctuationType::POWER_EQUAL:
-	{
-		cout << "Punctuation : POWER_EQUAL "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case PunctuationType::EQUAL:
-	{
-		cout << "Punctuation : EQUAL "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case PunctuationType::EQUAL_EQUAL:
-	{
-		cout << "Punctuation : EQUAL_EQUAL "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case PunctuationType::BANG:
-	{
-		cout << "Punctuation : BANG "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case PunctuationType::BANG_EQUAL:
-	{
-		cout << "Punctuation : BANG_EQUAL "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case PunctuationType::LESSER_THAN:
-	{
-		cout << "Punctuation : LESSER_THAN "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case PunctuationType::LESSER_THAN_EQUAL:
-	{
-		cout << "Punctuation : LESSER_THAN_EQUAL "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case PunctuationType::GREATER_THAN:
-	{
-		cout << "Punctuation : GREATER_THAN "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	case PunctuationType::GREATER_THAN_EQUAL:
-	{
-		cout << "Punctuation : GREATER_THAN_EQUAL "
-			 << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
-		break;
-	}
-	default:
-		break;
-	}
-}
-
-void Unknown::print()
-{
-	cout << this->value << " - [Ln : " << this->line_num << " Col : " << this->column_num << "]" << endl;
+	cout << " [ Ln " << setw(3) << std::left << this->line_num;
+	cout << " Col " << setw(3) << std::left << this->column_num << " ] : ";
+	cout << setw(13) << std::left << to_string(this->type) << " : ";
+	cout << setw(20) << std::left << this->value << endl;
 }
