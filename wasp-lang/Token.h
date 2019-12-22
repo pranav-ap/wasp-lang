@@ -115,5 +115,10 @@ public:
 	std::string get_value() const;
 	TokenType get_type() const;
 
+	int get_line_num() const;
+	int get_column_num() const;
+
 	void print() const;
+
+	bool operator==(const Token& token) const;
 };

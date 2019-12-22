@@ -466,7 +466,7 @@ unique_ptr<Token> Lexer::consume_single_char_punctuation(char ch)
 unique_ptr<Token> Lexer::consume_eol()
 {
 	int line_num = this->pos.line_num;
-	int column_num = this->pos.column_num;
+	int column_num = this->pos.column_num + 1;
 
 	this->advance();
 	this->pos.increment_line_number();

@@ -130,10 +130,26 @@ TokenType Token::get_type() const
 	return this->type;
 }
 
+int Token::get_line_num() const
+{
+	return this->line_num;
+}
+
+int Token::get_column_num() const
+{
+	return this->column_num;
+}
+
 void Token::print() const
 {
 	cout << " [ Ln " << setw(3) << std::left << this->line_num;
 	cout << " Col " << setw(3) << std::left << this->column_num << " ] : ";
 	cout << setw(13) << std::left << to_string(this->type) << " : ";
 	cout << setw(20) << std::left << this->value << endl;
+}
+
+bool Token::operator==(const Token& token) const
+{
+	return this->type == token.get_type() && this->value == token.get_value() && 
+		this->line_num == token.get_line_num() && this->column_num == token.get_column_num();
 }
