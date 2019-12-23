@@ -30,7 +30,7 @@ int main()
 
 	Lexer lexer(raw_source);
 	vector<unique_ptr<Token>> tokens = lexer.execute();
-	
+
 	for (auto const& token : tokens)
 	{
 		token->print();

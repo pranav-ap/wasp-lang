@@ -5,7 +5,7 @@
 using namespace std;
 
 map<string, TokenType> keyword_map = {
-	{"if", TokenType::IF},
+	{ "if", TokenType::IF },
 	{ "else", TokenType::ELSE },
 
 	{ "and", TokenType::AND },
@@ -343,7 +343,7 @@ unique_ptr<Token> Lexer::handle_power()
 	{
 		this->pos.increment_column_number();
 		this->advance();
-		return make_unique<Token>(TokenType::POWER_EQUAL, "^=" ,this->pos.line_num, this->pos.column_num);
+		return make_unique<Token>(TokenType::POWER_EQUAL, "^=", this->pos.line_num, this->pos.column_num);
 	}
 
 	this->pos.increment_column_number();
@@ -533,4 +533,3 @@ char Lexer::get_right_char()
 {
 	return this->get_char_at(this->index + 1);
 }
-

@@ -155,8 +155,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Lexer.h" />
+    <ClInclude Include="Nodes.h" />
     <ClInclude Include="Position.h" />
     <ClInclude Include="Token.h" />
+    <ClInclude Include="Types.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="main.wasp" />

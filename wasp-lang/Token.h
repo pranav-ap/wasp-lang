@@ -111,7 +111,7 @@ class Token
 
 public:
 	Token(TokenType type, std::string value, int line_num, int column_num) : type(type), value(value), line_num(line_num), column_num(column_num) {};
-	
+
 	std::string get_value() const;
 	TokenType get_type() const;
 

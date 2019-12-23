@@ -10,8 +10,7 @@ string to_string(TokenType type)
 {
 	switch (type)
 	{
-
-	// Literals
+		// Literals
 
 	case TokenType::NumberLiteral:
 	{
@@ -150,6 +149,6 @@ void Token::print() const
 
 bool Token::operator==(const Token& token) const
 {
-	return this->type == token.get_type() && this->value == token.get_value() && 
+	return this->type == token.get_type() && this->value == token.get_value() &&
 		this->line_num == token.get_line_num() && this->column_num == token.get_column_num();
 }
