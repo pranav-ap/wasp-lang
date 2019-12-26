@@ -149,19 +149,28 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Lexer.cpp" />
-    <ClCompile Include="Position.cpp" />
+    <ClCompile Include="Nodes.cpp" />
+    <ClCompile Include="Parser.cpp" />
+    <ClCompile Include="Pointer.cpp" />
+    <ClCompile Include="TokenPosition.cpp" />
     <ClCompile Include="Token.cpp" />
     <ClCompile Include="wasp-lang.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Lexer.h" />
     <ClInclude Include="Nodes.h" />
-    <ClInclude Include="Position.h" />
+    <ClInclude Include="Parser.h" />
+    <ClInclude Include="Pointer.h" />
+    <ClInclude Include="TokenPosition.h" />
     <ClInclude Include="Token.h" />
+    <ClInclude Include="TokenType.h" />
     <ClInclude Include="Types.h" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="main.wasp" />
+    <Text Include="lexer_test.wasp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="main.wasp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

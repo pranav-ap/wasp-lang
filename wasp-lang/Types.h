@@ -3,42 +3,49 @@
 #include <string>
 #include <vector>
 
-namespace Types {
-	class Type {};
-	class Scalar : public Type {};
-	class Composite : public Type {};
+class Type {};
 
-	class Optional : public Type
-	{
-		std::optional<Type> optional_type;
-	};
+class Scalar : public Type {};
 
-	// Scalar Types
+class Composite : public Type {};
 
-	class Num : public Scalar {};
-	class Str : public Scalar {};
-	class Bool : public Scalar {};
+class Optional : public Type
+{
+	std::optional<Type> optional_type;
+};
 
-	// Composite Types
+class Variant : public Type
+{
+	std::vector<Type> types;
+};
 
-	class Vector : public Composite
-	{
-		Type type;
-	};
+// Scalar Types
 
-	class Tuple : public Composite
-	{
-		std::vector<Type> types;
-	};
+class Number : public Scalar {};
 
-	class Map : public Composite
-	{
-		Scalar key_type;
-		Type value_type;
-	};
+class String : public Scalar {};
 
-	class Record : public Composite
-	{
-		std::string type;
-	};
-}
+class Bool : public Scalar {};
+
+// Composite Types
+
+class Vector : public Composite
+{
+	Type type;
+};
+
+class Tuple : public Composite
+{
+	std::vector<Type> types;
+};
+
+class Map : public Composite
+{
+	Scalar key_type;
+	Type value_type;
+};
+
+class Record : public Composite
+{
+	std::string type;
+};

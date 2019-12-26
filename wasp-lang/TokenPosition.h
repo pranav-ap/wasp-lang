@@ -1,13 +1,17 @@
 #pragma once
 
-class Position {
-public:
+class TokenPosition
+{
 	int line_num;
 	int column_num;
 
-	Position() : line_num(1), column_num(1) {};
+public:
+	TokenPosition() : line_num(1), column_num(1) {};
 
 	void increment_line_number();
 	void increment_column_number();
 	void reset_column_number();
+
+	int get_line_num();
+	int get_column_num();
 };

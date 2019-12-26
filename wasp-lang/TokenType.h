@@ -1,0 +1,104 @@
+#pragma once
+
+enum class TokenType
+{
+	// Literals
+
+	NumberLiteral,
+	StringLiteral,
+	BooleanLiteral,
+
+	// Identifiers
+
+	Identifier,
+	FunctionIdentifier,
+
+	// Punctuations
+
+	OPEN_PARENTHESIS,
+	CLOSE_PARENTHESIS,
+	OPEN_CURLY_BRACE,
+	CLOSE_CURLY_BRACE,
+	OPEN_BRACKET,
+	CLOSE_BRACKET,
+
+	BACKWARD_SLASH,
+	COMMA,
+	DOT,
+	COLON,
+	BAR,
+	ARROW,
+
+	PLUS,
+	PLUS_EQUAL,
+
+	MINUS,
+	MINUS_EQUAL,
+
+	STAR,
+	STAR_EQUAL,
+
+	DIVISION,
+	DIVISION_EQUAL,
+
+	REMINDER,
+	REMINDER_EQUAL,
+
+	POWER,
+	POWER_EQUAL,
+
+	EQUAL,
+	EQUAL_EQUAL,
+
+	BANG,
+	BANG_EQUAL,
+
+	LESSER_THAN,
+	LESSER_THAN_EQUAL,
+
+	GREATER_THAN,
+	GREATER_THAN_EQUAL,
+
+	// Keywords
+
+	IF,
+	ELSE,
+
+	AND,
+	OR,
+
+	LET,
+	CONST,
+
+	LOOP,
+	FOR,
+	BREAK,
+	CONTINUE,
+	IN,
+
+	FN,
+	RETURN,
+
+	NUM,
+	STR,
+	BOOL,
+	ENUM,
+	TYPE,
+	OPT,
+
+	NONE,
+
+	TRUE,
+	FALSE,
+
+	IMPORT,
+	FROM,
+
+	PUB,
+	PURE,
+
+	// Other
+
+	EOL,
+	UNKNOWN
+};

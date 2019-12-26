@@ -114,9 +114,9 @@ string to_string(TokenType type)
 	{
 		return "UNKNOWN";
 	}
+	default:
+		return "";
 	}
-
-	return "";
 }
 
 string Token::get_value() const

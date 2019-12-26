@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 #include "Lexer.h"
+#include "Parser.h"
 
 using namespace std;
 
@@ -35,4 +36,7 @@ int main()
 	{
 		token->print();
 	}
+
+	Parser parser(tokens);
+	Module mod = parser.execute();
 }

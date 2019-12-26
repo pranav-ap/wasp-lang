@@ -31,7 +31,7 @@ a["name"];
 
 type hello {
 	foo: bool,
-  bar: str
+    bar: str
 }
 
 let foo : hello = {
@@ -44,6 +44,12 @@ foo.name;
 ## Alias
 
 type length = int;
+
+## Variant
+
+let a : <str, int, bool> = 0
+
+let a : [str, <int, bool>] = ["hello", 0]
 
 # Comments
 

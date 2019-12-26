@@ -3,15 +3,16 @@
 #include <vector>
 #include <memory>
 #include "Token.h"
-#include "Position.h"
+#include "TokenPosition.h"
+#include "Pointer.h"
 
 class Lexer
 {
 	std::string raw_source;
-	Position pos;
-	int index;
 
-	void advance();
+	TokenPosition position;
+	Pointer pointer;
+
 	char get_char_at(int index);
 	char get_current_char();
 	char get_right_char();
@@ -41,6 +42,6 @@ class Lexer
 	std::unique_ptr<Token> consume_unknown_token(char ch);
 
 public:
-	Lexer(std::string raw_source) : raw_source(raw_source), pos(Position()), index(0) {};
+	Lexer(std::string raw_source) : raw_source(raw_source), position(TokenPosition()), pointer(Pointer()) {};
 	std::vector<std::unique_ptr<Token>> execute();
 };
