@@ -42,9 +42,9 @@ map<string, TokenType> keyword_map = {
 	{ "pure", TokenType::PURE }
 };
 
-vector<unique_ptr<Token>> Lexer::execute()
+vector<shared_ptr<Token>> Lexer::execute()
 {
-	vector<unique_ptr<Token>> tokens;
+	vector<shared_ptr<Token>> tokens;
 
 	while (true)
 	{
@@ -63,7 +63,7 @@ vector<unique_ptr<Token>> Lexer::execute()
 			continue;
 		}
 
-		unique_ptr<Token> token;
+		shared_ptr<Token> token;
 
 		if (std::isdigit(static_cast<unsigned char>(ch)))
 		{
@@ -181,7 +181,7 @@ vector<unique_ptr<Token>> Lexer::execute()
 
 // Consumers
 
-unique_ptr<Token> Lexer::consume_number_literal(char ch)
+shared_ptr<Token> Lexer::consume_number_literal(char ch)
 {
 	string number_literal;
 	number_literal.push_back(ch);
@@ -205,7 +205,7 @@ unique_ptr<Token> Lexer::consume_number_literal(char ch)
 	return make_unique<Token>(TokenType::NumberLiteral, number_literal, this->position.get_line_num(), this->position.get_column_num());
 }
 
-unique_ptr<Token> Lexer::consume_string_literal()
+shared_ptr<Token> Lexer::consume_string_literal()
 {
 	string string_literal;
 
@@ -230,7 +230,7 @@ unique_ptr<Token> Lexer::consume_string_literal()
 	return make_unique<Token>(TokenType::StringLiteral, string_literal, this->position.get_line_num(), this->position.get_column_num());
 }
 
-unique_ptr<Token> Lexer::consume_identifier(char ch)
+shared_ptr<Token> Lexer::consume_identifier(char ch)
 {
 	string identifier;
 	identifier.push_back(ch);
@@ -264,7 +264,7 @@ unique_ptr<Token> Lexer::consume_identifier(char ch)
 	return make_unique<Token>(TokenType::Identifier, identifier, this->position.get_line_num(), this->position.get_column_num());
 }
 
-unique_ptr<Token> Lexer::handle_plus()
+shared_ptr<Token> Lexer::handle_plus()
 {
 	if (this->peek_and_move('='))
 	{
@@ -278,7 +278,7 @@ unique_ptr<Token> Lexer::handle_plus()
 	return make_unique<Token>(TokenType::PLUS, "+", this->position.get_line_num(), this->position.get_column_num());
 }
 
-unique_ptr<Token> Lexer::handle_minus()
+shared_ptr<Token> Lexer::handle_minus()
 {
 	if (this->peek_and_move('='))
 	{
@@ -298,7 +298,7 @@ unique_ptr<Token> Lexer::handle_minus()
 	return make_unique<Token>(TokenType::MINUS, "-", this->position.get_line_num(), this->position.get_column_num());
 }
 
-unique_ptr<Token> Lexer::handle_star()
+shared_ptr<Token> Lexer::handle_star()
 {
 	if (this->peek_and_move('='))
 	{
@@ -312,7 +312,7 @@ unique_ptr<Token> Lexer::handle_star()
 	return make_unique<Token>(TokenType::STAR, "*", this->position.get_line_num(), this->position.get_column_num());
 }
 
-unique_ptr<Token> Lexer::handle_division()
+shared_ptr<Token> Lexer::handle_division()
 {
 	if (this->peek_and_move('='))
 	{
@@ -326,7 +326,7 @@ unique_ptr<Token> Lexer::handle_division()
 	return make_unique<Token>(TokenType::DIVISION, "/", this->position.get_line_num(), this->position.get_column_num());
 }
 
-unique_ptr<Token> Lexer::handle_reminder()
+shared_ptr<Token> Lexer::handle_reminder()
 {
 	if (this->peek_and_move('='))
 	{
@@ -340,7 +340,7 @@ unique_ptr<Token> Lexer::handle_reminder()
 	return make_unique<Token>(TokenType::REMINDER, "%", this->position.get_line_num(), this->position.get_column_num());
 }
 
-unique_ptr<Token> Lexer::handle_power()
+shared_ptr<Token> Lexer::handle_power()
 {
 	if (this->peek_and_move('='))
 	{
@@ -354,7 +354,7 @@ unique_ptr<Token> Lexer::handle_power()
 	return make_unique<Token>(TokenType::POWER, "^", this->position.get_line_num(), this->position.get_column_num());
 }
 
-unique_ptr<Token> Lexer::handle_bang()
+shared_ptr<Token> Lexer::handle_bang()
 {
 	if (this->peek_and_move('='))
 	{
@@ -368,7 +368,7 @@ unique_ptr<Token> Lexer::handle_bang()
 	return make_unique<Token>(TokenType::BANG, "!", this->position.get_line_num(), this->position.get_column_num());
 }
 
-unique_ptr<Token> Lexer::handle_equal()
+shared_ptr<Token> Lexer::handle_equal()
 {
 	if (this->peek_and_move('='))
 	{
@@ -382,7 +382,7 @@ unique_ptr<Token> Lexer::handle_equal()
 	return make_unique<Token>(TokenType::EQUAL, "=", this->position.get_line_num(), this->position.get_column_num());
 }
 
-unique_ptr<Token> Lexer::handle_greater_than()
+shared_ptr<Token> Lexer::handle_greater_than()
 {
 	if (this->peek_and_move('='))
 	{
@@ -396,7 +396,7 @@ unique_ptr<Token> Lexer::handle_greater_than()
 	return make_unique<Token>(TokenType::GREATER_THAN, ">", this->position.get_line_num(), this->position.get_column_num());
 }
 
-unique_ptr<Token> Lexer::handle_lesser_than()
+shared_ptr<Token> Lexer::handle_lesser_than()
 {
 	if (this->peek_and_move('='))
 	{
@@ -410,7 +410,7 @@ unique_ptr<Token> Lexer::handle_lesser_than()
 	return make_unique<Token>(TokenType::LESSER_THAN, "<", this->position.get_line_num(), this->position.get_column_num());
 }
 
-unique_ptr<Token> Lexer::consume_single_char_punctuation(char ch)
+shared_ptr<Token> Lexer::consume_single_char_punctuation(char ch)
 {
 	this->position.increment_column_number();
 	this->pointer.advance();
@@ -466,7 +466,7 @@ unique_ptr<Token> Lexer::consume_single_char_punctuation(char ch)
 	}
 }
 
-unique_ptr<Token> Lexer::consume_eol()
+shared_ptr<Token> Lexer::consume_eol()
 {
 	int line_num = this->position.get_line_num();;
 	int column_num = this->position.get_column_num() + 1;
@@ -478,7 +478,7 @@ unique_ptr<Token> Lexer::consume_eol()
 	return make_unique<Token>(TokenType::EOL, "\\n", line_num, column_num);
 }
 
-unique_ptr<Token> Lexer::consume_unknown_token(char ch)
+shared_ptr<Token> Lexer::consume_unknown_token(char ch)
 {
 	string unknown_token;
 	unknown_token.push_back(ch);

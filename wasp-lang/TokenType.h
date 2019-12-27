@@ -30,9 +30,11 @@ enum class TokenType
 	ARROW,
 
 	PLUS,
+	UNARY_PLUS,
 	PLUS_EQUAL,
 
 	MINUS,
+	UNARY_MINUS,
 	MINUS_EQUAL,
 
 	STAR,

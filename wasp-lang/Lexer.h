@@ -21,27 +21,27 @@ class Lexer
 
 	// Consumers
 
-	std::unique_ptr<Token> consume_number_literal(char ch);
-	std::unique_ptr<Token> consume_string_literal();
+	std::shared_ptr<Token> consume_number_literal(char ch);
+	std::shared_ptr<Token> consume_string_literal();
 
-	std::unique_ptr<Token> consume_identifier(char ch);
+	std::shared_ptr<Token> consume_identifier(char ch);
 
-	std::unique_ptr<Token> handle_plus();
-	std::unique_ptr<Token> handle_minus();
-	std::unique_ptr<Token> handle_star();
-	std::unique_ptr<Token> handle_division();
-	std::unique_ptr<Token> handle_reminder();
-	std::unique_ptr<Token> handle_power();
-	std::unique_ptr<Token> handle_bang();
-	std::unique_ptr<Token> handle_equal();
-	std::unique_ptr<Token> handle_greater_than();
-	std::unique_ptr<Token> handle_lesser_than();
-	std::unique_ptr<Token> consume_single_char_punctuation(char ch);
+	std::shared_ptr<Token> handle_plus();
+	std::shared_ptr<Token> handle_minus();
+	std::shared_ptr<Token> handle_star();
+	std::shared_ptr<Token> handle_division();
+	std::shared_ptr<Token> handle_reminder();
+	std::shared_ptr<Token> handle_power();
+	std::shared_ptr<Token> handle_bang();
+	std::shared_ptr<Token> handle_equal();
+	std::shared_ptr<Token> handle_greater_than();
+	std::shared_ptr<Token> handle_lesser_than();
+	std::shared_ptr<Token> consume_single_char_punctuation(char ch);
 
-	std::unique_ptr<Token> consume_eol();
-	std::unique_ptr<Token> consume_unknown_token(char ch);
+	std::shared_ptr<Token> consume_eol();
+	std::shared_ptr<Token> consume_unknown_token(char ch);
 
 public:
 	Lexer(std::string raw_source) : raw_source(raw_source), position(TokenPosition()), pointer(Pointer()) {};
-	std::vector<std::unique_ptr<Token>> execute();
+	std::vector<std::shared_ptr<Token>> execute();
 };

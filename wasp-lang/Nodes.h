@@ -2,29 +2,25 @@
 #include <optional>
 #include <string>
 #include <vector>
+#include <memory>
 #include <utility>
 #include <variant>
 #include "Token.h"
 #include "Types.h"
-
-// Roots
+#include "ExpressionNodes.h"
 
 class Statement {};
 
-class Expression {};
-
-typedef std::vector<Statement> Block;
-
-// Statements
+using Block = std::vector<Statement>;
 
 class Let : public Statement
 {
 	bool is_public;
 	std::string name;
-	Type type;
-	Expression expression;
+	Type_ptr type;
+	std::shared_ptr<ExpressionNode> expression;
 public:
-	Let(bool is_public, std::string name, Type type, Expression expression) :
+	Let(bool is_public, std::string name, Type_ptr type, std::shared_ptr<ExpressionNode> expression) :
 		is_public(is_public), name(name), type(type), expression(expression) {};
 };
 
@@ -32,28 +28,28 @@ class Const : public Statement
 {
 	bool is_public;
 	std::string name;
-	Type type;
-	Expression expression;
+	Type_ptr type;
+	std::shared_ptr<ExpressionNode> expression;
 public:
-	Const(bool is_public, std::string name, Type type, Expression expression) :
+	Const(bool is_public, std::string name, Type_ptr type, std::shared_ptr<ExpressionNode> expression) :
 		is_public(is_public), name(name), type(type), expression(expression) {};
 };
 
 class Assignment : public Statement
 {
 	std::string name;
-	Expression expression;
+	std::shared_ptr<ExpressionNode> expression;
 public:
-	Assignment(std::string name, Expression expression) : name(name), expression(expression) {};
+	Assignment(std::string name, std::shared_ptr<ExpressionNode> expression) : name(name), expression(expression) {};
 };
 
 class Branch : public Statement
 {
-	Expression condition;
+	std::shared_ptr<ExpressionNode> condition;
 	Block consequence;
 	Block alternative;
 public:
-	Branch(Expression condition, Block consequence, Block alternative) :
+	Branch(std::shared_ptr<ExpressionNode> condition, Block consequence, Block alternative) :
 		condition(condition), consequence(consequence), alternative(alternative) {};
 };
 
@@ -72,9 +68,9 @@ class RecordDefinition : public Statement
 {
 	bool is_public;
 	std::string name;
-	std::vector<std::pair<std::string, Type>> member_types;
+	std::vector<std::pair<std::string, Type_ptr>> member_types;
 public:
-	RecordDefinition(bool is_public, std::string name, std::vector<std::pair<std::string, Type>> member_types) :
+	RecordDefinition(bool is_public, std::string name, std::vector<std::pair<std::string, Type_ptr>> member_types) :
 		is_public(is_public), name(name), member_types(member_types) {};
 };
 
@@ -82,26 +78,26 @@ class FunctionDefinition : public Statement
 {
 	bool is_public;
 	std::string name;
-	std::vector<std::pair<std::string, Type>> arguments;
-	std::optional<Type> return_type;
+	std::vector<std::pair<std::string, Type_ptr>> arguments;
+	std::optional<Type_ptr> return_type;
 	Block body;
 public:
-	FunctionDefinition(bool is_public, std::string name, std::vector<std::pair<std::string, Type>> arguments, std::optional<Type> return_type, Block body) :
+	FunctionDefinition(bool is_public, std::string name, std::vector<std::pair<std::string, Type_ptr>> arguments, std::optional<Type_ptr> return_type, Block body) :
 		is_public(is_public), name(name), arguments(arguments), return_type(return_type), body(body) {};
 };
 
 class Return : public Statement
 {
-	std::optional<Expression> expression;
+	std::optional<std::shared_ptr<ExpressionNode>> expression;
 public:
-	Return(std::optional<Expression> expression) : expression(expression) {};
+	Return(std::optional<std::shared_ptr<ExpressionNode>> expression) : expression(expression) {};
 };
 
 class ExpressionStatement : public Statement
 {
-	Expression expression;
+	std::shared_ptr<ExpressionNode> expression;
 public:
-	ExpressionStatement(Expression expression) : expression(expression) {};
+	ExpressionStatement(std::shared_ptr<ExpressionNode> expression) : expression(expression) {};
 };
 
 class Import : public Statement
@@ -112,126 +108,17 @@ public:
 	Import(std::vector<std::string> goods, std::string path) : goods(goods), path(path) {};
 };
 
-// Expressions
-
-class StringLiteral : public Expression
-{
-	std::string value;
-public:
-	StringLiteral(std::string value) : value(value) {};
-};
-
-class NumberLiteral : public Expression
-{
-	double value;
-public:
-	NumberLiteral(double value) : value(value) {};
-};
-
-class BooleanLiteral : public Expression
-{
-	bool value;
-public:
-	BooleanLiteral(bool value) : value(value) {};
-};
-
-class TupleLiteral : public Expression
-{
-	std::vector<Expression> expressions;
-public:
-	TupleLiteral(std::vector<Expression> expressions) : expressions(expressions) {};
-};
-
-class VectorLiteral : public Expression
-{
-	std::vector<Expression> expressions;
-public:
-	VectorLiteral(std::vector<Expression> expressions) : expressions(expressions) {};
-};
-
-class MapLiteral : public Expression
-{
-	std::vector<std::pair<Scalar, Expression>> value;
-public:
-	MapLiteral(std::vector<std::pair<Scalar, Expression>> value) : value(value) {};
-};
-
-class RecordLiteral : public Expression
-{
-	std::vector<std::pair<std::string, Expression>> value;
-public:
-	RecordLiteral(std::vector<std::pair<std::string, Expression>> value) : value(value) {};
-};
-
-class MemberAccess : public Expression
-{
-	std::string name;
-	Expression index_expression;
-public:
-	MemberAccess(std::string name, Expression index_expression) : name(name), index_expression(index_expression) {};
-};
-
-class RecordMemberAccess : public Expression
-{
-	std::string record_name;
-	std::string member_name;
-public:
-	RecordMemberAccess(std::string record_name, std::string member_name) : record_name(record_name), member_name(member_name) {};
-};
-
-class Identifier : public Expression
-{
-	std::string name;
-public:
-	Identifier(std::string name) : name(name) {};
-};
-
-class FunctionCall : public Expression
-{
-	std::string name;
-	std::vector<Expression> arguments;
-public:
-	FunctionCall(std::string name, std::vector<Expression> arguments) : name(name), arguments(arguments) {};
-};
-
-class Unary : public Expression
-{
-	Expression operand;
-	Token op;
-public:
-	Unary(Expression operand, Token op) : operand(operand), op(op) {};
-};
-
-class Binary : public Expression
-{
-	Expression left;
-	Token op;
-	Expression right;
-public:
-	Binary(Expression left, Token op, Expression right) : left(left), op(op), right(right) {};
-};
-
-// Other
-
-typedef std::variant<
+using StatementNode = std::variant<
 	std::monostate,
 	Let, Const, Assignment,
 	Branch, Loop, Break, Continue,
 	RecordDefinition, FunctionDefinition,
 	Return, ExpressionStatement, Import
-> Node;
-
-typedef std::variant <
-	std::monostate,
-	StringLiteral, NumberLiteral, BooleanLiteral,
-	TupleLiteral, VectorLiteral, MapLiteral, RecordLiteral,
-	MemberAccess, RecordMemberAccess, Identifier, FunctionCall,
-	Unary, Binary
-> ExpressionNode;
+>;
 
 class Module
 {
-	std::vector<Node> nodes;
+	std::vector<std::shared_ptr<StatementNode>> nodes;
 public:
-	void add(Node node);
+	void add(std::shared_ptr<StatementNode> node);
 };

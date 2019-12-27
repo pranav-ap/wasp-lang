@@ -157,6 +157,7 @@
     <ClCompile Include="wasp-lang.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ExpressionNodes.h" />
     <ClInclude Include="Lexer.h" />
     <ClInclude Include="Nodes.h" />
     <ClInclude Include="Parser.h" />
