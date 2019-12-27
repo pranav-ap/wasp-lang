@@ -7,27 +7,23 @@
 
 class Parser
 {
-	std::vector<std::unique_ptr<Token>> tokens;
+	std::vector<std::shared_ptr<Token>> tokens;
 	std::vector<bool> inside_function_call;
 	Pointer pointer;
 
 	// Token Consumers
 
-	bool consume_keyword(std::string keyword);
-	bool consume_punctuation(std::string keyword);
-	bool consume_identifier(std::string keyword);
-	bool consume_function_identifier(std::string keyword);
-	bool consume_identifier_or_function_identifier(std::string keyword);
-	bool consume_string_literal(std::string keyword);
-	bool consume_scalar_datatype(std::string keyword);
-	bool consume_valid_key_datatype(std::string keyword);
-	bool consume_declaration_pair(std::string keyword);
-	bool consume_datatype(std::string keyword);
+	bool is_followed_by(TokenType token_type);
+	Token consume_token(TokenType token_type);
+
+	Token consume_scalar_datatype();
+	Token consume_valid_key_datatype();
+	Token consume_datatype();
 
 	// Parsers
 
 	Node parse_statement();
-	Node parse_expression();
+	ExpressionNode parse_expression();
 
 	// Variable declaration parsers
 
@@ -36,10 +32,10 @@ class Parser
 
 	// Literal parsers
 
-	Node parse_vector_literal();
-	Node parse_tuple_literal();
-	Node parse_map_literal();
-	Node parse_record_literal();
+	ExpressionNode parse_vector_literal();
+	ExpressionNode parse_tuple_literal();
+	ExpressionNode parse_map_literal();
+	ExpressionNode parse_record_literal();
 
 	// Block statement parsing
 
@@ -60,23 +56,29 @@ class Parser
 	// Definition Parsers
 
 	Node parse_enum_definition();
-	Node parse_record_definition();
+	Node parse_type_declaration();
 	Node parse_function_definition();
 
 	// Other
 
-	Node parse_expression_statement();
 	Node handle_identifier();
+	Node parse_expression_statement();
 	Node parse_import_statement();
-	Node parse_pub();
+	Node parse_public_statement();
+
+	// Expression parsing utils
+
+	void pop_all_from_stack_into_ast(std::vector<std::shared_ptr<Token>>& op_stack, std::vector<std::shared_ptr<Expression>>& ast);
+	void push_unary_operator_to_ast(std::shared_ptr<Token> op, std::vector<std::shared_ptr<Expression>>& ast);
+	void push_binary_operator_into_ast(std::shared_ptr<Token> op, std::vector<std::shared_ptr<Expression>>& ast);
+	void pop_until_open_parenthesis_from_stack_into_ast(std::vector<std::shared_ptr<Token>>& op_stack, std::vector<std::shared_ptr<Expression>>& ast);
+	void push_operator_to_operator_stack(std::vector<std::shared_ptr<Token>>& op_stack, std::vector<std::shared_ptr<Expression>>& ast);
 
 	// utils
 
-	std::unique_ptr<Token> get_current_token();
+	std::shared_ptr<Token> get_current_token();
 
 public:
-	Parser(std::vector<std::unique_ptr<Token>>& token_list) :
-		tokens(std::move(token_list)), inside_function_call({}), pointer(Pointer()) {};
-
+	Parser(std::vector<std::shared_ptr<Token>>& token_list) : tokens(std::move(token_list)), pointer(Pointer()) {};
 	Module execute();
 };

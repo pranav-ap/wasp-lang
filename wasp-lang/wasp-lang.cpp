@@ -26,11 +26,11 @@ int main()
 {
 	cout << " Wasp Language Interpreter " << endl;
 
-	string raw_source = read_source("main.wasp");
+	string raw_source = read_source("lexer_test.wasp");
 	cout << raw_source << endl;
 
 	Lexer lexer(raw_source);
-	vector<unique_ptr<Token>> tokens = lexer.execute();
+	vector<shared_ptr<Token>> tokens = lexer.execute();
 
 	for (auto const& token : tokens)
 	{
