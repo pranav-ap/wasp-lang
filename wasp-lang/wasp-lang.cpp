@@ -26,7 +26,7 @@ int main()
 {
 	cout << " Wasp Language Interpreter " << endl;
 
-	string raw_source = read_source("lexer_test.wasp");
+	string raw_source = read_source("main.wasp");
 	cout << raw_source << endl;
 
 	Lexer lexer(raw_source);

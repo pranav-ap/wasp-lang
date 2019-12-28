@@ -6,25 +6,31 @@
 #include <memory>
 
 class Scalar;
-class Composite;
-class Optional;
-class Variant;
 class Number;
 class String;
 class Bool;
+
+class Composite;
 class Vector;
 class Tuple;
 class Map;
 class Record;
 
+class Optional;
+class Variant;
+
 using TypeNode = std::variant<
+	std::monostate,
 	Scalar, Composite, Optional, Variant,
 	Number, String, Bool,
 	Vector, Tuple,
 	Map, Record
 >;
 
-using Type_ptr = std::shared_ptr<TypeNode>;
+using TypeNode_ptr = std::shared_ptr<TypeNode>;
+
+using KeyTypeNode = std::variant<std::monostate, Number, String>;
+using KeyTypeNode_ptr = std::shared_ptr<KeyTypeNode>;
 
 class Type {};
 
@@ -34,12 +40,14 @@ class Composite : public Type {};
 
 class Optional : public Type
 {
-	std::optional<Type_ptr> optional_type;
+	std::optional<TypeNode_ptr> optional_type;
 };
 
 class Variant : public Type
 {
-	std::vector<Type_ptr> types;
+	std::vector<TypeNode_ptr> types;
+public:
+	Variant(std::vector<TypeNode_ptr> types) : types(types) {};
 };
 
 // Scalar Types
@@ -54,18 +62,24 @@ class Bool : public Scalar {};
 
 class Vector : public Composite
 {
-	Type_ptr type;
+	TypeNode_ptr type;
+public:
+	Vector(TypeNode_ptr type) : type(type) {};
 };
 
 class Tuple : public Composite
 {
-	std::vector<Type_ptr> types;
+	std::vector<TypeNode_ptr> types;
+public:
+	Tuple(std::vector<TypeNode_ptr> types) : types(types) {};
 };
 
 class Map : public Composite
 {
-	Scalar key_type;
-	Type_ptr value_type;
+	KeyTypeNode_ptr key_type;
+	TypeNode_ptr value_type;
+public:
+	Map(KeyTypeNode_ptr key_type, TypeNode_ptr value_type) : key_type(key_type), value_type(value_type) {};
 };
 
 class Record : public Composite

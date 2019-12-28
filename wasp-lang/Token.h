@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <memory>
 #include "TokenType.h"
 
 class Token
@@ -23,3 +24,5 @@ public:
 
 	bool operator==(const Token& token) const;
 };
+
+using Token_ptr = std::shared_ptr<Token>;

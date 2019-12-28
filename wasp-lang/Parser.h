@@ -5,12 +5,6 @@
 #include "Pointer.h"
 #include "Types.h"
 #include "Nodes.h"
-#include "ExpressionNodes.h"
-
-using Token_ptr = std::shared_ptr<Token>;
-using StatementNode_ptr = std::shared_ptr<StatementNode>;
-using ExpressionNode_ptr = std::shared_ptr<ExpressionNode>;
-using Type_ptr = std::shared_ptr<TypeNode>;
 
 class Parser
 {
@@ -55,20 +49,22 @@ class Parser
 
 	// Type parsers
 
-	Type_ptr parse_type();
-	Type_ptr parse_vector_type();
-	Type_ptr parse_tuple_type();
-	Type_ptr parse_map_type();
+	TypeNode_ptr parse_type();
+	TypeNode_ptr parse_vector_type();
+	TypeNode_ptr parse_tuple_type();
+	TypeNode_ptr parse_map_type();
+	TypeNode_ptr parse_variant_type();
 
-	Type_ptr consume_scalar_datatype();
-	Type_ptr consume_valid_key_datatype();
-	Type_ptr consume_datatype_word();
+	TypeNode_ptr consume_scalar_datatype();
+	TypeNode_ptr consume_datatype_word();
+
+	KeyTypeNode_ptr consume_valid_map_key_datatype();
 
 	// Definition Parsers
 
-	StatementNode_ptr parse_enum_definition();
-	StatementNode_ptr parse_type_declaration();
-	StatementNode_ptr parse_function_definition();
+	StatementNode_ptr parse_enum_definition(bool is_public);
+	StatementNode_ptr parse_type_declaration(bool is_public);
+	StatementNode_ptr parse_function_definition(bool is_public);
 
 	// Other
 

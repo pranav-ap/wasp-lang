@@ -434,7 +434,7 @@ StatementNode_ptr Parser::parse_let_declaration(bool is_public)
 
 // Type parsers
 
-Type_ptr Parser::parse_type()
+TypeNode_ptr Parser::parse_type()
 {
 	if (this->expect_current_token(TokenType::OPEN_BRACKET))
 	{
@@ -451,6 +451,11 @@ Type_ptr Parser::parse_type()
 		return this->parse_map_type();
 	}
 
+	if (this->expect_current_token(TokenType::OPEN_ANGLE_BRACKET))
+	{
+		return this->parse_variant_type();
+	}
+
 	auto type = this->consume_datatype_word();
 	if (type != nullptr)
 	{
@@ -460,35 +465,98 @@ Type_ptr Parser::parse_type()
 	return nullptr;
 }
 
-Type_ptr Parser::parse_vector_type()
+TypeNode_ptr Parser::parse_vector_type()
 {
-	return Type_ptr();
-}
+	auto type = this->parse_type();
 
-Type_ptr Parser::parse_tuple_type()
-{
-	return Type_ptr();
-}
-
-Type_ptr Parser::parse_map_type()
-{
-	return Type_ptr();
-}
-
-Token_ptr Parser::consume_token(TokenType token_type)
-{
-	auto token = this->get_current_token();
-
-	if (token_type == token->get_type())
+	if (type == nullptr)
 	{
-		this->pointer.advance();
-		return move(token);
+		return TypeNode_ptr();
 	}
 
-	return nullptr;
+	if (this->expect_current_token(TokenType::CLOSE_BRACKET))
+	{
+		return make_shared<TypeNode>(Vector(type));
+	}
+
+	return TypeNode_ptr();
 }
 
-Type_ptr Parser::consume_scalar_datatype()
+TypeNode_ptr Parser::parse_tuple_type()
+{
+	vector<TypeNode_ptr> types;
+
+	while (true)
+	{
+		auto type = this->parse_type();
+
+		if (type == nullptr) {
+			return TypeNode_ptr();
+		}
+
+		if (this->expect_current_token(TokenType::CLOSE_PARENTHESIS))
+		{
+			return make_shared<TypeNode>(Tuple(types));
+		}
+
+		if (this->expect_current_token(TokenType::COMMA))
+		{
+			continue;
+		}
+
+		return TypeNode_ptr();
+	}
+}
+
+TypeNode_ptr Parser::parse_map_type()
+{
+	auto key_type = this->consume_valid_map_key_datatype();
+
+	if (key_type == nullptr) {
+		return TypeNode_ptr();
+	}
+
+	auto value_type = this->parse_type();
+
+	if (value_type == nullptr) {
+		return TypeNode_ptr();
+	}
+
+	if (this->expect_current_token(TokenType::CLOSE_CURLY_BRACE))
+	{
+		return TypeNode_ptr();
+	}
+
+	return make_shared<TypeNode>(Map(key_type, value_type));
+}
+
+TypeNode_ptr Parser::parse_variant_type()
+{
+	vector<TypeNode_ptr> types;
+
+	while (true)
+	{
+		auto type = this->parse_type();
+
+		if (type == nullptr) {
+			return TypeNode_ptr();
+		}
+
+		if (this->expect_current_token(TokenType::CLOSE_ANGLE_BRACKET))
+		{
+			return make_shared<TypeNode>(Variant(types));
+		}
+
+		if (this->expect_current_token(TokenType::COMMA))
+		{
+			continue;
+		}
+
+		return TypeNode_ptr();
+	}
+}
+
+TypeNode_ptr Parser::consume_scalar_datatype()
 {
 	auto token = this->get_current_token();
 	auto token_type = token->get_type();
@@ -518,7 +586,7 @@ Type_ptr Parser::consume_scalar_datatype()
 	}
 }
 
-Type_ptr Parser::consume_valid_key_datatype()
+KeyTypeNode_ptr Parser::consume_valid_map_key_datatype()
 {
 	auto token = this->get_current_token();
 	auto token_type = token->get_type();
@@ -528,12 +596,12 @@ Type_ptr Parser::consume_valid_key_datatype()
 	case TokenType::NUM:
 	{
 		this->pointer.advance();
-		return make_shared<TypeNode>(Number());
+		return make_shared<KeyTypeNode>(Number());
 	}
 	case TokenType::STR:
 	{
 		this->pointer.advance();
-		return make_shared<TypeNode>(String());
+		return make_shared<KeyTypeNode>(String());
 	}
 	default:
 	{
@@ -542,7 +610,7 @@ Type_ptr Parser::consume_valid_key_datatype()
 	}
 }
 
-Type_ptr Parser::consume_datatype_word()
+TypeNode_ptr Parser::consume_datatype_word()
 {
 	auto token = this->get_current_token();
 	auto token_type = token->get_type();
@@ -710,4 +778,17 @@ bool Parser::expect_current_token(TokenType token_type)
 	}
 
 	return false;
+}
+
+Token_ptr Parser::consume_token(TokenType token_type)
+{
+	auto token = this->get_current_token();
+
+	if (token_type == token->get_type())
+	{
+		this->pointer.advance();
+		return move(token);
+	}
+
+	return nullptr;
 }

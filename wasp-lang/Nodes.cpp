@@ -1,8 +1,6 @@
 #include "Nodes.h"
 
-using namespace std;
-
-void Module::add(shared_ptr<StatementNode> node)
+void Module::add(StatementNode_ptr node)
 {
 	this->nodes.push_back(node);
 }
