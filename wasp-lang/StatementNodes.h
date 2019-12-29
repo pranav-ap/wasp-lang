@@ -39,7 +39,7 @@ using StatementNode_ptr = std::shared_ptr<StatementNode>;
 class Statement
 {
 public:
-	virtual void print() = 0;
+	virtual void print(int level) = 0;
 };
 
 using Block = std::vector<StatementNode_ptr>;
@@ -53,7 +53,7 @@ class Let : public Statement
 
 public:
 	Let(bool is_public, std::string name, TypeNode_ptr type, ExpressionNode_ptr expression) : is_public(is_public), name(name), type(type), expression(expression) {};
-	void print();
+	void print(int level);
 };
 
 class Const : public Statement
@@ -65,7 +65,7 @@ class Const : public Statement
 
 public:
 	Const(bool is_public, std::string name, TypeNode_ptr type, ExpressionNode_ptr expression) : is_public(is_public), name(name), type(type), expression(expression) {};
-	void print();
+	void print(int level);
 };
 
 class Assignment : public Statement
@@ -75,7 +75,7 @@ class Assignment : public Statement
 
 public:
 	Assignment(std::string name, ExpressionNode_ptr expression) : name(name), expression(expression) {};
-	void print();
+	void print(int level);
 };
 
 class Branch : public Statement
@@ -86,7 +86,7 @@ class Branch : public Statement
 
 public:
 	Branch(ExpressionNode_ptr condition, Block consequence, Block alternative) : condition(condition), consequence(consequence), alternative(alternative) {};
-	void print();
+	void print(int level);
 };
 
 class Loop : public Statement
@@ -95,19 +95,19 @@ class Loop : public Statement
 
 public:
 	Loop(Block block) : block(block) {};
-	void print();
+	void print(int level);
 };
 
 class Break : public Statement
 {
 public:
-	void print();
+	void print(int level);
 };
 
 class Continue : public Statement
 {
 public:
-	void print();
+	void print(int level);
 };
 
 class RecordDefinition : public Statement
@@ -118,7 +118,7 @@ class RecordDefinition : public Statement
 
 public:
 	RecordDefinition(bool is_public, std::string name, std::vector<std::pair<std::string, TypeNode_ptr>> member_types) : is_public(is_public), name(name), member_types(member_types) {};
-	void print();
+	void print(int level);
 };
 
 class FunctionDefinition : public Statement
@@ -131,7 +131,7 @@ class FunctionDefinition : public Statement
 
 public:
 	FunctionDefinition(bool is_public, std::string name, std::vector<std::pair<std::string, TypeNode_ptr>> arguments, std::optional<TypeNode_ptr> return_type, Block body) : is_public(is_public), name(name), arguments(arguments), return_type(return_type), body(body) {};
-	void print();
+	void print(int level);
 };
 
 class Return : public Statement
@@ -140,7 +140,7 @@ class Return : public Statement
 
 public:
 	Return(std::optional<ExpressionNode_ptr> expression) : expression(expression) {};
-	void print();
+	void print(int level);
 };
 
 class ExpressionStatement : public Statement
@@ -149,7 +149,7 @@ class ExpressionStatement : public Statement
 
 public:
 	ExpressionStatement(ExpressionNode_ptr expression) : expression(expression) {};
-	void print();
+	void print(int level);
 };
 
 class Import : public Statement
@@ -159,5 +159,5 @@ class Import : public Statement
 
 public:
 	Import(std::vector<std::string> goods, std::string path) : goods(goods), path(path) {};
-	void print();
+	void print(int level);
 };

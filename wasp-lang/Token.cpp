@@ -14,15 +14,15 @@ string to_string(TokenType type)
 
 	case TokenType::NumberLiteral:
 	{
-		return "NumberLiteral";
+		return "Number Literal";
 	}
 	case TokenType::StringLiteral:
 	{
-		return "StringLiteral";
+		return "String Literal";
 	}
 	case TokenType::BooleanLiteral:
 	{
-		return "BooleanLiteral";
+		return "Boolean Literal";
 	}
 
 	// Identifiers
@@ -33,7 +33,7 @@ string to_string(TokenType type)
 	}
 	case TokenType::FunctionIdentifier:
 	{
-		return "FunctionIdentifier";
+		return "Function Identifier";
 	}
 
 	// Punctuations

@@ -43,7 +43,7 @@ using ExpressionNode_ptr = std::shared_ptr<ExpressionNode>;
 class Expression
 {
 public:
-	virtual void print() = 0;
+	virtual void print(int level) = 0;
 };
 
 class StringLiteral : public Expression
@@ -52,7 +52,7 @@ class StringLiteral : public Expression
 
 public:
 	StringLiteral(std::string value) : value(value) {};
-	void print();
+	void print(int level);
 };
 
 class NumberLiteral : public Expression
@@ -61,7 +61,7 @@ class NumberLiteral : public Expression
 
 public:
 	NumberLiteral(double value) : value(value) {};
-	void print();
+	void print(int level);
 };
 
 class BooleanLiteral : public Expression
@@ -70,7 +70,7 @@ class BooleanLiteral : public Expression
 
 public:
 	BooleanLiteral(bool value) : value(value) {};
-	void print();
+	void print(int level);
 };
 
 class TupleLiteral : public Expression
@@ -79,7 +79,7 @@ class TupleLiteral : public Expression
 
 public:
 	TupleLiteral(std::vector<ExpressionNode_ptr> expressions) : expressions(expressions) {};
-	void print();
+	void print(int level);
 };
 
 class VectorLiteral : public Expression
@@ -88,25 +88,25 @@ class VectorLiteral : public Expression
 
 public:
 	VectorLiteral(std::vector<ExpressionNode_ptr> expressions) : expressions(expressions) {};
-	void print();
+	void print(int level);
 };
 
 class MapLiteral : public Expression
 {
-	std::vector<std::pair<KeyTypeNode_ptr, ExpressionNode_ptr>> value;
+	std::vector<std::pair<KeyTypeNode_ptr, ExpressionNode_ptr>> pairs;
 
 public:
-	MapLiteral(std::vector<std::pair<KeyTypeNode_ptr, ExpressionNode_ptr>> value) : value(value) {};
-	void print();
+	MapLiteral(std::vector<std::pair<KeyTypeNode_ptr, ExpressionNode_ptr>> pairs) : pairs(pairs) {};
+	void print(int level);
 };
 
 class RecordLiteral : public Expression
 {
-	std::vector<std::pair<std::string, ExpressionNode_ptr>> value;
+	std::vector<std::pair<std::string, ExpressionNode_ptr>> pairs;
 
 public:
-	RecordLiteral(std::vector<std::pair<std::string, ExpressionNode_ptr>> value) : value(value) {};
-	void print();
+	RecordLiteral(std::vector<std::pair<std::string, ExpressionNode_ptr>> pairs) : pairs(pairs) {};
+	void print(int level);
 };
 
 class MemberAccess : public Expression
@@ -116,7 +116,7 @@ class MemberAccess : public Expression
 
 public:
 	MemberAccess(std::string name, ExpressionNode_ptr index_expression) : name(name), index_expression(index_expression) {};
-	void print();
+	void print(int level);
 };
 
 class RecordMemberAccess : public Expression
@@ -126,7 +126,7 @@ class RecordMemberAccess : public Expression
 
 public:
 	RecordMemberAccess(std::string record_name, std::string member_name) : record_name(record_name), member_name(member_name) {};
-	void print();
+	void print(int level);
 };
 
 class Identifier : public Expression
@@ -135,7 +135,7 @@ class Identifier : public Expression
 
 public:
 	Identifier(std::string name) : name(name) {};
-	void print();
+	void print(int level);
 };
 
 class FunctionCall : public Expression
@@ -145,7 +145,7 @@ class FunctionCall : public Expression
 
 public:
 	FunctionCall(std::string name, std::vector<ExpressionNode_ptr> arguments) : name(name), arguments(arguments) {};
-	void print();
+	void print(int level);
 };
 
 class Unary : public Expression
@@ -155,7 +155,7 @@ class Unary : public Expression
 
 public:
 	Unary(std::shared_ptr<Token> op, ExpressionNode_ptr operand) : op(op), operand(operand) {};
-	void print();
+	void print(int level);
 };
 
 class Binary : public Expression
@@ -166,5 +166,7 @@ class Binary : public Expression
 
 public:
 	Binary(ExpressionNode_ptr left, std::shared_ptr<Token> op, ExpressionNode_ptr right) : left(left), op(op), right(right) {};
-	void print();
+	void print(int level);
 };
+
+void print_expression_node(ExpressionNode_ptr node, int level);

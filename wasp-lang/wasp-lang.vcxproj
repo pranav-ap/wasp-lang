@@ -156,6 +156,7 @@
     <ClCompile Include="StatementNodes.cpp" />
     <ClCompile Include="TokenPosition.cpp" />
     <ClCompile Include="Token.cpp" />
+    <ClCompile Include="Types.cpp" />
     <ClCompile Include="wasp-lang.cpp" />
   </ItemGroup>
   <ItemGroup>

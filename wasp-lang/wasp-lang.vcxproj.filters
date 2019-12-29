@@ -60,6 +60,9 @@
     <ClCompile Include="StatementNodes.cpp">
       <Filter>Source Files\Parser</Filter>
     </ClCompile>
+    <ClCompile Include="Types.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Token.h">
