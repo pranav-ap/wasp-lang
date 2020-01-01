@@ -4,6 +4,7 @@
 #include <variant>
 #include <string>
 #include "ExpressionNodes.h"
+#include "Types.h"
 
 using std::cout;
 using std::endl;
@@ -20,16 +21,22 @@ void print_expression_node(ExpressionNode_ptr node, int level)
 		[=](StringLiteral node) { node.print(level); },
 		[=](NumberLiteral node) { node.print(level); },
 		[=](BooleanLiteral node) { node.print(level); },
+
 		[=](TupleLiteral node) { node.print(level); },
 		[=](VectorLiteral node) { node.print(level); },
+
 		[=](MapLiteral node) { node.print(level); },
 		[=](RecordLiteral node) { node.print(level); },
+
 		[=](MemberAccess node) { node.print(level); },
 		[=](RecordMemberAccess node) { node.print(level); },
+
 		[=](Identifier node) { node.print(level); },
 		[=](FunctionCall node) { node.print(level); },
+
 		[=](Unary node) { node.print(level); },
 		[=](Binary node) { node.print(level); },
+
 		[](std::monostate x) {}
 		}, *node.get());
 }

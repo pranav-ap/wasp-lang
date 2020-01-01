@@ -161,3 +161,5 @@ public:
 	Import(std::vector<std::string> goods, std::string path) : goods(goods), path(path) {};
 	void print(int level);
 };
+
+void print_statement_node(StatementNode_ptr node, int level);

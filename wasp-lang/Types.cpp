@@ -1,9 +1,10 @@
+#pragma once
 #include <iostream>
 #include <iomanip>
 #include <variant>
 #include <string>
-#include "ExpressionNodes.h"
 #include "Types.h"
+#include "ExpressionNodes.h"
 
 using std::cout;
 using std::endl;
@@ -19,13 +20,17 @@ void print_type_node(TypeNode_ptr node, int level)
 	visit(overload{
 		[=](Optional node) { node.print(level); },
 		[=](Variant node) { node.print(level); },
+
 		[=](Number node) { node.print(level); },
 		[=](String node) { node.print(level); },
 		[=](Bool node) { node.print(level); },
+
 		[=](Vector node) { node.print(level); },
 		[=](Tuple node) { node.print(level); },
+
 		[=](Map node) { node.print(level); },
 		[=](Record node) { node.print(level); },
+
 		[](std::monostate x) {}
 		}, *node.get());
 }

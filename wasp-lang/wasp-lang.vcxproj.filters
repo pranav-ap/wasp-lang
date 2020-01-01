@@ -61,7 +61,7 @@
       <Filter>Source Files\Parser</Filter>
     </ClCompile>
     <ClCompile Include="Types.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Parser</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

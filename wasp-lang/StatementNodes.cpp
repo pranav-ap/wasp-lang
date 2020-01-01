@@ -5,6 +5,7 @@
 #include <string>
 #include "StatementNodes.h"
 #include "ExpressionNodes.h"
+#include "Types.h"
 
 using std::cout;
 using std::endl;
@@ -25,9 +26,9 @@ void print_statement_node(StatementNode_ptr node, int level)
 		[=](Loop node) { node.print(level); },
 		[=](Break node) { node.print(level); },
 		[=](Continue node) { node.print(level); },
+		[=](Return node) { node.print(level); },
 		[=](RecordDefinition node) { node.print(level); },
 		[=](FunctionDefinition node) { node.print(level); },
-		[=](Return node) { node.print(level); },
 		[=](ExpressionStatement node) { node.print(level); },
 		[=](Import node) { node.print(level); },
 		[](std::monostate x) {}
@@ -120,7 +121,7 @@ void FunctionDefinition::print(int level)
 	cout << string(level + 4, ' ') << "Function name : " << this->name << endl;
 
 	cout << string(level + 4, ' ') << "Return Type : " << endl;
-	print_type_node(this->return_type.value, level + 4);
+	print_type_node(this->return_type.value(), level + 4);
 
 	for (auto const& statement : this->body)
 	{
@@ -131,7 +132,7 @@ void FunctionDefinition::print(int level)
 void Return::print(int level)
 {
 	cout << string(level, ' ') << "Return : " << setw(25) << std::left << endl;
-	print_expression_node(this->expression.value, level + 4);
+	print_expression_node(this->expression.value(), level + 4);
 }
 
 void ExpressionStatement::print(int level)
