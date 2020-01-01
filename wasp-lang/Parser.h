@@ -12,15 +12,6 @@ class Parser
 	std::vector<bool> inside_function_call;
 	Pointer pointer;
 
-	// Utils
-
-	Token_ptr get_current_token();
-
-	// Token Consumers
-
-	bool expect_current_token(TokenType token_type);
-	Token_ptr consume_token(TokenType token_type);
-
 	// Parsers
 
 	StatementNode_ptr parse_statement(bool is_public);
@@ -81,7 +72,17 @@ class Parser
 	void pop_until_open_parenthesis_from_stack_into_ast(std::vector<Token_ptr>& op_stack, std::vector<ExpressionNode_ptr>& ast);
 	void push_operator_to_operator_stack(Token_ptr op, std::vector<Token_ptr>& op_stack, std::vector<ExpressionNode_ptr>& ast);
 
+	// Utils
+
+	Token_ptr get_current_token();
+	Token_ptr consume_token(TokenType token_type);
+	bool expect_current_token(TokenType token_type);
+
 public:
 	Parser(std::vector<Token_ptr>& token_list) : tokens(std::move(token_list)), pointer(Pointer()) {};
 	Module execute();
 };
+
+int get_parity(TokenType token_type);
+int get_precedence(TokenType token_type);
+bool is_right_associative(TokenType token_type);

@@ -4,7 +4,10 @@
 #include <vector>
 #include "Token.h"
 
-using namespace std;
+using std::cout;
+using std::endl;
+using std::string;
+using std::setw;
 
 string to_string(TokenType type)
 {
@@ -141,13 +144,17 @@ int Token::get_column_num() const
 
 void Token::print() const
 {
-	cout << " [ Ln " << setw(3) << std::left << this->line_num;
-	cout << " Col " << setw(3) << std::left << this->column_num << " ] : ";
-	cout << setw(16) << std::left << to_string(this->type) << " : " << this->value << endl;
+	cout << " [ Ln " << setw(3) << std::left << this->line_num
+		<< " Col " << setw(3) << std::left << this->column_num << " ] : "
+		<< setw(16) << std::left << to_string(this->type) << " : " << this->value << endl;
 }
 
 bool Token::operator==(const Token& token) const
 {
-	return this->type == token.get_type() && this->value == token.get_value() &&
-		this->line_num == token.get_line_num() && this->column_num == token.get_column_num();
+	return (
+		this->type == token.get_type() &&
+		this->value == token.get_value() &&
+		this->line_num == token.get_line_num() &&
+		this->column_num == token.get_column_num()
+		);
 }
