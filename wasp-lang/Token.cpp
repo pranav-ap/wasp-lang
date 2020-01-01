@@ -143,8 +143,7 @@ void Token::print() const
 {
 	cout << " [ Ln " << setw(3) << std::left << this->line_num;
 	cout << " Col " << setw(3) << std::left << this->column_num << " ] : ";
-	cout << setw(13) << std::left << to_string(this->type) << " : ";
-	cout << setw(20) << std::left << this->value << endl;
+	cout << setw(16) << std::left << to_string(this->type) << " : " << this->value << endl;
 }
 
 bool Token::operator==(const Token& token) const

@@ -93,10 +93,10 @@ public:
 
 class MapLiteral : public Expression
 {
-	std::vector<std::pair<KeyTypeNode_ptr, ExpressionNode_ptr>> pairs;
+	std::vector<std::pair<ExpressionNode_ptr, ExpressionNode_ptr>> pairs;
 
 public:
-	MapLiteral(std::vector<std::pair<KeyTypeNode_ptr, ExpressionNode_ptr>> pairs) : pairs(pairs) {};
+	MapLiteral(std::vector<std::pair<ExpressionNode_ptr, ExpressionNode_ptr>> pairs) : pairs(pairs) {};
 	void print(int level);
 };
 

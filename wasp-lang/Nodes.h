@@ -1,6 +1,5 @@
 #pragma once
 #include <vector>
-#include <memory>
 #include "StatementNodes.h"
 
 class Module
@@ -9,4 +8,5 @@ class Module
 
 public:
 	void add(StatementNode_ptr node);
+	void print();
 };

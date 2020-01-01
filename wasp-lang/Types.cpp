@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <variant>
 #include <string>
+#include <type_traits>
 #include "Types.h"
 #include "ExpressionNodes.h"
 
@@ -12,47 +13,53 @@ using std::setw;
 using std::visit;
 using std::string;
 
-template<class... Ts> struct overload : Ts... { using Ts::operator()...; };
-template<class... Ts> overload(Ts...)->overload<Ts...>;
-
 void print_type_node(TypeNode_ptr node, int level)
 {
-	visit(overload{
-		[=](Optional node) { node.print(level); },
-		[=](Variant node) { node.print(level); },
+	visit([level](auto&& n) {
+		using T = std::decay_t<decltype(n)>;
 
-		[=](Number node) { node.print(level); },
-		[=](String node) { node.print(level); },
-		[=](Bool node) { node.print(level); },
-
-		[=](Vector node) { node.print(level); },
-		[=](Tuple node) { node.print(level); },
-
-		[=](Map node) { node.print(level); },
-		[=](Record node) { node.print(level); },
-
-		[](std::monostate x) {}
+		if constexpr (std::is_same_v<T, Optional>)
+			n.print(level);
+		else if constexpr (std::is_same_v<T, Variant>)
+			n.print(level);
+		else if constexpr (std::is_same_v<T, Number>)
+			n.print(level);
+		else if constexpr (std::is_same_v<T, String>)
+			n.print(level);
+		else if constexpr (std::is_same_v<T, Bool>)
+			n.print(level);
+		else if constexpr (std::is_same_v<T, Vector>)
+			n.print(level);
+		else if constexpr (std::is_same_v<T, Tuple>)
+			n.print(level);
+		else if constexpr (std::is_same_v<T, Map>)
+			n.print(level);
+		else if constexpr (std::is_same_v<T, Record>)
+			n.print(level);
 		}, *node.get());
 }
 
 void print_key_type_node(KeyTypeNode_ptr node, int level)
 {
-	visit(overload{
-		[=](StringLiteral node) { node.print(level); },
-		[=](NumberLiteral node) { node.print(level); },
-		[](std::monostate x) {}
+	visit([level](auto&& n) {
+		using T = std::decay_t<decltype(n)>;
+
+		if constexpr (std::is_same_v<T, StringLiteral>)
+			n.print(level);
+		else if constexpr (std::is_same_v<T, NumberLiteral>)
+			n.print(level);
 		}, *node.get());
 }
 
 void Optional::print(int level)
 {
-	cout << string(level, ' ') << "Optional Type : " << setw(25) << std::left << endl;
+	cout << string(level, ' ') << "Type : Optional : " << endl;
 	print_type_node(this->optional_type, level + 4);
 }
 
 void Variant::print(int level)
 {
-	cout << string(level, ' ') << "Variant Type : " << setw(25) << std::left << endl;;
+	cout << string(level, ' ') << "Type : Variant : " << endl;
 
 	for (auto const& type : this->types)
 	{
@@ -62,22 +69,22 @@ void Variant::print(int level)
 
 void Number::print(int level)
 {
-	cout << string(level, ' ') << "Number Type : " << endl;
+	cout << string(level, ' ') << "Type : Number" << endl;
 }
 
 void String::print(int level)
 {
-	cout << string(level, ' ') << "String Type : " << endl;
+	cout << string(level, ' ') << "Type : String" << endl;
 }
 
 void Bool::print(int level)
 {
-	cout << string(level, ' ') << "Bool Type : " << endl;
+	cout << string(level, ' ') << "Type : Bool" << endl;
 }
 
 void Tuple::print(int level)
 {
-	cout << string(level, ' ') << "Tuple Type : " << setw(25) << std::left << endl;;
+	cout << string(level, ' ') << "Type : Tuple" << endl;
 
 	for (auto const& type : this->types)
 	{
@@ -87,18 +94,22 @@ void Tuple::print(int level)
 
 void Vector::print(int level)
 {
-	cout << string(level, ' ') << "Vector Type : " << setw(25) << std::left << endl;;
+	cout << string(level, ' ') << "Type : Vector" << endl;
 	print_type_node(this->type, level + 4);
 }
 
 void Map::print(int level)
 {
-	cout << string(level, ' ') << "Vector Type : " << setw(25) << std::left << endl;;
-	print_key_type_node(this->key_type, level + 4);
-	print_type_node(this->value_type, level + 4);
+	cout << string(level, ' ') << "Type : Map" << endl;
+
+	cout << string(level + 4, ' ') << "Key Type" << endl;
+	print_key_type_node(this->key_type, level + 8);
+
+	cout << string(level + 4, ' ') << "Value Type" << endl;
+	print_type_node(this->value_type, level + 8);
 }
 
 void Record::print(int level)
 {
-	cout << string(level, ' ') << "Record Type : " << setw(25) << std::left << this->type << endl;
+	cout << string(level, ' ') << "Type : Record : " << this->type << endl;
 }

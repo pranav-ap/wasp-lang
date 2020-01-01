@@ -39,4 +39,5 @@ int main()
 
 	Parser parser(tokens);
 	Module mod = parser.execute();
+	mod.print();
 }

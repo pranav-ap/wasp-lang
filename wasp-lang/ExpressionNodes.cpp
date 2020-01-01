@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <variant>
 #include <string>
+#include <type_traits>
 #include "ExpressionNodes.h"
 #include "Types.h"
 
@@ -12,53 +13,58 @@ using std::setw;
 using std::visit;
 using std::string;
 
-template<class... Ts> struct overload : Ts... { using Ts::operator()...; };
-template<class... Ts> overload(Ts...)->overload<Ts...>;
-
 void print_expression_node(ExpressionNode_ptr node, int level)
 {
-	visit(overload{
-		[=](StringLiteral node) { node.print(level); },
-		[=](NumberLiteral node) { node.print(level); },
-		[=](BooleanLiteral node) { node.print(level); },
+	visit([level](auto&& n) {
+		using T = std::decay_t<decltype(n)>;
 
-		[=](TupleLiteral node) { node.print(level); },
-		[=](VectorLiteral node) { node.print(level); },
-
-		[=](MapLiteral node) { node.print(level); },
-		[=](RecordLiteral node) { node.print(level); },
-
-		[=](MemberAccess node) { node.print(level); },
-		[=](RecordMemberAccess node) { node.print(level); },
-
-		[=](Identifier node) { node.print(level); },
-		[=](FunctionCall node) { node.print(level); },
-
-		[=](Unary node) { node.print(level); },
-		[=](Binary node) { node.print(level); },
-
-		[](std::monostate x) {}
+		if constexpr (std::is_same_v<T, StringLiteral>)
+			n.print(level);
+		else if constexpr (std::is_same_v<T, NumberLiteral>)
+			n.print(level);
+		else if constexpr (std::is_same_v<T, BooleanLiteral>)
+			n.print(level);
+		else if constexpr (std::is_same_v<T, TupleLiteral>)
+			n.print(level);
+		else if constexpr (std::is_same_v<T, VectorLiteral>)
+			n.print(level);
+		else if constexpr (std::is_same_v<T, MapLiteral>)
+			n.print(level);
+		else if constexpr (std::is_same_v<T, RecordLiteral>)
+			n.print(level);
+		else if constexpr (std::is_same_v<T, MemberAccess>)
+			n.print(level);
+		else if constexpr (std::is_same_v<T, RecordMemberAccess>)
+			n.print(level);
+		else if constexpr (std::is_same_v<T, Identifier>)
+			n.print(level);
+		else if constexpr (std::is_same_v<T, FunctionCall>)
+			n.print(level);
+		else if constexpr (std::is_same_v<T, Unary>)
+			n.print(level);
+		else if constexpr (std::is_same_v<T, Binary>)
+			n.print(level);
 		}, *node.get());
 }
 
 void StringLiteral::print(int level)
 {
-	cout << string(level, ' ') << "String Literal : " << setw(25) << std::left << this->value << endl;
+	cout << string(level, ' ') << "String Literal : " << this->value << endl;
 }
 
 void NumberLiteral::print(int level)
 {
-	cout << string(level, ' ') << "Number Literal : " << setw(25) << std::left << this->value << endl;
+	cout << string(level, ' ') << "Number Literal : " << this->value << endl;
 }
 
 void BooleanLiteral::print(int level)
 {
-	cout << string(level, ' ') << "Boolean Literal : " << setw(25) << std::left << this->value << endl;
+	cout << string(level, ' ') << "Boolean Literal : " << this->value << endl;
 }
 
 void TupleLiteral::print(int level)
 {
-	cout << string(level, ' ') << "Tuple Literal : " << setw(25) << std::left << endl;
+	cout << string(level, ' ') << "Tuple Literal : " << endl;
 
 	for (auto const& expression : this->expressions)
 	{
@@ -68,7 +74,7 @@ void TupleLiteral::print(int level)
 
 void VectorLiteral::print(int level)
 {
-	cout << string(level, ' ') << "Vector Literal : " << setw(25) << std::left << endl;
+	cout << string(level, ' ') << "Vector Literal : " << endl;
 
 	for (auto const& expression : this->expressions)
 	{
@@ -78,52 +84,58 @@ void VectorLiteral::print(int level)
 
 void MapLiteral::print(int level)
 {
-	cout << string(level, ' ') << "Map Literal : " << setw(25) << std::left << endl;
+	cout << string(level, ' ') << "Map Literal : " << endl;
 
 	for (auto const& pair : this->pairs)
 	{
-		print_key_type_node(pair.first, level + 4);
+		print_expression_node(pair.first, level + 4);
 		print_expression_node(pair.second, level + 4);
 	}
 }
 
 void RecordLiteral::print(int level)
 {
-	cout << string(level, ' ') << "Record Literal : " << setw(25) << std::left << endl;
+	cout << string(level, ' ') << "Record Literal : " << endl;
 
 	for (auto const& pair : this->pairs)
 	{
-		cout << string(level + 4, ' ') << "Key : " << setw(25) << std::left << pair.first << endl;
+		cout << string(level + 4, ' ') << "Key : " << pair.first << endl;
 		print_expression_node(pair.second, level + 4);
 	}
 }
 
 void MemberAccess::print(int level)
 {
-	cout << string(level, ' ') << "Member Access : " << setw(25) << std::left;
+	cout << string(level, ' ') << "Member Access : " << endl;
+
 	cout << string(level, ' ') << "Key : " << this->name << endl;
+
+	cout << string(level, ' ') << "Value : " << endl;
+	print_expression_node(this->index_expression, level + 4);
 }
 
 void RecordMemberAccess::print(int level)
 {
-	cout << string(level, ' ') << "Record Member Access : " << setw(25) << std::left;
-	cout << string(level, ' ') << "Key : " << this->record_name << endl;
-	cout << string(level, ' ') << "Value : " << this->member_name << endl;
+	cout << string(level, ' ') << "Record Member Access : " << endl;
+	cout << string(level + 4, ' ') << "Key : " << this->record_name << endl;
+	cout << string(level + 4, ' ') << "Value : " << this->member_name << endl;
 }
 
 void Identifier::print(int level)
 {
-	cout << string(level, ' ') << "Identifier : " << setw(25) << std::left << this->name << endl;
+	cout << string(level, ' ') << "Identifier : " << this->name << endl;
 }
 
 void FunctionCall::print(int level)
 {
-	cout << string(level, ' ') << "Function Call : " << setw(25) << std::left;
-	cout << string(level, ' ') << "Function Name : " << this->name << endl;
+	cout << string(level, ' ') << "Function Call : " << endl;
+
+	cout << string(level + 4, ' ') << "Function Name : " << this->name << endl;
+	cout << string(level + 4, ' ') << "Arguments : " << endl;
 
 	for (auto const& argument : this->arguments)
 	{
-		print_expression_node(argument, level + 4);
+		print_expression_node(argument, level + 8);
 	}
 }
 

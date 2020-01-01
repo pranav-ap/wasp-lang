@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <variant>
 #include <string>
+#include <type_traits>
 #include "StatementNodes.h"
 #include "ExpressionNodes.h"
 #include "Types.h"
@@ -13,55 +14,69 @@ using std::setw;
 using std::visit;
 using std::string;
 
-template<class... Ts> struct overload : Ts... { using Ts::operator()...; };
-template<class... Ts> overload(Ts...)->overload<Ts...>;
-
 void print_statement_node(StatementNode_ptr node, int level)
 {
-	visit(overload{
-		[=](Let node) { node.print(level); },
-		[=](Const node) { node.print(level); },
-		[=](Assignment node) { node.print(level); },
-		[=](Branch node) { node.print(level); },
-		[=](Loop node) { node.print(level); },
-		[=](Break node) { node.print(level); },
-		[=](Continue node) { node.print(level); },
-		[=](Return node) { node.print(level); },
-		[=](RecordDefinition node) { node.print(level); },
-		[=](FunctionDefinition node) { node.print(level); },
-		[=](ExpressionStatement node) { node.print(level); },
-		[=](Import node) { node.print(level); },
-		[](std::monostate x) {}
+	visit([level](auto&& n) {
+		using T = std::decay_t<decltype(n)>;
+
+		if constexpr (std::is_same_v<T, Let>)
+			n.print(level);
+		else if constexpr (std::is_same_v<T, Const>)
+			n.print(level);
+		else if constexpr (std::is_same_v<T, Assignment>)
+			n.print(level);
+		else if constexpr (std::is_same_v<T, Branch>)
+			n.print(level);
+		else if constexpr (std::is_same_v<T, Loop>)
+			n.print(level);
+		else if constexpr (std::is_same_v<T, Break>)
+			n.print(level);
+		else if constexpr (std::is_same_v<T, Continue>)
+			n.print(level);
+		else if constexpr (std::is_same_v<T, Return>)
+			n.print(level);
+		else if constexpr (std::is_same_v<T, RecordDefinition>)
+			n.print(level);
+		else if constexpr (std::is_same_v<T, FunctionDefinition>)
+			n.print(level);
+		else if constexpr (std::is_same_v<T, ExpressionStatement>)
+			n.print(level);
+		else if constexpr (std::is_same_v<T, Import>)
+			n.print(level);
 		}, *node.get());
 }
 
 void Let::print(int level)
 {
-	cout << string(level, ' ') << "Let : " << setw(25) << std::left << endl;
-	cout << string(level + 4, ' ') << "Public ? : " << this->is_public << endl;
+	auto pub = (this->is_public) ? "true" : "false";
+
+	cout << string(level, ' ') << "Let variable declaration : " << endl;
 	cout << string(level + 4, ' ') << "Variable name : " << this->name << endl;
+	cout << string(level + 4, ' ') << "Public : " << pub << endl;
 	print_type_node(this->type, level + 4);
 	print_expression_node(this->expression, level + 4);
 }
 
 void Const::print(int level)
 {
-	cout << string(level, ' ') << "Const : " << setw(25) << std::left << endl;
-	cout << string(level + 4, ' ') << "Public ? : " << this->is_public << endl;
+	auto pub = (this->is_public) ? "true" : "false";
+
+	cout << string(level, ' ') << "Const variable declaration : " << endl;
 	cout << string(level + 4, ' ') << "Variable name : " << this->name << endl;
+	cout << string(level + 4, ' ') << "Public : " << pub << endl;
 	print_type_node(this->type, level + 4);
 	print_expression_node(this->expression, level + 4);
 }
 
 void Assignment::print(int level)
 {
-	cout << string(level, ' ') << "Assignment : " << setw(25) << std::left << this->name << endl;
+	cout << string(level, ' ') << "Assignment : " << this->name << endl;
 	print_expression_node(this->expression, level + 4);
 }
 
 void Branch::print(int level)
 {
-	cout << string(level, ' ') << "Branch : " << setw(25) << std::left << endl;
+	cout << string(level, ' ') << "Branch : " << endl;
 
 	cout << string(level + 4, ' ') << "Condition : " << endl;
 	print_expression_node(this->condition, level + 8);
@@ -81,7 +96,8 @@ void Branch::print(int level)
 
 void Loop::print(int level)
 {
-	cout << string(level, ' ') << "Loop : " << setw(25) << std::left << endl;
+	cout << string(level, ' ') << "Loop : " << endl;
+
 	for (auto const& statement : this->block)
 	{
 		print_statement_node(statement, level + 4);
@@ -90,60 +106,65 @@ void Loop::print(int level)
 
 void Break::print(int level)
 {
-	cout << string(level, ' ') << "Break : " << setw(25) << std::left << endl;
+	cout << string(level, ' ') << "Break" << endl;
 }
 
 void Continue::print(int level)
 {
-	cout << string(level, ' ') << "Continue : " << setw(25) << std::left << endl;
+	cout << string(level, ' ') << "Continue" << endl;
 }
 
 void RecordDefinition::print(int level)
 {
+	auto pub = (this->is_public) ? "true" : "false";
+
 	cout << string(level, ' ') << "Record Definition : " << setw(25) << std::left << endl;
 
-	cout << string(level + 4, ' ') << "Public ? : " << this->is_public << endl;
+	cout << string(level + 4, ' ') << "Public : " << pub << endl;
 	cout << string(level + 4, ' ') << "Record name : " << this->name << endl;
 
-	cout << string(level + 4, ' ') << "Members" << endl;
+	cout << string(level + 4, ' ') << "Members : " << endl;
 	for (auto const& pair : this->member_types)
 	{
-		cout << string(level + 8, ' ') << "Member Name : " << pair.first << endl;
+		cout << string(level + 8, ' ') << "Name : " << pair.first << endl;
 		print_type_node(pair.second, level + 8);
 	}
 }
 
 void FunctionDefinition::print(int level)
 {
-	cout << string(level, ' ') << "Function Definition : " << setw(25) << std::left << endl;
+	auto pub = (this->is_public) ? "true" : "false";
 
-	cout << string(level + 4, ' ') << "Public ? : " << this->is_public << endl;
+	cout << string(level, ' ') << "Function Definition : " << endl;
+
+	cout << string(level + 4, ' ') << "Public : " << pub << endl;
 	cout << string(level + 4, ' ') << "Function name : " << this->name << endl;
 
 	cout << string(level + 4, ' ') << "Return Type : " << endl;
-	print_type_node(this->return_type.value(), level + 4);
+	print_type_node(this->return_type.value(), level + 8);
 
+	cout << string(level + 4, ' ') << "Body : " << endl;
 	for (auto const& statement : this->body)
 	{
-		print_statement_node(statement, level + 4);
+		print_statement_node(statement, level + 8);
 	}
 }
 
 void Return::print(int level)
 {
-	cout << string(level, ' ') << "Return : " << setw(25) << std::left << endl;
+	cout << string(level, ' ') << "Return : " << endl;
 	print_expression_node(this->expression.value(), level + 4);
 }
 
 void ExpressionStatement::print(int level)
 {
-	cout << string(level, ' ') << "ExpressionStatement : " << setw(25) << std::left << endl;
+	cout << string(level, ' ') << "ExpressionStatement : " << endl;
 	print_expression_node(this->expression, level + 4);
 }
 
 void Import::print(int level)
 {
-	cout << string(level, ' ') << "Import : " << setw(25) << std::left << endl;
+	cout << string(level, ' ') << "Import : " << endl;
 	cout << string(level + 4, ' ') << "Path : " << this->path << endl;
 
 	cout << string(level + 4, ' ') << "Goods : " << endl;

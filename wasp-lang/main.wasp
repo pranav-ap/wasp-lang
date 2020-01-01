@@ -1,1 +1,2 @@
 let a : num = 5
+const a : num = 5
