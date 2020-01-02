@@ -40,6 +40,10 @@ void print_expression_node(ExpressionNode_ptr node, int level)
 			n.print(level);
 		else if constexpr (std::is_same_v<T, FunctionCall>)
 			n.print(level);
+		else if constexpr (std::is_same_v<T, InclusiveRange>)
+			n.print(level);
+		else if constexpr (std::is_same_v<T, ExclusiveRange>)
+			n.print(level);
 		else if constexpr (std::is_same_v<T, Unary>)
 			n.print(level);
 		else if constexpr (std::is_same_v<T, Binary>)
@@ -137,6 +141,28 @@ void FunctionCall::print(int level)
 	{
 		print_expression_node(argument, level + 8);
 	}
+}
+
+void InclusiveRange::print(int level)
+{
+	cout << string(level, ' ') << "Inclusive Range : " << endl;
+
+	cout << string(level + 4, ' ') << "Left : " << endl;
+	print_expression_node(left, level + 8);
+
+	cout << string(level + 4, ' ') << "Right : " << endl;
+	print_expression_node(right, level + 8);
+}
+
+void ExclusiveRange::print(int level)
+{
+	cout << string(level, ' ') << "Exclusive Range : " << endl;
+
+	cout << string(level + 4, ' ') << "Left : " << endl;
+	print_expression_node(left, level + 8);
+
+	cout << string(level + 4, ' ') << "Right : " << endl;
+	print_expression_node(right, level + 8);
 }
 
 void Unary::print(int level)

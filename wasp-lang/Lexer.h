@@ -36,6 +36,7 @@ class Lexer
 	std::shared_ptr<Token> handle_equal();
 	std::shared_ptr<Token> handle_greater_than();
 	std::shared_ptr<Token> handle_lesser_than();
+	std::shared_ptr<Token> handle_dot();
 	std::shared_ptr<Token> consume_single_char_punctuation(char ch);
 
 	std::shared_ptr<Token> consume_eol();

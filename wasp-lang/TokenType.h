@@ -27,6 +27,8 @@ enum class TokenType
 	BACKWARD_SLASH,
 	COMMA,
 	DOT,
+	DOT_DOT,
+	DOT_DOT_DOT,
 	COLON,
 	BAR,
 	ARROW,
@@ -100,6 +102,8 @@ enum class TokenType
 
 	PUB,
 	PURE,
+
+	PASS,
 
 	// Other
 

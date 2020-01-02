@@ -10,20 +10,20 @@
 
 - all variables need to be initialized on declaration
 
-let a : num = 5;
-a;
+let a : num = 5
+a
 
-let a : [num] = [5];
-a[3];
+let a : [num] = [5]
+a[3]
 
-let a : opt [opt num] = [5];
-a[3];
+let a : opt [opt num] = [5]
+a[3]
 
-let a : (num, str) = (5, "john");
-a[2];
+let a : (num, str) = (5, "john")
+a[2]
 
-let a : { str -> str } = { "name": "john" };
-a["name"];
+let a : { str -> str } = { "name": "john" }
+a["name"]
 
 - key cannot be optional
 
@@ -37,13 +37,13 @@ type hello {
 let foo : hello = {
   bar : true,
   name : "jim"
-};
+}
 
-foo.name;
+foo.name
 
 ## Alias
 
-type length = int;
+type length = num
 
 ## Variant
 
@@ -69,15 +69,15 @@ if expr {
 
 loop { }
 
-for x in vector { }
+for x in vector / map { }
 
 break;
 continue;
-s
+
 # Functions
 
 fn add (a: num, b: num) -> num {
-	return a + b;
+	return a + b
 }
 
 # Module system
@@ -85,12 +85,14 @@ fn add (a: num, b: num) -> num {
 - Everything is private by default.
 - use the `pub` keyword
 
-import { foo, bar } from "path/to/filename";
-
-import { foo, bar } from "path/to/folder_name";
-- folder must have a file named mod.wasp
+import { foo, bar } from "path/to/filename"
 
 pub fn add (a: num, b: num) -> num {
-	return a + b;
+	return a + b
 }
  
+ # Pattern matching
+
+ match expr {
+    expr -> {}
+ }

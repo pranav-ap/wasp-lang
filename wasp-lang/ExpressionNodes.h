@@ -25,6 +25,9 @@ class RecordMemberAccess;
 class Identifier;
 class FunctionCall;
 
+class InclusiveRange;
+class ExclusiveRange;
+
 class Unary;
 class Binary;
 
@@ -145,6 +148,26 @@ class FunctionCall : public Expression
 
 public:
 	FunctionCall(std::string name, std::vector<ExpressionNode_ptr> arguments) : name(name), arguments(arguments) {};
+	void print(int level);
+};
+
+class InclusiveRange : public Expression
+{
+	ExpressionNode_ptr left;
+	ExpressionNode_ptr right;
+
+public:
+	InclusiveRange(ExpressionNode_ptr left, ExpressionNode_ptr right) : left(left), right(right) {};
+	void print(int level);
+};
+
+class ExclusiveRange : public Expression
+{
+	ExpressionNode_ptr left;
+	ExpressionNode_ptr right;
+
+public:
+	ExclusiveRange(ExpressionNode_ptr left, ExpressionNode_ptr right) : left(left), right(right) {};
 	void print(int level);
 };
 

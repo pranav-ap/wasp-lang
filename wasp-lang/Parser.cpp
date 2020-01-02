@@ -12,6 +12,7 @@
 
 using std::string;
 using std::vector;
+using std::stack;
 using std::shared_ptr;
 using std::make_shared;
 
@@ -64,7 +65,7 @@ shared_ptr<StatementNode> Parser::parse_statement(bool is_public)
 ExpressionNode_ptr Parser::parse_expression()
 {
 	vector<ExpressionNode_ptr> ast;
-	vector<Token_ptr> op_stack;
+	stack<Token_ptr> op_stack;
 
 	while (true)
 	{
@@ -132,7 +133,7 @@ ExpressionNode_ptr Parser::parse_expression()
 		case TokenType::OPEN_PARENTHESIS:
 		{
 			this->inside_function_call.push_back(false);
-			op_stack.push_back(token);
+			op_stack.push(token);
 			this->pointer.advance();
 			break;
 		}
@@ -452,12 +453,12 @@ TypeNode_ptr Parser::consume_datatype_word()
 
 // Expression Utils
 
-void Parser::pop_all_from_stack_into_ast(vector<Token_ptr>& op_stack, vector<ExpressionNode_ptr>& ast)
+void Parser::pop_all_from_stack_into_ast(stack<Token_ptr>& op_stack, vector<ExpressionNode_ptr>& ast)
 {
 	while (op_stack.size() > 0)
 	{
-		Token_ptr top_operator = op_stack.back();
-		op_stack.pop_back();
+		Token_ptr top_operator = op_stack.top();
+		op_stack.pop();
 
 		int parity = get_parity(top_operator->get_type());
 
@@ -497,12 +498,12 @@ void Parser::push_binary_operator_to_ast(Token_ptr op, vector<ExpressionNode_ptr
 	}
 }
 
-void Parser::pop_until_open_parenthesis_from_stack_into_ast(vector<Token_ptr>& op_stack, vector<ExpressionNode_ptr>& ast)
+void Parser::pop_until_open_parenthesis_from_stack_into_ast(stack<Token_ptr>& op_stack, vector<ExpressionNode_ptr>& ast)
 {
 	while (op_stack.size() > 0)
 	{
-		Token_ptr top_operator = op_stack.back();
-		op_stack.pop_back();
+		Token_ptr top_operator = op_stack.top();
+		op_stack.pop();
 
 		if (top_operator->get_type() == TokenType::OPEN_PARENTHESIS)
 		{
@@ -522,13 +523,13 @@ void Parser::pop_until_open_parenthesis_from_stack_into_ast(vector<Token_ptr>& o
 	}
 }
 
-void Parser::push_operator_to_operator_stack(Token_ptr op, vector<Token_ptr>& op_stack, vector<ExpressionNode_ptr>& ast)
+void Parser::push_operator_to_operator_stack(Token_ptr op, stack<Token_ptr>& op_stack, vector<ExpressionNode_ptr>& ast)
 {
 	int operator_precedence = get_precedence(op->get_type());
 
 	while (op_stack.size() > 0)
 	{
-		Token_ptr top_operator = op_stack.back();
+		Token_ptr top_operator = op_stack.top();
 		auto top_operator_type = top_operator->get_type();
 		int top_operator_precedence = get_precedence(top_operator_type);
 
@@ -541,7 +542,7 @@ void Parser::push_operator_to_operator_stack(Token_ptr op, vector<Token_ptr>& op
 			&& top_operator_type != TokenType::OPEN_PARENTHESIS
 			)
 		{
-			op_stack.pop_back();
+			op_stack.pop();
 
 			int parity = get_parity(top_operator_type);
 
@@ -556,7 +557,7 @@ void Parser::push_operator_to_operator_stack(Token_ptr op, vector<Token_ptr>& op
 		}
 	}
 
-	op_stack.push_back(op);
+	op_stack.push(op);
 }
 
 // Utils

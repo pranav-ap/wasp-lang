@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <stack>
 #include <memory>
 #include "Token.h"
 #include "Pointer.h"
@@ -66,11 +67,11 @@ class Parser
 
 	// Expression parsing utils
 
-	void pop_all_from_stack_into_ast(std::vector<Token_ptr>& op_stack, std::vector<ExpressionNode_ptr>& ast);
+	void pop_all_from_stack_into_ast(std::stack<Token_ptr>& op_stack, std::vector<ExpressionNode_ptr>& ast);
 	void push_unary_operator_to_ast(Token_ptr op, std::vector<ExpressionNode_ptr>& ast);
 	void push_binary_operator_to_ast(Token_ptr op, std::vector<ExpressionNode_ptr>& ast);
-	void pop_until_open_parenthesis_from_stack_into_ast(std::vector<Token_ptr>& op_stack, std::vector<ExpressionNode_ptr>& ast);
-	void push_operator_to_operator_stack(Token_ptr op, std::vector<Token_ptr>& op_stack, std::vector<ExpressionNode_ptr>& ast);
+	void pop_until_open_parenthesis_from_stack_into_ast(std::stack<Token_ptr>& op_stack, std::vector<ExpressionNode_ptr>& ast);
+	void push_operator_to_operator_stack(Token_ptr op, std::stack<Token_ptr>& op_stack, std::vector<ExpressionNode_ptr>& ast);
 
 	// Utils
 

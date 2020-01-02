@@ -48,22 +48,18 @@ void print_statement_node(StatementNode_ptr node, int level)
 
 void Let::print(int level)
 {
-	auto pub = (this->is_public) ? "true" : "false";
-
 	cout << string(level, ' ') << "Let variable declaration : " << endl;
 	cout << string(level + 4, ' ') << "Variable name : " << this->name << endl;
-	cout << string(level + 4, ' ') << "Public : " << pub << endl;
+	cout << string(level + 4, ' ') << "Public : " << std::boolalpha << this->is_public << endl;
 	print_type_node(this->type, level + 4);
 	print_expression_node(this->expression, level + 4);
 }
 
 void Const::print(int level)
 {
-	auto pub = (this->is_public) ? "true" : "false";
-
 	cout << string(level, ' ') << "Const variable declaration : " << endl;
 	cout << string(level + 4, ' ') << "Variable name : " << this->name << endl;
-	cout << string(level + 4, ' ') << "Public : " << pub << endl;
+	cout << string(level + 4, ' ') << "Public : " << std::boolalpha << this->is_public << endl;
 	print_type_node(this->type, level + 4);
 	print_expression_node(this->expression, level + 4);
 }
@@ -116,11 +112,9 @@ void Continue::print(int level)
 
 void RecordDefinition::print(int level)
 {
-	auto pub = (this->is_public) ? "true" : "false";
-
 	cout << string(level, ' ') << "Record Definition : " << setw(25) << std::left << endl;
 
-	cout << string(level + 4, ' ') << "Public : " << pub << endl;
+	cout << string(level + 4, ' ') << "Public : " << std::boolalpha << this->is_public << endl;
 	cout << string(level + 4, ' ') << "Record name : " << this->name << endl;
 
 	cout << string(level + 4, ' ') << "Members : " << endl;
@@ -133,11 +127,9 @@ void RecordDefinition::print(int level)
 
 void FunctionDefinition::print(int level)
 {
-	auto pub = (this->is_public) ? "true" : "false";
-
 	cout << string(level, ' ') << "Function Definition : " << endl;
 
-	cout << string(level + 4, ' ') << "Public : " << pub << endl;
+	cout << string(level + 4, ' ') << "Public : " << std::boolalpha << this->is_public << endl;
 	cout << string(level + 4, ' ') << "Function name : " << this->name << endl;
 
 	cout << string(level + 4, ' ') << "Return Type : " << endl;

@@ -49,7 +49,9 @@ map<string, TokenType> keyword_map = {
 	{ "from", TokenType::FROM },
 
 	{ "pub", TokenType::PUB },
-	{ "pure", TokenType::PURE }
+	{ "pure", TokenType::PURE },
+
+	{ "pass", TokenType::PASS }
 };
 
 vector<shared_ptr<Token>> Lexer::execute()
@@ -98,7 +100,6 @@ vector<shared_ptr<Token>> Lexer::execute()
 			case '[':
 			case ']':
 			case ',':
-			case '.':
 			case ':':
 			case '|': CASE_BODY(this->consume_single_char_punctuation(ch));
 			case '"': CASE_BODY(this->consume_string_literal());
@@ -112,6 +113,7 @@ vector<shared_ptr<Token>> Lexer::execute()
 			case '!': CASE_BODY(this->handle_bang());
 			case '<': CASE_BODY(this->handle_lesser_than());
 			case '>': CASE_BODY(this->handle_greater_than());
+			case '.': CASE_BODY(this->handle_dot());
 			default: CASE_BODY(this->consume_unknown_token(ch));
 			}
 		}
@@ -325,6 +327,24 @@ shared_ptr<Token> Lexer::handle_lesser_than()
 
 	NEXT;
 	return MAKE_TOKEN(TokenType::LESSER_THAN, "<", LINE_NUM, COL_NUM);
+}
+
+shared_ptr<Token> Lexer::handle_dot()
+{
+	if (this->peek_and_move('.'))
+	{
+		if (this->peek_and_move('.'))
+		{
+			NEXT;
+			return MAKE_TOKEN(TokenType::DOT_DOT_DOT, "...", LINE_NUM, COL_NUM);
+		}
+
+		NEXT;
+		return MAKE_TOKEN(TokenType::DOT_DOT, "..", LINE_NUM, COL_NUM);
+	}
+
+	NEXT;
+	return MAKE_TOKEN(TokenType::DOT, ".", LINE_NUM, COL_NUM);
 }
 
 shared_ptr<Token> Lexer::consume_single_char_punctuation(char ch)
