@@ -37,7 +37,7 @@ Module Parser::execute()
 
 // Parsers
 
-shared_ptr<StatementNode> Parser::parse_statement(bool is_public)
+StatementNode_ptr Parser::parse_statement(bool is_public)
 {
 	auto token = this->get_current_token();
 	ADVANCE_PTR;
@@ -49,8 +49,8 @@ shared_ptr<StatementNode> Parser::parse_statement(bool is_public)
 	{
 		CASE(TokenType::LET, this->parse_let_declaration(is_public));
 		CASE(TokenType::CONST, this->parse_const_declaration(is_public));
+		CASE(TokenType::Identifier, this->handle_identifier(token));
 		//CASE(TokenType::PUB, this->parse_public_statement());
-		//CASE(TokenType::Identifier, this->handle_identifier());
 		//CASE(TokenType::IF, this->parse_branching_statement());
 		//CASE(TokenType::LOOP, this->parse_loop_statement());
 		//CASE(TokenType::BREAK, this->parse_break_statement());
@@ -82,9 +82,7 @@ ExpressionNode_ptr Parser::parse_expression()
 		auto type = token->get_type();
 
 		if (type == TokenType::EOL || type == TokenType::COMMA)
-		{
 			break;
-		}
 
 		if (type == TokenType::NumberLiteral)
 		{
@@ -96,7 +94,7 @@ ExpressionNode_ptr Parser::parse_expression()
 			ast.push_back(MAKE_EXPR(StringLiteral(token->get_value())));
 			ADVANCE_PTR;
 		}
-		else if (type == TokenType::BooleanLiteral)
+		else if (type == TokenType::TRUE || type == TokenType::FALSE)
 		{
 			bool x = token->get_value() == "true" ? true : false;
 			ast.push_back(MAKE_EXPR(BooleanLiteral(x)));
@@ -253,8 +251,25 @@ StatementNode_ptr Parser::parse_const_declaration(bool is_public)
 
 // Expression Statement
 
+StatementNode_ptr Parser::handle_identifier(Token_ptr identifier)
+{
+	if (this->expect_current_token(TokenType::EQUAL))
+	{
+		auto expression = this->parse_expression();
+		RETURN_IF_NULLPTR(expression);
+
+		RETURN_IF_TRUE(!this->expect_current_token(TokenType::EOL));
+
+		return MAKE_STAT(Assignment(identifier->get_value(), expression));
+	}
+
+	this->pointer.retreat();
+	return this->parse_expression_statement();
+}
+
 StatementNode_ptr Parser::parse_expression_statement()
 {
+	// ensure that pointer is at first token of expr ??
 	auto expression = this->parse_expression();
 	RETURN_IF_NULLPTR(expression);
 	RETURN_IF_TRUE(!this->expect_current_token(TokenType::EOL));
@@ -262,36 +277,49 @@ StatementNode_ptr Parser::parse_expression_statement()
 	return MAKE_STAT(ExpressionStatement(expression));
 }
 
+// Block Statements Parsers
+
+StatementNode_ptr Parser::parse_return_statement()
+{
+	auto expression = this->parse_expression();
+	RETURN_IF_NULLPTR(expression);
+	RETURN_IF_TRUE(!this->expect_current_token(TokenType::EOL));
+
+	return MAKE_STAT(Return(expression));
+}
+
+StatementNode_ptr Parser::parse_break_statement()
+{
+	RETURN_IF_TRUE(!this->expect_current_token(TokenType::EOL));
+	return MAKE_STAT(Break());
+}
+
+StatementNode_ptr Parser::parse_continue_statement()
+{
+	RETURN_IF_TRUE(!this->expect_current_token(TokenType::EOL));
+	return MAKE_STAT(Continue());
+}
+
 // Type parsers
 
 TypeNode_ptr Parser::parse_type()
 {
 	if (this->expect_current_token(TokenType::OPEN_BRACKET))
-	{
 		return this->parse_vector_type();
-	}
 
 	if (this->expect_current_token(TokenType::OPEN_PARENTHESIS))
-	{
 		return this->parse_tuple_type();
-	}
 
 	if (this->expect_current_token(TokenType::OPEN_CURLY_BRACE))
-	{
 		return this->parse_map_type();
-	}
 
-	if (this->expect_current_token(TokenType::OPEN_ANGLE_BRACKET))
-	{
+	if (this->expect_current_token(TokenType::LESSER_THAN))
 		return this->parse_variant_type();
-	}
 
 	auto type = this->consume_datatype_word();
 
 	if (type != nullptr)
-	{
 		return type;
-	}
 
 	return nullptr;
 }
@@ -314,10 +342,10 @@ TypeNode_ptr Parser::parse_tuple_type()
 		auto type = this->parse_type();
 		RETURN_IF_NULLPTR(type);
 
+		types.push_back(type);
+
 		if (this->expect_current_token(TokenType::CLOSE_PARENTHESIS))
-		{
 			return MAKE_TYPE(Tuple(types));
-		}
 
 		RETURN_IF_TRUE(!this->expect_current_token(TokenType::COMMA));
 		continue;
@@ -328,6 +356,8 @@ TypeNode_ptr Parser::parse_map_type()
 {
 	auto key_type = this->consume_valid_map_key_datatype();
 	RETURN_IF_NULLPTR(key_type);
+
+	RETURN_IF_TRUE(!this->expect_current_token(TokenType::ARROW));
 
 	auto value_type = this->parse_type();
 	RETURN_IF_NULLPTR(value_type);
@@ -345,10 +375,10 @@ TypeNode_ptr Parser::parse_variant_type()
 		auto type = this->parse_type();
 		RETURN_IF_NULLPTR(type);
 
-		if (this->expect_current_token(TokenType::CLOSE_ANGLE_BRACKET))
-		{
+		types.push_back(type);
+
+		if (this->expect_current_token(TokenType::GREATER_THAN))
 			return MAKE_TYPE(Variant(types));
-		}
 
 		RETURN_IF_TRUE(!this->expect_current_token(TokenType::COMMA));
 		continue;
@@ -387,7 +417,7 @@ TypeNode_ptr Parser::consume_scalar_datatype()
 	}
 }
 
-KeyTypeNode_ptr Parser::consume_valid_map_key_datatype()
+TypeNode_ptr Parser::consume_valid_map_key_datatype()
 {
 	auto token = this->get_current_token();
 	RETURN_IF_NULLPTR(token);
@@ -399,12 +429,12 @@ KeyTypeNode_ptr Parser::consume_valid_map_key_datatype()
 	case TokenType::NUM:
 	{
 		ADVANCE_PTR;
-		return make_shared<KeyTypeNode>(Number());
+		return MAKE_TYPE(Number());
 	}
 	case TokenType::STR:
 	{
 		ADVANCE_PTR;
-		return make_shared<KeyTypeNode>(String());
+		return MAKE_TYPE(String());
 	}
 	default:
 	{
@@ -695,7 +725,8 @@ bool is_right_associative(TokenType token_type)
 	case TokenType::UNARY_MINUS:
 	case TokenType::UNARY_PLUS:
 	case TokenType::BANG:
-	case TokenType::EQUAL: {
+	case TokenType::EQUAL:
+	{
 		return true;
 	}
 	default:

@@ -23,10 +23,6 @@ string to_string(TokenType type)
 	{
 		return "String Literal";
 	}
-	case TokenType::BooleanLiteral:
-	{
-		return "Boolean Literal";
-	}
 
 	// Identifiers
 
@@ -45,8 +41,6 @@ string to_string(TokenType type)
 	case TokenType::CLOSE_PARENTHESIS:
 	case TokenType::OPEN_CURLY_BRACE:
 	case TokenType::CLOSE_CURLY_BRACE:
-	case TokenType::OPEN_BRACKET:
-	case TokenType::CLOSE_BRACKET:
 	case TokenType::BACKWARD_SLASH:
 	case TokenType::COMMA:
 	case TokenType::DOT:

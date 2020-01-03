@@ -39,18 +39,6 @@ void print_type_node(TypeNode_ptr node, int level)
 		}, *node.get());
 }
 
-void print_key_type_node(KeyTypeNode_ptr node, int level)
-{
-	visit([level](auto&& n) {
-		using T = std::decay_t<decltype(n)>;
-
-		if constexpr (std::is_same_v<T, StringLiteral>)
-			n.print(level);
-		else if constexpr (std::is_same_v<T, NumberLiteral>)
-			n.print(level);
-		}, *node.get());
-}
-
 void Optional::print(int level)
 {
 	cout << string(level, ' ') << "Type : Optional : " << endl;
@@ -103,7 +91,7 @@ void Map::print(int level)
 	cout << string(level, ' ') << "Type : Map" << endl;
 
 	cout << string(level + 4, ' ') << "Key Type" << endl;
-	print_key_type_node(this->key_type, level + 8);
+	print_type_node(this->key_type, level + 8);
 
 	cout << string(level + 4, ' ') << "Value Type" << endl;
 	print_type_node(this->value_type, level + 8);
@@ -111,5 +99,5 @@ void Map::print(int level)
 
 void Record::print(int level)
 {
-	cout << string(level, ' ') << "Type : Record : " << this->type << endl;
+	cout << string(level, ' ') << "Type : " << this->type << endl;
 }

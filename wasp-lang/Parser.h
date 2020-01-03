@@ -49,8 +49,7 @@ class Parser
 
 	TypeNode_ptr consume_scalar_datatype();
 	TypeNode_ptr consume_datatype_word();
-
-	KeyTypeNode_ptr consume_valid_map_key_datatype();
+	TypeNode_ptr consume_valid_map_key_datatype();
 
 	// Definition Parsers
 
@@ -60,7 +59,7 @@ class Parser
 
 	// Other
 
-	StatementNode_ptr handle_identifier();
+	StatementNode_ptr handle_identifier(Token_ptr identifier);
 	StatementNode_ptr parse_expression_statement();
 	StatementNode_ptr parse_import_statement();
 	StatementNode_ptr parse_public_statement();

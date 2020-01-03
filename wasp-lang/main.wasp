@@ -1,2 +1,2 @@
-foobar(a, b * r)
-call(a, b * r, foo(a, top(3)), 89)
+let a : { str -> <str, num, RECORD> } = 4
+a = true

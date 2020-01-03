@@ -29,9 +29,6 @@ using TypeNode = std::variant<
 
 using TypeNode_ptr = std::shared_ptr<TypeNode>;
 
-using KeyTypeNode = std::variant<std::monostate, Number, String>;
-using KeyTypeNode_ptr = std::shared_ptr<KeyTypeNode>;
-
 class Type {
 public:
 	virtual void print(int level) = 0;
@@ -99,10 +96,10 @@ public:
 
 class Map : public Composite
 {
-	KeyTypeNode_ptr key_type;
+	TypeNode_ptr key_type;
 	TypeNode_ptr value_type;
 public:
-	Map(KeyTypeNode_ptr key_type, TypeNode_ptr value_type) : key_type(key_type), value_type(value_type) {};
+	Map(TypeNode_ptr key_type, TypeNode_ptr value_type) : key_type(key_type), value_type(value_type) {};
 	void print(int level);
 };
 
@@ -115,4 +112,3 @@ public:
 };
 
 void print_type_node(TypeNode_ptr node, int level);
-void print_key_type_node(KeyTypeNode_ptr node, int level);

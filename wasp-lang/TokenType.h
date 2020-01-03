@@ -6,7 +6,6 @@ enum class TokenType
 
 	NumberLiteral,
 	StringLiteral,
-	BooleanLiteral,
 
 	// Identifiers
 
@@ -21,8 +20,6 @@ enum class TokenType
 	CLOSE_CURLY_BRACE,
 	OPEN_BRACKET,
 	CLOSE_BRACKET,
-	OPEN_ANGLE_BRACKET,
-	CLOSE_ANGLE_BRACKET,
 
 	BACKWARD_SLASH,
 	COMMA,
