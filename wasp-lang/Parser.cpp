@@ -5,9 +5,9 @@
 #define MAKE_TYPE(x) make_shared<TypeNode>(x)
 #define MAKE_EXPR(x) make_shared<ExpressionNode>(x)
 #define MAKE_STAT(x) make_shared<StatementNode>(x)
+#define ADVANCE_PTR this->pointer.advance()
 #define RETURN_IF_NULLPTR(x) if (x == nullptr) { return nullptr; }
 #define RETURN_IF_TRUE(x) if (x) { return nullptr; }
-#define BREAK_IF_NULLPTR(x) if (x == nullptr) { break; }
 #define CASE(token_type, call) case token_type: { return call; }
 
 using std::string;
@@ -25,7 +25,9 @@ Module Parser::execute()
 	while (true)
 	{
 		StatementNode_ptr node = this->parse_statement(false);
-		BREAK_IF_NULLPTR(node);
+
+		if (node == nullptr)
+			break;
 
 		mod.add(move(node));
 	}
@@ -38,9 +40,10 @@ Module Parser::execute()
 shared_ptr<StatementNode> Parser::parse_statement(bool is_public)
 {
 	auto token = this->get_current_token();
-	this->pointer.advance();
+	ADVANCE_PTR;
 
-	RETURN_IF_NULLPTR(token);
+	if (token == nullptr)
+		return nullptr;
 
 	switch (token->get_type())
 	{
@@ -57,8 +60,10 @@ shared_ptr<StatementNode> Parser::parse_statement(bool is_public)
 		//CASE(TokenType::FN, this->parse_function_definition(is_public));
 		//CASE(TokenType::ENUM, this->parse_enum_definition(is_public));
 		//CASE(TokenType::IMPORT, this->parse_import_statement());
-	//default:
-		//return this->parse_expression_statement();
+	default: {
+		this->pointer.retreat();
+		return this->parse_expression_statement();
+	}
 	}
 }
 
@@ -70,32 +75,36 @@ ExpressionNode_ptr Parser::parse_expression()
 	while (true)
 	{
 		Token_ptr token = this->get_current_token();
-		RETURN_IF_NULLPTR(token);
 
-		switch (token->get_type())
+		if (token == nullptr)
+			return nullptr;
+
+		auto type = token->get_type();
+
+		if (type == TokenType::EOL || type == TokenType::COMMA)
 		{
-		case TokenType::NumberLiteral:
+			break;
+		}
+
+		if (type == TokenType::NumberLiteral)
 		{
 			ast.push_back(MAKE_EXPR(NumberLiteral(stod(token->get_value()))));
-			this->pointer.advance();
-			break;
+			ADVANCE_PTR;
 		}
-		case TokenType::StringLiteral:
+		else if (type == TokenType::StringLiteral)
 		{
 			ast.push_back(MAKE_EXPR(StringLiteral(token->get_value())));
-			this->pointer.advance();
-			break;
+			ADVANCE_PTR;
 		}
-		case TokenType::BooleanLiteral:
+		else if (type == TokenType::BooleanLiteral)
 		{
 			bool x = token->get_value() == "true" ? true : false;
 			ast.push_back(MAKE_EXPR(BooleanLiteral(x)));
-			this->pointer.advance();
-			break;
+			ADVANCE_PTR;
 		}
-		case TokenType::Identifier:
+		else if (type == TokenType::Identifier)
 		{
-			this->pointer.advance();
+			ADVANCE_PTR;
 
 			if (this->expect_current_token(TokenType::OPEN_BRACKET))
 			{
@@ -116,116 +125,94 @@ ExpressionNode_ptr Parser::parse_expression()
 			{
 				ast.push_back(MAKE_EXPR(Identifier(token->get_value())));
 			}
-
-			break;
 		}
-		case TokenType::AND:
-		case TokenType::OR:
+		else if (type == TokenType::AND || type == TokenType::OR)
 		{
 			this->push_operator_to_operator_stack(token, op_stack, ast);
-			this->pointer.advance();
-			break;
+			ADVANCE_PTR;
 		}
-		case TokenType::COMMA:
+		else if (type == TokenType::OPEN_PARENTHESIS)
 		{
-			break;
-		}
-		case TokenType::OPEN_PARENTHESIS:
-		{
-			this->inside_function_call.push_back(false);
+			this->inside_function_call.push(false);
 			op_stack.push(token);
-			this->pointer.advance();
-			break;
+			ADVANCE_PTR;
 		}
-		case TokenType::CLOSE_PARENTHESIS:
+		else if (type == TokenType::CLOSE_PARENTHESIS) // ???
 		{
-			if (this->inside_function_call.back() == true)
-			{
+			if (this->inside_function_call.top() == true)
 				break;
-			}
 
 			this->pop_until_open_parenthesis_from_stack_into_ast(op_stack, ast);
-			this->pointer.advance();
+			ADVANCE_PTR;
 			break;
 		}
-		case TokenType::OPEN_CURLY_BRACE:
-		case TokenType::CLOSE_CURLY_BRACE:
-		case TokenType::CLOSE_BRACKET:
+		else if (type == TokenType::OPEN_CURLY_BRACE || type == TokenType::CLOSE_CURLY_BRACE || type == TokenType::CLOSE_BRACKET)
 		{
 			break;
 		}
-		case TokenType::BANG:
-		case TokenType::UNARY_MINUS:
-		case TokenType::UNARY_PLUS:
-		case TokenType::PLUS:
-		case TokenType::MINUS:
-		case TokenType::DIVISION:
-		case TokenType::REMINDER:
-		case TokenType::STAR:
-		case TokenType::POWER:
-		case TokenType::GREATER_THAN:
-		case TokenType::GREATER_THAN_EQUAL:
-		case TokenType::LESSER_THAN:
-		case TokenType::LESSER_THAN_EQUAL:
-		case TokenType::EQUAL_EQUAL:
-		case TokenType::BANG_EQUAL:
+		else if (type == TokenType::BANG ||
+			type == TokenType::UNARY_MINUS ||
+			type == TokenType::UNARY_PLUS ||
+			type == TokenType::PLUS ||
+			type == TokenType::MINUS ||
+			type == TokenType::DIVISION ||
+			type == TokenType::REMINDER ||
+			type == TokenType::STAR ||
+			type == TokenType::POWER ||
+			type == TokenType::GREATER_THAN ||
+			type == TokenType::GREATER_THAN_EQUAL ||
+			type == TokenType::LESSER_THAN ||
+			type == TokenType::LESSER_THAN_EQUAL ||
+			type == TokenType::EQUAL_EQUAL ||
+			type == TokenType::BANG_EQUAL)
 		{
 			this->push_operator_to_operator_stack(token, op_stack, ast);
-			this->pointer.advance();
-			break;
+			ADVANCE_PTR;
 		}
-		case TokenType::FunctionIdentifier:
+		else if (type == TokenType::FunctionIdentifier)
 		{
-			this->pointer.advance();
+			ADVANCE_PTR;
 			vector<ExpressionNode_ptr> expressions;
 
 			if (this->expect_current_token(TokenType::OPEN_PARENTHESIS))
 			{
-				this->inside_function_call.push_back(true);
+				this->inside_function_call.push(true);
 
 				if (this->expect_current_token(TokenType::CLOSE_PARENTHESIS))
 				{
-					this->inside_function_call.pop_back();
+					this->inside_function_call.pop();
 					return MAKE_EXPR(FunctionCall(token->get_value(), expressions));
 				}
 			}
 
 			while (true)
 			{
+				auto expression = this->parse_expression();
+				RETURN_IF_NULLPTR(expression);
+
+				expressions.push_back(expression);
+
 				if (this->expect_current_token(TokenType::COMMA))
-				{
 					continue;
-				}
 
 				if (this->expect_current_token(TokenType::CLOSE_PARENTHESIS))
-				{
 					return MAKE_EXPR(FunctionCall(token->get_value(), expressions));
-				}
 
 				return nullptr;
 			}
-
-			this->pointer.advance();
-			break;
 		}
-		default:
+		else
 		{
-			this->pointer.advance();
-			break;
+			ADVANCE_PTR;
 		}
-		}
-
-		this->pop_all_from_stack_into_ast(op_stack, ast);
-
-		if (ast.size() > 1)
-		{
-			return nullptr;
-		}
-
-		return ast[0];
 	}
 
-	return nullptr;
+	this->pop_all_from_stack_into_ast(op_stack, ast);
+
+	if (ast.size() > 1)
+		return nullptr;
+
+	return ast[0];
 }
 
 // Variable declaration parsers
@@ -262,6 +249,17 @@ StatementNode_ptr Parser::parse_const_declaration(bool is_public)
 	RETURN_IF_TRUE(!this->consume_token(TokenType::EOL));
 
 	return MAKE_STAT(Const(is_public, identifier->get_value(), type, expression));
+}
+
+// Expression Statement
+
+StatementNode_ptr Parser::parse_expression_statement()
+{
+	auto expression = this->parse_expression();
+	RETURN_IF_NULLPTR(expression);
+	RETURN_IF_TRUE(!this->expect_current_token(TokenType::EOL));
+
+	return MAKE_STAT(ExpressionStatement(expression));
 }
 
 // Type parsers
@@ -368,17 +366,17 @@ TypeNode_ptr Parser::consume_scalar_datatype()
 	{
 	case TokenType::NUM:
 	{
-		this->pointer.advance();
+		ADVANCE_PTR;
 		return MAKE_TYPE(Number());
 	}
 	case TokenType::STR:
 	{
-		this->pointer.advance();
+		ADVANCE_PTR;
 		return MAKE_TYPE(String());
 	}
 	case TokenType::BOOL:
 	{
-		this->pointer.advance();
+		ADVANCE_PTR;
 		return MAKE_TYPE(Bool());
 	}
 
@@ -400,12 +398,12 @@ KeyTypeNode_ptr Parser::consume_valid_map_key_datatype()
 	{
 	case TokenType::NUM:
 	{
-		this->pointer.advance();
+		ADVANCE_PTR;
 		return make_shared<KeyTypeNode>(Number());
 	}
 	case TokenType::STR:
 	{
-		this->pointer.advance();
+		ADVANCE_PTR;
 		return make_shared<KeyTypeNode>(String());
 	}
 	default:
@@ -426,22 +424,22 @@ TypeNode_ptr Parser::consume_datatype_word()
 	{
 	case TokenType::NUM:
 	{
-		this->pointer.advance();
+		ADVANCE_PTR;
 		return MAKE_TYPE(Number());
 	}
 	case TokenType::STR:
 	{
-		this->pointer.advance();
+		ADVANCE_PTR;
 		return MAKE_TYPE(String());
 	}
 	case TokenType::BOOL:
 	{
-		this->pointer.advance();
+		ADVANCE_PTR;
 		return MAKE_TYPE(Bool());
 	}
 	case TokenType::Identifier:
 	{
-		this->pointer.advance();
+		ADVANCE_PTR;
 		return MAKE_TYPE(Record(token->get_value()));
 	}
 	default:
@@ -463,13 +461,9 @@ void Parser::pop_all_from_stack_into_ast(stack<Token_ptr>& op_stack, vector<Expr
 		int parity = get_parity(top_operator->get_type());
 
 		if (parity == 1)
-		{
 			this->push_unary_operator_to_ast(top_operator, ast);
-		}
 		else if (parity == 2)
-		{
 			this->push_binary_operator_to_ast(top_operator, ast);
-		}
 	}
 }
 
@@ -506,20 +500,14 @@ void Parser::pop_until_open_parenthesis_from_stack_into_ast(stack<Token_ptr>& op
 		op_stack.pop();
 
 		if (top_operator->get_type() == TokenType::OPEN_PARENTHESIS)
-		{
 			break;
-		}
 
 		int parity = get_parity(top_operator->get_type());
 
 		if (parity == 1)
-		{
 			this->push_unary_operator_to_ast(top_operator, ast);
-		}
 		else if (parity == 2)
-		{
 			this->push_binary_operator_to_ast(top_operator, ast);
-		}
 	}
 }
 
@@ -555,6 +543,11 @@ void Parser::push_operator_to_operator_stack(Token_ptr op, stack<Token_ptr>& op_
 				this->push_binary_operator_to_ast(top_operator, ast);
 			}
 		}
+		else
+		{
+			op_stack.push(top_operator);
+			break;
+		}
 	}
 
 	op_stack.push(op);
@@ -575,7 +568,7 @@ bool Parser::expect_current_token(TokenType token_type)
 
 	if (token != nullptr && token_type == token->get_type())
 	{
-		this->pointer.advance();
+		ADVANCE_PTR;
 		return true;
 	}
 
@@ -588,7 +581,7 @@ Token_ptr Parser::consume_token(TokenType token_type)
 
 	if (token != nullptr && token_type == token->get_type())
 	{
-		this->pointer.advance();
+		ADVANCE_PTR;
 		return move(token);
 	}
 

@@ -148,7 +148,7 @@ class ExpressionStatement : public Statement
 	ExpressionNode_ptr expression;
 
 public:
-	ExpressionStatement(ExpressionNode_ptr expression) : expression(expression) {};
+	ExpressionStatement(ExpressionNode_ptr expression) : expression(std::move(expression)) {};
 	void print(int level);
 };
 

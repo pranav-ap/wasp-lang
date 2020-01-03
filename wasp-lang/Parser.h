@@ -10,7 +10,7 @@
 class Parser
 {
 	std::vector<Token_ptr> tokens;
-	std::vector<bool> inside_function_call;
+	std::stack<bool> inside_function_call;
 	Pointer pointer;
 
 	// Parsers
