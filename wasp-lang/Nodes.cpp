@@ -1,5 +1,9 @@
 #pragma once
+#include <iostream>
 #include "Nodes.h"
+
+using std::cout;
+using std::endl;
 
 void Module::add(StatementNode_ptr node)
 {
@@ -8,8 +12,11 @@ void Module::add(StatementNode_ptr node)
 
 void Module::print()
 {
+	cout << "\n Syntax Tree" << endl;
+
 	for (auto const& node : this->nodes)
 	{
-		print_statement_node(node, 0);
+		cout << endl;
+		print_statement_node(node, 4);
 	}
 }

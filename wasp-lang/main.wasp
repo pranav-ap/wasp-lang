@@ -1,2 +1,7 @@
-let a : { str -> <str, num, RECORD> } = 4
-a = true
+type batman {
+   foo: str
+}
+
+let a : batman = {
+	foo : "hello"
+}

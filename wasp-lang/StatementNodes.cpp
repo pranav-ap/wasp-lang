@@ -35,6 +35,8 @@ void print_statement_node(StatementNode_ptr node, int level)
 			n.print(level);
 		else if constexpr (std::is_same_v<T, Return>)
 			n.print(level);
+		else if constexpr (std::is_same_v<T, Alias>)
+			n.print(level);
 		else if constexpr (std::is_same_v<T, RecordDefinition>)
 			n.print(level);
 		else if constexpr (std::is_same_v<T, FunctionDefinition>)
@@ -110,9 +112,15 @@ void Continue::print(int level)
 	cout << string(level, ' ') << "Continue" << endl;
 }
 
+void Alias::print(int level)
+{
+	cout << string(level, ' ') << "Alias : " << this->name << endl;
+	print_type_node(this->type, level + 4);
+}
+
 void RecordDefinition::print(int level)
 {
-	cout << string(level, ' ') << "Record Definition : " << setw(25) << std::left << endl;
+	cout << string(level, ' ') << "Record Definition : " << endl;
 
 	cout << string(level + 4, ' ') << "Public : " << std::boolalpha << this->is_public << endl;
 	cout << string(level + 4, ' ') << "Record name : " << this->name << endl;

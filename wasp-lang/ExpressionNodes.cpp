@@ -92,8 +92,13 @@ void MapLiteral::print(int level)
 
 	for (auto const& pair : this->pairs)
 	{
-		print_expression_node(pair.first, level + 4);
-		print_expression_node(pair.second, level + 4);
+		cout << string(level + 4, ' ') << "Key : " << endl;
+		print_expression_node(pair.first, level + 8);
+
+		cout << string(level + 4, ' ') << "Value : " << endl;
+		print_expression_node(pair.second, level + 8);
+
+		cout << endl;
 	}
 }
 
@@ -104,7 +109,11 @@ void RecordLiteral::print(int level)
 	for (auto const& pair : this->pairs)
 	{
 		cout << string(level + 4, ' ') << "Key : " << pair.first << endl;
-		print_expression_node(pair.second, level + 4);
+
+		cout << string(level + 4, ' ') << "Value : " << endl;
+		print_expression_node(pair.second, level + 8);
+
+		cout << endl;
 	}
 }
 

@@ -2,10 +2,27 @@
 #include <vector>
 #include <stack>
 #include <memory>
+#include <utility>
 #include "Token.h"
 #include "Pointer.h"
 #include "Types.h"
 #include "Nodes.h"
+
+#define MAKE_TYPE(x) make_shared<TypeNode>(x)
+#define MAKE_EXPR(x) make_shared<ExpressionNode>(x)
+#define MAKE_STAT(x) make_shared<StatementNode>(x)
+#define ADVANCE_PTR this->pointer.advance()
+#define RETURN_IF_NULLPTR(x) if (x == nullptr) { return nullptr; }
+#define RETURN_IF_TRUE(x) if (x) { return nullptr; }
+#define CASE(token_type, call) case token_type: { return call; }
+
+using std::string;
+using std::vector;
+using std::stack;
+using std::shared_ptr;
+using std::pair;
+using std::make_shared;
+using std::make_pair;
 
 class Parser
 {
@@ -27,12 +44,17 @@ class Parser
 
 	ExpressionNode_ptr parse_vector_literal();
 	ExpressionNode_ptr parse_tuple_literal();
+
 	ExpressionNode_ptr parse_map_literal();
 	ExpressionNode_ptr parse_record_literal();
+	ExpressionNode_ptr parse_map_or_record_literal();
+
+	ExpressionNode_ptr consume_valid_map_key();
+	std::shared_ptr<string> consume_valid_record_key();
 
 	// Block statement parsing
 
-	StatementNode_ptr parse_block();
+	std::shared_ptr<Block> parse_block();
 	StatementNode_ptr parse_return_statement();
 	StatementNode_ptr parse_branching_statement();
 	StatementNode_ptr parse_loop_statement();
@@ -77,6 +99,7 @@ class Parser
 	Token_ptr get_current_token();
 	Token_ptr consume_token(TokenType token_type);
 	bool expect_current_token(TokenType token_type);
+	void ignore(TokenType token_type);
 
 public:
 	Parser(std::vector<Token_ptr>& token_list) : tokens(std::move(token_list)), pointer(Pointer()) {};

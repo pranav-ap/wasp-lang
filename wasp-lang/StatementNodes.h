@@ -20,6 +20,7 @@ class Break;
 class Continue;
 class Return;
 
+class Alias;
 class RecordDefinition;
 class FunctionDefinition;
 
@@ -30,7 +31,7 @@ using StatementNode = std::variant<
 	std::monostate,
 	Let, Const, Assignment,
 	Branch, Loop, Break, Continue,
-	RecordDefinition, FunctionDefinition,
+	Alias, RecordDefinition, FunctionDefinition,
 	Return, ExpressionStatement, Import
 >;
 
@@ -107,6 +108,16 @@ public:
 class Continue : public Statement
 {
 public:
+	void print(int level);
+};
+
+class Alias : public Statement
+{
+	std::string name;
+	TypeNode_ptr type;
+
+public:
+	Alias(std::string name, TypeNode_ptr type) : name(name), type(type) {};
 	void print(int level);
 };
 

@@ -24,13 +24,14 @@ string read_source(string path) {
 
 int main()
 {
-	cout << " Wasp Language Interpreter " << endl;
+	cout << "\n Wasp Language Interpreter \n" << endl;
 
 	string raw_source = read_source("main.wasp");
-	cout << raw_source << endl;
 
 	Lexer lexer(raw_source);
 	vector<shared_ptr<Token>> tokens = lexer.execute();
+
+	cout << "\n Scanned Tokens \n" << endl;
 
 	for (auto const& token : tokens)
 	{

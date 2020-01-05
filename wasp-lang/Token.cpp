@@ -39,6 +39,8 @@ string to_string(TokenType type)
 
 	case TokenType::OPEN_PARENTHESIS:
 	case TokenType::CLOSE_PARENTHESIS:
+	case TokenType::OPEN_BRACKET:
+	case TokenType::CLOSE_BRACKET:
 	case TokenType::OPEN_CURLY_BRACE:
 	case TokenType::CLOSE_CURLY_BRACE:
 	case TokenType::BACKWARD_SLASH:
@@ -140,7 +142,7 @@ void Token::print() const
 {
 	cout << " [ Ln " << setw(3) << std::left << this->line_num
 		<< " Col " << setw(3) << std::left << this->column_num << " ] : "
-		<< setw(16) << std::left << to_string(this->type) << " : " << this->value << endl;
+		<< setw(20) << std::left << to_string(this->type) << " : " << this->value << endl;
 }
 
 bool Token::operator==(const Token& token) const

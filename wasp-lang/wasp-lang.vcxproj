@@ -152,6 +152,8 @@
     <ClCompile Include="Lexer.cpp" />
     <ClCompile Include="Nodes.cpp" />
     <ClCompile Include="Parser.cpp" />
+    <ClCompile Include="ParserExpressionUtils.cpp" />
+    <ClCompile Include="ParserUtils.cpp" />
     <ClCompile Include="Pointer.cpp" />
     <ClCompile Include="StatementNodes.cpp" />
     <ClCompile Include="TokenPosition.cpp" />

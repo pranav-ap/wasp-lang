@@ -2,20 +2,6 @@
 #include <iostream>
 #include "Parser.h"
 
-#define MAKE_TYPE(x) make_shared<TypeNode>(x)
-#define MAKE_EXPR(x) make_shared<ExpressionNode>(x)
-#define MAKE_STAT(x) make_shared<StatementNode>(x)
-#define ADVANCE_PTR this->pointer.advance()
-#define RETURN_IF_NULLPTR(x) if (x == nullptr) { return nullptr; }
-#define RETURN_IF_TRUE(x) if (x) { return nullptr; }
-#define CASE(token_type, call) case token_type: { return call; }
-
-using std::string;
-using std::vector;
-using std::stack;
-using std::shared_ptr;
-using std::make_shared;
-
 // API
 
 Module Parser::execute()
@@ -24,12 +10,13 @@ Module Parser::execute()
 
 	while (true)
 	{
-		StatementNode_ptr node = this->parse_statement(false);
-
-		if (node == nullptr)
+		if (this->pointer.get_index() >= this->tokens.size())
 			break;
 
-		mod.add(move(node));
+		StatementNode_ptr node = this->parse_statement(false);
+
+		if (node != nullptr)
+			mod.add(move(node));
 	}
 
 	return mod;
@@ -39,6 +26,8 @@ Module Parser::execute()
 
 StatementNode_ptr Parser::parse_statement(bool is_public)
 {
+	this->ignore(TokenType::EOL);
+
 	auto token = this->get_current_token();
 	ADVANCE_PTR;
 
@@ -50,13 +39,13 @@ StatementNode_ptr Parser::parse_statement(bool is_public)
 		CASE(TokenType::LET, this->parse_let_declaration(is_public));
 		CASE(TokenType::CONST, this->parse_const_declaration(is_public));
 		CASE(TokenType::Identifier, this->handle_identifier(token));
-		//CASE(TokenType::PUB, this->parse_public_statement());
-		//CASE(TokenType::IF, this->parse_branching_statement());
-		//CASE(TokenType::LOOP, this->parse_loop_statement());
-		//CASE(TokenType::BREAK, this->parse_break_statement());
-		//CASE(TokenType::CONTINUE, this->parse_continue_statement());
-		//CASE(TokenType::RETURN, this->parse_return_statement());
-		//CASE(TokenType::TYPE, this->parse_type_declaration(is_public));
+		CASE(TokenType::BREAK, this->parse_break_statement());
+		CASE(TokenType::CONTINUE, this->parse_continue_statement());
+		CASE(TokenType::RETURN, this->parse_return_statement());
+		CASE(TokenType::PUB, this->parse_public_statement());
+		CASE(TokenType::IF, this->parse_branching_statement());
+		CASE(TokenType::LOOP, this->parse_loop_statement());
+		CASE(TokenType::TYPE, this->parse_type_declaration(is_public));
 		//CASE(TokenType::FN, this->parse_function_definition(is_public));
 		//CASE(TokenType::ENUM, this->parse_enum_definition(is_public));
 		//CASE(TokenType::IMPORT, this->parse_import_statement());
@@ -124,6 +113,22 @@ ExpressionNode_ptr Parser::parse_expression()
 				ast.push_back(MAKE_EXPR(Identifier(token->get_value())));
 			}
 		}
+		else if (type == TokenType::OPEN_BRACKET)
+		{
+			ADVANCE_PTR;
+			auto vec = this->parse_vector_literal();
+			RETURN_IF_NULLPTR(vec);
+
+			ast.push_back(vec);
+		}
+		else if (type == TokenType::OPEN_PARENTHESIS)
+		{
+			ADVANCE_PTR;
+			auto tuple = this->parse_tuple_literal();
+			RETURN_IF_NULLPTR(tuple);
+
+			ast.push_back(tuple);
+		}
 		else if (type == TokenType::AND || type == TokenType::OR)
 		{
 			this->push_operator_to_operator_stack(token, op_stack, ast);
@@ -172,36 +177,38 @@ ExpressionNode_ptr Parser::parse_expression()
 			ADVANCE_PTR;
 			vector<ExpressionNode_ptr> expressions;
 
-			if (this->expect_current_token(TokenType::OPEN_PARENTHESIS))
-			{
-				this->inside_function_call.push(true);
+			RETURN_IF_TRUE(!this->expect_current_token(TokenType::OPEN_PARENTHESIS));
 
-				if (this->expect_current_token(TokenType::CLOSE_PARENTHESIS))
-				{
-					this->inside_function_call.pop();
-					return MAKE_EXPR(FunctionCall(token->get_value(), expressions));
-				}
+			this->inside_function_call.push(true);
+
+			if (this->expect_current_token(TokenType::CLOSE_PARENTHESIS))
+			{
+				this->inside_function_call.pop();
+				ast.push_back(MAKE_EXPR(FunctionCall(token->get_value(), expressions)));
 			}
-
-			while (true)
+			else
 			{
-				auto expression = this->parse_expression();
-				RETURN_IF_NULLPTR(expression);
+				while (true)
+				{
+					auto expression = this->parse_expression();
+					RETURN_IF_NULLPTR(expression);
 
-				expressions.push_back(expression);
+					expressions.push_back(expression);
 
-				if (this->expect_current_token(TokenType::COMMA))
-					continue;
+					if (this->expect_current_token(TokenType::COMMA))
+						continue;
 
-				if (this->expect_current_token(TokenType::CLOSE_PARENTHESIS))
-					return MAKE_EXPR(FunctionCall(token->get_value(), expressions));
-
-				return nullptr;
+					if (this->expect_current_token(TokenType::CLOSE_PARENTHESIS))
+					{
+						ast.push_back(MAKE_EXPR(FunctionCall(token->get_value(), expressions)));
+						break;
+					}
+				}
 			}
 		}
 		else
 		{
-			ADVANCE_PTR;
+			ADVANCE_PTR; // ??
 		}
 	}
 
@@ -219,15 +226,25 @@ StatementNode_ptr Parser::parse_let_declaration(bool is_public)
 {
 	auto identifier = this->consume_token(TokenType::Identifier);
 	RETURN_IF_NULLPTR(identifier);
-	RETURN_IF_TRUE(!this->consume_token(TokenType::COLON));
+	RETURN_IF_TRUE(!this->expect_current_token(TokenType::COLON));
 
 	auto type = this->parse_type();
 	RETURN_IF_NULLPTR(type);
-	RETURN_IF_TRUE(!this->consume_token(TokenType::EQUAL));
+	RETURN_IF_TRUE(!this->expect_current_token(TokenType::EQUAL));
 
-	auto expression = this->parse_expression();
+	ExpressionNode_ptr expression = nullptr;
+
+	if (this->expect_current_token(TokenType::OPEN_CURLY_BRACE))
+	{
+		expression = this->parse_map_or_record_literal();
+		RETURN_IF_NULLPTR(expression);
+	}
+
+	if (expression == nullptr)
+		expression = this->parse_expression();
+
 	RETURN_IF_NULLPTR(expression);
-	RETURN_IF_TRUE(!this->consume_token(TokenType::EOL));
+	RETURN_IF_TRUE(!this->expect_current_token(TokenType::EOL));
 
 	return MAKE_STAT(Let(is_public, identifier->get_value(), type, expression));
 }
@@ -236,20 +253,205 @@ StatementNode_ptr Parser::parse_const_declaration(bool is_public)
 {
 	auto identifier = this->consume_token(TokenType::Identifier);
 	RETURN_IF_NULLPTR(identifier);
-	RETURN_IF_TRUE(!this->consume_token(TokenType::COLON));
+	RETURN_IF_TRUE(!this->expect_current_token(TokenType::COLON));
 
 	auto type = this->parse_type();
 	RETURN_IF_NULLPTR(type);
-	RETURN_IF_TRUE(!this->consume_token(TokenType::EQUAL));
+	RETURN_IF_TRUE(!this->expect_current_token(TokenType::EQUAL));
 
-	auto expression = this->parse_expression();
+	ExpressionNode_ptr expression = nullptr;
+
+	if (this->expect_current_token(TokenType::OPEN_CURLY_BRACE))
+	{
+		expression = this->parse_map_or_record_literal();
+		RETURN_IF_NULLPTR(expression);
+	}
+
+	if (expression == nullptr)
+		expression = this->parse_expression();
+
 	RETURN_IF_NULLPTR(expression);
-	RETURN_IF_TRUE(!this->consume_token(TokenType::EOL));
+	RETURN_IF_TRUE(!this->expect_current_token(TokenType::EOL));
 
 	return MAKE_STAT(Const(is_public, identifier->get_value(), type, expression));
 }
 
 // Expression Statement
+
+StatementNode_ptr Parser::parse_expression_statement()
+{
+	// ensure that pointer is at first token of expr ??
+	auto expression = this->parse_expression();
+	RETURN_IF_NULLPTR(expression);
+	RETURN_IF_TRUE(!this->expect_current_token(TokenType::EOL));
+
+	return MAKE_STAT(ExpressionStatement(expression));
+}
+
+// Literal parsers
+
+ExpressionNode_ptr Parser::parse_vector_literal()
+{
+	vector<ExpressionNode_ptr> elements;
+
+	if (this->expect_current_token(TokenType::CLOSE_BRACKET))
+		return MAKE_EXPR(VectorLiteral(elements));
+
+	while (true)
+	{
+		auto element = this->parse_expression();
+		RETURN_IF_NULLPTR(element);
+
+		elements.push_back(element);
+
+		if (this->expect_current_token(TokenType::CLOSE_BRACKET))
+			return MAKE_EXPR(VectorLiteral(elements));
+
+		RETURN_IF_TRUE(!this->expect_current_token(TokenType::COMMA));
+	}
+}
+
+ExpressionNode_ptr Parser::parse_tuple_literal()
+{
+	vector<ExpressionNode_ptr> elements;
+
+	if (this->expect_current_token(TokenType::CLOSE_PARENTHESIS))
+		return MAKE_EXPR(TupleLiteral(elements));
+
+	while (true)
+	{
+		auto element = this->parse_expression();
+		RETURN_IF_NULLPTR(element);
+
+		elements.push_back(element);
+
+		if (this->expect_current_token(TokenType::CLOSE_PARENTHESIS))
+			return MAKE_EXPR(TupleLiteral(elements));
+
+		RETURN_IF_TRUE(!this->expect_current_token(TokenType::COMMA));
+	}
+}
+
+ExpressionNode_ptr Parser::parse_map_literal()
+{
+	vector<pair<ExpressionNode_ptr, ExpressionNode_ptr>> pairs;
+
+	if (this->expect_current_token(TokenType::CLOSE_CURLY_BRACE))
+		return MAKE_EXPR(MapLiteral(pairs));
+
+	while (true)
+	{
+		this->ignore(TokenType::EOL);
+
+		auto key = this->consume_valid_map_key();
+		RETURN_IF_NULLPTR(key);
+
+		RETURN_IF_TRUE(!this->expect_current_token(TokenType::COLON));
+
+		auto value = this->parse_expression();
+		RETURN_IF_NULLPTR(value);
+
+		pairs.push_back(make_pair(key, value));
+
+		this->ignore(TokenType::EOL);
+
+		if (this->expect_current_token(TokenType::CLOSE_CURLY_BRACE))
+			return MAKE_EXPR(MapLiteral(pairs));
+
+		RETURN_IF_TRUE(!this->expect_current_token(TokenType::COMMA));
+	}
+}
+
+ExpressionNode_ptr Parser::parse_record_literal()
+{
+	vector<pair<string, ExpressionNode_ptr>> pairs;
+
+	if (this->expect_current_token(TokenType::CLOSE_CURLY_BRACE))
+		return MAKE_EXPR(RecordLiteral(pairs));
+
+	while (true)
+	{
+		this->ignore(TokenType::EOL);
+
+		auto key = this->consume_valid_record_key();
+		RETURN_IF_NULLPTR(key);
+
+		RETURN_IF_TRUE(!this->expect_current_token(TokenType::COLON));
+
+		auto value = this->parse_expression();
+		RETURN_IF_NULLPTR(value);
+
+		pairs.push_back(make_pair(*key.get(), value));
+
+		this->ignore(TokenType::EOL);
+
+		if (this->expect_current_token(TokenType::CLOSE_CURLY_BRACE))
+			return MAKE_EXPR(RecordLiteral(pairs));
+
+		RETURN_IF_TRUE(!this->expect_current_token(TokenType::COMMA));
+	}
+}
+
+ExpressionNode_ptr Parser::parse_map_or_record_literal()
+{
+	this->ignore(TokenType::EOL);
+
+	auto token = this->get_current_token();
+
+	if (token->get_type() == TokenType::Identifier)
+		return this->parse_record_literal();
+
+	return this->parse_map_literal();
+}
+
+ExpressionNode_ptr Parser::consume_valid_map_key()
+{
+	auto token = this->get_current_token();
+	RETURN_IF_NULLPTR(token);
+
+	auto token_type = token->get_type();
+
+	switch (token_type)
+	{
+	case TokenType::NumberLiteral:
+	{
+		ADVANCE_PTR;
+		return MAKE_EXPR(NumberLiteral(stod(token->get_value())));
+	}
+	case TokenType::StringLiteral:
+	{
+		ADVANCE_PTR;
+		return MAKE_EXPR(StringLiteral(token->get_value()));
+	}
+	default:
+	{
+		return nullptr;
+	}
+	}
+}
+
+shared_ptr<string> Parser::consume_valid_record_key()
+{
+	auto token = this->get_current_token();
+	RETURN_IF_NULLPTR(token);
+
+	auto token_type = token->get_type();
+
+	switch (token_type)
+	{
+	case TokenType::Identifier:
+	{
+		ADVANCE_PTR;
+		return make_shared<string>(token->get_value());
+	}
+	default:
+	{
+		return nullptr;
+	}
+	}
+}
+
+// Assignment or expression statement
 
 StatementNode_ptr Parser::handle_identifier(Token_ptr identifier)
 {
@@ -267,17 +469,99 @@ StatementNode_ptr Parser::handle_identifier(Token_ptr identifier)
 	return this->parse_expression_statement();
 }
 
-StatementNode_ptr Parser::parse_expression_statement()
+StatementNode_ptr Parser::parse_type_declaration(bool is_public)
 {
-	// ensure that pointer is at first token of expr ??
-	auto expression = this->parse_expression();
-	RETURN_IF_NULLPTR(expression);
-	RETURN_IF_TRUE(!this->expect_current_token(TokenType::EOL));
+	auto name = this->consume_token(TokenType::Identifier);
+	RETURN_IF_NULLPTR(name);
 
-	return MAKE_STAT(ExpressionStatement(expression));
+	if (this->expect_current_token(TokenType::OPEN_CURLY_BRACE))
+	{
+		vector<pair<string, TypeNode_ptr>> member_types;
+
+		while (true)
+		{
+			this->ignore(TokenType::EOL);
+
+			auto identifier = this->consume_token(TokenType::Identifier);
+			RETURN_IF_NULLPTR(identifier);
+
+			RETURN_IF_TRUE(!this->expect_current_token(TokenType::COLON));
+
+			auto type = this->parse_type();
+			RETURN_IF_NULLPTR(type);
+
+			member_types.push_back(make_pair(identifier->get_value(), type));
+
+			this->ignore(TokenType::EOL);
+
+			if (this->expect_current_token(TokenType::CLOSE_CURLY_BRACE))
+				return MAKE_STAT(RecordDefinition(is_public, name->get_value(), member_types));
+
+			RETURN_IF_TRUE(!this->expect_current_token(TokenType::COMMA));
+		}
+	}
+
+	auto type = this->parse_type();
+	RETURN_IF_NULLPTR(type);
+
+	return MAKE_STAT(Alias(name->get_value(), type));
+}
+
+// Public Statement
+
+StatementNode_ptr Parser::parse_public_statement()
+{
+	auto token = this->get_current_token();
+	ADVANCE_PTR;
+
+	if (token == nullptr)
+		return nullptr;
+
+	const bool is_public = true;
+
+	switch (token->get_type())
+	{
+		CASE(TokenType::LET, this->parse_let_declaration(is_public));
+		CASE(TokenType::CONST, this->parse_const_declaration(is_public));
+		CASE(TokenType::TYPE, this->parse_type_declaration(is_public));
+		//CASE(TokenType::FN, this->parse_function_definition(is_public));
+		//CASE(TokenType::ENUM, this->parse_enum_definition(is_public));
+	default: {
+		return nullptr;
+	}
+	}
 }
 
 // Block Statements Parsers
+
+shared_ptr<Block> Parser::parse_block()
+{
+	shared_ptr<Block> statements = make_shared<Block>();
+
+	this->ignore(TokenType::EOL);
+	RETURN_IF_TRUE(!this->expect_current_token(TokenType::OPEN_CURLY_BRACE));
+
+	while (true)
+	{
+		if (this->expect_current_token(TokenType::CLOSE_CURLY_BRACE))
+			return statements;
+
+		this->ignore(TokenType::EOL);
+
+		auto statement = this->parse_statement(false);
+		RETURN_IF_NULLPTR(statement);
+
+		statements->push_back(statement);
+	}
+}
+
+StatementNode_ptr Parser::parse_loop_statement()
+{
+	auto block = this->parse_block();
+	RETURN_IF_NULLPTR(block);
+
+	return MAKE_STAT(Loop(*block.get()));
+}
 
 StatementNode_ptr Parser::parse_return_statement()
 {
@@ -286,6 +570,37 @@ StatementNode_ptr Parser::parse_return_statement()
 	RETURN_IF_TRUE(!this->expect_current_token(TokenType::EOL));
 
 	return MAKE_STAT(Return(expression));
+}
+
+StatementNode_ptr Parser::parse_branching_statement()
+{
+	auto condition = this->parse_expression();
+	RETURN_IF_NULLPTR(condition);
+
+	auto consequence = this->parse_block();
+	RETURN_IF_NULLPTR(consequence);
+
+	if (this->expect_current_token(TokenType::ELSE))
+	{
+		if (this->expect_current_token(TokenType::IF))
+		{
+			auto alternative_stat = this->parse_branching_statement();
+			RETURN_IF_NULLPTR(alternative_stat);
+
+			auto alternative = make_shared<vector<StatementNode_ptr>>();
+			alternative->push_back(alternative_stat);
+
+			return MAKE_STAT(Branch(condition, *consequence.get(), *alternative.get()));
+		}
+
+		auto alternative = this->parse_block();
+		RETURN_IF_NULLPTR(alternative);
+
+		return MAKE_STAT(Branch(condition, *consequence.get(), *alternative.get()));
+	}
+
+	auto alternative = make_shared<vector<StatementNode_ptr>>();
+	return MAKE_STAT(Branch(condition, *consequence.get(), *alternative.get()));
 }
 
 StatementNode_ptr Parser::parse_break_statement()
@@ -476,260 +791,5 @@ TypeNode_ptr Parser::consume_datatype_word()
 	{
 		return nullptr;
 	}
-	}
-}
-
-// Expression Utils
-
-void Parser::pop_all_from_stack_into_ast(stack<Token_ptr>& op_stack, vector<ExpressionNode_ptr>& ast)
-{
-	while (op_stack.size() > 0)
-	{
-		Token_ptr top_operator = op_stack.top();
-		op_stack.pop();
-
-		int parity = get_parity(top_operator->get_type());
-
-		if (parity == 1)
-			this->push_unary_operator_to_ast(top_operator, ast);
-		else if (parity == 2)
-			this->push_binary_operator_to_ast(top_operator, ast);
-	}
-}
-
-void Parser::push_unary_operator_to_ast(Token_ptr op, vector<ExpressionNode_ptr>& ast)
-{
-	if (ast.size() >= 1)
-	{
-		ExpressionNode_ptr node = ast.back();
-		ast.pop_back();
-
-		ast.push_back(MAKE_EXPR(Unary(op, node)));
-	}
-}
-
-void Parser::push_binary_operator_to_ast(Token_ptr op, vector<ExpressionNode_ptr>& ast)
-{
-	if (ast.size() >= 2)
-	{
-		ExpressionNode_ptr right_expression = ast.back();
-		ast.pop_back();
-
-		ExpressionNode_ptr left_expression = ast.back();
-		ast.pop_back();
-
-		ast.push_back(MAKE_EXPR(Binary(left_expression, op, right_expression)));
-	}
-}
-
-void Parser::pop_until_open_parenthesis_from_stack_into_ast(stack<Token_ptr>& op_stack, vector<ExpressionNode_ptr>& ast)
-{
-	while (op_stack.size() > 0)
-	{
-		Token_ptr top_operator = op_stack.top();
-		op_stack.pop();
-
-		if (top_operator->get_type() == TokenType::OPEN_PARENTHESIS)
-			break;
-
-		int parity = get_parity(top_operator->get_type());
-
-		if (parity == 1)
-			this->push_unary_operator_to_ast(top_operator, ast);
-		else if (parity == 2)
-			this->push_binary_operator_to_ast(top_operator, ast);
-	}
-}
-
-void Parser::push_operator_to_operator_stack(Token_ptr op, stack<Token_ptr>& op_stack, vector<ExpressionNode_ptr>& ast)
-{
-	int operator_precedence = get_precedence(op->get_type());
-
-	while (op_stack.size() > 0)
-	{
-		Token_ptr top_operator = op_stack.top();
-		auto top_operator_type = top_operator->get_type();
-		int top_operator_precedence = get_precedence(top_operator_type);
-
-		if (
-			(
-				top_operator_type == TokenType::FunctionIdentifier
-				|| (top_operator_precedence > operator_precedence)
-				|| (top_operator_precedence == operator_precedence && !is_right_associative(top_operator_type))
-				)
-			&& top_operator_type != TokenType::OPEN_PARENTHESIS
-			)
-		{
-			op_stack.pop();
-
-			int parity = get_parity(top_operator_type);
-
-			if (parity == 1)
-			{
-				this->push_unary_operator_to_ast(top_operator, ast);
-			}
-			else if (parity == 2)
-			{
-				this->push_binary_operator_to_ast(top_operator, ast);
-			}
-		}
-		else
-		{
-			op_stack.push(top_operator);
-			break;
-		}
-	}
-
-	op_stack.push(op);
-}
-
-// Utils
-
-Token_ptr Parser::get_current_token()
-{
-	int index = this->pointer.get_index();
-	RETURN_IF_TRUE((size_t)index >= this->tokens.size());
-	return this->tokens[index];
-}
-
-bool Parser::expect_current_token(TokenType token_type)
-{
-	auto token = this->get_current_token();
-
-	if (token != nullptr && token_type == token->get_type())
-	{
-		ADVANCE_PTR;
-		return true;
-	}
-
-	return false;
-}
-
-Token_ptr Parser::consume_token(TokenType token_type)
-{
-	auto token = this->get_current_token();
-
-	if (token != nullptr && token_type == token->get_type())
-	{
-		ADVANCE_PTR;
-		return move(token);
-	}
-
-	return nullptr;
-}
-
-int get_parity(TokenType token_type)
-{
-	switch (token_type)
-	{
-	case TokenType::BANG:
-	case TokenType::UNARY_MINUS:
-	case TokenType::UNARY_PLUS:
-	{
-		return 1;
-	}
-	case TokenType::POWER:
-	case TokenType::DIVISION:
-	case TokenType::STAR:
-	case TokenType::REMINDER:
-	case TokenType::PLUS:
-	case TokenType::MINUS:
-	case TokenType::GREATER_THAN:
-	case TokenType::GREATER_THAN_EQUAL:
-	case TokenType::LESSER_THAN:
-	case TokenType::LESSER_THAN_EQUAL:
-	case TokenType::EQUAL_EQUAL:
-	case TokenType::BANG_EQUAL:
-	case TokenType::EQUAL:
-	case TokenType::COMMA:
-	case TokenType::AND:
-	case TokenType::OR:
-	{
-		return 2;
-	}
-	default:
-		return 0;
-	}
-}
-
-int get_precedence(TokenType token_type)
-{
-	switch (token_type)
-	{
-	case TokenType::OPEN_PARENTHESIS:
-	case TokenType::CLOSE_PARENTHESIS:
-	{
-		return 11;
-	}
-	case TokenType::OPEN_BRACKET:
-	case TokenType::CLOSE_BRACKET:
-	{
-		return 10;
-	}
-	case TokenType::BANG:
-	case TokenType::UNARY_MINUS:
-	case TokenType::UNARY_PLUS:
-	{
-		return 9;
-	}
-	case TokenType::POWER:
-	{
-		return 8;
-	}
-	case TokenType::DIVISION:
-	case TokenType::STAR:
-	case TokenType::REMINDER:
-	{
-		return 7;
-	}
-	case TokenType::PLUS:
-	case TokenType::MINUS:
-	{
-		return 6;
-	}
-	case TokenType::GREATER_THAN:
-	case TokenType::GREATER_THAN_EQUAL:
-	case TokenType::LESSER_THAN:
-	case TokenType::LESSER_THAN_EQUAL:
-	{
-		return 5;
-	}
-	case TokenType::EQUAL_EQUAL:
-	case TokenType::BANG_EQUAL:
-	{
-		return 4;
-	}
-	case TokenType::AND:
-	case TokenType::OR:
-	{
-		return 3;
-	}
-	case TokenType::EQUAL:
-	{
-		return 2;
-	}
-	case TokenType::COMMA:
-	{
-		return 1;
-	}
-	default:
-		return 0;
-	}
-}
-
-bool is_right_associative(TokenType token_type)
-{
-	switch (token_type)
-	{
-	case TokenType::POWER:
-	case TokenType::UNARY_MINUS:
-	case TokenType::UNARY_PLUS:
-	case TokenType::BANG:
-	case TokenType::EQUAL:
-	{
-		return true;
-	}
-	default:
-		return false;
 	}
 }
