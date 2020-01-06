@@ -1,10 +1,25 @@
 #pragma once
 #include <string>
+#include <map>
 #include <vector>
 #include <memory>
 #include "Token.h"
 #include "TokenPosition.h"
 #include "Pointer.h"
+
+#define MAKE_TOKEN(a, b, c, d) make_shared<Token>(a, b, c, d)
+#define CASE_BODY(call) { token = call; break; }
+#define NEXT this->pointer.advance(); this->position.increment_column_number();
+#define LINE_NUM this->position.get_line_num()
+#define COL_NUM this->position.get_column_num()
+
+using std::map;
+using std::string;
+using std::vector;
+using std::shared_ptr;
+using std::make_shared;
+
+typedef shared_ptr<Token> Token_ptr;
 
 class Lexer
 {
@@ -17,7 +32,8 @@ class Lexer
 	char get_current_char();
 	char get_right_char();
 
-	bool peek_and_move(char ch);
+	bool expect_current_char(char ch);
+	bool followed_by(char ch);
 
 	// Consumers
 

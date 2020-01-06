@@ -625,8 +625,6 @@ StatementNode_ptr Parser::parse_function_definition(bool is_public)
 
 	this->ignore(TokenType::EOL);
 
-	RETURN_IF_TRUE(!this->expect_current_token(TokenType::OPEN_CURLY_BRACE));
-
 	auto block = this->parse_block();
 	RETURN_IF_NULLPTR(block);
 

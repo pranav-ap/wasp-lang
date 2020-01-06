@@ -131,8 +131,26 @@ void FunctionDefinition::print(int level)
 	cout << string(level + 4, ' ') << "Public : " << std::boolalpha << this->is_public << endl;
 	cout << string(level + 4, ' ') << "Function name : " << this->name << endl;
 
-	cout << string(level + 4, ' ') << "Return Type : " << endl;
-	print_type_node(this->return_type.value(), level + 8);
+	if (this->arguments.size() > 0)
+	{
+		cout << string(level + 4, ' ') << "Arguments : " << endl;
+
+		for (auto const& pair : this->arguments)
+		{
+			cout << string(level + 8, ' ') << "Name : " << pair.first << endl;
+			print_type_node(pair.second, level + 8);
+		}
+	}
+	else
+		cout << string(level + 4, ' ') << "Arguments : None" << endl;
+
+	if (this->return_type)
+	{
+		cout << string(level + 4, ' ') << "Return Type : " << endl;
+		print_type_node(this->return_type.value(), level + 8);
+	}
+	else
+		cout << string(level + 4, ' ') << "Return Type : None" << endl;
 
 	cout << string(level + 4, ' ') << "Body : " << endl;
 	for (auto const& statement : this->body)

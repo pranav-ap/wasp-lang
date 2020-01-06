@@ -150,6 +150,7 @@
   <ItemGroup>
     <ClCompile Include="ExpressionNodes.cpp" />
     <ClCompile Include="Lexer.cpp" />
+    <ClCompile Include="LexerUtils.cpp" />
     <ClCompile Include="Nodes.cpp" />
     <ClCompile Include="Parser.cpp" />
     <ClCompile Include="ParserExpressionUtils.cpp" />

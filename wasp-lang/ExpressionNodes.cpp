@@ -144,12 +144,16 @@ void FunctionCall::print(int level)
 	cout << string(level, ' ') << "Function Call : " << endl;
 
 	cout << string(level + 4, ' ') << "Function Name : " << this->name << endl;
-	cout << string(level + 4, ' ') << "Arguments : " << endl;
 
-	for (auto const& argument : this->arguments)
+	if (this->arguments.size() > 0)
 	{
-		print_expression_node(argument, level + 8);
+		cout << string(level + 4, ' ') << "Arguments : " << endl;
+
+		for (auto const& argument : this->arguments)
+			print_expression_node(argument, level + 8);
 	}
+	else
+		cout << string(level + 4, ' ') << "Arguments : None" << endl;
 }
 
 void InclusiveRange::print(int level)
