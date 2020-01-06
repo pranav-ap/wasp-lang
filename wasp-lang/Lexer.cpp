@@ -197,7 +197,9 @@ shared_ptr<Token> Lexer::consume_identifier(char ch)
 		return MAKE_TOKEN(keyword_type, identifier, LINE_NUM, COL_NUM);
 	}
 
-	if (this->get_current_char() == '(') {
+	auto g = this->get_right_char();
+
+	if (this->get_right_char() == '(') {
 		return MAKE_TOKEN(TokenType::FunctionIdentifier, identifier, LINE_NUM, COL_NUM);
 	}
 

@@ -36,8 +36,8 @@ StatementNode_ptr Parser::parse_statement(bool is_public)
 
 	switch (token->get_type())
 	{
-		CASE(TokenType::LET, this->parse_let_declaration(is_public));
-		CASE(TokenType::CONST, this->parse_const_declaration(is_public));
+		CASE(TokenType::LET, this->parse_variable_declaration(is_public, true));
+		CASE(TokenType::CONST, this->parse_variable_declaration(is_public, false));
 		CASE(TokenType::Identifier, this->handle_identifier(token));
 		CASE(TokenType::BREAK, this->parse_break_statement());
 		CASE(TokenType::CONTINUE, this->parse_continue_statement());
@@ -46,7 +46,7 @@ StatementNode_ptr Parser::parse_statement(bool is_public)
 		CASE(TokenType::IF, this->parse_branching_statement());
 		CASE(TokenType::LOOP, this->parse_loop_statement());
 		CASE(TokenType::TYPE, this->parse_type_declaration(is_public));
-		//CASE(TokenType::FN, this->parse_function_definition(is_public));
+		CASE(TokenType::FN, this->parse_function_definition(is_public));
 		//CASE(TokenType::ENUM, this->parse_enum_definition(is_public));
 		//CASE(TokenType::IMPORT, this->parse_import_statement());
 	default: {
@@ -222,7 +222,7 @@ ExpressionNode_ptr Parser::parse_expression()
 
 // Variable declaration parsers
 
-StatementNode_ptr Parser::parse_let_declaration(bool is_public)
+StatementNode_ptr Parser::parse_variable_declaration(bool is_public, bool is_mutable)
 {
 	auto identifier = this->consume_token(TokenType::Identifier);
 	RETURN_IF_NULLPTR(identifier);
@@ -246,34 +246,7 @@ StatementNode_ptr Parser::parse_let_declaration(bool is_public)
 	RETURN_IF_NULLPTR(expression);
 	RETURN_IF_TRUE(!this->expect_current_token(TokenType::EOL));
 
-	return MAKE_STAT(Let(is_public, identifier->get_value(), type, expression));
-}
-
-StatementNode_ptr Parser::parse_const_declaration(bool is_public)
-{
-	auto identifier = this->consume_token(TokenType::Identifier);
-	RETURN_IF_NULLPTR(identifier);
-	RETURN_IF_TRUE(!this->expect_current_token(TokenType::COLON));
-
-	auto type = this->parse_type();
-	RETURN_IF_NULLPTR(type);
-	RETURN_IF_TRUE(!this->expect_current_token(TokenType::EQUAL));
-
-	ExpressionNode_ptr expression = nullptr;
-
-	if (this->expect_current_token(TokenType::OPEN_CURLY_BRACE))
-	{
-		expression = this->parse_map_or_record_literal();
-		RETURN_IF_NULLPTR(expression);
-	}
-
-	if (expression == nullptr)
-		expression = this->parse_expression();
-
-	RETURN_IF_NULLPTR(expression);
-	RETURN_IF_TRUE(!this->expect_current_token(TokenType::EOL));
-
-	return MAKE_STAT(Const(is_public, identifier->get_value(), type, expression));
+	return MAKE_STAT(VariableDeclaration(is_public, is_mutable, identifier->get_value(), type, expression));
 }
 
 // Expression Statement
@@ -521,10 +494,10 @@ StatementNode_ptr Parser::parse_public_statement()
 
 	switch (token->get_type())
 	{
-		CASE(TokenType::LET, this->parse_let_declaration(is_public));
-		CASE(TokenType::CONST, this->parse_const_declaration(is_public));
+		CASE(TokenType::LET, this->parse_variable_declaration(is_public, true));
+		CASE(TokenType::CONST, this->parse_variable_declaration(is_public, false));
 		CASE(TokenType::TYPE, this->parse_type_declaration(is_public));
-		//CASE(TokenType::FN, this->parse_function_definition(is_public));
+		CASE(TokenType::FN, this->parse_function_definition(is_public));
 		//CASE(TokenType::ENUM, this->parse_enum_definition(is_public));
 	default: {
 		return nullptr;
@@ -613,6 +586,51 @@ StatementNode_ptr Parser::parse_continue_statement()
 {
 	RETURN_IF_TRUE(!this->expect_current_token(TokenType::EOL));
 	return MAKE_STAT(Continue());
+}
+
+StatementNode_ptr Parser::parse_function_definition(bool is_public)
+{
+	auto identifier = this->consume_token(TokenType::FunctionIdentifier);
+	RETURN_IF_NULLPTR(identifier);
+
+	RETURN_IF_TRUE(!this->expect_current_token(TokenType::OPEN_PARENTHESIS));
+
+	vector<pair<string, TypeNode_ptr>> arguments;
+
+	while (true)
+	{
+		if (this->expect_current_token(TokenType::CLOSE_PARENTHESIS))
+			break;
+
+		auto identifier = this->consume_token(TokenType::Identifier);
+		RETURN_IF_NULLPTR(identifier);
+
+		RETURN_IF_TRUE(!this->expect_current_token(TokenType::COLON));
+
+		auto type = this->parse_type();
+		RETURN_IF_NULLPTR(type);
+
+		arguments.push_back(make_pair(identifier->get_value(), type));
+	}
+
+	std::optional<TypeNode_ptr> return_type = std::nullopt;
+
+	if (this->consume_token(TokenType::ARROW))
+	{
+		auto type_temp = this->parse_type();
+		RETURN_IF_NULLPTR(type_temp);
+
+		return_type = type_temp;
+	}
+
+	this->ignore(TokenType::EOL);
+
+	RETURN_IF_TRUE(!this->expect_current_token(TokenType::OPEN_CURLY_BRACE));
+
+	auto block = this->parse_block();
+	RETURN_IF_NULLPTR(block);
+
+	return MAKE_STAT(FunctionDefinition(is_public, identifier->get_value(), arguments, return_type, *block.get()));
 }
 
 // Type parsers

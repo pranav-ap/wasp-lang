@@ -19,9 +19,7 @@ void print_statement_node(StatementNode_ptr node, int level)
 	visit([level](auto&& n) {
 		using T = std::decay_t<decltype(n)>;
 
-		if constexpr (std::is_same_v<T, Let>)
-			n.print(level);
-		else if constexpr (std::is_same_v<T, Const>)
+		if constexpr (std::is_same_v<T, VariableDeclaration>)
 			n.print(level);
 		else if constexpr (std::is_same_v<T, Assignment>)
 			n.print(level);
@@ -48,20 +46,12 @@ void print_statement_node(StatementNode_ptr node, int level)
 		}, *node.get());
 }
 
-void Let::print(int level)
+void VariableDeclaration::print(int level)
 {
-	cout << string(level, ' ') << "Let variable declaration : " << endl;
+	cout << string(level, ' ') << "Variable declaration : " << endl;
 	cout << string(level + 4, ' ') << "Variable name : " << this->name << endl;
 	cout << string(level + 4, ' ') << "Public : " << std::boolalpha << this->is_public << endl;
-	print_type_node(this->type, level + 4);
-	print_expression_node(this->expression, level + 4);
-}
-
-void Const::print(int level)
-{
-	cout << string(level, ' ') << "Const variable declaration : " << endl;
-	cout << string(level + 4, ' ') << "Variable name : " << this->name << endl;
-	cout << string(level + 4, ' ') << "Public : " << std::boolalpha << this->is_public << endl;
+	cout << string(level + 4, ' ') << "Mutable : " << std::boolalpha << this->is_mutable << endl;
 	print_type_node(this->type, level + 4);
 	print_expression_node(this->expression, level + 4);
 }
@@ -130,6 +120,7 @@ void RecordDefinition::print(int level)
 	{
 		cout << string(level + 8, ' ') << "Name : " << pair.first << endl;
 		print_type_node(pair.second, level + 8);
+		cout << endl;
 	}
 }
 

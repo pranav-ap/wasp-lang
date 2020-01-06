@@ -9,9 +9,7 @@
 #include "Types.h"
 #include "ExpressionNodes.h"
 
-class Let;
-class Const;
-
+class VariableDeclaration;
 class Assignment;
 
 class Branch;
@@ -29,7 +27,7 @@ class Import;
 
 using StatementNode = std::variant<
 	std::monostate,
-	Let, Const, Assignment,
+	VariableDeclaration, Assignment,
 	Branch, Loop, Break, Continue,
 	Alias, RecordDefinition, FunctionDefinition,
 	Return, ExpressionStatement, Import
@@ -45,27 +43,16 @@ public:
 
 using Block = std::vector<StatementNode_ptr>;
 
-class Let : public Statement
+class VariableDeclaration : public Statement
 {
 	bool is_public;
+	bool is_mutable;
 	std::string name;
 	TypeNode_ptr type;
 	ExpressionNode_ptr expression;
 
 public:
-	Let(bool is_public, std::string name, TypeNode_ptr type, ExpressionNode_ptr expression) : is_public(is_public), name(name), type(type), expression(expression) {};
-	void print(int level);
-};
-
-class Const : public Statement
-{
-	bool is_public;
-	std::string name;
-	TypeNode_ptr type;
-	ExpressionNode_ptr expression;
-
-public:
-	Const(bool is_public, std::string name, TypeNode_ptr type, ExpressionNode_ptr expression) : is_public(is_public), name(name), type(type), expression(expression) {};
+	VariableDeclaration(bool is_public, bool is_mutable, std::string name, TypeNode_ptr type, ExpressionNode_ptr expression) : is_public(is_public), name(name), type(type), expression(expression) {};
 	void print(int level);
 };
 

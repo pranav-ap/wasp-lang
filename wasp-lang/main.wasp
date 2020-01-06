@@ -1,7 +1,4 @@
-type batman {
-   foo: str
-}
-
-let a : batman = {
-	foo : "hello"
+fn add (a : num)
+{
+call()
 }

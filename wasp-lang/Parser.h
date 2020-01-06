@@ -35,10 +35,8 @@ class Parser
 	StatementNode_ptr parse_statement(bool is_public);
 	ExpressionNode_ptr parse_expression();
 
-	// Variable declaration parsers
-
-	StatementNode_ptr parse_let_declaration(bool is_public);
-	StatementNode_ptr parse_const_declaration(bool is_public);
+	// Variable declaration parser
+	StatementNode_ptr parse_variable_declaration(bool is_public, bool is_mutable);
 
 	// Literal parsers
 
@@ -50,11 +48,11 @@ class Parser
 	ExpressionNode_ptr parse_map_or_record_literal();
 
 	ExpressionNode_ptr consume_valid_map_key();
-	std::shared_ptr<string> consume_valid_record_key();
+	shared_ptr<string> consume_valid_record_key();
 
 	// Block statement parsing
 
-	std::shared_ptr<Block> parse_block();
+	shared_ptr<Block> parse_block();
 	StatementNode_ptr parse_return_statement();
 	StatementNode_ptr parse_branching_statement();
 	StatementNode_ptr parse_loop_statement();
