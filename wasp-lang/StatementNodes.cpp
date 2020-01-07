@@ -162,7 +162,14 @@ void FunctionDefinition::print(int level)
 void Return::print(int level)
 {
 	cout << string(level, ' ') << "Return : " << endl;
-	print_expression_node(this->expression.value(), level + 4);
+
+	if (this->expression)
+	{
+		cout << string(level + 4, ' ') << "Return Type : " << endl;
+		print_expression_node(this->expression.value(), level + 4);
+	}
+	else
+		cout << string(level + 4, ' ') << "Return Type : None" << endl;
 }
 
 void ExpressionStatement::print(int level)

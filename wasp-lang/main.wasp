@@ -1,4 +1,1 @@
-fn add (a : num)
-{
-call()
-}
+let a : bool = true

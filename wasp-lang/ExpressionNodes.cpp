@@ -71,9 +71,7 @@ void TupleLiteral::print(int level)
 	cout << string(level, ' ') << "Tuple Literal : " << endl;
 
 	for (auto const& expression : this->expressions)
-	{
 		print_expression_node(expression, level + 4);
-	}
 }
 
 void VectorLiteral::print(int level)
@@ -81,9 +79,7 @@ void VectorLiteral::print(int level)
 	cout << string(level, ' ') << "Vector Literal : " << endl;
 
 	for (auto const& expression : this->expressions)
-	{
 		print_expression_node(expression, level + 4);
-	}
 }
 
 void MapLiteral::print(int level)

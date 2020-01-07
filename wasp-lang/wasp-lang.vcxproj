@@ -152,6 +152,7 @@
     <ClCompile Include="Lexer.cpp" />
     <ClCompile Include="LexerUtils.cpp" />
     <ClCompile Include="Nodes.cpp" />
+    <ClCompile Include="Object.cpp" />
     <ClCompile Include="Parser.cpp" />
     <ClCompile Include="ParserExpressionUtils.cpp" />
     <ClCompile Include="ParserUtils.cpp" />
@@ -166,6 +167,7 @@
     <ClInclude Include="ExpressionNodes.h" />
     <ClInclude Include="Lexer.h" />
     <ClInclude Include="Nodes.h" />
+    <ClInclude Include="Object.h" />
     <ClInclude Include="Parser.h" />
     <ClInclude Include="Pointer.h" />
     <ClInclude Include="StatementNodes.h" />

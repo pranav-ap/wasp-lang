@@ -31,6 +31,12 @@
     <Filter Include="Source Files\Utils">
       <UniqueIdentifier>{db9cf66c-a5db-4d27-b535-5a45c713230a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Runtime">
+      <UniqueIdentifier>{797e6e28-1f4b-4e80-9188-ca3fb52f42fd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Runtime">
+      <UniqueIdentifier>{d060b50b-9107-4ee0-88f0-3fe6056559c3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="wasp-lang.cpp">
@@ -72,6 +78,9 @@
     <ClCompile Include="LexerUtils.cpp">
       <Filter>Source Files\Lexer</Filter>
     </ClCompile>
+    <ClCompile Include="Object.cpp">
+      <Filter>Source Files\Runtime</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Token.h">
@@ -103,6 +112,9 @@
     </ClInclude>
     <ClInclude Include="StatementNodes.h">
       <Filter>Header Files\Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="Object.h">
+      <Filter>Header Files\Runtime</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
