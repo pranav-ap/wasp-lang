@@ -1,12 +1,6 @@
 #pragma once
 #include <iostream>
-#include <optional>
-#include <string>
-#include <vector>
-#include <utility>
-#include <variant>
-#include <memory>
-
+#include <iomanip>
 #include "Object.h"
 
 using std::cout;
@@ -17,7 +11,7 @@ using std::string;
 
 void print_object(ObjectVariant_ptr object, int level)
 {
-	visit([level](auto&& obj) {
+	visit([level](auto obj) {
 		using T = std::decay_t<decltype(obj)>;
 
 		if constexpr (std::is_same_v<T, NumberObject>)
@@ -55,7 +49,7 @@ void OptionalObject::print(int level)
 void VariantObject::print(int level)
 {
 	cout << string(level + 4, ' ') << "Variant Object : " << endl;
-	print_object(this->value.value(), level + 4);
+	print_object(this->value, level + 4);
 }
 
 void NumberObject::print(int level)

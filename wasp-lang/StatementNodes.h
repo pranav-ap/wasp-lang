@@ -52,7 +52,7 @@ class VariableDeclaration : public Statement
 	ExpressionNode_ptr expression;
 
 public:
-	VariableDeclaration(bool is_public, bool is_mutable, std::string name, TypeNode_ptr type, ExpressionNode_ptr expression) : is_public(is_public), name(name), type(type), expression(expression) {};
+	VariableDeclaration(bool is_public, bool is_mutable, std::string name, TypeNode_ptr type, ExpressionNode_ptr expression) : is_public(is_public), is_mutable(is_mutable), name(name), type(type), expression(expression) {};
 	void print(int level);
 };
 

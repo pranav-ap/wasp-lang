@@ -1,5 +1,4 @@
 #pragma once
-#include <iostream>
 #include <optional>
 #include <string>
 #include <vector>
@@ -26,99 +25,105 @@ class VariantObject;
 
 using ObjectVariant = std::variant<
 	std::monostate,
-	OptionalObject, VariantObject,
 	NumberObject, StringObject, BooleanObject,
 	VectorObject, TupleObject,
-	MapObject, RecordObject
+	MapObject, RecordObject,
+	OptionalObject, VariantObject
 >;
 
 using ObjectVariant_ptr = std::shared_ptr<ObjectVariant>;
 
-class Object {
+class Object
+{
 public:
 	virtual void print(int level) = 0;
 };
 
-class ScalarObject : public Object {
+class ScalarObject : public Object
+{
 public:
 	virtual void print(int level) = 0;
 };
 
-class CompositeObject : public Object {
+class CompositeObject : public Object
+{
 public:
 	virtual void print(int level) = 0;
 };
 
 class OptionalObject : public Object
 {
-	std::optional<ObjectVariant> value;
+	std::optional<ObjectVariant_ptr> value;
 public:
-	OptionalObject(std::optional<ObjectVariant> value) : value(value) {};
+	OptionalObject(std::optional<ObjectVariant_ptr> value) : value(value) {};
 	void print(int level);
 };
 
 class VariantObject : public Object
 {
-	ObjectVariant value;
+	ObjectVariant_ptr value;
 public:
-	VariantObject(ObjectVariant value) : value(value) {};
+	VariantObject(ObjectVariant_ptr value) : value(value) {};
 	void print(int level);
 };
 
-// Scalar Types
+// Scalar Object
 
-class NumberObject : public ScalarObject {
+class NumberObject : public ScalarObject
+{
 	double value;
 public:
 	NumberObject(double value) : value(value) {};
 	void print(int level);
 };
 
-class StringObject : public ScalarObject {
+class StringObject : public ScalarObject
+{
 	std::string value;
 public:
 	StringObject(std::string value) : value(value) {};
 	void print(int level);
 };
 
-class BooleanObject : public ScalarObject {
+class BooleanObject : public ScalarObject
+{
 	bool value;
 public:
 	BooleanObject(bool value) : value(value) {};
 	void print(int level);
 };
 
-// Composite Types
+// Composite Object
 
 class VectorObject : public CompositeObject
 {
-	std::vector<ObjectVariant> values;
+	std::vector<ObjectVariant_ptr> values;
 public:
-	VectorObject(std::vector<ObjectVariant> values) : values(values) {};
+	VectorObject(std::vector<ObjectVariant_ptr> values) : values(values) {};
 	void print(int level);
 };
 
 class TupleObject : public CompositeObject
 {
-	std::vector<ObjectVariant> values;
+	std::vector<ObjectVariant_ptr> values;
 public:
-	TupleObject(std::vector<ObjectVariant> values) : values(values) {};
+	TupleObject(std::vector<ObjectVariant_ptr> values) : values(values) {};
 	void print(int level);
 };
 
 class MapObject : public CompositeObject
 {
-	std::vector<std::pair<ObjectVariant, ObjectVariant>> values;
+	std::vector<std::pair<ObjectVariant_ptr, ObjectVariant_ptr>> values;
 public:
-	MapObject(std::vector<std::pair<ObjectVariant, ObjectVariant>> values) : values(values) {};
+	MapObject(std::vector<std::pair<ObjectVariant_ptr, ObjectVariant_ptr>> values) : values(values) {};
 	void print(int level);
 };
 
 class RecordObject : public CompositeObject
 {
-	std::vector<std::pair<std::string, ObjectVariant>> values;
+	std::vector<std::pair<std::string, ObjectVariant_ptr>> values;
 public:
-	RecordObject(std::vector<std::pair<std::string, ObjectVariant>> values) : values(values) {};
+	RecordObject(std::vector<std::pair<std::string, ObjectVariant_ptr>> values) : values(values) {};
 	void print(int level);
 };
 
