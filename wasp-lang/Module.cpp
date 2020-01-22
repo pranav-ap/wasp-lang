@@ -1,9 +1,14 @@
 #pragma once
 #include <iostream>
-#include "Nodes.h"
+#include "Module.h"
 
 using std::cout;
 using std::endl;
+
+std::vector<StatementNode_ptr>& Module::get_nodes()
+{
+	return this->nodes;
+}
 
 void Module::add(StatementNode_ptr node)
 {

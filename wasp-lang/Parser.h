@@ -6,7 +6,7 @@
 #include "Token.h"
 #include "Pointer.h"
 #include "Types.h"
-#include "Nodes.h"
+#include "Module.h"
 
 #define MAKE_TYPE(x) make_shared<TypeNode>(x)
 #define MAKE_EXPR(x) make_shared<ExpressionNode>(x)

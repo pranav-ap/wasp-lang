@@ -149,9 +149,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ExpressionNodes.cpp" />
+    <ClCompile Include="Interpreter.cpp" />
     <ClCompile Include="Lexer.cpp" />
     <ClCompile Include="LexerUtils.cpp" />
-    <ClCompile Include="Nodes.cpp" />
+    <ClCompile Include="Module.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="Parser.cpp" />
     <ClCompile Include="ParserExpressionUtils.cpp" />
@@ -165,8 +166,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ExpressionNodes.h" />
+    <ClInclude Include="Interpreter.h" />
     <ClInclude Include="Lexer.h" />
-    <ClInclude Include="Nodes.h" />
+    <ClInclude Include="Module.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="Parser.h" />
     <ClInclude Include="Pointer.h" />

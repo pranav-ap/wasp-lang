@@ -51,9 +51,6 @@
     <ClCompile Include="Token.cpp">
       <Filter>Source Files\Lexer</Filter>
     </ClCompile>
-    <ClCompile Include="Nodes.cpp">
-      <Filter>Source Files\Parser</Filter>
-    </ClCompile>
     <ClCompile Include="Parser.cpp">
       <Filter>Source Files\Parser</Filter>
     </ClCompile>
@@ -81,6 +78,12 @@
     <ClCompile Include="Object.cpp">
       <Filter>Source Files\Runtime</Filter>
     </ClCompile>
+    <ClCompile Include="Module.cpp">
+      <Filter>Source Files\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="Interpreter.cpp">
+      <Filter>Source Files\Runtime</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Token.h">
@@ -98,9 +101,6 @@
     <ClInclude Include="Parser.h">
       <Filter>Header Files\Parser</Filter>
     </ClInclude>
-    <ClInclude Include="Nodes.h">
-      <Filter>Header Files\Parser</Filter>
-    </ClInclude>
     <ClInclude Include="Types.h">
       <Filter>Header Files\Parser</Filter>
     </ClInclude>
@@ -115,6 +115,12 @@
     </ClInclude>
     <ClInclude Include="Object.h">
       <Filter>Header Files\Runtime</Filter>
+    </ClInclude>
+    <ClInclude Include="Interpreter.h">
+      <Filter>Header Files\Runtime</Filter>
+    </ClInclude>
+    <ClInclude Include="Module.h">
+      <Filter>Header Files\Parser</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
