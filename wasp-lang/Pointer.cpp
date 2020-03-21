@@ -1,3 +1,4 @@
+#pragma once
 #include "Pointer.h"
 
 void Pointer::advance()

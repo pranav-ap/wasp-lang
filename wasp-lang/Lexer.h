@@ -1,6 +1,5 @@
 #pragma once
 #include <string>
-#include <map>
 #include <vector>
 #include <memory>
 #include "Token.h"
@@ -13,13 +12,7 @@
 #define LINE_NUM this->position.get_line_num()
 #define COL_NUM this->position.get_column_num()
 
-using std::map;
-using std::string;
-using std::vector;
-using std::shared_ptr;
-using std::make_shared;
-
-typedef shared_ptr<Token> Token_ptr;
+typedef std::shared_ptr<Token> Token_ptr;
 
 class Lexer
 {

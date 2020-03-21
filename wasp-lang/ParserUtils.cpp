@@ -28,7 +28,7 @@ Token_ptr Parser::consume_token(TokenType token_type)
 	if (token != nullptr && token_type == token->get_type())
 	{
 		ADVANCE_PTR;
-		return move(token);
+		return std::move(token);
 	}
 
 	return nullptr;

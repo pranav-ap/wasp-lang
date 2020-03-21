@@ -1,7 +1,13 @@
 #pragma once
 #include "Lexer.h"
+#include <map>
+#include <memory>
+#include <string>
 
-map<string, TokenType> keyword_map = {
+using std::string;
+using std::make_shared;
+
+std::map<std::string, TokenType> keyword_map = {
 	{ "if", TokenType::IF },
 	{ "else", TokenType::ELSE },
 
@@ -35,15 +41,12 @@ map<string, TokenType> keyword_map = {
 	{ "import", TokenType::IMPORT },
 	{ "from", TokenType::FROM },
 
-	{ "pub", TokenType::PUB },
-	{ "pure", TokenType::PURE },
-
-	{ "pass", TokenType::PASS }
+	{ "pub", TokenType::PUB }
 };
 
-vector<Token_ptr> Lexer::execute()
+std::vector<Token_ptr> Lexer::execute()
 {
-	vector<Token_ptr> tokens;
+	std::vector<Token_ptr> tokens;
 
 	while (true)
 	{
@@ -121,7 +124,7 @@ vector<Token_ptr> Lexer::execute()
 
 Token_ptr Lexer::consume_number_literal(char ch)
 {
-	string number_literal;
+	std::string number_literal;
 	number_literal.push_back(ch);
 
 	while (ch = this->get_right_char())
@@ -143,9 +146,7 @@ Token_ptr Lexer::consume_number_literal(char ch)
 
 Token_ptr Lexer::consume_string_literal()
 {
-	string string_literal;
-
-	NEXT;
+	std::string string_literal;
 
 	while (char ch = this->get_current_char())
 	{

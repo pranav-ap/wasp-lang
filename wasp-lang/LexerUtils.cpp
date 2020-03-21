@@ -35,10 +35,12 @@ char Lexer::get_char_at(int index)
 
 char Lexer::get_current_char()
 {
-	return this->get_char_at(this->pointer.get_index());
+	int index = this->pointer.get_index();
+	return this->get_char_at(index);
 }
 
 char Lexer::get_right_char()
 {
-	return this->get_char_at(this->pointer.get_index() + 1);
+	int index = this->pointer.get_index();
+	return this->get_char_at(index + 1);
 }

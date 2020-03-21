@@ -1,53 +1,18 @@
 #pragma once
-#include <optional>
 #include <string>
 #include <vector>
 #include <memory>
-#include <utility>
-#include <variant>
 
 #include "Token.h"
 #include "Types.h"
-
-class StringLiteral;
-class NumberLiteral;
-class BooleanLiteral;
-
-class TupleLiteral;
-class VectorLiteral;
-
-class MapLiteral;
-class RecordLiteral;
-
-class MemberAccess;
-class RecordMemberAccess;
-
-class Identifier;
-class FunctionCall;
-
-class InclusiveRange;
-class ExclusiveRange;
-
-class Unary;
-class Binary;
-
-using ExpressionNode = std::variant<
-	std::monostate,
-	StringLiteral, NumberLiteral, BooleanLiteral,
-	TupleLiteral, VectorLiteral,
-	MapLiteral, RecordLiteral,
-	MemberAccess, RecordMemberAccess,
-	Identifier, FunctionCall,
-	Unary, Binary
->;
-
-using ExpressionNode_ptr = std::shared_ptr<ExpressionNode>;
 
 class Expression
 {
 public:
 	virtual void print(int level) = 0;
 };
+
+using Expression_ptr = std::shared_ptr<Expression>;
 
 class StringLiteral : public Expression
 {
@@ -78,57 +43,47 @@ public:
 
 class TupleLiteral : public Expression
 {
-	std::vector<ExpressionNode_ptr> expressions;
+	std::vector<Expression_ptr> expressions;
 
 public:
-	TupleLiteral(std::vector<ExpressionNode_ptr> expressions) : expressions(expressions) {};
+	TupleLiteral(std::vector<Expression_ptr> expressions) : expressions(expressions) {};
 	void print(int level);
 };
 
 class VectorLiteral : public Expression
 {
-	std::vector<ExpressionNode_ptr> expressions;
+	std::vector<Expression_ptr> expressions;
 
 public:
-	VectorLiteral(std::vector<ExpressionNode_ptr> expressions) : expressions(expressions) {};
+	VectorLiteral(std::vector<Expression_ptr> expressions) : expressions(expressions) {};
 	void print(int level);
 };
 
 class MapLiteral : public Expression
 {
-	std::vector<std::pair<ExpressionNode_ptr, ExpressionNode_ptr>> pairs;
+	std::vector<std::pair<Expression_ptr, Expression_ptr>> pairs;
 
 public:
-	MapLiteral(std::vector<std::pair<ExpressionNode_ptr, ExpressionNode_ptr>> pairs) : pairs(pairs) {};
+	MapLiteral(std::vector<std::pair<Expression_ptr, Expression_ptr>> pairs) : pairs(pairs) {};
 	void print(int level);
 };
 
 class RecordLiteral : public Expression
 {
-	std::vector<std::pair<std::string, ExpressionNode_ptr>> pairs;
+	std::vector<std::pair<std::string, Expression_ptr>> pairs;
 
 public:
-	RecordLiteral(std::vector<std::pair<std::string, ExpressionNode_ptr>> pairs) : pairs(pairs) {};
+	RecordLiteral(std::vector<std::pair<std::string, Expression_ptr>> pairs) : pairs(pairs) {};
 	void print(int level);
 };
 
 class MemberAccess : public Expression
 {
 	std::string name;
-	ExpressionNode_ptr index_expression;
+	Expression_ptr expression;
 
 public:
-	MemberAccess(std::string name, ExpressionNode_ptr index_expression) : name(name), index_expression(index_expression) {};
-	void print(int level);
-};
-
-class RecordMemberAccess : public Expression
-{
-	std::string record_name;
-	std::string member_name;
-
-public:
-	RecordMemberAccess(std::string record_name, std::string member_name) : record_name(record_name), member_name(member_name) {};
+	MemberAccess(std::string name, Expression_ptr expression) : name(name), expression(std::move(expression)) {};
 	void print(int level);
 };
 
@@ -144,52 +99,50 @@ public:
 class FunctionCall : public Expression
 {
 	std::string name;
-	std::vector<ExpressionNode_ptr> arguments;
+	std::vector<Expression_ptr> arguments;
 
 public:
-	FunctionCall(std::string name, std::vector<ExpressionNode_ptr> arguments) : name(name), arguments(arguments) {};
+	FunctionCall(std::string name, std::vector<Expression_ptr> arguments) : name(name), arguments(arguments) {};
 	void print(int level);
 };
 
 class InclusiveRange : public Expression
 {
-	ExpressionNode_ptr left;
-	ExpressionNode_ptr right;
+	Expression_ptr left;
+	Expression_ptr right;
 
 public:
-	InclusiveRange(ExpressionNode_ptr left, ExpressionNode_ptr right) : left(left), right(right) {};
+	InclusiveRange(Expression_ptr left, Expression_ptr right) : left(std::move(left)), right(std::move(right)) {};
 	void print(int level);
 };
 
 class ExclusiveRange : public Expression
 {
-	ExpressionNode_ptr left;
-	ExpressionNode_ptr right;
+	Expression_ptr left;
+	Expression_ptr right;
 
 public:
-	ExclusiveRange(ExpressionNode_ptr left, ExpressionNode_ptr right) : left(left), right(right) {};
+	ExclusiveRange(Expression_ptr left, Expression_ptr right) : left(std::move(left)), right(std::move(right)) {};
 	void print(int level);
 };
 
 class Unary : public Expression
 {
-	std::shared_ptr<Token> op;
-	ExpressionNode_ptr operand;
+	Token_ptr op;
+	Expression_ptr operand;
 
 public:
-	Unary(std::shared_ptr<Token> op, ExpressionNode_ptr operand) : op(op), operand(operand) {};
+	Unary(Token_ptr op, Expression_ptr operand) : op(std::move(op)), operand(std::move(operand)) {};
 	void print(int level);
 };
 
 class Binary : public Expression
 {
-	ExpressionNode_ptr left;
-	std::shared_ptr<Token> op;
-	ExpressionNode_ptr right;
+	Expression_ptr left;
+	Token_ptr op;
+	Expression_ptr right;
 
 public:
-	Binary(ExpressionNode_ptr left, std::shared_ptr<Token> op, ExpressionNode_ptr right) : left(left), op(op), right(right) {};
+	Binary(Expression_ptr left, Token_ptr op, Expression_ptr right) : left(std::move(left)), op(std::move(op)), right(std::move(right)) {};
 	void print(int level);
 };
-
-void print_expression_node(ExpressionNode_ptr node, int level);

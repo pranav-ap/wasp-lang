@@ -1,9 +1,8 @@
 #pragma once
 #include <iostream>
 #include <iomanip>
-#include <variant>
 #include <string>
-#include <type_traits>
+
 #include "StatementNodes.h"
 #include "ExpressionNodes.h"
 #include "Types.h"
@@ -11,40 +10,7 @@
 using std::cout;
 using std::endl;
 using std::setw;
-using std::visit;
 using std::string;
-
-void print_statement_node(StatementNode_ptr node, int level)
-{
-	visit([level](auto&& n) {
-		using T = std::decay_t<decltype(n)>;
-
-		if constexpr (std::is_same_v<T, VariableDeclaration>)
-			n.print(level);
-		else if constexpr (std::is_same_v<T, Assignment>)
-			n.print(level);
-		else if constexpr (std::is_same_v<T, Branch>)
-			n.print(level);
-		else if constexpr (std::is_same_v<T, Loop>)
-			n.print(level);
-		else if constexpr (std::is_same_v<T, Break>)
-			n.print(level);
-		else if constexpr (std::is_same_v<T, Continue>)
-			n.print(level);
-		else if constexpr (std::is_same_v<T, Return>)
-			n.print(level);
-		else if constexpr (std::is_same_v<T, Alias>)
-			n.print(level);
-		else if constexpr (std::is_same_v<T, RecordDefinition>)
-			n.print(level);
-		else if constexpr (std::is_same_v<T, FunctionDefinition>)
-			n.print(level);
-		else if constexpr (std::is_same_v<T, ExpressionStatement>)
-			n.print(level);
-		else if constexpr (std::is_same_v<T, Import>)
-			n.print(level);
-		}, *node.get());
-}
 
 void VariableDeclaration::print(int level)
 {
@@ -52,14 +18,14 @@ void VariableDeclaration::print(int level)
 	cout << string(level + 4, ' ') << "Variable name : " << this->name << endl;
 	cout << string(level + 4, ' ') << "Public : " << std::boolalpha << this->is_public << endl;
 	cout << string(level + 4, ' ') << "Mutable : " << std::boolalpha << this->is_mutable << endl;
-	print_type_node(this->type, level + 4);
-	print_expression_node(this->expression, level + 4);
+	this->type->print(level + 4);
+	this->expression->print(level + 4);
 }
 
 void Assignment::print(int level)
 {
 	cout << string(level, ' ') << "Assignment : " << this->name << endl;
-	print_expression_node(this->expression, level + 4);
+	this->expression->print(level + 4);
 }
 
 void Branch::print(int level)
@@ -67,18 +33,18 @@ void Branch::print(int level)
 	cout << string(level, ' ') << "Branch : " << endl;
 
 	cout << string(level + 4, ' ') << "Condition : " << endl;
-	print_expression_node(this->condition, level + 8);
+	this->condition->print(level + 8);
 
 	cout << string(level + 4, ' ') << "Consequence : " << endl;
 	for (auto const& statement : this->consequence)
 	{
-		print_statement_node(statement, level + 8);
+		statement->print(level + 8);
 	}
 
 	cout << string(level + 4, ' ') << "Alternative : " << endl;
 	for (auto const& statement : this->alternative)
 	{
-		print_statement_node(statement, level + 8);
+		statement->print(level + 8);
 	}
 }
 
@@ -88,7 +54,7 @@ void Loop::print(int level)
 
 	for (auto const& statement : this->block)
 	{
-		print_statement_node(statement, level + 4);
+		statement->print(level + 4);
 	}
 }
 
@@ -105,7 +71,7 @@ void Continue::print(int level)
 void Alias::print(int level)
 {
 	cout << string(level, ' ') << "Alias : " << this->name << endl;
-	print_type_node(this->type, level + 4);
+	this->type->print(level + 4);
 }
 
 void RecordDefinition::print(int level)
@@ -119,7 +85,7 @@ void RecordDefinition::print(int level)
 	for (auto const& pair : this->member_types)
 	{
 		cout << string(level + 8, ' ') << "Name : " << pair.first << endl;
-		print_type_node(pair.second, level + 8);
+		pair.second->print(level + 8);
 		cout << endl;
 	}
 }
@@ -138,7 +104,7 @@ void FunctionDefinition::print(int level)
 		for (auto const& pair : this->arguments)
 		{
 			cout << string(level + 8, ' ') << "Name : " << pair.first << endl;
-			print_type_node(pair.second, level + 8);
+			pair.second->print(level + 8);
 		}
 	}
 	else
@@ -147,7 +113,7 @@ void FunctionDefinition::print(int level)
 	if (this->return_type)
 	{
 		cout << string(level + 4, ' ') << "Return Type : " << endl;
-		print_type_node(this->return_type.value(), level + 8);
+		this->return_type.value()->print(level + 8);
 	}
 	else
 		cout << string(level + 4, ' ') << "Return Type : None" << endl;
@@ -155,7 +121,7 @@ void FunctionDefinition::print(int level)
 	cout << string(level + 4, ' ') << "Body : " << endl;
 	for (auto const& statement : this->body)
 	{
-		print_statement_node(statement, level + 8);
+		statement->print(level + 8);
 	}
 }
 
@@ -166,7 +132,7 @@ void Return::print(int level)
 	if (this->expression)
 	{
 		cout << string(level + 4, ' ') << "Return Type : " << endl;
-		print_expression_node(this->expression.value(), level + 4);
+		this->expression.value()->print(level + 4);
 	}
 	else
 		cout << string(level + 4, ' ') << "Return Type : None" << endl;
@@ -175,7 +141,7 @@ void Return::print(int level)
 void ExpressionStatement::print(int level)
 {
 	cout << string(level, ' ') << "ExpressionStatement : " << endl;
-	print_expression_node(this->expression, level + 4);
+	this->expression->print(level + 4);
 }
 
 void Import::print(int level)

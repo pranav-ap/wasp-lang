@@ -105,6 +105,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -149,11 +150,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ExpressionNodes.cpp" />
-    <ClCompile Include="Interpreter.cpp" />
     <ClCompile Include="Lexer.cpp" />
     <ClCompile Include="LexerUtils.cpp" />
     <ClCompile Include="Module.cpp" />
-    <ClCompile Include="Object.cpp" />
     <ClCompile Include="Parser.cpp" />
     <ClCompile Include="ParserExpressionUtils.cpp" />
     <ClCompile Include="ParserUtils.cpp" />
@@ -166,10 +165,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ExpressionNodes.h" />
-    <ClInclude Include="Interpreter.h" />
     <ClInclude Include="Lexer.h" />
     <ClInclude Include="Module.h" />
-    <ClInclude Include="Object.h" />
     <ClInclude Include="Parser.h" />
     <ClInclude Include="Pointer.h" />
     <ClInclude Include="StatementNodes.h" />
@@ -179,7 +176,7 @@
     <ClInclude Include="Types.h" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="lexer_test.wasp" />
+    <Text Include="scrap.wasp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="main.wasp" />

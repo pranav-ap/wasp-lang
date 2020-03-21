@@ -5,6 +5,7 @@
 #include <vector>
 #include "Lexer.h"
 #include "Parser.h"
+//#include "Interpreter.h"
 
 using namespace std;
 
@@ -26,7 +27,7 @@ int main()
 {
 	cout << "\n Wasp Language Interpreter \n" << endl;
 
-	string raw_source = read_source("main.wasp");
+	string raw_source = read_source("scrap.wasp");
 
 	Lexer lexer(raw_source);
 	vector<shared_ptr<Token>> tokens = lexer.execute();
@@ -34,11 +35,12 @@ int main()
 	cout << "\n Scanned Tokens \n" << endl;
 
 	for (auto const& token : tokens)
-	{
 		token->print();
-	}
 
 	Parser parser(tokens);
 	Module mod = parser.execute();
 	mod.print();
+	/*
+	Interpreter interpreter(mod);
+	interpreter.execute();*/
 }

@@ -3,26 +3,18 @@
 #include <stack>
 #include <memory>
 #include <utility>
+
 #include "Token.h"
 #include "Pointer.h"
 #include "Types.h"
 #include "Module.h"
+#include "ExpressionNodes.h"
+#include "StatementNodes.h"
 
-#define MAKE_TYPE(x) make_shared<TypeNode>(x)
-#define MAKE_EXPR(x) make_shared<ExpressionNode>(x)
-#define MAKE_STAT(x) make_shared<StatementNode>(x)
 #define ADVANCE_PTR this->pointer.advance()
 #define RETURN_IF_NULLPTR(x) if (x == nullptr) { return nullptr; }
 #define RETURN_IF_TRUE(x) if (x) { return nullptr; }
 #define CASE(token_type, call) case token_type: { return call; }
-
-using std::string;
-using std::vector;
-using std::stack;
-using std::shared_ptr;
-using std::pair;
-using std::make_shared;
-using std::make_pair;
 
 class Parser
 {
@@ -32,65 +24,64 @@ class Parser
 
 	// Parsers
 
-	StatementNode_ptr parse_statement(bool is_public);
-	ExpressionNode_ptr parse_expression();
+	Statement_ptr parse_statement(bool is_public);
+	Expression_ptr parse_expression();
 
 	// Variable declaration parser
-	StatementNode_ptr parse_variable_declaration(bool is_public, bool is_mutable);
+	Statement_ptr parse_variable_declaration(bool is_public, bool is_mutable);
 
 	// Literal parsers
 
-	ExpressionNode_ptr parse_vector_literal();
-	ExpressionNode_ptr parse_tuple_literal();
+	Expression_ptr parse_vector_literal();
+	Expression_ptr parse_tuple_literal();
 
-	ExpressionNode_ptr parse_map_literal();
-	ExpressionNode_ptr parse_record_literal();
-	ExpressionNode_ptr parse_map_or_record_literal();
+	Expression_ptr parse_map_literal();
+	Expression_ptr parse_record_literal();
+	Expression_ptr parse_map_or_record_literal();
 
-	ExpressionNode_ptr consume_valid_map_key();
-	shared_ptr<string> consume_valid_record_key();
+	Expression_ptr consume_valid_map_key();
+	std::shared_ptr<std::string> consume_valid_record_key();
 
 	// Block statement parsing
 
-	shared_ptr<Block> parse_block();
-	StatementNode_ptr parse_return_statement();
-	StatementNode_ptr parse_branching_statement();
-	StatementNode_ptr parse_loop_statement();
-	StatementNode_ptr parse_break_statement();
-	StatementNode_ptr parse_continue_statement();
+	std::shared_ptr<Block> parse_block();
+	Statement_ptr parse_return_statement();
+	Statement_ptr parse_branching_statement();
+	Statement_ptr parse_loop_statement();
+	Statement_ptr parse_break_statement();
+	Statement_ptr parse_continue_statement();
 
 	// Type parsers
 
-	TypeNode_ptr parse_type();
-	TypeNode_ptr parse_vector_type();
-	TypeNode_ptr parse_tuple_type();
-	TypeNode_ptr parse_map_type();
-	TypeNode_ptr parse_variant_type();
+	Type_ptr parse_type();
+	Type_ptr parse_vector_type();
+	Type_ptr parse_tuple_type();
+	Type_ptr parse_map_type();
 
-	TypeNode_ptr consume_scalar_datatype();
-	TypeNode_ptr consume_datatype_word();
-	TypeNode_ptr consume_valid_map_key_datatype();
+	Type_ptr consume_scalar_datatype();
+	Type_ptr consume_datatype_word();
+	Type_ptr consume_valid_map_key_datatype();
 
 	// Definition Parsers
 
-	StatementNode_ptr parse_enum_definition(bool is_public);
-	StatementNode_ptr parse_type_declaration(bool is_public);
-	StatementNode_ptr parse_function_definition(bool is_public);
+	Statement_ptr parse_enum_definition(bool is_public);
+	Statement_ptr parse_type_declaration(bool is_public);
+	Statement_ptr parse_function_definition(bool is_public);
 
 	// Other
 
-	StatementNode_ptr handle_identifier(Token_ptr identifier);
-	StatementNode_ptr parse_expression_statement();
-	StatementNode_ptr parse_import_statement();
-	StatementNode_ptr parse_public_statement();
+	Statement_ptr handle_identifier(Token_ptr identifier);
+	Statement_ptr parse_expression_statement();
+	Statement_ptr parse_import_statement();
+	Statement_ptr parse_public_statement();
 
 	// Expression parsing utils
 
-	void pop_all_from_stack_into_ast(std::stack<Token_ptr>& op_stack, std::vector<ExpressionNode_ptr>& ast);
-	void push_unary_operator_to_ast(Token_ptr op, std::vector<ExpressionNode_ptr>& ast);
-	void push_binary_operator_to_ast(Token_ptr op, std::vector<ExpressionNode_ptr>& ast);
-	void pop_until_open_parenthesis_from_stack_into_ast(std::stack<Token_ptr>& op_stack, std::vector<ExpressionNode_ptr>& ast);
-	void push_operator_to_operator_stack(Token_ptr op, std::stack<Token_ptr>& op_stack, std::vector<ExpressionNode_ptr>& ast);
+	void pop_all_from_stack_into_ast(std::stack<Token_ptr>& op_stack, std::vector<Expression_ptr>& ast);
+	void push_unary_operator_to_ast(Token_ptr op, std::vector<Expression_ptr>& ast);
+	void push_binary_operator_to_ast(Token_ptr op, std::vector<Expression_ptr>& ast);
+	void pop_until_open_parenthesis_from_stack_into_ast(std::stack<Token_ptr>& op_stack, std::vector<Expression_ptr>& ast);
+	void push_operator_to_operator_stack(Token_ptr op, std::stack<Token_ptr>& op_stack, std::vector<Expression_ptr>& ast);
 
 	// Utils
 

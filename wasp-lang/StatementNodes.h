@@ -1,39 +1,11 @@
 #pragma once
-#include <optional>
 #include <string>
 #include <vector>
 #include <memory>
-#include <utility>
-#include <variant>
+#include <optional>
 
 #include "Types.h"
 #include "ExpressionNodes.h"
-
-class VariableDeclaration;
-class Assignment;
-
-class Branch;
-class Loop;
-class Break;
-class Continue;
-class Return;
-
-class Alias;
-class RecordDefinition;
-class FunctionDefinition;
-
-class ExpressionStatement;
-class Import;
-
-using StatementNode = std::variant<
-	std::monostate,
-	VariableDeclaration, Assignment,
-	Branch, Loop, Break, Continue,
-	Alias, RecordDefinition, FunctionDefinition,
-	Return, ExpressionStatement, Import
->;
-
-using StatementNode_ptr = std::shared_ptr<StatementNode>;
 
 class Statement
 {
@@ -41,39 +13,40 @@ public:
 	virtual void print(int level) = 0;
 };
 
-using Block = std::vector<StatementNode_ptr>;
+using Statement_ptr = std::shared_ptr<Statement>;
+using Block = std::vector<Statement_ptr>;
 
 class VariableDeclaration : public Statement
 {
 	bool is_public;
 	bool is_mutable;
 	std::string name;
-	TypeNode_ptr type;
-	ExpressionNode_ptr expression;
+	Type_ptr type;
+	Expression_ptr expression;
 
 public:
-	VariableDeclaration(bool is_public, bool is_mutable, std::string name, TypeNode_ptr type, ExpressionNode_ptr expression) : is_public(is_public), is_mutable(is_mutable), name(name), type(type), expression(expression) {};
+	VariableDeclaration(bool is_public, bool is_mutable, std::string name, Type_ptr type, Expression_ptr expression) : is_public(is_public), is_mutable(is_mutable), name(name), type(std::move(type)), expression(std::move(expression)) {};
 	void print(int level);
 };
 
 class Assignment : public Statement
 {
 	std::string name;
-	ExpressionNode_ptr expression;
+	Expression_ptr expression;
 
 public:
-	Assignment(std::string name, ExpressionNode_ptr expression) : name(name), expression(expression) {};
+	Assignment(std::string name, Expression_ptr expression) : name(name), expression(std::move(expression)) {};
 	void print(int level);
 };
 
 class Branch : public Statement
 {
-	ExpressionNode_ptr condition;
+	Expression_ptr condition;
 	Block consequence;
 	Block alternative;
 
 public:
-	Branch(ExpressionNode_ptr condition, Block consequence, Block alternative) : condition(condition), consequence(consequence), alternative(alternative) {};
+	Branch(Expression_ptr condition, Block consequence, Block alternative) : condition(std::move(condition)), consequence(std::move(consequence)), alternative(std::move(alternative)) {};
 	void print(int level);
 };
 
@@ -101,10 +74,10 @@ public:
 class Alias : public Statement
 {
 	std::string name;
-	TypeNode_ptr type;
+	Type_ptr type;
 
 public:
-	Alias(std::string name, TypeNode_ptr type) : name(name), type(type) {};
+	Alias(std::string name, Type_ptr type) : name(name), type(std::move(type)) {};
 	void print(int level);
 };
 
@@ -112,10 +85,10 @@ class RecordDefinition : public Statement
 {
 	bool is_public;
 	std::string name;
-	std::vector<std::pair<std::string, TypeNode_ptr>> member_types;
+	std::vector<std::pair<std::string, Type_ptr>> member_types;
 
 public:
-	RecordDefinition(bool is_public, std::string name, std::vector<std::pair<std::string, TypeNode_ptr>> member_types) : is_public(is_public), name(name), member_types(member_types) {};
+	RecordDefinition(bool is_public, std::string name, std::vector<std::pair<std::string, Type_ptr>> member_types) : is_public(is_public), name(name), member_types(member_types) {};
 	void print(int level);
 };
 
@@ -123,30 +96,30 @@ class FunctionDefinition : public Statement
 {
 	bool is_public;
 	std::string name;
-	std::vector<std::pair<std::string, TypeNode_ptr>> arguments;
-	std::optional<TypeNode_ptr> return_type;
+	std::vector<std::pair<std::string, Type_ptr>> arguments;
+	std::optional<Type_ptr> return_type;
 	Block body;
 
 public:
-	FunctionDefinition(bool is_public, std::string name, std::vector<std::pair<std::string, TypeNode_ptr>> arguments, std::optional<TypeNode_ptr> return_type, Block body) : is_public(is_public), name(name), arguments(arguments), return_type(return_type), body(body) {};
+	FunctionDefinition(bool is_public, std::string name, std::vector<std::pair<std::string, Type_ptr>> arguments, std::optional<Type_ptr> return_type, Block body) : is_public(is_public), name(name), arguments(arguments), return_type(return_type), body(body) {};
 	void print(int level);
 };
 
 class Return : public Statement
 {
-	std::optional<ExpressionNode_ptr> expression;
+	std::optional<Expression_ptr> expression;
 
 public:
-	Return(std::optional<ExpressionNode_ptr> expression) : expression(expression) {};
+	Return(std::optional<Expression_ptr> expression) : expression(std::move(expression)) {};
 	void print(int level);
 };
 
 class ExpressionStatement : public Statement
 {
-	ExpressionNode_ptr expression;
+	Expression_ptr expression;
 
 public:
-	ExpressionStatement(ExpressionNode_ptr expression) : expression(std::move(expression)) {};
+	ExpressionStatement(Expression_ptr expression) : expression(std::move(expression)) {};
 	void print(int level);
 };
 
@@ -159,5 +132,3 @@ public:
 	Import(std::vector<std::string> goods, std::string path) : goods(goods), path(path) {};
 	void print(int level);
 };
-
-void print_statement_node(StatementNode_ptr node, int level);

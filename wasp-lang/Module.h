@@ -4,10 +4,10 @@
 
 class Module
 {
-	std::vector<StatementNode_ptr> nodes;
+	std::vector<Statement_ptr> nodes;
 
 public:
-	std::vector<StatementNode_ptr>& get_nodes();
-	void add(StatementNode_ptr node);
+	std::vector<Statement_ptr>& get_statements();
+	void add(Statement_ptr node);
 	void print();
 };

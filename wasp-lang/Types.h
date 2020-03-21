@@ -1,77 +1,54 @@
 #pragma once
-#include <optional>
 #include <string>
 #include <vector>
-#include <variant>
 #include <memory>
 
-class Scalar;
-class Number;
-class String;
-class Bool;
+// Type Base Classes
 
-class Composite;
-class Vector;
-class Tuple;
-class Map;
-class Record;
-
-class Optional;
-class Variant;
-
-using TypeNode = std::variant<
-	std::monostate,
-	Optional, Variant,
-	Number, String, Bool,
-	Vector, Tuple,
-	Map, Record
->;
-
-using TypeNode_ptr = std::shared_ptr<TypeNode>;
-
-class Type {
+class Type
+{
 public:
 	virtual void print(int level) = 0;
 };
 
-class Scalar : public Type {
+using Type_ptr = std::shared_ptr<Type>;
+
+class Scalar : public Type
+{
 public:
 	virtual void print(int level) = 0;
 };
 
-class Composite : public Type {
+class Composite : public Type
+{
 public:
 	virtual void print(int level) = 0;
 };
 
 class Optional : public Type
 {
-	TypeNode_ptr optional_type;
+	Type_ptr optional_type;
 public:
-	void print(int level);
-};
-
-class Variant : public Type
-{
-	std::vector<TypeNode_ptr> types;
-public:
-	Variant(std::vector<TypeNode_ptr> types) : types(types) {};
+	Optional(Type_ptr optional_type) : optional_type(std::move(optional_type)) {};
 	void print(int level);
 };
 
 // Scalar Types
 
-class Number : public Scalar {
+class Number : public Scalar
+{
 public:
 	void print(int level);
 };
 
-class String : public Scalar {
+class String : public Scalar
+{
 public:
 	void print(int level);
 };
 
-class Bool : public Scalar {
+class Bool : public Scalar
+{
 public:
 	void print(int level);
 };
@@ -80,26 +57,26 @@ public:
 
 class Vector : public Composite
 {
-	TypeNode_ptr type;
+	Type_ptr type;
 public:
-	Vector(TypeNode_ptr type) : type(type) {};
+	Vector(Type_ptr type) : type(std::move(type)) {};
 	void print(int level);
 };
 
 class Tuple : public Composite
 {
-	std::vector<TypeNode_ptr> types;
+	std::vector<Type_ptr> types;
 public:
-	Tuple(std::vector<TypeNode_ptr> types) : types(types) {};
+	Tuple(std::vector<Type_ptr> types) : types(types) {};
 	void print(int level);
 };
 
 class Map : public Composite
 {
-	TypeNode_ptr key_type;
-	TypeNode_ptr value_type;
+	Type_ptr key_type;
+	Type_ptr value_type;
 public:
-	Map(TypeNode_ptr key_type, TypeNode_ptr value_type) : key_type(key_type), value_type(value_type) {};
+	Map(Type_ptr key_type, Type_ptr value_type) : key_type(std::move(key_type)), value_type(std::move(value_type)) {};
 	void print(int level);
 };
 
@@ -110,5 +87,3 @@ public:
 	Record(std::string type) : type(type) {};
 	void print(int level);
 };
-
-void print_type_node(TypeNode_ptr node, int level);

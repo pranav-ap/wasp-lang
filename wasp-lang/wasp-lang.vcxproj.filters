@@ -16,14 +16,8 @@
     <Filter Include="Header Files\Lexer">
       <UniqueIdentifier>{b0b00b3f-3a91-475e-b363-dcdf48bbdf5d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Parser">
-      <UniqueIdentifier>{9857d4fd-a178-44fb-a62e-f428799157d5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Lexer">
       <UniqueIdentifier>{f66e5b0a-85d1-492f-a031-a4e915745ddb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Parser">
-      <UniqueIdentifier>{d94d9ff2-0c23-4e2c-b558-37b5010936cf}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\Utils">
       <UniqueIdentifier>{12223bfb-2627-47df-9dd7-238c68d4531c}</UniqueIdentifier>
@@ -31,11 +25,11 @@
     <Filter Include="Source Files\Utils">
       <UniqueIdentifier>{db9cf66c-a5db-4d27-b535-5a45c713230a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Runtime">
-      <UniqueIdentifier>{797e6e28-1f4b-4e80-9188-ca3fb52f42fd}</UniqueIdentifier>
+    <Filter Include="Header Files\Parser">
+      <UniqueIdentifier>{491a5182-71f5-4197-bc02-7aace3d8e267}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Runtime">
-      <UniqueIdentifier>{d060b50b-9107-4ee0-88f0-3fe6056559c3}</UniqueIdentifier>
+    <Filter Include="Source Files\Parser">
+      <UniqueIdentifier>{0ada17cc-4a21-434c-ab46-9eb55c6b150a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -51,13 +45,25 @@
     <ClCompile Include="Token.cpp">
       <Filter>Source Files\Lexer</Filter>
     </ClCompile>
-    <ClCompile Include="Parser.cpp">
-      <Filter>Source Files\Parser</Filter>
-    </ClCompile>
     <ClCompile Include="Pointer.cpp">
       <Filter>Source Files\Utils</Filter>
     </ClCompile>
+    <ClCompile Include="LexerUtils.cpp">
+      <Filter>Source Files\Lexer</Filter>
+    </ClCompile>
+    <ClCompile Include="Parser.cpp">
+      <Filter>Source Files\Parser</Filter>
+    </ClCompile>
     <ClCompile Include="ExpressionNodes.cpp">
+      <Filter>Source Files\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="Module.cpp">
+      <Filter>Source Files\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="ParserExpressionUtils.cpp">
+      <Filter>Source Files\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="ParserUtils.cpp">
       <Filter>Source Files\Parser</Filter>
     </ClCompile>
     <ClCompile Include="StatementNodes.cpp">
@@ -65,24 +71,6 @@
     </ClCompile>
     <ClCompile Include="Types.cpp">
       <Filter>Source Files\Parser</Filter>
-    </ClCompile>
-    <ClCompile Include="ParserUtils.cpp">
-      <Filter>Source Files\Parser</Filter>
-    </ClCompile>
-    <ClCompile Include="ParserExpressionUtils.cpp">
-      <Filter>Source Files\Parser</Filter>
-    </ClCompile>
-    <ClCompile Include="LexerUtils.cpp">
-      <Filter>Source Files\Lexer</Filter>
-    </ClCompile>
-    <ClCompile Include="Object.cpp">
-      <Filter>Source Files\Runtime</Filter>
-    </ClCompile>
-    <ClCompile Include="Module.cpp">
-      <Filter>Source Files\Parser</Filter>
-    </ClCompile>
-    <ClCompile Include="Interpreter.cpp">
-      <Filter>Source Files\Runtime</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -98,39 +86,33 @@
     <ClInclude Include="TokenType.h">
       <Filter>Header Files\Lexer</Filter>
     </ClInclude>
-    <ClInclude Include="Parser.h">
-      <Filter>Header Files\Parser</Filter>
-    </ClInclude>
-    <ClInclude Include="Types.h">
-      <Filter>Header Files\Parser</Filter>
-    </ClInclude>
     <ClInclude Include="Pointer.h">
       <Filter>Header Files\Utils</Filter>
     </ClInclude>
+    <ClInclude Include="Parser.h">
+      <Filter>Header Files\Parser</Filter>
+    </ClInclude>
     <ClInclude Include="ExpressionNodes.h">
+      <Filter>Header Files\Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="Module.h">
       <Filter>Header Files\Parser</Filter>
     </ClInclude>
     <ClInclude Include="StatementNodes.h">
       <Filter>Header Files\Parser</Filter>
     </ClInclude>
-    <ClInclude Include="Object.h">
-      <Filter>Header Files\Runtime</Filter>
-    </ClInclude>
-    <ClInclude Include="Interpreter.h">
-      <Filter>Header Files\Runtime</Filter>
-    </ClInclude>
-    <ClInclude Include="Module.h">
+    <ClInclude Include="Types.h">
       <Filter>Header Files\Parser</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="lexer_test.wasp">
-      <Filter>Resource Files</Filter>
-    </Text>
   </ItemGroup>
   <ItemGroup>
     <None Include="main.wasp">
       <Filter>Resource Files</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="scrap.wasp">
+      <Filter>Resource Files</Filter>
+    </Text>
   </ItemGroup>
 </Project>

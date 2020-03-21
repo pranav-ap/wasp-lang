@@ -98,7 +98,6 @@ string to_string(TokenType type)
 	case TokenType::IMPORT:
 	case TokenType::FROM:
 	case TokenType::PUB:
-	case TokenType::PURE:
 	{
 		return "Keyword";
 	}

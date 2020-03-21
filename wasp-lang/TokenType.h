@@ -98,9 +98,6 @@ enum class TokenType
 	FROM,
 
 	PUB,
-	PURE,
-
-	PASS,
 
 	// Other
 
