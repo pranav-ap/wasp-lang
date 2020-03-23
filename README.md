@@ -96,3 +96,8 @@ pub fn add (a: num, b: num) -> num {
  match expr {
     expr -> {}
  }
+
+# Code Guidelines
+
+- Every function is responsible for pointing to the next unexplored 
+character or token before transfering control

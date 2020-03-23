@@ -1,4 +1,5 @@
 #pragma once
+#include "pch.h"
 #include "Lexer.h"
 #include <map>
 #include <memory>
@@ -7,41 +8,41 @@
 using std::string;
 using std::make_shared;
 
-std::map<std::string, TokenType> keyword_map = {
-	{ "if", TokenType::IF },
-	{ "else", TokenType::ELSE },
+std::map<std::string, WTokenType> keyword_map = {
+	{ "if", WTokenType::IF },
+	{ "else", WTokenType::ELSE },
 
-	{ "and", TokenType::AND },
-	{ "or", TokenType::OR },
+	{ "and", WTokenType::AND },
+	{ "or", WTokenType::OR },
 
-	{ "let", TokenType::LET },
-	{ "const", TokenType::CONST },
+	{ "let", WTokenType::LET },
+	{ "const", WTokenType::CONST_KEYWORD },
 
-	{ "loop", TokenType::LOOP },
-	{ "for", TokenType::FOR },
-	{ "break", TokenType::BREAK },
-	{ "continue", TokenType::CONTINUE },
-	{ "in", TokenType::IN },
+	{ "loop", WTokenType::LOOP },
+	{ "for", WTokenType::FOR },
+	{ "break", WTokenType::BREAK },
+	{ "continue", WTokenType::CONTINUE },
+	{ "in", WTokenType::IN_KEYWORD },
 
-	{ "fn", TokenType::FN },
-	{ "return", TokenType::RETURN },
+	{ "fn", WTokenType::FN },
+	{ "return", WTokenType::RETURN },
 
-	{ "num", TokenType::NUM },
-	{ "str", TokenType::STR },
-	{ "bool", TokenType::BOOL },
-	{ "enum", TokenType::ENUM },
-	{ "type", TokenType::TYPE },
-	{ "opt", TokenType::OPT },
+	{ "num", WTokenType::NUM },
+	{ "str", WTokenType::STR },
+	{ "bool", WTokenType::BOOL },
+	{ "enum", WTokenType::ENUM },
+	{ "type", WTokenType::TYPE },
+	{ "opt", WTokenType::OPT },
 
-	{ "none", TokenType::NONE },
+	{ "none", WTokenType::NONE },
 
-	{ "true", TokenType::TRUE },
-	{ "false", TokenType::FALSE },
+	{ "true", WTokenType::TRUE_KEYWORD },
+	{ "false", WTokenType::FALSE_KEYWORD },
 
-	{ "import", TokenType::IMPORT },
-	{ "from", TokenType::FROM },
+	{ "import", WTokenType::IMPORT },
+	{ "from", WTokenType::FROM },
 
-	{ "pub", TokenType::PUB }
+	{ "pub", WTokenType::PUB }
 };
 
 std::vector<Token_ptr> Lexer::execute()
@@ -113,7 +114,7 @@ std::vector<Token_ptr> Lexer::execute()
 
 		if (token != nullptr)
 		{
-			tokens.push_back(move(token));
+			tokens.push_back(std::move(token));
 		}
 	}
 
@@ -127,7 +128,7 @@ Token_ptr Lexer::consume_number_literal(char ch)
 	std::string number_literal;
 	number_literal.push_back(ch);
 
-	while (ch = this->get_right_char())
+	while (ch = this->get_current_char())
 	{
 		if (isdigit(static_cast<unsigned char>(ch)) || ch == '.')
 		{
@@ -139,9 +140,9 @@ Token_ptr Lexer::consume_number_literal(char ch)
 		break;
 	}
 
-	NEXT;
+	// TODO: What if there are multiple '.'
 
-	return MAKE_TOKEN(TokenType::NumberLiteral, number_literal, LINE_NUM, COL_NUM);
+	return MAKE_TOKEN(WTokenType::NumberLiteral, number_literal, LINE_NUM, COL_NUM);
 }
 
 Token_ptr Lexer::consume_string_literal()
@@ -160,7 +161,7 @@ Token_ptr Lexer::consume_string_literal()
 	}
 
 	NEXT;
-	return MAKE_TOKEN(TokenType::StringLiteral, string_literal, LINE_NUM, COL_NUM);
+	return MAKE_TOKEN(WTokenType::StringLiteral, string_literal, LINE_NUM, COL_NUM);
 }
 
 Token_ptr Lexer::consume_identifier(char ch)
@@ -182,97 +183,97 @@ Token_ptr Lexer::consume_identifier(char ch)
 
 	if (keyword_map.count(identifier) > 0)
 	{
-		TokenType keyword_type = keyword_map[identifier];
+		WTokenType keyword_type = keyword_map[identifier];
 		return MAKE_TOKEN(keyword_type, identifier, LINE_NUM, COL_NUM);
 	}
 
-	if (this->followed_by('(')) {
-		return MAKE_TOKEN(TokenType::FunctionIdentifier, identifier, LINE_NUM, COL_NUM);
+	if (this->get_right_char() == '(') {
+		return MAKE_TOKEN(WTokenType::FunctionIdentifier, identifier, LINE_NUM, COL_NUM);
 	}
 
-	return MAKE_TOKEN(TokenType::Identifier, identifier, LINE_NUM, COL_NUM);
+	return MAKE_TOKEN(WTokenType::Identifier, identifier, LINE_NUM, COL_NUM);
 }
 
 Token_ptr Lexer::handle_plus()
 {
 	if (this->expect_current_char('='))
-		return MAKE_TOKEN(TokenType::PLUS_EQUAL, "+=", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(WTokenType::PLUS_EQUAL, "+=", LINE_NUM, COL_NUM);
 
-	return MAKE_TOKEN(TokenType::PLUS, "+", LINE_NUM, COL_NUM);
+	return MAKE_TOKEN(WTokenType::PLUS, "+", LINE_NUM, COL_NUM);
 }
 
 Token_ptr Lexer::handle_minus()
 {
 	if (this->expect_current_char('='))
-		return MAKE_TOKEN(TokenType::MINUS_EQUAL, "-=", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(WTokenType::MINUS_EQUAL, "-=", LINE_NUM, COL_NUM);
 	else if (this->expect_current_char('>'))
-		return MAKE_TOKEN(TokenType::ARROW, "->", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(WTokenType::ARROW, "->", LINE_NUM, COL_NUM);
 
-	return MAKE_TOKEN(TokenType::MINUS, "-", LINE_NUM, COL_NUM);
+	return MAKE_TOKEN(WTokenType::MINUS, "-", LINE_NUM, COL_NUM);
 }
 
 Token_ptr Lexer::handle_star()
 {
 	if (this->expect_current_char('='))
-		return MAKE_TOKEN(TokenType::STAR_EQUAL, "*=", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(WTokenType::STAR_EQUAL, "*=", LINE_NUM, COL_NUM);
 
-	return MAKE_TOKEN(TokenType::STAR, "*", LINE_NUM, COL_NUM);
+	return MAKE_TOKEN(WTokenType::STAR, "*", LINE_NUM, COL_NUM);
 }
 
 Token_ptr Lexer::handle_division()
 {
 	if (this->expect_current_char('='))
-		return MAKE_TOKEN(TokenType::DIVISION_EQUAL, "/=", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(WTokenType::DIVISION_EQUAL, "/=", LINE_NUM, COL_NUM);
 
-	return MAKE_TOKEN(TokenType::DIVISION, "/", LINE_NUM, COL_NUM);
+	return MAKE_TOKEN(WTokenType::DIVISION, "/", LINE_NUM, COL_NUM);
 }
 
 Token_ptr Lexer::handle_reminder()
 {
 	if (this->expect_current_char('='))
-		return MAKE_TOKEN(TokenType::REMINDER_EQUAL, "%=", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(WTokenType::REMINDER_EQUAL, "%=", LINE_NUM, COL_NUM);
 
-	return MAKE_TOKEN(TokenType::REMINDER, "%", LINE_NUM, COL_NUM);
+	return MAKE_TOKEN(WTokenType::REMINDER, "%", LINE_NUM, COL_NUM);
 }
 
 Token_ptr Lexer::handle_power()
 {
 	if (this->expect_current_char('='))
-		return MAKE_TOKEN(TokenType::POWER_EQUAL, "^=", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(WTokenType::POWER_EQUAL, "^=", LINE_NUM, COL_NUM);
 
-	return MAKE_TOKEN(TokenType::POWER, "^", LINE_NUM, COL_NUM);
+	return MAKE_TOKEN(WTokenType::POWER, "^", LINE_NUM, COL_NUM);
 }
 
 Token_ptr Lexer::handle_bang()
 {
 	if (this->expect_current_char('='))
-		return MAKE_TOKEN(TokenType::BANG_EQUAL, "!=", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(WTokenType::BANG_EQUAL, "!=", LINE_NUM, COL_NUM);
 
-	return MAKE_TOKEN(TokenType::BANG, "!", LINE_NUM, COL_NUM);
+	return MAKE_TOKEN(WTokenType::BANG, "!", LINE_NUM, COL_NUM);
 }
 
 Token_ptr Lexer::handle_equal()
 {
 	if (this->expect_current_char('='))
-		return MAKE_TOKEN(TokenType::EQUAL_EQUAL, "==", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(WTokenType::EQUAL_EQUAL, "==", LINE_NUM, COL_NUM);
 
-	return MAKE_TOKEN(TokenType::EQUAL, "=", LINE_NUM, COL_NUM);
+	return MAKE_TOKEN(WTokenType::EQUAL, "=", LINE_NUM, COL_NUM);
 }
 
 Token_ptr Lexer::handle_greater_than()
 {
 	if (this->expect_current_char('='))
-		return MAKE_TOKEN(TokenType::GREATER_THAN_EQUAL, ">=", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(WTokenType::GREATER_THAN_EQUAL, ">=", LINE_NUM, COL_NUM);
 
-	return MAKE_TOKEN(TokenType::GREATER_THAN, ">", LINE_NUM, COL_NUM);
+	return MAKE_TOKEN(WTokenType::GREATER_THAN, ">", LINE_NUM, COL_NUM);
 }
 
 Token_ptr Lexer::handle_lesser_than()
 {
 	if (this->expect_current_char('='))
-		return MAKE_TOKEN(TokenType::LESSER_THAN_EQUAL, "<=", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(WTokenType::LESSER_THAN_EQUAL, "<=", LINE_NUM, COL_NUM);
 
-	return MAKE_TOKEN(TokenType::LESSER_THAN, "<", LINE_NUM, COL_NUM);
+	return MAKE_TOKEN(WTokenType::LESSER_THAN, "<", LINE_NUM, COL_NUM);
 }
 
 Token_ptr Lexer::handle_dot()
@@ -280,12 +281,12 @@ Token_ptr Lexer::handle_dot()
 	if (this->expect_current_char('.'))
 	{
 		if (this->expect_current_char('.'))
-			return MAKE_TOKEN(TokenType::DOT_DOT_DOT, "...", LINE_NUM, COL_NUM);
+			return MAKE_TOKEN(WTokenType::DOT_DOT_DOT, "...", LINE_NUM, COL_NUM);
 
-		return MAKE_TOKEN(TokenType::DOT_DOT, "..", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(WTokenType::DOT_DOT, "..", LINE_NUM, COL_NUM);
 	}
 
-	return MAKE_TOKEN(TokenType::DOT, ".", LINE_NUM, COL_NUM);
+	return MAKE_TOKEN(WTokenType::DOT, ".", LINE_NUM, COL_NUM);
 }
 
 Token_ptr Lexer::consume_single_char_punctuation(char ch)
@@ -293,27 +294,27 @@ Token_ptr Lexer::consume_single_char_punctuation(char ch)
 	switch (ch)
 	{
 	case '\\':
-		return MAKE_TOKEN(TokenType::BACKWARD_SLASH, "\\", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(WTokenType::BACKWARD_SLASH, "\\", LINE_NUM, COL_NUM);
 	case '(':
-		return MAKE_TOKEN(TokenType::OPEN_PARENTHESIS, "(", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(WTokenType::OPEN_PARENTHESIS, "(", LINE_NUM, COL_NUM);
 	case ')':
-		return MAKE_TOKEN(TokenType::CLOSE_PARENTHESIS, ")", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(WTokenType::CLOSE_PARENTHESIS, ")", LINE_NUM, COL_NUM);
 	case '{':
-		return MAKE_TOKEN(TokenType::OPEN_CURLY_BRACE, "{", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(WTokenType::OPEN_CURLY_BRACE, "{", LINE_NUM, COL_NUM);
 	case '}':
-		return MAKE_TOKEN(TokenType::CLOSE_CURLY_BRACE, "}", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(WTokenType::CLOSE_CURLY_BRACE, "}", LINE_NUM, COL_NUM);
 	case '[':
-		return MAKE_TOKEN(TokenType::OPEN_BRACKET, "[", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(WTokenType::OPEN_BRACKET, "[", LINE_NUM, COL_NUM);
 	case ']':
-		return MAKE_TOKEN(TokenType::CLOSE_BRACKET, "]", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(WTokenType::CLOSE_BRACKET, "]", LINE_NUM, COL_NUM);
 	case ',':
-		return MAKE_TOKEN(TokenType::COMMA, ",", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(WTokenType::COMMA, ",", LINE_NUM, COL_NUM);
 	case '.':
-		return MAKE_TOKEN(TokenType::DOT, ".", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(WTokenType::DOT, ".", LINE_NUM, COL_NUM);
 	case ':':
-		return MAKE_TOKEN(TokenType::COLON, ":", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(WTokenType::COLON, ":", LINE_NUM, COL_NUM);
 	case '|':
-		return MAKE_TOKEN(TokenType::BAR, "|", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(WTokenType::BAR, "|", LINE_NUM, COL_NUM);
 	default:
 		return nullptr;
 	}
@@ -327,7 +328,7 @@ Token_ptr Lexer::consume_eol()
 	this->position.increment_line_number();
 	this->position.reset_column_number();
 
-	return MAKE_TOKEN(TokenType::EOL, "\\n", line_num, column_num);
+	return MAKE_TOKEN(WTokenType::EOL, "\\n", line_num, column_num);
 }
 
 Token_ptr Lexer::consume_unknown_token(char ch)
@@ -347,5 +348,5 @@ Token_ptr Lexer::consume_unknown_token(char ch)
 		break;
 	}
 
-	return MAKE_TOKEN(TokenType::UNKNOWN, unknown_token, LINE_NUM, COL_NUM);
+	return MAKE_TOKEN(WTokenType::UNKNOWN, unknown_token, LINE_NUM, COL_NUM);
 }

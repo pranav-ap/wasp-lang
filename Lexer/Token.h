@@ -1,21 +1,28 @@
 #pragma once
+
+#ifdef LEXER_EXPORTS
+#define LEXER_API __declspec(dllexport)
+#else
+#define LEXER_API __declspec(dllimport)
+#endif
+
 #include <string>
 #include <memory>
 #include "TokenType.h"
 
-class Token
+class LEXER_API Token
 {
-	TokenType type;
+	WTokenType type;
 	std::string value;
 
 	int line_num;
 	int column_num;
 
 public:
-	Token(TokenType type, std::string value, int line_num, int column_num) : type(type), value(value), line_num(line_num), column_num(column_num) {};
+	Token(WTokenType type, std::string value, int line_num, int column_num) : type(type), value(value), line_num(line_num), column_num(column_num) {};
 
 	std::string get_value() const;
-	TokenType get_type() const;
+	WTokenType get_type() const;
 
 	int get_line_num() const;
 	int get_column_num() const;

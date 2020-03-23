@@ -1,6 +1,12 @@
 #pragma once
 
-class TokenPosition
+#ifdef LEXER_EXPORTS
+#define LEXER_API __declspec(dllexport)
+#else
+#define LEXER_API __declspec(dllimport)
+#endif
+
+class LEXER_API TokenPosition
 {
 	int line_num;
 	int column_num;
@@ -12,6 +18,6 @@ public:
 	void increment_column_number();
 	void reset_column_number();
 
-	int get_line_num();
-	int get_column_num();
+	int get_line_num() const;
+	int get_column_num() const;
 };

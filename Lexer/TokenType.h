@@ -1,6 +1,12 @@
 #pragma once
 
-enum class TokenType
+#ifdef LEXER_EXPORTS
+#define LEXER_API __declspec(dllexport)
+#else
+#define LEXER_API __declspec(dllimport)
+#endif
+
+LEXER_API enum class WTokenType
 {
 	// Literals
 
@@ -71,13 +77,13 @@ enum class TokenType
 	OR,
 
 	LET,
-	CONST,
+	CONST_KEYWORD,
 
 	LOOP,
 	FOR,
 	BREAK,
 	CONTINUE,
-	IN,
+	IN_KEYWORD,
 
 	FN,
 	RETURN,
@@ -91,8 +97,8 @@ enum class TokenType
 
 	NONE,
 
-	TRUE,
-	FALSE,
+	TRUE_KEYWORD,
+	FALSE_KEYWORD,
 
 	IMPORT,
 	FROM,
