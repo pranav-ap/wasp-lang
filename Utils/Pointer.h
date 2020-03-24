@@ -6,7 +6,7 @@
 #define UTILS_API __declspec(dllimport)
 #endif
 
-extern "C" class UTILS_API Pointer
+class UTILS_API Pointer
 {
 	int index;
 public:

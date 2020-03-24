@@ -12,7 +12,7 @@ SCENARIO("Using the TokenPosition class to manipulate an index", "[TokenPosition
 		WHEN("line number of incremented") {
 			position.increment_line_number();
 
-			THEN("line number must increase by 1") {
+			THEN("line number must increase to 2") {
 				REQUIRE(position.get_line_num() == 2);
 			}
 		}
