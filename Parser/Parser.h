@@ -15,8 +15,8 @@
 #include "Pointer.h"
 #include "Types.h"
 #include "Module.h"
-#include "ExpressionNodes.h"
-#include "StatementNodes.h"
+#include "Expression.h"
+#include "Statement.h"
 
 #define ADVANCE_PTR this->pointer.advance()
 #define RETURN_NULLPTR_IF_NULLPTR(x) if (x == nullptr) { return nullptr; }

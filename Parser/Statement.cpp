@@ -4,14 +4,17 @@
 #include <iomanip>
 #include <string>
 
-#include "StatementNodes.h"
-#include "ExpressionNodes.h"
+#include "Statement.h"
+#include "Expression.h"
 #include "Types.h"
 
 using std::cout;
 using std::endl;
 using std::setw;
 using std::string;
+using std::vector;
+using std::map;
+using std::optional;
 
 void VariableDeclaration::print(int level)
 {
@@ -23,10 +26,45 @@ void VariableDeclaration::print(int level)
 	this->expression->print(level + 4);
 }
 
+bool VariableDeclaration::is_public_declaration()
+{
+	return is_public;
+}
+
+bool VariableDeclaration::is_mutable_declaration()
+{
+	return is_mutable;
+}
+
+string VariableDeclaration::get_variable_name()
+{
+	return name;
+}
+
+Type_ptr VariableDeclaration::get_type()
+{
+	return type;
+}
+
+Expression_ptr VariableDeclaration::get_expression()
+{
+	return expression;
+}
+
 void Assignment::print(int level)
 {
 	cout << string(level, ' ') << "Assignment : " << this->name << endl;
 	this->expression->print(level + 4);
+}
+
+string Assignment::get_variable_name()
+{
+	return name;
+}
+
+Expression_ptr Assignment::get_expression()
+{
+	return expression;
 }
 
 void Branch::print(int level)
@@ -37,26 +75,46 @@ void Branch::print(int level)
 	this->condition->print(level + 8);
 
 	cout << string(level + 4, ' ') << "Consequence : " << endl;
-	for (auto const& statement : this->consequence)
+	for (auto const& statement : *this->consequence)
 	{
 		statement->print(level + 8);
 	}
 
 	cout << string(level + 4, ' ') << "Alternative : " << endl;
-	for (auto const& statement : this->alternative)
+	for (auto const& statement : *this->alternative)
 	{
 		statement->print(level + 8);
 	}
+}
+
+Expression_ptr Branch::get_condition()
+{
+	return condition;
+}
+
+Block_ptr Branch::get_consequence()
+{
+	return consequence;
+}
+
+Block_ptr Branch::get_alternative()
+{
+	return alternative;
 }
 
 void Loop::print(int level)
 {
 	cout << string(level, ' ') << "Loop : " << endl;
 
-	for (auto const& statement : this->block)
+	for (auto const& statement : *this->block)
 	{
 		statement->print(level + 4);
 	}
+}
+
+Block_ptr Loop::get_block()
+{
+	return block;
 }
 
 void Break::print(int level)
@@ -75,6 +133,16 @@ void Alias::print(int level)
 	this->type->print(level + 4);
 }
 
+string Alias::get_alias()
+{
+	return name;
+}
+
+Type_ptr Alias::get_type()
+{
+	return type;
+}
+
 void RecordDefinition::print(int level)
 {
 	cout << string(level, ' ') << "Record Definition : " << endl;
@@ -89,6 +157,21 @@ void RecordDefinition::print(int level)
 		pair.second->print(level + 8);
 		cout << endl;
 	}
+}
+
+bool RecordDefinition::is_public_declaration()
+{
+	return is_public;
+}
+
+string RecordDefinition::get_name()
+{
+	return name;
+}
+
+map<string, Type_ptr> RecordDefinition::get_member_types()
+{
+	return member_types;
 }
 
 void FunctionDefinition::print(int level)
@@ -120,10 +203,35 @@ void FunctionDefinition::print(int level)
 		cout << string(level + 4, ' ') << "Return Type : None" << endl;
 
 	cout << string(level + 4, ' ') << "Body : " << endl;
-	for (auto const& statement : this->body)
+	for (auto const& statement : *this->body)
 	{
 		statement->print(level + 8);
 	}
+}
+
+bool FunctionDefinition::is_public_declaration()
+{
+	return is_public;
+}
+
+string FunctionDefinition::get_name()
+{
+	return name;
+}
+
+map<string, Type_ptr> FunctionDefinition::get_arguments()
+{
+	return arguments;
+}
+
+optional<Type_ptr> FunctionDefinition::get_return_type()
+{
+	return return_type;
+}
+
+Block_ptr FunctionDefinition::get_function_body()
+{
+	return body;
 }
 
 void Return::print(int level)
@@ -139,10 +247,20 @@ void Return::print(int level)
 		cout << string(level + 4, ' ') << "Return Type : None" << endl;
 }
 
+optional<Expression_ptr> Return::get_optional_expression()
+{
+	return expression;
+}
+
 void ExpressionStatement::print(int level)
 {
 	cout << string(level, ' ') << "ExpressionStatement : " << endl;
 	this->expression->print(level + 4);
+}
+
+Expression_ptr ExpressionStatement::get_expression()
+{
+	return expression;
 }
 
 void Import::print(int level)
@@ -155,4 +273,14 @@ void Import::print(int level)
 	{
 		cout << good << endl;
 	}
+}
+
+vector<string> Import::get_goods()
+{
+	return goods;
+}
+
+string Import::get_path()
+{
+	return path;
 }

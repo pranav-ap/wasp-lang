@@ -16,6 +16,7 @@ using std::pair;
 using std::make_shared;
 using std::make_pair;
 using std::move;
+using std::map;
 
 // API
 
@@ -324,7 +325,7 @@ Expression_ptr Parser::parse_tuple_literal()
 
 Expression_ptr Parser::parse_map_literal()
 {
-	vector<pair<Expression_ptr, Expression_ptr>> pairs;
+	map<Expression_ptr, Expression_ptr> pairs;
 
 	if (this->expect_current_token(WTokenType::CLOSE_CURLY_BRACE))
 		return make_shared<MapLiteral>(pairs);
@@ -341,7 +342,7 @@ Expression_ptr Parser::parse_map_literal()
 		auto value = this->parse_expression();
 		RETURN_NULLPTR_IF_NULLPTR(value);
 
-		pairs.push_back(make_pair(move(key), move(value)));
+		pairs.insert_or_assign(key, value);
 
 		this->ignore(WTokenType::EOL);
 
@@ -354,7 +355,7 @@ Expression_ptr Parser::parse_map_literal()
 
 Expression_ptr Parser::parse_record_literal()
 {
-	vector<pair<string, Expression_ptr>> pairs;
+	map<string, Expression_ptr> pairs;
 
 	if (this->expect_current_token(WTokenType::CLOSE_CURLY_BRACE))
 		return make_shared<RecordLiteral>(pairs);
@@ -371,7 +372,7 @@ Expression_ptr Parser::parse_record_literal()
 		auto value = this->parse_expression();
 		RETURN_NULLPTR_IF_NULLPTR(value);
 
-		pairs.push_back(make_pair(*key.get(), move(value)));
+		pairs.insert_or_assign(*key.get(), value);
 
 		this->ignore(WTokenType::EOL);
 
@@ -466,7 +467,7 @@ Statement_ptr Parser::parse_type_declaration(bool is_public)
 
 	if (this->expect_current_token(WTokenType::OPEN_CURLY_BRACE))
 	{
-		vector<pair<string, Type_ptr>> member_types;
+		map<string, Type_ptr> member_types;
 
 		while (true)
 		{
@@ -480,7 +481,7 @@ Statement_ptr Parser::parse_type_declaration(bool is_public)
 			auto type = this->parse_type();
 			RETURN_NULLPTR_IF_NULLPTR(type);
 
-			member_types.push_back(make_pair(identifier->get_value(), move(type)));
+			member_types.insert_or_assign(identifier->get_value(), type);
 
 			this->ignore(WTokenType::EOL);
 
@@ -524,9 +525,9 @@ Statement_ptr Parser::parse_public_statement()
 
 // Block Statements Parsers
 
-shared_ptr<Block> Parser::parse_block()
+Block_ptr Parser::parse_block()
 {
-	shared_ptr<Block> statements = make_shared<Block>();
+	Block_ptr statements = make_shared<Block>();
 
 	this->ignore(WTokenType::EOL);
 	RETURN_NULLPTR_IF_TRUE(!this->expect_current_token(WTokenType::OPEN_CURLY_BRACE));
@@ -550,7 +551,7 @@ Statement_ptr Parser::parse_loop_statement()
 	auto block = this->parse_block();
 	RETURN_NULLPTR_IF_NULLPTR(block);
 
-	return make_shared<Loop>(*block.get());
+	return make_shared<Loop>(block);
 }
 
 Statement_ptr Parser::parse_return_statement()
@@ -580,17 +581,17 @@ Statement_ptr Parser::parse_branching_statement()
 			auto alternative = make_shared<vector<Statement_ptr>>();
 			alternative->push_back(move(alternative_stat));
 
-			return make_shared<Branch>(move(condition), *consequence.get(), *alternative.get());
+			return make_shared<Branch>(move(condition), consequence, alternative);
 		}
 
 		auto alternative = this->parse_block();
 		RETURN_NULLPTR_IF_NULLPTR(alternative);
 
-		return make_shared<Branch>(move(condition), *consequence.get(), *alternative.get());
+		return make_shared<Branch>(move(condition), consequence, alternative);
 	}
 
 	auto alternative = make_shared<vector<Statement_ptr>>();
-	return make_shared<Branch>(move(condition), *consequence.get(), *alternative.get());
+	return make_shared<Branch>(move(condition), consequence, alternative);
 }
 
 Statement_ptr Parser::parse_break_statement()
@@ -612,7 +613,7 @@ Statement_ptr Parser::parse_function_definition(bool is_public)
 
 	RETURN_NULLPTR_IF_TRUE(!this->expect_current_token(WTokenType::OPEN_PARENTHESIS));
 
-	vector<pair<string, Type_ptr>> arguments;
+	map<string, Type_ptr> arguments;
 
 	while (true)
 	{
@@ -627,7 +628,7 @@ Statement_ptr Parser::parse_function_definition(bool is_public)
 		auto type = this->parse_type();
 		RETURN_NULLPTR_IF_NULLPTR(type);
 
-		arguments.push_back(make_pair(identifier->get_value(), move(type)));
+		arguments.insert_or_assign(identifier->get_value(), type);
 	}
 
 	std::optional<Type_ptr> return_type = std::nullopt;
@@ -645,7 +646,7 @@ Statement_ptr Parser::parse_function_definition(bool is_public)
 	auto block = this->parse_block();
 	RETURN_NULLPTR_IF_NULLPTR(block);
 
-	return make_shared<FunctionDefinition>(is_public, identifier->get_value(), arguments, move(return_type), *block.get());
+	return make_shared<FunctionDefinition>(is_public, identifier->get_value(), arguments, move(return_type), block);
 }
 
 // Type parsers

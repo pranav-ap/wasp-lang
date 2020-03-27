@@ -3,14 +3,20 @@
 #include <iostream>
 #include <iomanip>
 #include <string>
+#include <vector>
+#include <map>
 
-#include "ExpressionNodes.h"
+#include "Expression.h"
 #include "Types.h"
 
 using std::cout;
 using std::endl;
 using std::setw;
+using std::map;
 using std::string;
+using std::vector;
+
+// Print Functions
 
 void StringLiteral::print(int level)
 {
@@ -146,4 +152,116 @@ void Binary::print(int level)
 	cout << string(level, ' ') << "Binary Operation : " << this->op->get_value() << endl;
 	this->left->print(level + 4);
 	this->right->print(level + 4);
+}
+
+// Get Value Functions
+
+string StringLiteral::get_value()
+{
+	return value;
+}
+
+double NumberLiteral::get_value()
+{
+	return value;
+}
+
+bool BooleanLiteral::get_value()
+{
+	return value;
+}
+
+vector<Expression_ptr> TupleLiteral::get_expressions()
+{
+	return expressions;
+}
+
+vector<Expression_ptr> VectorLiteral::get_expressions()
+{
+	return expressions;
+}
+
+map<Expression_ptr, Expression_ptr> MapLiteral::get_pairs()
+{
+	return pairs;
+}
+
+map<string, Expression_ptr> RecordLiteral::get_pairs()
+{
+	return pairs;
+}
+
+string MemberAccess::get_container_name()
+{
+	return name;
+}
+
+Expression_ptr MemberAccess::get_index_expression()
+{
+	return expression;
+}
+
+string RecordMemberAccess::get_record_name()
+{
+	return record_name;
+}
+
+string RecordMemberAccess::get_member_name()
+{
+	return member_name;
+}
+
+string FunctionCall::get_function_name()
+{
+	return name;
+}
+
+vector<Expression_ptr> FunctionCall::get_arguments()
+{
+	return arguments;
+}
+
+string Identifier::get_name()
+{
+	return name;
+}
+
+Expression_ptr InclusiveRange::get_left_expression()
+{
+	return left;
+}
+
+Expression_ptr InclusiveRange::get_right_expression()
+{
+	return right;
+}
+
+Expression_ptr ExclusiveRange::get_left_expression()
+{
+	return left;
+}
+
+Expression_ptr ExclusiveRange::get_right_expression()
+{
+	return right;
+}
+
+Expression_ptr Unary::get_expression()
+{
+	return operand;
+}
+
+Expression_ptr Binary::get_left_expression()
+{
+	return left;
+}
+
+Token_ptr Binary::get_operator()
+{
+	return op;
+}
+
+Expression_ptr Binary::get_right_expression()
+{
+	return right;
 }

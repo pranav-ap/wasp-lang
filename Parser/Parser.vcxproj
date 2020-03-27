@@ -153,17 +153,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="ExpressionNodes.h" />
+    <ClInclude Include="Expression.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Module.h" />
     <ClInclude Include="Parser.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="StatementNodes.h" />
+    <ClInclude Include="Statement.h" />
     <ClInclude Include="Types.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
-    <ClCompile Include="ExpressionNodes.cpp" />
+    <ClCompile Include="Expression.cpp" />
     <ClCompile Include="Module.cpp" />
     <ClCompile Include="Parser.cpp" />
     <ClCompile Include="ParserExpressionUtils.cpp" />
@@ -174,7 +174,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="StatementNodes.cpp" />
+    <ClCompile Include="Statement.cpp" />
     <ClCompile Include="Types.cpp" />
   </ItemGroup>
   <ItemGroup>
