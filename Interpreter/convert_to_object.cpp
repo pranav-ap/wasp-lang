@@ -11,7 +11,25 @@ using std::make_shared;
 using std::shared_ptr;
 using std::string;
 
-shared_ptr<VectorObject> Interpreter::to_vector_object(Expression_ptr expression)
+NumberObject_ptr Interpreter::convert_to_number_object(Expression_ptr expression)
+{
+	auto number_literal = dynamic_pointer_cast<NumberLiteral>(expression);
+	return make_shared<NumberObject>(number_literal->get_value());
+}
+
+StringObject_ptr Interpreter::convert_to_string_object(Expression_ptr expression)
+{
+	auto string_literal = dynamic_pointer_cast<StringLiteral>(expression);
+	return make_shared<StringObject>(string_literal->get_value());
+}
+
+BooleanObject_ptr Interpreter::convert_to_boolean_object(Expression_ptr expression)
+{
+	auto boolean_literal = dynamic_pointer_cast<BooleanLiteral>(expression);
+	return make_shared<BooleanObject>(boolean_literal->get_value());
+}
+
+VectorObject_ptr Interpreter::convert_to_vector_object(Expression_ptr expression)
 {
 	auto vector_literal = dynamic_pointer_cast<VectorLiteral>(expression);
 	auto expressions = vector_literal->get_expressions();
@@ -27,7 +45,7 @@ shared_ptr<VectorObject> Interpreter::to_vector_object(Expression_ptr expression
 	return expression_objects;
 }
 
-shared_ptr<TupleObject> Interpreter::to_tuple_object(Expression_ptr expression)
+TupleObject_ptr Interpreter::convert_to_tuple_object(Expression_ptr expression)
 {
 	auto tuple_literal = dynamic_pointer_cast<TupleLiteral>(expression);
 	auto expressions = tuple_literal->get_expressions();
@@ -43,7 +61,7 @@ shared_ptr<TupleObject> Interpreter::to_tuple_object(Expression_ptr expression)
 	return expression_objects;
 }
 
-shared_ptr<MapObject> Interpreter::to_map_object(Expression_ptr expression)
+MapObject_ptr Interpreter::to_map_object(Expression_ptr expression)
 {
 	auto map_literal = dynamic_pointer_cast<MapLiteral>(expression);
 	auto pairs = map_literal->get_pairs();
@@ -63,7 +81,7 @@ shared_ptr<MapObject> Interpreter::to_map_object(Expression_ptr expression)
 	return map_object;
 }
 
-shared_ptr<RecordObject> Interpreter::to_record_object(Expression_ptr expression)
+RecordObject_ptr Interpreter::to_record_object(Expression_ptr expression)
 {
 	auto record_literal = dynamic_pointer_cast<RecordLiteral>(expression);
 	auto pairs = record_literal->get_pairs();

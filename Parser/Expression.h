@@ -177,6 +177,7 @@ public:
 	Unary(Token_ptr op, Expression_ptr operand) : op(std::move(op)), operand(std::move(operand)) {};
 
 	void print(int level);
+	Token_ptr get_operator();
 	Expression_ptr get_expression();
 };
 

@@ -173,6 +173,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Lexer\Lexer.vcxproj">
+      <Project>{f3bd0731-f946-4adf-adbe-80524b0d6add}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\Parser\Parser.vcxproj">
       <Project>{f06e8f9d-8718-4634-920a-cca5b750cf96}</Project>
     </ProjectReference>

@@ -46,6 +46,10 @@ struct INTERPRETER_API UDTInfo
 		: is_public(is_public), member_types(member_types) {};
 };
 
+using VariableInfo_ptr = INTERPRETER_API std::shared_ptr<VariableInfo>;
+using FunctionInfo_ptr = INTERPRETER_API std::shared_ptr<FunctionInfo>;
+using UDTInfo_ptr = INTERPRETER_API std::shared_ptr<UDTInfo>;
+
 // Environment
 
 struct INTERPRETER_API Environment
@@ -62,7 +66,4 @@ struct INTERPRETER_API Environment
 	}
 };
 
-using VariableInfo_ptr = INTERPRETER_API std::shared_ptr<VariableInfo>;
-using FunctionInfo_ptr = INTERPRETER_API std::shared_ptr<FunctionInfo>;
-using UDTInfo_ptr = INTERPRETER_API std::shared_ptr<UDTInfo>;
 using Environment_ptr = INTERPRETER_API std::shared_ptr<Environment>;

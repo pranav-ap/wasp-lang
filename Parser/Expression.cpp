@@ -251,6 +251,11 @@ Expression_ptr Unary::get_expression()
 	return operand;
 }
 
+Token_ptr Unary::get_operator()
+{
+	return op;
+}
+
 Expression_ptr Binary::get_left_expression()
 {
 	return left;

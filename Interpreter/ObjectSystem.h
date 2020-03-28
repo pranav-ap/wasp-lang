@@ -67,6 +67,10 @@ struct INTERPRETER_API BooleanObject : public ScalarObject
 	void print(int level);
 };
 
+using NumberObject_ptr = INTERPRETER_API std::shared_ptr<NumberObject>;
+using StringObject_ptr = INTERPRETER_API std::shared_ptr<StringObject>;
+using BooleanObject_ptr = INTERPRETER_API std::shared_ptr<BooleanObject>;
+
 // Composite Object
 
 struct INTERPRETER_API VectorObject : public CompositeObject
@@ -104,3 +108,8 @@ struct INTERPRETER_API RecordObject : public CompositeObject
 	void print(int level);
 	void add(std::string key, Object_ptr value);
 };
+
+using VectorObject_ptr = INTERPRETER_API std::shared_ptr<VectorObject>;
+using TupleObject_ptr = INTERPRETER_API std::shared_ptr<TupleObject>;
+using MapObject_ptr = INTERPRETER_API std::shared_ptr<MapObject>;
+using RecordObject_ptr = INTERPRETER_API std::shared_ptr<RecordObject>;
