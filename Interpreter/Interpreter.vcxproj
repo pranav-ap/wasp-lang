@@ -154,12 +154,15 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="framework.h" />
+    <ClInclude Include="Environment.h" />
     <ClInclude Include="Interpreter.h" />
     <ClInclude Include="ObjectSystem.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="convert_to_object.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="EnvironmentUtils.cpp" />
     <ClCompile Include="Interpretation.cpp" />
     <ClCompile Include="ObjectSystem.cpp" />
     <ClCompile Include="pch.cpp">

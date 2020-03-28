@@ -1,17 +1,21 @@
 #pragma once
 #include "pch.h"
 #include "Statement.h"
-#include "Interpreter.h"
+#include "Module.h"
 #include "ObjectSystem.h"
+#include "Interpreter.h"
 
 #include <memory>
 #include <typeinfo>
 #include <iostream>
+#include <string>
 
 #define STAT_TYPE_ID typeid(*statement)
 #define EXPR_TYPE_ID typeid(expression)
 
 using std::make_shared;
+using std::shared_ptr;
+using std::string;
 
 void Interpreter::execute()
 {
@@ -21,43 +25,37 @@ void Interpreter::execute()
 
 void Interpreter::evaluate_statement(Statement_ptr statement)
 {
-	std::cout << "\n statement has type: " << typeid(*statement).name();
+	std::cout << "\n Statement has type: " << typeid(*statement).name();
 
 	if (STAT_TYPE_ID == typeid(VariableDeclaration))
 	{
+		this->create_variable(statement);
 	}
 	else if (STAT_TYPE_ID == typeid(Assignment))
 	{
+		this->update_variable(statement);
 	}
 	else if (STAT_TYPE_ID == typeid(Branch))
 	{
+		this->evaluate_branch(statement);
 	}
 	else if (STAT_TYPE_ID == typeid(Loop))
 	{
-	}
-	else if (STAT_TYPE_ID == typeid(Break))
-	{
-	}
-	else if (STAT_TYPE_ID == typeid(Continue))
-	{
-	}
-	else if (STAT_TYPE_ID == typeid(Alias))
-	{
+		this->evaluate_loop(statement);
 	}
 	else if (STAT_TYPE_ID == typeid(RecordDefinition))
 	{
+		this->store_UDT(statement);
 	}
 	else if (STAT_TYPE_ID == typeid(FunctionDefinition))
 	{
-	}
-	else if (STAT_TYPE_ID == typeid(Return))
-	{
+		this->store_function(statement);
 	}
 	else if (STAT_TYPE_ID == typeid(ExpressionStatement))
 	{
-	}
-	else if (STAT_TYPE_ID == typeid(Import))
-	{
+		auto expr = dynamic_pointer_cast<ExpressionStatement>(statement);
+		auto result = this->evaluate_expression(expr->get_expression());
+		// Print result?
 	}
 }
 
@@ -82,76 +80,43 @@ Object_ptr Interpreter::evaluate_expression(Expression_ptr expression)
 	}
 	else if (EXPR_TYPE_ID == typeid(TupleLiteral))
 	{
-		auto tuple_literal = dynamic_pointer_cast<TupleLiteral>(expression);
-		auto expressions = tuple_literal->get_expressions();
-
-		auto expression_objects = make_shared<TupleObject>();
-
-		for (const Expression_ptr expression : expressions)
-		{
-			auto expression_object = this->evaluate_expression(expression);
-			expression_objects->add(expression_object);
-		}
-
-		return expression_objects;
+		return this->to_tuple_object(expression);
 	}
 	else if (EXPR_TYPE_ID == typeid(VectorLiteral))
 	{
-		auto vector_literal = dynamic_pointer_cast<VectorLiteral>(expression);
-		auto expressions = vector_literal->get_expressions();
-
-		auto expression_objects = make_shared<VectorObject>();
-
-		for (const Expression_ptr expression : expressions)
-		{
-			auto expression_object = this->evaluate_expression(expression);
-			expression_objects->add(expression_object);
-		}
-
-		return expression_objects;
+		return this->to_vector_object(expression);
 	}
 	else if (EXPR_TYPE_ID == typeid(MapLiteral))
 	{
-		auto map_literal = dynamic_pointer_cast<MapLiteral>(expression);
-		auto pairs = map_literal->get_pairs();
-
-		auto map_object = make_shared<MapObject>();
-
-		for (auto const& [key, value] : pairs)
-		{
-		}
-
-		return map_object;
+		return this->to_map_object(expression);
 	}
 	else if (EXPR_TYPE_ID == typeid(RecordLiteral))
 	{
-		auto record_literal = dynamic_pointer_cast<RecordLiteral>(expression);
-		auto pairs = record_literal->get_pairs();
-
-		auto record_object = make_shared<RecordObject>();
-
-		for (auto const& [key, value] : pairs)
-		{
-		}
-
-		return record_object;
+		return this->to_record_object(expression);
 	}
 	else if (EXPR_TYPE_ID == typeid(MemberAccess))
 	{
+		auto access_expr = dynamic_pointer_cast<MemberAccess>(expression);
+
+		auto container_name = access_expr->get_container_name();
+		auto container = this->get_variable(container_name);
+
+		auto index_expression = access_expr->get_index_expression();
+		auto result = this->evaluate_expression(index_expression);
+
+		// ???
 	}
 	else if (EXPR_TYPE_ID == typeid(RecordMemberAccess))
 	{
+		// ???
 	}
 	else if (EXPR_TYPE_ID == typeid(Identifier))
 	{
+		auto identifier = dynamic_pointer_cast<Identifier>(expression);
+		auto info = this->get_variable(identifier->get_name());
+		return info->value;
 	}
 	else if (EXPR_TYPE_ID == typeid(FunctionCall))
-	{
-	}
-	else if (EXPR_TYPE_ID == typeid(InclusiveRange))
-	{
-	}
-	else if (EXPR_TYPE_ID == typeid(ExclusiveRange))
 	{
 	}
 	else if (EXPR_TYPE_ID == typeid(Unary))
@@ -174,59 +139,76 @@ Object_ptr Interpreter::evaluate_binary_expression(Expression_ptr expression)
 	return nullptr;
 }
 
+Object_ptr Interpreter::evaluate_function_call()
+{
+	return nullptr;
+}
+
 // Statements
 
-Object_ptr Interpreter::evaluate_variable_declaration()
+void Interpreter::create_variable(Statement_ptr statement)
 {
-	return nullptr;
+	auto s = dynamic_pointer_cast<VariableDeclaration>(statement);
+
+	string name = s->get_variable_name();
+
+	bool is_public = s->is_public_declaration();
+	bool is_mutable = s->is_mutable_declaration();
+	Type_ptr type = s->get_type();
+
+	Expression_ptr expression = s->get_expression();
+	Object_ptr expression_result = this->evaluate_expression(expression);
+
+	this->set_variable(
+		name,
+		make_shared<VariableInfo>(is_public, is_mutable, type, expression_result)
+	);
 }
 
-Object_ptr Interpreter::evaluate_assignment()
+void Interpreter::update_variable(Statement_ptr statement)
 {
-	return nullptr;
+	auto assignment = dynamic_pointer_cast<Assignment>(statement);
+
+	auto name = assignment->get_variable_name();
+	auto info = this->get_variable(name);
+
+	if (!info->is_mutable)
+	{
+		return;
+	}
+
+	auto expression = assignment->get_expression();
+	auto result = this->evaluate_expression(expression);
+
+	info->value = result;
 }
 
-Object_ptr Interpreter::evaluate_branch()
+void Interpreter::evaluate_branch(Statement_ptr statement)
 {
-	return nullptr;
 }
 
-Object_ptr Interpreter::evaluate_loop()
+void Interpreter::evaluate_loop(Statement_ptr statement)
 {
-	return nullptr;
+	if (STAT_TYPE_ID == typeid(Break))
+	{
+	}
+	else if (STAT_TYPE_ID == typeid(Continue))
+	{
+	}
 }
 
-Object_ptr Interpreter::evaluate_break()
+void Interpreter::store_UDT(Statement_ptr statement)
 {
-	return nullptr;
 }
 
-Object_ptr Interpreter::evaluate_continue()
+void Interpreter::store_function(Statement_ptr statement)
 {
-	return nullptr;
+	if (STAT_TYPE_ID == typeid(Return))
+	{
+	}
 }
 
-Object_ptr Interpreter::evaluate_alias()
-{
-	return nullptr;
-}
-
-Object_ptr Interpreter::evaluate_record_definition()
-{
-	return nullptr;
-}
-
-Object_ptr Interpreter::evaluate_function_definition()
-{
-	return nullptr;
-}
-
-Object_ptr Interpreter::evaluate_return()
-{
-	return nullptr;
-}
-
-Object_ptr Interpreter::evaluate_import()
+Object_ptr Interpreter::evaluate_return(Statement_ptr statement)
 {
 	return nullptr;
 }
