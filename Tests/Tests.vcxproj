@@ -150,9 +150,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Lexer_Tests.cpp" />
+    <ClCompile Include="test_utils.cpp" />
     <ClCompile Include="TokenPosition_Tests.cpp" />
     <ClCompile Include="Tests.cpp" />
-    <ClCompile Include="Utils_Tests.cpp" />
+    <ClCompile Include="Pointer_Tests.cpp" />
+    <ClCompile Include="Token_Tests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Interpreter\Interpreter.vcxproj">
@@ -170,6 +173,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="catch.hpp" />
+    <ClInclude Include="test_utils.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />

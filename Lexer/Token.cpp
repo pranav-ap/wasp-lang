@@ -49,7 +49,6 @@ string to_string(WTokenType type)
 	case WTokenType::COMMA:
 	case WTokenType::DOT:
 	case WTokenType::COLON:
-	case WTokenType::BAR:
 	case WTokenType::ARROW:
 	case WTokenType::PLUS:
 	case WTokenType::PLUS_EQUAL:
@@ -137,6 +136,16 @@ int Token::get_line_num() const
 int Token::get_column_num() const
 {
 	return this->column_num;
+}
+
+void Token::set_line_num(int num)
+{
+	this->line_num = num;
+}
+
+void Token::set_column_num(int num)
+{
+	this->column_num = num;
 }
 
 void Token::print() const

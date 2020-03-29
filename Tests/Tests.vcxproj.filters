@@ -27,12 +27,24 @@
     <ClCompile Include="TokenPosition_Tests.cpp">
       <Filter>Source Files\Lexer</Filter>
     </ClCompile>
-    <ClCompile Include="Utils_Tests.cpp">
+    <ClCompile Include="Pointer_Tests.cpp">
       <Filter>Source Files\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Token_Tests.cpp">
+      <Filter>Source Files\Lexer</Filter>
+    </ClCompile>
+    <ClCompile Include="Lexer_Tests.cpp">
+      <Filter>Source Files\Lexer</Filter>
+    </ClCompile>
+    <ClCompile Include="test_utils.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="catch.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="test_utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

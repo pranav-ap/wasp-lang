@@ -7,8 +7,13 @@
 
 using std::string;
 using std::make_shared;
+using std::map;
+using std::vector;
+using std::move;
+using std::isdigit;
+using std::isalpha;
 
-std::map<std::string, WTokenType> keyword_map = {
+map<string, WTokenType> keyword_map = {
 	{ "if", WTokenType::IF },
 	{ "else", WTokenType::ELSE },
 
@@ -34,8 +39,6 @@ std::map<std::string, WTokenType> keyword_map = {
 	{ "type", WTokenType::TYPE },
 	{ "opt", WTokenType::OPT },
 
-	{ "none", WTokenType::NONE },
-
 	{ "true", WTokenType::TRUE_KEYWORD },
 	{ "false", WTokenType::FALSE_KEYWORD },
 
@@ -45,10 +48,8 @@ std::map<std::string, WTokenType> keyword_map = {
 	{ "pub", WTokenType::PUB }
 };
 
-std::vector<Token_ptr> Lexer::execute()
+vector<Token_ptr> Lexer::execute()
 {
-	std::vector<Token_ptr> tokens;
-
 	while (true)
 	{
 		char ch = this->get_current_char();
@@ -65,12 +66,12 @@ std::vector<Token_ptr> Lexer::execute()
 
 		Token_ptr token;
 
-		if (std::isdigit(static_cast<unsigned char>(ch)))
+		if (isdigit(static_cast<unsigned char>(ch)))
 		{
 			NEXT;
 			token = this->consume_number_literal(ch);
 		}
-		else if (std::isalpha(ch) || ch == '_')
+		else if (isalpha(ch) || ch == '_')
 		{
 			NEXT;
 			token = this->consume_identifier(ch);
@@ -97,35 +98,35 @@ std::vector<Token_ptr> Lexer::execute()
 			case ':':
 			case '|': CASE_BODY(this->consume_single_char_punctuation(ch));
 			case '"': CASE_BODY(this->consume_string_literal());
-			case '+': CASE_BODY(this->handle_plus());
-			case '-': CASE_BODY(this->handle_minus());
-			case '*': CASE_BODY(this->handle_star());
-			case '/': CASE_BODY(this->handle_division());
-			case '%': CASE_BODY(this->handle_reminder());
-			case '^': CASE_BODY(this->handle_power());
-			case '=': CASE_BODY(this->handle_equal());
-			case '!': CASE_BODY(this->handle_bang());
-			case '<': CASE_BODY(this->handle_lesser_than());
-			case '>': CASE_BODY(this->handle_greater_than());
-			case '.': CASE_BODY(this->handle_dot());
+			case '+': CASE_BODY(this->consume_plus());
+			case '-': CASE_BODY(this->consume_minus());
+			case '*': CASE_BODY(this->consume_star());
+			case '/': CASE_BODY(this->consume_division());
+			case '%': CASE_BODY(this->consume_reminder());
+			case '^': CASE_BODY(this->consume_power());
+			case '=': CASE_BODY(this->consume_equal());
+			case '!': CASE_BODY(this->consume_bang());
+			case '<': CASE_BODY(this->consume_lesser_than());
+			case '>': CASE_BODY(this->consume_greater_than());
+			case '.': CASE_BODY(this->consume_dot());
 			default: CASE_BODY(this->consume_unknown_token(ch));
 			}
 		}
 
 		if (token != nullptr)
 		{
-			tokens.push_back(std::move(token));
+			this->tokens.push_back(move(token));
 		}
 	}
 
-	return tokens;
+	return move(this->tokens);
 }
 
 // Consumers
 
 Token_ptr Lexer::consume_number_literal(char ch)
 {
-	std::string number_literal;
+	string number_literal;
 	number_literal.push_back(ch);
 
 	while (ch = this->get_current_char())
@@ -147,7 +148,7 @@ Token_ptr Lexer::consume_number_literal(char ch)
 
 Token_ptr Lexer::consume_string_literal()
 {
-	std::string string_literal;
+	string string_literal;
 
 	while (char ch = this->get_current_char())
 	{
@@ -171,7 +172,7 @@ Token_ptr Lexer::consume_identifier(char ch)
 
 	while (ch = this->get_current_char())
 	{
-		if (std::isdigit(static_cast<unsigned char>(ch)) || ch == '_' || std::isalpha(ch))
+		if (isdigit(static_cast<unsigned char>(ch)) || ch == '_' || isalpha(ch))
 		{
 			identifier.push_back(ch);
 			NEXT;
@@ -194,25 +195,31 @@ Token_ptr Lexer::consume_identifier(char ch)
 	return MAKE_TOKEN(WTokenType::Identifier, identifier, LINE_NUM, COL_NUM);
 }
 
-Token_ptr Lexer::handle_plus()
+Token_ptr Lexer::consume_plus()
 {
 	if (this->expect_current_char('='))
 		return MAKE_TOKEN(WTokenType::PLUS_EQUAL, "+=", LINE_NUM, COL_NUM);
 
+	if (this->is_unary())
+		return MAKE_TOKEN(WTokenType::UNARY_PLUS, "+", LINE_NUM, COL_NUM);
+
 	return MAKE_TOKEN(WTokenType::PLUS, "+", LINE_NUM, COL_NUM);
 }
 
-Token_ptr Lexer::handle_minus()
+Token_ptr Lexer::consume_minus()
 {
 	if (this->expect_current_char('='))
 		return MAKE_TOKEN(WTokenType::MINUS_EQUAL, "-=", LINE_NUM, COL_NUM);
 	else if (this->expect_current_char('>'))
 		return MAKE_TOKEN(WTokenType::ARROW, "->", LINE_NUM, COL_NUM);
 
+	if (this->is_unary())
+		return MAKE_TOKEN(WTokenType::UNARY_MINUS, "-", LINE_NUM, COL_NUM);
+
 	return MAKE_TOKEN(WTokenType::MINUS, "-", LINE_NUM, COL_NUM);
 }
 
-Token_ptr Lexer::handle_star()
+Token_ptr Lexer::consume_star()
 {
 	if (this->expect_current_char('='))
 		return MAKE_TOKEN(WTokenType::STAR_EQUAL, "*=", LINE_NUM, COL_NUM);
@@ -220,7 +227,7 @@ Token_ptr Lexer::handle_star()
 	return MAKE_TOKEN(WTokenType::STAR, "*", LINE_NUM, COL_NUM);
 }
 
-Token_ptr Lexer::handle_division()
+Token_ptr Lexer::consume_division()
 {
 	if (this->expect_current_char('='))
 		return MAKE_TOKEN(WTokenType::DIVISION_EQUAL, "/=", LINE_NUM, COL_NUM);
@@ -228,7 +235,7 @@ Token_ptr Lexer::handle_division()
 	return MAKE_TOKEN(WTokenType::DIVISION, "/", LINE_NUM, COL_NUM);
 }
 
-Token_ptr Lexer::handle_reminder()
+Token_ptr Lexer::consume_reminder()
 {
 	if (this->expect_current_char('='))
 		return MAKE_TOKEN(WTokenType::REMINDER_EQUAL, "%=", LINE_NUM, COL_NUM);
@@ -236,7 +243,7 @@ Token_ptr Lexer::handle_reminder()
 	return MAKE_TOKEN(WTokenType::REMINDER, "%", LINE_NUM, COL_NUM);
 }
 
-Token_ptr Lexer::handle_power()
+Token_ptr Lexer::consume_power()
 {
 	if (this->expect_current_char('='))
 		return MAKE_TOKEN(WTokenType::POWER_EQUAL, "^=", LINE_NUM, COL_NUM);
@@ -244,7 +251,7 @@ Token_ptr Lexer::handle_power()
 	return MAKE_TOKEN(WTokenType::POWER, "^", LINE_NUM, COL_NUM);
 }
 
-Token_ptr Lexer::handle_bang()
+Token_ptr Lexer::consume_bang()
 {
 	if (this->expect_current_char('='))
 		return MAKE_TOKEN(WTokenType::BANG_EQUAL, "!=", LINE_NUM, COL_NUM);
@@ -252,7 +259,7 @@ Token_ptr Lexer::handle_bang()
 	return MAKE_TOKEN(WTokenType::BANG, "!", LINE_NUM, COL_NUM);
 }
 
-Token_ptr Lexer::handle_equal()
+Token_ptr Lexer::consume_equal()
 {
 	if (this->expect_current_char('='))
 		return MAKE_TOKEN(WTokenType::EQUAL_EQUAL, "==", LINE_NUM, COL_NUM);
@@ -260,7 +267,7 @@ Token_ptr Lexer::handle_equal()
 	return MAKE_TOKEN(WTokenType::EQUAL, "=", LINE_NUM, COL_NUM);
 }
 
-Token_ptr Lexer::handle_greater_than()
+Token_ptr Lexer::consume_greater_than()
 {
 	if (this->expect_current_char('='))
 		return MAKE_TOKEN(WTokenType::GREATER_THAN_EQUAL, ">=", LINE_NUM, COL_NUM);
@@ -268,7 +275,7 @@ Token_ptr Lexer::handle_greater_than()
 	return MAKE_TOKEN(WTokenType::GREATER_THAN, ">", LINE_NUM, COL_NUM);
 }
 
-Token_ptr Lexer::handle_lesser_than()
+Token_ptr Lexer::consume_lesser_than()
 {
 	if (this->expect_current_char('='))
 		return MAKE_TOKEN(WTokenType::LESSER_THAN_EQUAL, "<=", LINE_NUM, COL_NUM);
@@ -276,7 +283,7 @@ Token_ptr Lexer::handle_lesser_than()
 	return MAKE_TOKEN(WTokenType::LESSER_THAN, "<", LINE_NUM, COL_NUM);
 }
 
-Token_ptr Lexer::handle_dot()
+Token_ptr Lexer::consume_dot()
 {
 	if (this->expect_current_char('.'))
 	{
@@ -313,8 +320,6 @@ Token_ptr Lexer::consume_single_char_punctuation(char ch)
 		return MAKE_TOKEN(WTokenType::DOT, ".", LINE_NUM, COL_NUM);
 	case ':':
 		return MAKE_TOKEN(WTokenType::COLON, ":", LINE_NUM, COL_NUM);
-	case '|':
-		return MAKE_TOKEN(WTokenType::BAR, "|", LINE_NUM, COL_NUM);
 	default:
 		return nullptr;
 	}

@@ -33,7 +33,6 @@ LEXER_API enum class WTokenType
 	DOT_DOT,
 	DOT_DOT_DOT,
 	COLON,
-	BAR,
 	ARROW,
 
 	PLUS,
@@ -94,8 +93,6 @@ LEXER_API enum class WTokenType
 	ENUM,
 	TYPE,
 	OPT,
-
-	NONE,
 
 	TRUE_KEYWORD,
 	FALSE_KEYWORD,

@@ -26,9 +26,15 @@ class LEXER_API Lexer
 	TokenPosition position;
 	Pointer pointer;
 
+	std::vector<Token_ptr> tokens;
+
+	// Utils
+
 	char get_char_at(int index) const;
 	char get_current_char() const;
 	char get_right_char() const;
+
+	bool is_unary() const;
 
 	bool expect_current_char(char ch);
 
@@ -39,17 +45,17 @@ class LEXER_API Lexer
 
 	Token_ptr consume_identifier(char ch);
 
-	Token_ptr handle_plus();
-	Token_ptr handle_minus();
-	Token_ptr handle_star();
-	Token_ptr handle_division();
-	Token_ptr handle_reminder();
-	Token_ptr handle_power();
-	Token_ptr handle_bang();
-	Token_ptr handle_equal();
-	Token_ptr handle_greater_than();
-	Token_ptr handle_lesser_than();
-	Token_ptr handle_dot();
+	Token_ptr consume_plus();
+	Token_ptr consume_minus();
+	Token_ptr consume_star();
+	Token_ptr consume_division();
+	Token_ptr consume_reminder();
+	Token_ptr consume_power();
+	Token_ptr consume_bang();
+	Token_ptr consume_equal();
+	Token_ptr consume_greater_than();
+	Token_ptr consume_lesser_than();
+	Token_ptr consume_dot();
 
 	Token_ptr consume_single_char_punctuation(char ch);
 	Token_ptr consume_eol();
