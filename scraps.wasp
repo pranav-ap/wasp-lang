@@ -1,2 +1,6 @@
-let a : [num] = [534]
+let a : num = 534
+a = 4 + 3
 
+if a > 4 {
+    a = 1
+}

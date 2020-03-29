@@ -15,7 +15,7 @@
 class INTERPRETER_API Interpreter
 {
 	Module mod;
-	std::list<Environment> env_list;
+	std::list<Environment_ptr> env_list;
 
 	void evaluate_statement(Statement_ptr statement);
 
@@ -59,6 +59,7 @@ class INTERPRETER_API Interpreter
 	void update_variable(Statement_ptr statement);
 	void evaluate_branch(Statement_ptr statement);
 	void evaluate_loop(Statement_ptr statement);
+	void evaluate_block(Block_ptr block);
 	/*void store_UDT(Statement_ptr statement);
 	void store_function(Statement_ptr statement);*/
 
@@ -68,6 +69,7 @@ class INTERPRETER_API Interpreter
 	FunctionInfo_ptr get_function(std::string name);
 	UDTInfo_ptr get_UDT(std::string name);
 
+	void create_and_set_variable(std::string name, VariableInfo_ptr info);
 	void set_variable(std::string name, VariableInfo_ptr info);
 	void set_function(std::string name, FunctionInfo_ptr info);
 	void set_UDT(std::string name, UDTInfo_ptr info);
@@ -83,6 +85,6 @@ class INTERPRETER_API Interpreter
 	RecordObject_ptr to_record_object(Expression_ptr expression);
 
 public:
-	Interpreter(Module mod) : mod(mod), env_list({ Environment() }) { };
+	Interpreter(Module mod);
 	void execute();
 };

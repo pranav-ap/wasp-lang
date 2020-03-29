@@ -35,6 +35,13 @@ Token_ptr Parser::consume_token(WTokenType token_type)
 	return nullptr;
 }
 
+void Parser::ignore(WTokenType token_type)
+{
+	while (this->expect_current_token(token_type))
+	{
+	}
+}
+
 int get_parity(WTokenType token_type)
 {
 	switch (token_type)
@@ -148,12 +155,5 @@ bool is_right_associative(WTokenType token_type)
 	}
 	default:
 		return false;
-	}
-}
-
-void Parser::ignore(WTokenType token_type)
-{
-	while (this->expect_current_token(token_type))
-	{
 	}
 }

@@ -15,14 +15,19 @@
 #include <math.h>
 
 #define STAT_TYPE_ID typeid(*statement)
-#define EXPR_TYPE_ID typeid(expression)
+#define EXPR_TYPE_ID typeid(*expression)
 #define OPERAND_TYPE_ID typeid(operand)
-#define LEFT_TYPE_ID typeid(left)
-#define RIGHT_TYPE_ID typeid(right)
+#define LEFT_TYPE_ID typeid(*left)
+#define RIGHT_TYPE_ID typeid(*right)
 
 using std::make_shared;
 using std::shared_ptr;
 using std::string;
+
+Interpreter::Interpreter(Module mod) : mod(mod)
+{
+	env_list.push_back(make_shared<Environment>());
+};
 
 void Interpreter::execute()
 {
@@ -32,8 +37,6 @@ void Interpreter::execute()
 
 void Interpreter::evaluate_statement(Statement_ptr statement)
 {
-	std::cout << "\n Statement has type: " << typeid(*statement).name();
-
 	if (STAT_TYPE_ID == typeid(VariableDeclaration))
 	{
 		this->create_variable(statement);
@@ -49,14 +52,6 @@ void Interpreter::evaluate_statement(Statement_ptr statement)
 	else if (STAT_TYPE_ID == typeid(Loop))
 	{
 		this->evaluate_loop(statement);
-	}
-	else if (STAT_TYPE_ID == typeid(RecordDefinition))
-	{
-		//this->store_UDT(statement);
-	}
-	else if (STAT_TYPE_ID == typeid(FunctionDefinition))
-	{
-		//this->store_function(statement);
 	}
 	else if (STAT_TYPE_ID == typeid(ExpressionStatement))
 	{
@@ -379,10 +374,10 @@ Object_ptr Interpreter::evaluate_star(Object_ptr left, Object_ptr right)
 
 Object_ptr Interpreter::evaluate_greater_than(Object_ptr left, Object_ptr right)
 {
-	if (LEFT_TYPE_ID == typeid(BooleanObject) && RIGHT_TYPE_ID == typeid(BooleanObject))
+	if (LEFT_TYPE_ID == typeid(NumberObject) && RIGHT_TYPE_ID == typeid(NumberObject))
 	{
-		auto left_boolean_object = dynamic_pointer_cast<BooleanObject>(left);
-		auto right_boolean_object = dynamic_pointer_cast<BooleanObject>(right);
+		auto left_boolean_object = dynamic_pointer_cast<NumberObject>(left);
+		auto right_boolean_object = dynamic_pointer_cast<NumberObject>(right);
 
 		return make_shared<BooleanObject>(
 			left_boolean_object->value > right_boolean_object->value
@@ -394,10 +389,10 @@ Object_ptr Interpreter::evaluate_greater_than(Object_ptr left, Object_ptr right)
 
 Object_ptr Interpreter::evaluate_greater_than_equal(Object_ptr left, Object_ptr right)
 {
-	if (LEFT_TYPE_ID == typeid(BooleanObject) && RIGHT_TYPE_ID == typeid(BooleanObject))
+	if (LEFT_TYPE_ID == typeid(NumberObject) && RIGHT_TYPE_ID == typeid(NumberObject))
 	{
-		auto left_boolean_object = dynamic_pointer_cast<BooleanObject>(left);
-		auto right_boolean_object = dynamic_pointer_cast<BooleanObject>(right);
+		auto left_boolean_object = dynamic_pointer_cast<NumberObject>(left);
+		auto right_boolean_object = dynamic_pointer_cast<NumberObject>(right);
 
 		return make_shared<BooleanObject>(
 			left_boolean_object->value >= right_boolean_object->value
@@ -409,10 +404,10 @@ Object_ptr Interpreter::evaluate_greater_than_equal(Object_ptr left, Object_ptr 
 
 Object_ptr Interpreter::evaluate_less_than(Object_ptr left, Object_ptr right)
 {
-	if (LEFT_TYPE_ID == typeid(BooleanObject) && RIGHT_TYPE_ID == typeid(BooleanObject))
+	if (LEFT_TYPE_ID == typeid(NumberObject) && RIGHT_TYPE_ID == typeid(NumberObject))
 	{
-		auto left_boolean_object = dynamic_pointer_cast<BooleanObject>(left);
-		auto right_boolean_object = dynamic_pointer_cast<BooleanObject>(right);
+		auto left_boolean_object = dynamic_pointer_cast<NumberObject>(left);
+		auto right_boolean_object = dynamic_pointer_cast<NumberObject>(right);
 
 		return make_shared<BooleanObject>(
 			left_boolean_object->value < right_boolean_object->value
@@ -424,10 +419,10 @@ Object_ptr Interpreter::evaluate_less_than(Object_ptr left, Object_ptr right)
 
 Object_ptr Interpreter::evaluate_less_than_equal(Object_ptr left, Object_ptr right)
 {
-	if (LEFT_TYPE_ID == typeid(BooleanObject) && RIGHT_TYPE_ID == typeid(BooleanObject))
+	if (LEFT_TYPE_ID == typeid(NumberObject) && RIGHT_TYPE_ID == typeid(NumberObject))
 	{
-		auto left_boolean_object = dynamic_pointer_cast<BooleanObject>(left);
-		auto right_boolean_object = dynamic_pointer_cast<BooleanObject>(right);
+		auto left_boolean_object = dynamic_pointer_cast<NumberObject>(left);
+		auto right_boolean_object = dynamic_pointer_cast<NumberObject>(right);
 
 		return make_shared<BooleanObject>(
 			left_boolean_object->value <= right_boolean_object->value
@@ -439,10 +434,10 @@ Object_ptr Interpreter::evaluate_less_than_equal(Object_ptr left, Object_ptr rig
 
 Object_ptr Interpreter::evaluate_equal_equal(Object_ptr left, Object_ptr right)
 {
-	if (LEFT_TYPE_ID == typeid(BooleanObject) && RIGHT_TYPE_ID == typeid(BooleanObject))
+	if (LEFT_TYPE_ID == typeid(NumberObject) && RIGHT_TYPE_ID == typeid(NumberObject))
 	{
-		auto left_boolean_object = dynamic_pointer_cast<BooleanObject>(left);
-		auto right_boolean_object = dynamic_pointer_cast<BooleanObject>(right);
+		auto left_boolean_object = dynamic_pointer_cast<NumberObject>(left);
+		auto right_boolean_object = dynamic_pointer_cast<NumberObject>(right);
 
 		return make_shared<BooleanObject>(
 			left_boolean_object->value == right_boolean_object->value
@@ -454,10 +449,10 @@ Object_ptr Interpreter::evaluate_equal_equal(Object_ptr left, Object_ptr right)
 
 Object_ptr Interpreter::evaluate_bang_equal(Object_ptr left, Object_ptr right)
 {
-	if (LEFT_TYPE_ID == typeid(BooleanObject) && RIGHT_TYPE_ID == typeid(BooleanObject))
+	if (LEFT_TYPE_ID == typeid(NumberObject) && RIGHT_TYPE_ID == typeid(NumberObject))
 	{
-		auto left_boolean_object = dynamic_pointer_cast<BooleanObject>(left);
-		auto right_boolean_object = dynamic_pointer_cast<BooleanObject>(right);
+		auto left_boolean_object = dynamic_pointer_cast<NumberObject>(left);
+		auto right_boolean_object = dynamic_pointer_cast<NumberObject>(right);
 
 		return make_shared<BooleanObject>(
 			left_boolean_object->value != right_boolean_object->value
@@ -510,11 +505,11 @@ void Interpreter::create_variable(Statement_ptr statement)
 	Type_ptr type = declaration->get_type();
 
 	Expression_ptr expression = declaration->get_expression();
-	Object_ptr expression_result = this->evaluate_expression(expression);
+	Object_ptr result_object = this->evaluate_expression(expression);
 
-	this->set_variable(
+	this->create_and_set_variable(
 		name,
-		make_shared<VariableInfo>(is_public, is_mutable, type, expression_result)
+		make_shared<VariableInfo>(is_public, is_mutable, type, result_object)
 	);
 }
 
@@ -538,16 +533,60 @@ void Interpreter::update_variable(Statement_ptr statement)
 
 void Interpreter::evaluate_branch(Statement_ptr statement)
 {
+	auto branch = dynamic_pointer_cast<Branch>(statement);
+
+	Expression_ptr condition = branch->get_condition();
+	auto result = this->evaluate_expression(condition);
+
+	if (typeid(*result) != typeid(BooleanObject))
+	{
+		return;
+	}
+
+	auto result_boolean_object = dynamic_pointer_cast<BooleanObject>(result);
+
+	if (result_boolean_object->value)
+	{
+		Block_ptr consequence = branch->get_consequence();
+		this->evaluate_block(consequence);
+	}
+	else
+	{
+		Block_ptr alternative = branch->get_alternative();
+		this->evaluate_block(alternative);
+	}
 }
 
 void Interpreter::evaluate_loop(Statement_ptr statement)
 {
 	auto loop = dynamic_pointer_cast<Loop>(statement);
+	Block_ptr block = loop->get_block();
 
-	if (STAT_TYPE_ID == typeid(Break))
+	bool must_continue = false;
+
+	do
 	{
-	}
-	else if (STAT_TYPE_ID == typeid(Continue))
+		for (auto const& statement : *block)
+		{
+			if (STAT_TYPE_ID == typeid(Break))
+			{
+				break;
+			}
+			else if (STAT_TYPE_ID == typeid(Continue))
+			{
+				must_continue = true;
+				break;
+			}
+
+			this->evaluate_statement(statement);
+		}
+	} while (must_continue);
+}
+
+void Interpreter::evaluate_block(Block_ptr block)
+{
+	for (auto const& statement : *block)
 	{
+		this->evaluate_statement(statement);
 	}
 }
