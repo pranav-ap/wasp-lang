@@ -34,9 +34,6 @@ class PARSER_API Parser
 	Statement_ptr parse_statement(bool is_public);
 	Expression_ptr parse_expression();
 
-	// Variable declaration parser
-	Statement_ptr parse_variable_declaration(bool is_public, bool is_mutable);
-
 	// Literal parsers
 
 	Expression_ptr parse_vector_literal();
@@ -82,6 +79,7 @@ class PARSER_API Parser
 	Statement_ptr parse_expression_statement();
 	Statement_ptr parse_import_statement();
 	Statement_ptr parse_public_statement();
+	Statement_ptr parse_variable_declaration(bool is_public, bool is_mutable);
 
 	// Expression parsing utils
 

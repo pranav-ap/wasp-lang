@@ -143,13 +143,13 @@ void ExclusiveRange::print(int level)
 
 void Unary::print(int level)
 {
-	cout << string(level, ' ') << "Unary Operation : " << this->op->get_value() << endl;
+	cout << string(level, ' ') << "Unary Operation : " << this->op->value << endl;
 	this->operand->print(level + 4);
 }
 
 void Binary::print(int level)
 {
-	cout << string(level, ' ') << "Binary Operation : " << this->op->get_value() << endl;
+	cout << string(level, ' ') << "Binary Operation : " << this->op->value << endl;
 	this->left->print(level + 4);
 	this->right->print(level + 4);
 }

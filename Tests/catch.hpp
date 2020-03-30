@@ -924,7 +924,7 @@ namespace Catch {
 #if defined(__cpp_lib_is_invocable) && __cpp_lib_is_invocable >= 201703
 	// std::result_of is deprecated in C++17 and removed in C++20. Hence, it is
 	// replaced with std::invoke_result here. Also *_t format is preferred over
-	// typename *::type format.
+	// typename *::type_name format.
 	template <typename Func, typename U>
 	using FunctionReturnType = std::remove_reference_t<std::remove_cv_t<std::invoke_result_t<Func, U>>>;
 #else
@@ -1956,7 +1956,7 @@ namespace Catch {
 #endif // CATCH_CONFIG_ENABLE_VARIANT_STRINGMAKER
 
 namespace Catch {
-	struct not_this_one {}; // Tag type for detecting which begin/ end are being selected
+	struct not_this_one {}; // Tag type_name for detecting which begin/ end are being selected
 
 	// Import begin/ end from std here so they are considered alongside the fallback (...) overloads in this namespace
 	using std::begin;
@@ -2156,7 +2156,7 @@ namespace Catch { \
 #pragma warning(disable:4389) // '==' : signed/unsigned mismatch
 #pragma warning(disable:4018) // more "signed/unsigned mismatch"
 #pragma warning(disable:4312) // Converting int to T* using reinterpret_cast (issue on x64 platform)
-#pragma warning(disable:4180) // qualifier applied to function type has no meaning
+#pragma warning(disable:4180) // qualifier applied to function type_name has no meaning
 #pragma warning(disable:4800) // Forcing result to true or false
 #endif
 
@@ -3422,7 +3422,7 @@ namespace Catch {
 		} // namespace Generic
 
 			// The following functions create the actual matcher objects.
-			// The user has to explicitly specify type to the function, because
+			// The user has to explicitly specify type_name to the function, because
 			// inferring std::function<bool(T const&)> is hard (but possible) and
 			// requires a lot of TMP.
 		template<typename T>
@@ -3944,7 +3944,7 @@ namespace Catch {
 			return values<std::tuple<Ts...>>(tuples);
 		}
 
-		// Tag type to signal that a generator sequence should convert arguments to a specific type
+		// Tag type_name to signal that a generator sequence should convert arguments to a specific type_name
 		template <typename T>
 		struct as {};
 
@@ -3968,9 +3968,9 @@ namespace Catch {
 		auto acquireGeneratorTracker(SourceLineInfo const& lineInfo)->IGeneratorTracker&;
 
 		template<typename L>
-		// Note: The type after -> is weird, because VS2015 cannot parse
+		// Note: The type_name after -> is weird, because VS2015 cannot parse
 		//       the expression used in the typedef inside, when it is in
-		//       return type. Yeah.
+		//       return type_name. Yeah.
 		auto generate(SourceLineInfo const& lineInfo, L const& generatorExpression) -> decltype(std::declval<decltype(generatorExpression())>().get()) {
 			using UnderlyingType = typename decltype(generatorExpression())::type;
 
@@ -4277,7 +4277,7 @@ namespace Catch {
 // start catch_option.hpp
 
 namespace Catch {
-	// An optional type
+	// An optional type_name
 	template<typename T>
 	class Option {
 	public:
@@ -8589,7 +8589,7 @@ namespace Catch {
 namespace Catch {
 	namespace clara {
 		namespace detail {
-			// Traits for extracting arg and return type of lambdas (for single argument lambdas)
+			// Traits for extracting arg and return type_name of lambdas (for single argument lambdas)
 			template<typename L>
 			struct UnaryLambdaTraits : UnaryLambdaTraits<decltype(&L::operator())> {};
 
@@ -9458,7 +9458,7 @@ namespace Catch {
 		// enum of result types from a parse
 		using detail::ParseResultType;
 
-		// Result type for parser operation
+		// Result type_name for parser operation
 		using detail::ParserResult;
 	}
 } // namespace Catch::clara
@@ -12831,7 +12831,7 @@ namespace Catch {
 			}
 
 			// On older platforms, returning std::unique_ptr<ListeningReporter>
-			// when the return type is std::unique_ptr<IStreamingReporter>
+			// when the return type_name is std::unique_ptr<IStreamingReporter>
 			// doesn't compile without a std::move call. However, this causes
 			// a warning on newer platforms. Thus, we have to work around
 			// it a bit and downcast the pointer manually.
@@ -16708,7 +16708,7 @@ namespace Catch {
 				.writeText(result.getExpandedExpression());
 		}
 
-		// And... Print a result applicable to each result type.
+		// And... Print a result applicable to each result type_name.
 		switch (result.getResultType()) {
 		case ResultWas::ThrewException:
 			m_xml.startElement("Exception");

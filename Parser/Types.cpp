@@ -61,5 +61,5 @@ void Map::print(int level)
 
 void Record::print(int level)
 {
-	cout << string(level, ' ') << "Type : " << this->type << endl;
+	cout << string(level, ' ') << "Type : " << this->type_name << endl;
 }

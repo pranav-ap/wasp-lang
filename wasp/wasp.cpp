@@ -18,14 +18,8 @@ int main()
 	Lexer lexer(raw_source);
 	vector<Token_ptr> tokens = lexer.execute();
 
-	cout << "\n Scanned Tokens \n" << endl;
-
-	for (auto const& token : tokens)
-		token->print();
-
 	Parser parser(tokens);
 	Module mod = parser.execute();
-	mod.print();
 
 	Interpreter interpreter(mod);
 	interpreter.execute();

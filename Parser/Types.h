@@ -89,8 +89,8 @@ public:
 
 class PARSER_API Record : public Composite
 {
-	std::string type;
+	std::string type_name;
 public:
-	Record(std::string type) : type(type) {};
+	Record(std::string type_name) : type_name(type_name) {};
 	void print(int level);
 };

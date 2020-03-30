@@ -17,7 +17,7 @@ bool Lexer::expect_current_char(char ch)
 
 char Lexer::get_char_at(int index) const
 {
-	if ((size_t)index >= this->raw_source.size() || (size_t)index < 0)
+	if ((size_t)index >= this->raw_source.size() || index < 0)
 		return NULL;
 
 	return this->raw_source[index];
@@ -43,7 +43,7 @@ bool Lexer::is_unary() const
 	{
 		auto token = *t;
 
-		if (token->get_type() != WTokenType::EOL)
+		if (token->type != WTokenType::EOL)
 		{
 			previous_token = token;
 			break;
@@ -53,7 +53,7 @@ bool Lexer::is_unary() const
 	if (previous_token == nullptr)
 		return true;
 
-	auto previous_token_type = previous_token->get_type();
+	auto previous_token_type = previous_token->type;
 
 	switch (previous_token_type)
 	{

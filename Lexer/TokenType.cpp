@@ -3,10 +3,11 @@
 #include "TokenType.h"
 
 #include <string>
+#include <iostream>
 
 using std::string;
 
-string token_type_to_string(WTokenType type)
+LEXER_API std::ostream& operator<<(std::ostream& os, const WTokenType& type)
 {
 	switch (type)
 	{
@@ -14,22 +15,22 @@ string token_type_to_string(WTokenType type)
 
 	case WTokenType::NumberLiteral:
 	{
-		return "Number Literal";
+		os << "Number Literal";
 	}
 	case WTokenType::StringLiteral:
 	{
-		return "String Literal";
+		os << "String Literal";
 	}
 
 	// Identifiers
 
 	case WTokenType::Identifier:
 	{
-		return "Identifier";
+		os << "Identifier";
 	}
 	case WTokenType::FunctionIdentifier:
 	{
-		return "Function Identifier";
+		os << "Function Identifier";
 	}
 
 	// Punctuations
@@ -68,7 +69,7 @@ string token_type_to_string(WTokenType type)
 	case WTokenType::GREATER_THAN:
 	case WTokenType::GREATER_THAN_EQUAL:
 	{
-		return "Punctuation";
+		os << "Punctuation";
 	}
 
 	// Keywords
@@ -97,20 +98,22 @@ string token_type_to_string(WTokenType type)
 	case WTokenType::FROM:
 	case WTokenType::PUB:
 	{
-		return "Keyword";
+		os << "Keyword";
 	}
 
 	// Other
 
 	case WTokenType::EOL:
 	{
-		return "EOL";
+		os << "EOL";
 	}
 	case WTokenType::UNKNOWN:
 	{
-		return "UNKNOWN";
+		os << "UNKNOWN";
 	}
 	default:
-		return "";
+		os << "";
 	}
+
+	return os;
 }

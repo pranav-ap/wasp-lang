@@ -12,18 +12,23 @@
 #include "Environment.h"
 #include <list>
 
+#define STAT_TYPE_ID typeid(*statement)
+#define EXPR_TYPE_ID typeid(*expression)
+#define OPERAND_TYPE_ID typeid(operand)
+#define LEFT_TYPE_ID typeid(*left)
+#define RIGHT_TYPE_ID typeid(*right)
+
 class INTERPRETER_API Interpreter
 {
 	Module mod;
 	std::list<Environment_ptr> env_list;
-
-	void evaluate_statement(Statement_ptr statement);
 
 	// Expressions
 
 	Object_ptr evaluate_expression(Expression_ptr expression);
 	Object_ptr evaluate_unary_expression(Expression_ptr expression);
 	Object_ptr evaluate_binary_expression(Expression_ptr expression);
+	Object_ptr evaluate_function_call();
 
 	// Unary Evaluation
 
@@ -32,36 +37,22 @@ class INTERPRETER_API Interpreter
 
 	// Binary Evaluation
 
-	Object_ptr evaluate_power(Object_ptr left, Object_ptr right);
-	Object_ptr evaluate_division(Object_ptr left, Object_ptr right);
-	Object_ptr evaluate_reminder(Object_ptr left, Object_ptr right);
-	Object_ptr evaluate_plus(Object_ptr left, Object_ptr right);
-	Object_ptr evaluate_minus(Object_ptr left, Object_ptr right);
-	Object_ptr evaluate_star(Object_ptr left, Object_ptr right);
-
-	Object_ptr evaluate_greater_than(Object_ptr left, Object_ptr right);
-	Object_ptr evaluate_greater_than_equal(Object_ptr left, Object_ptr right);
-	Object_ptr evaluate_less_than(Object_ptr left, Object_ptr right);
-	Object_ptr evaluate_less_than_equal(Object_ptr left, Object_ptr right);
-	Object_ptr evaluate_equal_equal(Object_ptr left, Object_ptr right);
-	Object_ptr evaluate_bang_equal(Object_ptr left, Object_ptr right);
-
-	Object_ptr evaluate_and(Object_ptr left, Object_ptr right);
-	Object_ptr evaluate_or(Object_ptr left, Object_ptr right);
-
-	//Object_ptr evaluate_function_call();
+	Object_ptr evaluate_numeric_expression(WTokenType token_type, Object_ptr left_object, Object_ptr right_object);
+	Object_ptr evaluate_boolean_expression(WTokenType token_type, Object_ptr left_object, Object_ptr right_object);
 
 	// Statements
 
-	//Object_ptr evaluate_return(Statement_ptr statement);
+	void evaluate_statement(Statement_ptr statement);
 
 	void create_variable(Statement_ptr statement);
 	void update_variable(Statement_ptr statement);
 	void evaluate_branch(Statement_ptr statement);
 	void evaluate_loop(Statement_ptr statement);
 	void evaluate_block(Block_ptr block);
-	/*void store_UDT(Statement_ptr statement);
-	void store_function(Statement_ptr statement);*/
+
+	void store_UDT(Statement_ptr statement);
+	void store_function(Statement_ptr statement);
+	Object_ptr evaluate_return(Statement_ptr statement);
 
 	// Environment Utils
 
@@ -74,7 +65,7 @@ class INTERPRETER_API Interpreter
 	void set_function(std::string name, FunctionInfo_ptr info);
 	void set_UDT(std::string name, UDTInfo_ptr info);
 
-	// Convert to Object
+	// Object Conversion Utils
 
 	NumberObject_ptr convert_to_number_object(Expression_ptr expression);
 	StringObject_ptr convert_to_string_object(Expression_ptr expression);

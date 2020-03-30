@@ -16,5 +16,6 @@ class PARSER_API Module
 public:
 	std::vector<Statement_ptr>& get_statements();
 	void add(Statement_ptr node);
-	void print() const;
 };
+
+PARSER_API std::ostream& operator<<(std::ostream& os, const Module& mod);

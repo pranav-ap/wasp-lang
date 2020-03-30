@@ -6,9 +6,10 @@
 #include <memory>
 #include <string>
 
-using std::make_shared;
 using std::shared_ptr;
 using std::string;
+
+// Getters
 
 shared_ptr<VariableInfo> Interpreter::get_variable(string name)
 {
@@ -48,6 +49,8 @@ shared_ptr<UDTInfo> Interpreter::get_UDT(string name)
 
 	return nullptr;
 }
+
+// Setters
 
 void Interpreter::create_and_set_variable(string name, VariableInfo_ptr info)
 {

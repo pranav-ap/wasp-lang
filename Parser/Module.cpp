@@ -1,10 +1,12 @@
 #pragma once
 #include "pch.h"
 #include <iostream>
+#include <memory>
 #include "Module.h"
 
 using std::cout;
 using std::endl;
+using std::move;
 
 std::vector<Statement_ptr>& Module::get_statements()
 {
@@ -13,16 +15,15 @@ std::vector<Statement_ptr>& Module::get_statements()
 
 void Module::add(Statement_ptr node)
 {
-	this->nodes.push_back(node);
+	this->nodes.push_back(move(node));
 }
 
-void Module::print() const
+PARSER_API std::ostream& operator<<(std::ostream& os, Module& mod)
 {
-	cout << "\n Syntax Tree" << endl;
-
-	for (auto const& node : this->nodes)
+	for (auto const& statement : mod.get_statements())
 	{
-		cout << endl;
-		node->print(4);
+		//os << statement << endl;
 	}
+
+	return os;
 }

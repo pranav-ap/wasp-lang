@@ -47,7 +47,13 @@
     <ClCompile Include="EnvironmentUtils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="convert_to_object.cpp">
+    <ClCompile Include="ObjectConverters.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ExpressionEvaluators.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StatementEvaluators.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

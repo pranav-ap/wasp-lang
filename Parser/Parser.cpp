@@ -51,7 +51,7 @@ Statement_ptr Parser::parse_statement(bool is_public)
 	if (token == nullptr)
 		return nullptr;
 
-	switch (token->get_type())
+	switch (token->type)
 	{
 		CASE(WTokenType::LET, this->parse_variable_declaration(is_public, true));
 		CASE(WTokenType::CONST_KEYWORD, this->parse_variable_declaration(is_public, false));
@@ -85,24 +85,24 @@ Expression_ptr Parser::parse_expression()
 		if (token == nullptr)
 			return nullptr;
 
-		auto type = token->get_type();
+		auto type = token->type;
 
 		if (type == WTokenType::EOL || type == WTokenType::COMMA)
 			break;
 
 		if (type == WTokenType::NumberLiteral)
 		{
-			ast_forest.push_back(make_shared<NumberLiteral>(stod(token->get_value())));
+			ast_forest.push_back(make_shared<NumberLiteral>(stod(token->value)));
 			ADVANCE_PTR;
 		}
 		else if (type == WTokenType::StringLiteral)
 		{
-			ast_forest.push_back(make_shared<StringLiteral>(token->get_value()));
+			ast_forest.push_back(make_shared<StringLiteral>(token->value));
 			ADVANCE_PTR;
 		}
 		else if (type == WTokenType::TRUE_KEYWORD || type == WTokenType::FALSE_KEYWORD)
 		{
-			bool bool_value = token->get_value() == "true" ? true : false;
+			bool bool_value = token->value == "true" ? true : false;
 			ast_forest.push_back(make_shared<BooleanLiteral>(bool_value));
 			ADVANCE_PTR;
 		}
@@ -116,18 +116,18 @@ Expression_ptr Parser::parse_expression()
 				RETURN_NULLPTR_IF_NULLPTR(expression);
 				RETURN_NULLPTR_IF_TRUE(!this->expect_current_token(WTokenType::CLOSE_BRACKET));
 
-				ast_forest.push_back(make_shared<MemberAccess>(token->get_value(), move(expression)));
+				ast_forest.push_back(make_shared<MemberAccess>(token->value, move(expression)));
 			}
 			else if (this->expect_current_token(WTokenType::DOT))
 			{
 				auto identifier = this->consume_token(WTokenType::Identifier);
 				RETURN_NULLPTR_IF_NULLPTR(identifier);
 
-				ast_forest.push_back(make_shared<RecordMemberAccess>(token->get_value(), identifier->get_value()));
+				ast_forest.push_back(make_shared<RecordMemberAccess>(token->value, identifier->value));
 			}
 			else
 			{
-				ast_forest.push_back(make_shared<Identifier>(token->get_value()));
+				ast_forest.push_back(make_shared<Identifier>(token->value));
 			}
 		}
 		else if (type == WTokenType::OPEN_BRACKET)
@@ -201,7 +201,7 @@ Expression_ptr Parser::parse_expression()
 			if (this->expect_current_token(WTokenType::CLOSE_PARENTHESIS))
 			{
 				this->inside_function_call.pop();
-				ast_forest.push_back(make_shared<FunctionCall>(token->get_value(), expressions));
+				ast_forest.push_back(make_shared<FunctionCall>(token->value, expressions));
 			}
 			else
 			{
@@ -217,7 +217,7 @@ Expression_ptr Parser::parse_expression()
 
 					if (this->expect_current_token(WTokenType::CLOSE_PARENTHESIS))
 					{
-						ast_forest.push_back(make_shared<FunctionCall>(token->get_value(), expressions));
+						ast_forest.push_back(make_shared<FunctionCall>(token->value, expressions));
 						break;
 					}
 				}
@@ -264,7 +264,7 @@ Statement_ptr Parser::parse_variable_declaration(bool is_public, bool is_mutable
 	RETURN_NULLPTR_IF_NULLPTR(expression);
 	RETURN_NULLPTR_IF_TRUE(!this->expect_current_token(WTokenType::EOL));
 
-	return make_shared<VariableDeclaration>(is_public, is_mutable, identifier->get_value(), move(type), move(expression));
+	return make_shared<VariableDeclaration>(is_public, is_mutable, identifier->value, move(type), move(expression));
 }
 
 // Expression Statement
@@ -389,7 +389,7 @@ Expression_ptr Parser::parse_map_or_record_literal()
 
 	auto token = this->get_current_token();
 
-	if (token->get_type() == WTokenType::Identifier)
+	if (token->type == WTokenType::Identifier)
 		return this->parse_record_literal();
 
 	return this->parse_map_literal();
@@ -400,19 +400,19 @@ Expression_ptr Parser::consume_valid_map_key()
 	auto token = this->get_current_token();
 	RETURN_NULLPTR_IF_NULLPTR(token);
 
-	auto token_type = token->get_type();
+	auto token_type = token->type;
 
 	switch (token_type)
 	{
 	case WTokenType::NumberLiteral:
 	{
 		ADVANCE_PTR;
-		return make_shared<NumberLiteral>(stod(token->get_value()));
+		return make_shared<NumberLiteral>(stod(token->value));
 	}
 	case WTokenType::StringLiteral:
 	{
 		ADVANCE_PTR;
-		return make_shared<StringLiteral>(token->get_value());
+		return make_shared<StringLiteral>(token->value);
 	}
 	default:
 	{
@@ -426,14 +426,14 @@ shared_ptr<string> Parser::consume_valid_record_key()
 	auto token = this->get_current_token();
 	RETURN_NULLPTR_IF_NULLPTR(token);
 
-	auto token_type = token->get_type();
+	auto token_type = token->type;
 
 	switch (token_type)
 	{
 	case WTokenType::Identifier:
 	{
 		ADVANCE_PTR;
-		return make_shared<string>(token->get_value());
+		return make_shared<string>(token->value);
 	}
 	default:
 	{
@@ -453,7 +453,7 @@ Statement_ptr Parser::handle_identifier(Token_ptr identifier)
 
 		RETURN_NULLPTR_IF_TRUE(!this->expect_current_token(WTokenType::EOL));
 
-		return make_shared<Assignment>(identifier->get_value(), move(expression));
+		return make_shared<Assignment>(identifier->value, move(expression));
 	}
 
 	this->pointer.retreat();
@@ -481,12 +481,12 @@ Statement_ptr Parser::parse_type_declaration(bool is_public)
 			auto type = this->parse_type();
 			RETURN_NULLPTR_IF_NULLPTR(type);
 
-			member_types.insert_or_assign(identifier->get_value(), type);
+			member_types.insert_or_assign(identifier->value, type);
 
 			this->ignore(WTokenType::EOL);
 
 			if (this->expect_current_token(WTokenType::CLOSE_CURLY_BRACE))
-				return make_shared<RecordDefinition>(is_public, name->get_value(), member_types);
+				return make_shared<RecordDefinition>(is_public, name->value, member_types);
 
 			RETURN_NULLPTR_IF_TRUE(!this->expect_current_token(WTokenType::COMMA));
 		}
@@ -495,7 +495,7 @@ Statement_ptr Parser::parse_type_declaration(bool is_public)
 	auto type = this->parse_type();
 	RETURN_NULLPTR_IF_NULLPTR(type);
 
-	return make_shared<Alias>(name->get_value(), move(type));
+	return make_shared<Alias>(name->value, move(type));
 }
 
 // Public Statement
@@ -510,7 +510,7 @@ Statement_ptr Parser::parse_public_statement()
 
 	const bool is_public = true;
 
-	switch (token->get_type())
+	switch (token->type)
 	{
 		CASE(WTokenType::LET, this->parse_variable_declaration(is_public, true));
 		CASE(WTokenType::CONST_KEYWORD, this->parse_variable_declaration(is_public, false));
@@ -628,7 +628,7 @@ Statement_ptr Parser::parse_function_definition(bool is_public)
 		auto type = this->parse_type();
 		RETURN_NULLPTR_IF_NULLPTR(type);
 
-		arguments.insert_or_assign(identifier->get_value(), type);
+		arguments.insert_or_assign(identifier->value, type);
 	}
 
 	std::optional<Type_ptr> return_type = std::nullopt;
@@ -646,7 +646,7 @@ Statement_ptr Parser::parse_function_definition(bool is_public)
 	auto block = this->parse_block();
 	RETURN_NULLPTR_IF_NULLPTR(block);
 
-	return make_shared<FunctionDefinition>(is_public, identifier->get_value(), arguments, move(return_type), block);
+	return make_shared<FunctionDefinition>(is_public, identifier->value, arguments, move(return_type), block);
 }
 
 // Type parsers
@@ -717,7 +717,7 @@ Type_ptr Parser::consume_scalar_datatype()
 	auto token = this->get_current_token();
 	RETURN_NULLPTR_IF_NULLPTR(token);
 
-	auto token_type = token->get_type();
+	auto token_type = token->type;
 
 	switch (token_type)
 	{
@@ -749,7 +749,7 @@ Type_ptr Parser::consume_valid_map_key_datatype()
 	auto token = this->get_current_token();
 	RETURN_NULLPTR_IF_NULLPTR(token);
 
-	auto token_type = token->get_type();
+	auto token_type = token->type;
 
 	switch (token_type)
 	{
@@ -775,7 +775,7 @@ Type_ptr Parser::consume_datatype_word()
 	auto token = this->get_current_token();
 	RETURN_NULLPTR_IF_NULLPTR(token);
 
-	auto token_type = token->get_type();
+	auto token_type = token->type;
 
 	switch (token_type)
 	{
@@ -797,7 +797,7 @@ Type_ptr Parser::consume_datatype_word()
 	case WTokenType::Identifier:
 	{
 		ADVANCE_PTR;
-		return make_shared<Record>(token->get_value());
+		return make_shared<Record>(token->value);
 	}
 	default:
 	{

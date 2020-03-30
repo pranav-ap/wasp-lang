@@ -13,7 +13,7 @@ bool Parser::expect_current_token(WTokenType token_type)
 {
 	auto token = this->get_current_token();
 
-	if (token != nullptr && token_type == token->get_type())
+	if (token != nullptr && token_type == token->type)
 	{
 		ADVANCE_PTR;
 		return true;
@@ -26,7 +26,7 @@ Token_ptr Parser::consume_token(WTokenType token_type)
 {
 	auto token = this->get_current_token();
 
-	if (token != nullptr && token_type == token->get_type())
+	if (token != nullptr && token_type == token->type)
 	{
 		ADVANCE_PTR;
 		return token;

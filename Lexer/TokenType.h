@@ -7,6 +7,7 @@
 #endif
 
 #include <string>
+#include <iostream>
 
 LEXER_API enum class WTokenType
 {
@@ -110,4 +111,4 @@ LEXER_API enum class WTokenType
 	UNKNOWN
 };
 
-LEXER_API std::string token_type_to_string(WTokenType type);
+LEXER_API std::ostream& operator<<(std::ostream& os, const WTokenType& type);
