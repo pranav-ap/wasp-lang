@@ -6,6 +6,8 @@
 #define LEXER_API __declspec(dllimport)
 #endif
 
+#include <string>
+
 LEXER_API enum class WTokenType
 {
 	// Literals
@@ -107,3 +109,5 @@ LEXER_API enum class WTokenType
 	EOL,
 	UNKNOWN
 };
+
+LEXER_API std::string token_type_to_string(WTokenType type);

@@ -7,6 +7,7 @@
 #endif
 
 #include <string>
+#include <iostream>
 #include <memory>
 #include "TokenType.h"
 
@@ -37,3 +38,5 @@ public:
 };
 
 using Token_ptr = std::shared_ptr<Token>;
+
+LEXER_API std::ostream& operator<<(std::ostream& os, const Token& t);

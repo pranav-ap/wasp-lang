@@ -172,6 +172,7 @@
     </ClCompile>
     <ClCompile Include="Token.cpp" />
     <ClCompile Include="TokenPosition.cpp" />
+    <ClCompile Include="TokenType.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Utils\Utils.vcxproj">
