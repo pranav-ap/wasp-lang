@@ -1,12 +1,12 @@
 #pragma once
 
-#ifdef LEXER_EXPORTS
-#define LEXER_API __declspec(dllexport)
+#ifdef TOKEN_EXPORTS
+#define TOKEN_API __declspec(dllexport)
 #else
-#define LEXER_API __declspec(dllimport)
+#define TOKEN_API __declspec(dllimport)
 #endif
 
-class LEXER_API TokenPosition
+class TOKEN_API TokenPosition
 {
 	int line_num;
 	int column_num;

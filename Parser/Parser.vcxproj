@@ -91,7 +91,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>..\Utils;..\Lexer;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Utils;..\Lexer;..\Token;..\Module;..\ObjectSystem;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -153,18 +153,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Expression.h" />
     <ClInclude Include="framework.h" />
-    <ClInclude Include="Module.h" />
     <ClInclude Include="Parser.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="Statement.h" />
-    <ClInclude Include="Types.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
-    <ClCompile Include="Expression.cpp" />
-    <ClCompile Include="Module.cpp" />
     <ClCompile Include="Parser.cpp" />
     <ClCompile Include="ParserExpressionUtils.cpp" />
     <ClCompile Include="ParserUtils.cpp" />
@@ -174,12 +168,19 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Statement.cpp" />
-    <ClCompile Include="Types.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Lexer\Lexer.vcxproj">
       <Project>{f3bd0731-f946-4adf-adbe-80524b0d6add}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Module\Module.vcxproj">
+      <Project>{c6ceae21-8418-4f75-a649-766c237fd649}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\ObjectSystem\ObjectSystem.vcxproj">
+      <Project>{475e263f-ebbe-41af-b49e-e0d8b1a8a3d6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Token\Token.vcxproj">
+      <Project>{5637e073-6798-4882-a7e7-413e1f93f541}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Utils\Utils.vcxproj">
       <Project>{fd212e30-089e-4160-84e4-201daa0064b7}</Project>

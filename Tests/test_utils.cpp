@@ -11,8 +11,8 @@ vector<Token> compose_tokens(vector<Token_ptr> vector_of_pointers)
 
 	for (const auto token_ptr : vector_of_pointers)
 	{
-		token_ptr->set_line_num(0);
-		token_ptr->set_column_num(0);
+		token_ptr->line_num = 0;
+		token_ptr->column_num = 0;
 
 		vec.push_back(*token_ptr);
 	}

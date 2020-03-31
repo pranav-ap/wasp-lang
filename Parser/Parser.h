@@ -37,8 +37,6 @@ class PARSER_API Parser
 	// Literal parsers
 
 	Expression_ptr parse_vector_literal();
-	Expression_ptr parse_tuple_literal();
-
 	Expression_ptr parse_map_literal();
 	Expression_ptr parse_record_literal();
 	Expression_ptr parse_map_or_record_literal();
@@ -60,7 +58,6 @@ class PARSER_API Parser
 
 	Type_ptr parse_type();
 	Type_ptr parse_vector_type();
-	Type_ptr parse_tuple_type();
 	Type_ptr parse_map_type();
 
 	Type_ptr consume_scalar_datatype();
@@ -97,7 +94,7 @@ class PARSER_API Parser
 	void ignore(WTokenType token_type);
 
 public:
-	Parser(std::vector<Token_ptr>& token_list) : tokens(std::move(token_list)), pointer(Pointer()) {};
+	Parser(std::vector<Token_ptr>& tokens) : tokens(std::move(tokens)), pointer(Pointer()) {};
 	Module execute();
 };
 

@@ -140,21 +140,13 @@ Expression_ptr Parser::parse_expression()
 		}
 		else if (type == WTokenType::OPEN_PARENTHESIS)
 		{
+			this->inside_function_call.push(false);
+			operator_stack.push(move(token));
 			ADVANCE_PTR;
-			auto tuple = this->parse_tuple_literal();
-			RETURN_NULLPTR_IF_NULLPTR(tuple);
-
-			ast_forest.push_back(move(tuple));
 		}
 		else if (type == WTokenType::AND || type == WTokenType::OR)
 		{
 			this->push_operator_to_operator_stack(move(token), operator_stack, ast_forest);
-			ADVANCE_PTR;
-		}
-		else if (type == WTokenType::OPEN_PARENTHESIS)
-		{
-			this->inside_function_call.push(false);
-			operator_stack.push(move(token));
 			ADVANCE_PTR;
 		}
 		else if (type == WTokenType::CLOSE_PARENTHESIS)
@@ -302,27 +294,6 @@ Expression_ptr Parser::parse_vector_literal()
 	}
 }
 
-Expression_ptr Parser::parse_tuple_literal()
-{
-	vector<Expression_ptr> elements;
-
-	if (this->expect_current_token(WTokenType::CLOSE_PARENTHESIS))
-		return make_shared<TupleLiteral>(elements);
-
-	while (true)
-	{
-		auto element = this->parse_expression();
-		RETURN_NULLPTR_IF_NULLPTR(element);
-
-		elements.push_back(move(element));
-
-		if (this->expect_current_token(WTokenType::CLOSE_PARENTHESIS))
-			return make_shared<TupleLiteral>(elements);
-
-		RETURN_NULLPTR_IF_TRUE(!this->expect_current_token(WTokenType::COMMA));
-	}
-}
-
 Expression_ptr Parser::parse_map_literal()
 {
 	map<Expression_ptr, Expression_ptr> pairs;
@@ -358,7 +329,7 @@ Expression_ptr Parser::parse_record_literal()
 	map<string, Expression_ptr> pairs;
 
 	if (this->expect_current_token(WTokenType::CLOSE_CURLY_BRACE))
-		return make_shared<RecordLiteral>(pairs);
+		return make_shared<UDTLiteral>(pairs);
 
 	while (true)
 	{
@@ -377,7 +348,7 @@ Expression_ptr Parser::parse_record_literal()
 		this->ignore(WTokenType::EOL);
 
 		if (this->expect_current_token(WTokenType::CLOSE_CURLY_BRACE))
-			return make_shared<RecordLiteral>(pairs);
+			return make_shared<UDTLiteral>(pairs);
 
 		RETURN_NULLPTR_IF_TRUE(!this->expect_current_token(WTokenType::COMMA));
 	}
@@ -486,7 +457,7 @@ Statement_ptr Parser::parse_type_declaration(bool is_public)
 			this->ignore(WTokenType::EOL);
 
 			if (this->expect_current_token(WTokenType::CLOSE_CURLY_BRACE))
-				return make_shared<RecordDefinition>(is_public, name->value, member_types);
+				return make_shared<UDTDefinition>(is_public, name->value, member_types);
 
 			RETURN_NULLPTR_IF_TRUE(!this->expect_current_token(WTokenType::COMMA));
 		}
@@ -656,9 +627,6 @@ Type_ptr Parser::parse_type()
 	if (this->expect_current_token(WTokenType::OPEN_BRACKET))
 		return this->parse_vector_type();
 
-	if (this->expect_current_token(WTokenType::OPEN_PARENTHESIS))
-		return this->parse_tuple_type();
-
 	if (this->expect_current_token(WTokenType::OPEN_CURLY_BRACE))
 		return this->parse_map_type();
 
@@ -677,25 +645,6 @@ Type_ptr Parser::parse_vector_type()
 
 	RETURN_NULLPTR_IF_TRUE(!this->expect_current_token(WTokenType::CLOSE_BRACKET));
 	return make_shared<Vector>(move(type));
-}
-
-Type_ptr Parser::parse_tuple_type()
-{
-	vector<Type_ptr> types;
-
-	while (true)
-	{
-		auto type = this->parse_type();
-		RETURN_NULLPTR_IF_NULLPTR(type);
-
-		types.push_back(move(type));
-
-		if (this->expect_current_token(WTokenType::CLOSE_PARENTHESIS))
-			return make_shared<Tuple>(types);
-
-		RETURN_NULLPTR_IF_TRUE(!this->expect_current_token(WTokenType::COMMA));
-		continue;
-	}
 }
 
 Type_ptr Parser::parse_map_type()
@@ -797,7 +746,7 @@ Type_ptr Parser::consume_datatype_word()
 	case WTokenType::Identifier:
 	{
 		ADVANCE_PTR;
-		return make_shared<Record>(token->value);
+		return make_shared<UDT>(token->value);
 	}
 	default:
 	{

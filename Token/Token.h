@@ -1,9 +1,9 @@
 #pragma once
 
-#ifdef LEXER_EXPORTS
-#define LEXER_API __declspec(dllexport)
+#ifdef TOKEN_EXPORTS
+#define TOKEN_API __declspec(dllexport)
 #else
-#define LEXER_API __declspec(dllimport)
+#define TOKEN_API __declspec(dllimport)
 #endif
 
 #include <string>
@@ -11,7 +11,7 @@
 #include <memory>
 #include "TokenType.h"
 
-struct LEXER_API Token
+struct TOKEN_API Token
 {
 	WTokenType type;
 	std::string value;
@@ -26,4 +26,4 @@ struct LEXER_API Token
 
 using Token_ptr = std::shared_ptr<Token>;
 
-LEXER_API std::ostream& operator<<(std::ostream& os, const Token& t);
+TOKEN_API std::ostream& operator<<(std::ostream& os, const Token& t);

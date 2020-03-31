@@ -89,7 +89,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../Interpreter;../Parser;../Lexer;../Utils;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../Utils;../Token;../Lexer;../Environment;../ObjectSystem;../Module;../Interpreter;../Parser</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
@@ -158,14 +158,26 @@
     <ClCompile Include="Token_Tests.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Environment\Environment.vcxproj">
+      <Project>{f8144420-f63d-487d-a664-fd9f671c1e21}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\Interpreter\Interpreter.vcxproj">
       <Project>{96ddac50-3f73-44a3-ad41-a33b05f49335}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Lexer\Lexer.vcxproj">
       <Project>{f3bd0731-f946-4adf-adbe-80524b0d6add}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\Module\Module.vcxproj">
+      <Project>{c6ceae21-8418-4f75-a649-766c237fd649}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\ObjectSystem\ObjectSystem.vcxproj">
+      <Project>{475e263f-ebbe-41af-b49e-e0d8b1a8a3d6}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\Parser\Parser.vcxproj">
       <Project>{f06e8f9d-8718-4634-920a-cca5b750cf96}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Token\Token.vcxproj">
+      <Project>{5637e073-6798-4882-a7e7-413e1f93f541}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Utils\Utils.vcxproj">
       <Project>{fd212e30-089e-4160-84e4-201daa0064b7}</Project>

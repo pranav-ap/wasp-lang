@@ -1,15 +1,15 @@
 #pragma once
 
-#ifdef LEXER_EXPORTS
-#define LEXER_API __declspec(dllexport)
+#ifdef TOKEN_EXPORTS
+#define TOKEN_API __declspec(dllexport)
 #else
-#define LEXER_API __declspec(dllimport)
+#define TOKEN_API __declspec(dllimport)
 #endif
 
 #include <string>
 #include <iostream>
 
-LEXER_API enum class WTokenType
+TOKEN_API enum class WTokenType
 {
 	// Literals
 
@@ -111,4 +111,4 @@ LEXER_API enum class WTokenType
 	UNKNOWN
 };
 
-LEXER_API std::ostream& operator<<(std::ostream& os, const WTokenType& type);
+TOKEN_API std::ostream& operator<<(std::ostream& os, const WTokenType& type);

@@ -8,10 +8,10 @@ SCENARIO("Sanity Testing the Token Class", "[Token]") {
 	GIVEN("A fresh Boolean Token object") {
 		Token token(WTokenType::BOOL, "bool", 1, 1);
 
-		REQUIRE(token.get_line_num() == 1);
-		REQUIRE(token.get_column_num() == 1);
+		REQUIRE(token.line_num == 1);
+		REQUIRE(token.column_num == 1);
 
-		REQUIRE(token.get_value() == "bool");
-		REQUIRE(token.get_type() == WTokenType::BOOL);
+		REQUIRE(token.value == "bool");
+		REQUIRE(token.type == WTokenType::BOOL);
 	}
 }

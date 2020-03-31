@@ -7,7 +7,7 @@
 
 using std::string;
 
-LEXER_API std::ostream& operator<<(std::ostream& os, const WTokenType& type)
+TOKEN_API std::ostream& operator<<(std::ostream& os, const WTokenType& type)
 {
 	switch (type)
 	{

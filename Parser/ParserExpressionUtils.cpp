@@ -1,7 +1,7 @@
 #pragma once
 #include "pch.h"
-#include<memory>
 #include "Parser.h"
+#include <memory>
 
 using std::string;
 using std::vector;
