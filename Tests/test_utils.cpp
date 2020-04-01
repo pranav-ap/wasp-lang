@@ -5,7 +5,7 @@
 
 using std::vector;
 
-vector<Token> compose_tokens(vector<Token_ptr> vector_of_pointers)
+vector<Token> prepare_to_assert(vector<Token_ptr> vector_of_pointers)
 {
 	vector<Token> vec;
 

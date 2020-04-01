@@ -3504,7 +3504,7 @@ namespace Catch {
 
 namespace Catch {
 	namespace Matchers {
-		namespace Vector {
+		namespace VectorType {
 			template<typename T>
 			struct ContainsElementMatcher : MatcherBase<std::vector<T>> {
 				ContainsElementMatcher(T const& comparator) : m_comparator(comparator) {}
@@ -3635,28 +3635,28 @@ namespace Catch {
 		// This allows the types to be inferred
 
 		template<typename T>
-		Vector::ContainsMatcher<T> Contains(std::vector<T> const& comparator) {
-			return Vector::ContainsMatcher<T>(comparator);
+		VectorType::ContainsMatcher<T> Contains(std::vector<T> const& comparator) {
+			return VectorType::ContainsMatcher<T>(comparator);
 		}
 
 		template<typename T>
-		Vector::ContainsElementMatcher<T> VectorContains(T const& comparator) {
-			return Vector::ContainsElementMatcher<T>(comparator);
+		VectorType::ContainsElementMatcher<T> VectorContains(T const& comparator) {
+			return VectorType::ContainsElementMatcher<T>(comparator);
 		}
 
 		template<typename T>
-		Vector::EqualsMatcher<T> Equals(std::vector<T> const& comparator) {
-			return Vector::EqualsMatcher<T>(comparator);
+		VectorType::EqualsMatcher<T> Equals(std::vector<T> const& comparator) {
+			return VectorType::EqualsMatcher<T>(comparator);
 		}
 
 		template<typename T>
-		Vector::ApproxMatcher<T> Approx(std::vector<T> const& comparator) {
-			return Vector::ApproxMatcher<T>(comparator);
+		VectorType::ApproxMatcher<T> Approx(std::vector<T> const& comparator) {
+			return VectorType::ApproxMatcher<T>(comparator);
 		}
 
 		template<typename T>
-		Vector::UnorderedEqualsMatcher<T> UnorderedEquals(std::vector<T> const& target) {
-			return Vector::UnorderedEqualsMatcher<T>(target);
+		VectorType::UnorderedEqualsMatcher<T> UnorderedEquals(std::vector<T> const& target) {
+			return VectorType::UnorderedEqualsMatcher<T>(target);
 		}
 	} // namespace Matchers
 } // namespace Catch

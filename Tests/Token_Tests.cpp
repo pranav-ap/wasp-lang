@@ -4,7 +4,7 @@
 #include "Token.h"
 #include "TokenType.h"
 
-SCENARIO("Sanity Testing the Token Class", "[Token]") {
+SCENARIO("Sanity Checking the Token Class", "[Token]") {
 	GIVEN("A fresh Boolean Token object") {
 		Token token(WTokenType::BOOL, "bool", 1, 1);
 

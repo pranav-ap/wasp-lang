@@ -1,7 +1,7 @@
 #include "catch.hpp"
 #include "Pointer.h"
 
-SCENARIO("Using the Pointer class to manipulate an index", "[Pointer]") {
+SCENARIO("Sanity Checking the Pointer class to manipulate an index", "[Pointer]") {
 	GIVEN("A fresh pointer") {
 		Pointer pointer;
 

@@ -24,7 +24,7 @@ MODULE_API std::ostream& operator<<(std::ostream& os, Module& mod)
 {
 	for (auto const& statement : mod.get_statements())
 	{
-		//os << statement << endl;
+		os << statement << endl;
 	}
 
 	return os;

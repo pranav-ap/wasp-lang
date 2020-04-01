@@ -151,6 +151,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Lexer_Tests.cpp" />
+    <ClCompile Include="Parser_Tests.cpp" />
     <ClCompile Include="test_utils.cpp" />
     <ClCompile Include="TokenPosition_Tests.cpp" />
     <ClCompile Include="Tests.cpp" />

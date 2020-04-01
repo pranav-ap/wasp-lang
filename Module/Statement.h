@@ -134,7 +134,7 @@ using Loop_ptr = MODULE_API std::shared_ptr<Loop>;
 using Break_ptr = MODULE_API std::shared_ptr<Break>;
 using Continue_ptr = MODULE_API std::shared_ptr<Continue>;
 using Alias_ptr = MODULE_API std::shared_ptr<Alias>;
-using RecordDefinition_ptr = MODULE_API std::shared_ptr<UDTDefinition>;
+using UDTDefinition_ptr = MODULE_API std::shared_ptr<UDTDefinition>;
 using FunctionDefinition_ptr = MODULE_API std::shared_ptr<FunctionDefinition>;
 using Return_ptr = MODULE_API std::shared_ptr<Return>;
 using ExpressionStatement_ptr = MODULE_API std::shared_ptr<ExpressionStatement>;
@@ -152,9 +152,24 @@ public:
 	virtual void visit(Break_ptr statement) = 0;
 	virtual void visit(Continue_ptr statement) = 0;
 	virtual void visit(Alias_ptr statement) = 0;
-	virtual void visit(RecordDefinition_ptr statement) = 0;
+	virtual void visit(UDTDefinition_ptr statement) = 0;
 	virtual void visit(FunctionDefinition_ptr statement) = 0;
 	virtual void visit(Return_ptr statement) = 0;
 	virtual void visit(ExpressionStatement_ptr statement) = 0;
 	virtual void visit(Import_ptr statement) = 0;
 };
+
+// Printers
+
+MODULE_API std::ostream& operator<<(std::ostream& os, const VariableDeclaration_ptr stat);
+MODULE_API std::ostream& operator<<(std::ostream& os, const Assignment_ptr stat);
+MODULE_API std::ostream& operator<<(std::ostream& os, const Branch_ptr stat);
+MODULE_API std::ostream& operator<<(std::ostream& os, const Loop_ptr stat);
+MODULE_API std::ostream& operator<<(std::ostream& os, const Break_ptr stat);
+MODULE_API std::ostream& operator<<(std::ostream& os, const Continue_ptr stat);
+MODULE_API std::ostream& operator<<(std::ostream& os, const Alias_ptr stat);
+MODULE_API std::ostream& operator<<(std::ostream& os, const UDTDefinition_ptr stat);
+MODULE_API std::ostream& operator<<(std::ostream& os, const FunctionDefinition_ptr stat);
+MODULE_API std::ostream& operator<<(std::ostream& os, const Return_ptr stat);
+MODULE_API std::ostream& operator<<(std::ostream& os, const ExpressionStatement_ptr stat);
+MODULE_API std::ostream& operator<<(std::ostream& os, const Import_ptr stat);

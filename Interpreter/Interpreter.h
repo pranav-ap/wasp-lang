@@ -30,7 +30,7 @@ class INTERPRETER_API Interpreter : public StatementInterpreter, public Expressi
 	// 0.2
 
 	void visit(Alias_ptr statement);
-	void visit(RecordDefinition_ptr statement);
+	void visit(UDTDefinition_ptr statement);
 	void visit(FunctionDefinition_ptr statement);
 	void visit(Return_ptr statement);
 	void visit(Import_ptr statement);
@@ -52,12 +52,11 @@ class INTERPRETER_API Interpreter : public StatementInterpreter, public Expressi
 
 	// 0.2
 
-	Object_ptr visit(MemberAccess_ptr expression);
-	Object_ptr visit(RecordMemberAccess_ptr expression);
+	Object_ptr visit(VectorMemberAccess_ptr expression);
+	Object_ptr visit(UDTMemberAccess_ptr expression);
 	Object_ptr visit(FunctionCall_ptr expression);
 
-	Object_ptr visit(InclusiveRange_ptr expression);
-	Object_ptr visit(ExclusiveRange_ptr expression);
+	Object_ptr visit(Range_ptr expression);
 
 	// Utils
 

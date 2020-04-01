@@ -8,6 +8,10 @@
 #include <memory>
 #include <string>
 
+#define OPERAND_TYPEID typeid(*operand)
+#define LEFT_TYPEID typeid(*left)
+#define RIGHT_TYPEID typeid(*right)
+
 using std::string;
 using std::make_shared;
 
@@ -43,6 +47,12 @@ void Interpreter::visit(Assignment_ptr assignment)
 	}
 
 	auto result = assignment->expression->interpret(*this);
+
+	if (result == nullptr)
+	{
+		// Error
+		return;
+	}
 
 	info->value = result;
 }
@@ -112,7 +122,7 @@ void Interpreter::visit(Alias_ptr statement)
 {
 }
 
-void Interpreter::visit(RecordDefinition_ptr statement)
+void Interpreter::visit(UDTDefinition_ptr statement)
 {
 }
 
@@ -199,18 +209,18 @@ Object_ptr Interpreter::visit(Unary_ptr unary_expression)
 	auto operand = unary_expression->operand->interpret(*this);
 	auto token_type = unary_expression->op->type;
 
-	if (typeid(operand) == typeid(NumberObject))
+	if (OPERAND_TYPEID == typeid(NumberObject))
 	{
 		auto operand_number_object = dynamic_pointer_cast<NumberObject>(operand);
-		this->perform_unary_operation(token_type, operand_number_object);
+		return this->perform_unary_operation(token_type, operand_number_object);
 	}
-	else if (typeid(operand) == typeid(BooleanObject))
+	else if (OPERAND_TYPEID == typeid(BooleanObject))
 	{
 		auto operand_boolean_object = dynamic_pointer_cast<BooleanObject>(operand);
-		this->perform_unary_operation(token_type, operand_boolean_object);
+		return this->perform_unary_operation(token_type, operand_boolean_object);
 	}
 
-	return operand;
+	return nullptr;
 }
 
 Object_ptr Interpreter::visit(Binary_ptr binary_expression)
@@ -219,13 +229,13 @@ Object_ptr Interpreter::visit(Binary_ptr binary_expression)
 	auto right = binary_expression->right->interpret(*this);
 	auto token_type = binary_expression->op->type;
 
-	if (typeid(left) == typeid(NumberObject) && typeid(right) == typeid(NumberObject))
+	if (LEFT_TYPEID == typeid(NumberObject) && RIGHT_TYPEID == typeid(NumberObject))
 	{
 		auto left_number_object = dynamic_pointer_cast<NumberObject>(left);
 		auto right_number_object = dynamic_pointer_cast<NumberObject>(right);
 		return this->perform_binary_operation(token_type, left_number_object, right_number_object);
 	}
-	else if (typeid(left) == typeid(BooleanObject) && typeid(right) == typeid(BooleanObject))
+	else if (LEFT_TYPEID == typeid(BooleanObject) && RIGHT_TYPEID == typeid(BooleanObject))
 	{
 		auto left_boolean_object = dynamic_pointer_cast<BooleanObject>(left);
 		auto right_boolean_object = dynamic_pointer_cast<BooleanObject>(right);
@@ -237,12 +247,12 @@ Object_ptr Interpreter::visit(Binary_ptr binary_expression)
 
 // 0.2
 
-Object_ptr Interpreter::visit(MemberAccess_ptr expression)
+Object_ptr Interpreter::visit(VectorMemberAccess_ptr expression)
 {
 	return nullptr;
 }
 
-Object_ptr Interpreter::visit(RecordMemberAccess_ptr expression)
+Object_ptr Interpreter::visit(UDTMemberAccess_ptr expression)
 {
 	return nullptr;
 }
@@ -252,12 +262,7 @@ Object_ptr Interpreter::visit(FunctionCall_ptr expression)
 	return nullptr;
 }
 
-Object_ptr Interpreter::visit(InclusiveRange_ptr expression)
-{
-	return nullptr;
-}
-
-Object_ptr Interpreter::visit(ExclusiveRange_ptr expression)
+Object_ptr Interpreter::visit(Range_ptr expression)
 {
 	return nullptr;
 }

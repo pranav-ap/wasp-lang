@@ -51,13 +51,6 @@ struct MODULE_API VectorLiteral : public Expression, public std::enable_shared_f
 	Object_ptr interpret(ExpressionInterpreter& visitor);
 };
 
-struct MODULE_API MapLiteral : public Expression, public std::enable_shared_from_this<MapLiteral>
-{
-	std::map<Expression_ptr, Expression_ptr> pairs;
-	MapLiteral(std::map<Expression_ptr, Expression_ptr> pairs) : pairs(pairs) {};
-	Object_ptr interpret(ExpressionInterpreter& visitor);
-};
-
 struct MODULE_API UDTLiteral : public Expression, public std::enable_shared_from_this<UDTLiteral>
 {
 	std::map<std::string, Expression_ptr> pairs;
@@ -65,21 +58,21 @@ struct MODULE_API UDTLiteral : public Expression, public std::enable_shared_from
 	Object_ptr interpret(ExpressionInterpreter& visitor);
 };
 
-struct MODULE_API MemberAccess : public Expression, public std::enable_shared_from_this<MemberAccess>
+struct MODULE_API VectorMemberAccess : public Expression, public std::enable_shared_from_this<VectorMemberAccess>
 {
 	std::string name;
 	Expression_ptr expression;
 
-	MemberAccess(std::string name, Expression_ptr expression) : name(name), expression(std::move(expression)) {};
+	VectorMemberAccess(std::string name, Expression_ptr expression) : name(name), expression(std::move(expression)) {};
 	Object_ptr interpret(ExpressionInterpreter& visitor);
 };
 
-struct MODULE_API RecordMemberAccess : public Expression, public std::enable_shared_from_this<RecordMemberAccess>
+struct MODULE_API UDTMemberAccess : public Expression, public std::enable_shared_from_this<UDTMemberAccess>
 {
 	std::string record_name;
 	std::string member_name;
 
-	RecordMemberAccess(std::string record_name, std::string member_name) : record_name(record_name), member_name(member_name) {};
+	UDTMemberAccess(std::string record_name, std::string member_name) : record_name(record_name), member_name(member_name) {};
 	Object_ptr interpret(ExpressionInterpreter& visitor);
 };
 
@@ -99,21 +92,13 @@ struct MODULE_API FunctionCall : public Expression, public std::enable_shared_fr
 	Object_ptr interpret(ExpressionInterpreter& visitor);
 };
 
-struct MODULE_API InclusiveRange : public Expression, public std::enable_shared_from_this<InclusiveRange>
+struct MODULE_API Range : public Expression, public std::enable_shared_from_this<Range>
 {
 	Expression_ptr left;
 	Expression_ptr right;
+	bool is_inclusive;
 
-	InclusiveRange(Expression_ptr left, Expression_ptr right) : left(std::move(left)), right(std::move(right)) {};
-	Object_ptr interpret(ExpressionInterpreter& visitor);
-};
-
-struct MODULE_API ExclusiveRange : public Expression, public std::enable_shared_from_this<ExclusiveRange>
-{
-	Expression_ptr left;
-	Expression_ptr right;
-
-	ExclusiveRange(Expression_ptr left, Expression_ptr right) : left(std::move(left)), right(std::move(right)) {};
+	Range(Expression_ptr left, Expression_ptr right, bool is_inclusive) : left(std::move(left)), right(std::move(right)), is_inclusive(is_inclusive) {};
 	Object_ptr interpret(ExpressionInterpreter& visitor);
 };
 
@@ -140,14 +125,16 @@ using StringLiteral_ptr = MODULE_API std::shared_ptr<StringLiteral>;
 using NumberLiteral_ptr = MODULE_API std::shared_ptr<NumberLiteral>;
 using BooleanLiteral_ptr = MODULE_API std::shared_ptr<BooleanLiteral>;
 using VectorLiteral_ptr = MODULE_API std::shared_ptr<VectorLiteral>;
-using MapLiteral_ptr = MODULE_API std::shared_ptr<MapLiteral>;
 using UDTLiteral_ptr = MODULE_API std::shared_ptr<UDTLiteral>;
-using MemberAccess_ptr = MODULE_API std::shared_ptr<MemberAccess>;
-using RecordMemberAccess_ptr = MODULE_API std::shared_ptr<RecordMemberAccess>;
+
+using VectorMemberAccess_ptr = MODULE_API std::shared_ptr<VectorMemberAccess>;
+using UDTMemberAccess_ptr = MODULE_API std::shared_ptr<UDTMemberAccess>;
+
 using Identifier_ptr = MODULE_API std::shared_ptr<Identifier>;
+
 using FunctionCall_ptr = MODULE_API std::shared_ptr<FunctionCall>;
-using InclusiveRange_ptr = MODULE_API std::shared_ptr<InclusiveRange>;
-using ExclusiveRange_ptr = MODULE_API std::shared_ptr<ExclusiveRange>;
+using Range_ptr = MODULE_API std::shared_ptr<Range>;
+
 using Unary_ptr = MODULE_API std::shared_ptr<Unary>;
 using Binary_ptr = MODULE_API std::shared_ptr<Binary>;
 
@@ -159,9 +146,7 @@ public:
 	virtual Object_ptr visit(StringLiteral_ptr expression) = 0;
 	virtual Object_ptr visit(NumberLiteral_ptr expression) = 0;
 	virtual Object_ptr visit(BooleanLiteral_ptr expression) = 0;
-
 	virtual Object_ptr visit(VectorLiteral_ptr expression) = 0;
-	virtual Object_ptr visit(MapLiteral_ptr expression) = 0;
 	virtual Object_ptr visit(UDTLiteral_ptr expression) = 0;
 
 	virtual Object_ptr visit(Identifier_ptr expression) = 0;
@@ -169,10 +154,30 @@ public:
 	virtual Object_ptr visit(Unary_ptr expression) = 0;
 	virtual Object_ptr visit(Binary_ptr expression) = 0;
 
-	virtual Object_ptr visit(MemberAccess_ptr expression) = 0;
-	virtual Object_ptr visit(RecordMemberAccess_ptr expression) = 0;
+	virtual Object_ptr visit(VectorMemberAccess_ptr expression) = 0;
+	virtual Object_ptr visit(UDTMemberAccess_ptr expression) = 0;
+
 	virtual Object_ptr visit(FunctionCall_ptr expression) = 0;
 
-	virtual Object_ptr visit(InclusiveRange_ptr expression) = 0;
-	virtual Object_ptr visit(ExclusiveRange_ptr expression) = 0;
+	virtual Object_ptr visit(Range_ptr expression) = 0;
 };
+
+// Printers
+
+MODULE_API std::ostream& operator<<(std::ostream& os, const StringLiteral_ptr exp);
+MODULE_API std::ostream& operator<<(std::ostream& os, const NumberLiteral_ptr exp);
+MODULE_API std::ostream& operator<<(std::ostream& os, const BooleanLiteral_ptr exp);
+
+MODULE_API std::ostream& operator<<(std::ostream& os, const VectorLiteral_ptr exp);
+MODULE_API std::ostream& operator<<(std::ostream& os, const UDTLiteral_ptr exp);
+
+MODULE_API std::ostream& operator<<(std::ostream& os, const Identifier_ptr exp);
+
+MODULE_API std::ostream& operator<<(std::ostream& os, const Unary_ptr exp);
+MODULE_API std::ostream& operator<<(std::ostream& os, const Binary_ptr exp);
+
+MODULE_API std::ostream& operator<<(std::ostream& os, const VectorMemberAccess_ptr exp);
+MODULE_API std::ostream& operator<<(std::ostream& os, const UDTMemberAccess_ptr exp);
+MODULE_API std::ostream& operator<<(std::ostream& os, const FunctionCall_ptr exp);
+
+MODULE_API std::ostream& operator<<(std::ostream& os, const Range_ptr exp);

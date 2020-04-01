@@ -16,10 +16,12 @@ TOKEN_API std::ostream& operator<<(std::ostream& os, const WTokenType& type)
 	case WTokenType::NumberLiteral:
 	{
 		os << "Number Literal";
+		break;
 	}
 	case WTokenType::StringLiteral:
 	{
 		os << "String Literal";
+		break;
 	}
 
 	// Identifiers
@@ -27,10 +29,12 @@ TOKEN_API std::ostream& operator<<(std::ostream& os, const WTokenType& type)
 	case WTokenType::Identifier:
 	{
 		os << "Identifier";
+		break;
 	}
 	case WTokenType::FunctionIdentifier:
 	{
 		os << "Function Identifier";
+		break;
 	}
 
 	// Punctuations
@@ -70,6 +74,7 @@ TOKEN_API std::ostream& operator<<(std::ostream& os, const WTokenType& type)
 	case WTokenType::GREATER_THAN_EQUAL:
 	{
 		os << "Punctuation";
+		break;
 	}
 
 	// Keywords
@@ -99,6 +104,7 @@ TOKEN_API std::ostream& operator<<(std::ostream& os, const WTokenType& type)
 	case WTokenType::PUB:
 	{
 		os << "Keyword";
+		break;
 	}
 
 	// Other
@@ -106,10 +112,12 @@ TOKEN_API std::ostream& operator<<(std::ostream& os, const WTokenType& type)
 	case WTokenType::EOL:
 	{
 		os << "EOL";
+		break;
 	}
 	case WTokenType::UNKNOWN:
 	{
 		os << "UNKNOWN";
+		break;
 	}
 	default:
 		os << "";

@@ -3,7 +3,7 @@
 #include "catch.hpp"
 #include "TokenPosition.h"
 
-SCENARIO("Using the TokenPosition class to manipulate an index", "[TokenPosition]") {
+SCENARIO("Sanity Checking the TokenPosition class to manipulate an index", "[TokenPosition]") {
 	GIVEN("A fresh TokenPosition object") {
 		TokenPosition position;
 

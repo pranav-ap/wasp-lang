@@ -18,51 +18,44 @@ struct MODULE_API Type
 
 using Type_ptr = std::shared_ptr<Type>;
 
-struct MODULE_API Scalar : public Type
+struct MODULE_API ScalarType : public Type
 {
 };
 
-struct MODULE_API Composite : public Type
+struct MODULE_API CompositeType : public Type
 {
 };
 
-struct MODULE_API Optional : public Type
+struct MODULE_API OptionalType : public Type
 {
 	Type_ptr optional_type;
-	Optional(Type_ptr optional_type) : optional_type(std::move(optional_type)) {};
+	OptionalType(Type_ptr optional_type) : optional_type(std::move(optional_type)) {};
 };
 
 // Scalar Types
 
-struct MODULE_API Number : public Scalar
+struct MODULE_API NumberType : public ScalarType
 {
 };
 
-struct MODULE_API String : public Scalar
+struct MODULE_API StringType : public ScalarType
 {
 };
 
-struct MODULE_API Bool : public Scalar
+struct MODULE_API BoolType : public ScalarType
 {
 };
 
 // Composite Types
 
-struct MODULE_API Vector : public Composite
+struct MODULE_API VectorType : public CompositeType
 {
 	Type_ptr type;
-	Vector(Type_ptr type) : type(std::move(type)) {};
+	VectorType(Type_ptr type) : type(std::move(type)) {};
 };
 
-struct MODULE_API Map : public Composite
+struct MODULE_API UDTType : public CompositeType
 {
-	Type_ptr key_type;
-	Type_ptr value_type;
-	Map(Type_ptr key_type, Type_ptr value_type) : key_type(std::move(key_type)), value_type(std::move(value_type)) {};
-};
-
-struct MODULE_API UDT : public Composite
-{
-	std::string type_name;
-	UDT(std::string type_name) : type_name(type_name) {};
+	std::string name;
+	UDTType(std::string name) : name(name) {};
 };
