@@ -10,26 +10,30 @@
 #include <vector>
 
 #include "Token.h"
+#include "TokenType.h"
 #include "Expression.h"
 
 class PARSER_API OperatorStack
 {
-	std::stack<Token_ptr> op_stack;
+	std::stack<Token_ptr> operator_stack;
 
-public:
-	void pop_all_from_stack_into_ast(std::vector<Expression_ptr>& ast);
+	void push_operator_into_ast(Token_ptr operator_token, ExpressionStack& ast);
 
-	void push_unary_operator_to_ast(Token_ptr op, std::vector<Expression_ptr>& ast);
-	void push_binary_operator_to_ast(Token_ptr op, std::vector<Expression_ptr>& ast);
+	void push_unary_operator_to_ast(Token_ptr op, ExpressionStack& ast);
+	void push_binary_operator_to_ast(Token_ptr op, ExpressionStack& ast);
 
-	void pop_until_open_parenthesis_from_stack_into_ast(std::vector<Expression_ptr>& ast);
-	void push_operator_to_operator_stack(Token_ptr op, std::vector<Expression_ptr>& ast);
-
-	// utils
+	// UTILS
 
 	int get_parity(WTokenType token_type);
 	int get_precedence(WTokenType token_type);
-	bool is_right_associative(WTokenType token_type);
+	bool is_left_associative(WTokenType token_type);
+
+public:
+	void drain_into_ast(ExpressionStack& ast);
+	void drain_into_ast_until_open_parenthesis(ExpressionStack& ast);
+
+	void dumb_push(Token_ptr operator_token);
+	void smart_push(Token_ptr operator_token, ExpressionStack& ast);
 };
 
 using OperatorStack_ptr = PARSER_API std::shared_ptr<OperatorStack>;

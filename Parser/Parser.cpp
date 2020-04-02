@@ -8,6 +8,7 @@
 
 #include "Parser.h"
 #include "TokenType.h"
+#include "TokenPipe.h"
 
 using std::string;
 using std::vector;
@@ -58,7 +59,7 @@ Statement_ptr Parser::parse_statement(bool is_public)
 	{
 		CASE(WTokenType::LET, this->parse_variable_declaration(is_public, true));
 		CASE(WTokenType::CONST_KEYWORD, this->parse_variable_declaration(is_public, false));
-		CASE(WTokenType::Identifier, this->handle_identifier(move(token)));
+		CASE(WTokenType::Identifier, this->consume_assignment_or_expression_statement(move(token)));
 		CASE(WTokenType::BREAK, this->parse_break_statement());
 		CASE(WTokenType::CONTINUE, this->parse_continue_statement());
 		CASE(WTokenType::RETURN, this->parse_return_statement());
@@ -98,7 +99,7 @@ Statement_ptr Parser::parse_public_statement()
 
 Statement_ptr Parser::parse_return_statement()
 {
-	auto expression = parse_expression();
+	auto expression = expr_parser->parse_expression();
 	RETURN_NULLPTR_IF_NULLPTR(expression);
 	RETURN_NULLPTR_IF_FALSE(token_pipe->expect_current_token_to_be(WTokenType::EOL));
 
@@ -132,21 +133,7 @@ Statement_ptr Parser::parse_variable_declaration(bool is_public, bool is_mutable
 	RETURN_NULLPTR_IF_FALSE(token_pipe->expect_current_token_to_be(WTokenType::EQUAL));
 
 	// Expression
-	Expression_ptr expression = nullptr;
-
-	if (token_pipe->expect_current_token_to_be(WTokenType::OPEN_CURLY_BRACE))
-	{
-		expression = parse_record_literal();
-	}
-	else if (token_pipe->expect_current_token_to_be(WTokenType::OPEN_BRACKET))
-	{
-		expression = parse_vector_literal();
-	}
-	else
-	{
-		expression = parse_expression();
-	}
-
+	Expression_ptr expression = expr_parser->parse_expression();
 	RETURN_NULLPTR_IF_NULLPTR(expression);
 
 	// EOL
@@ -157,170 +144,16 @@ Statement_ptr Parser::parse_variable_declaration(bool is_public, bool is_mutable
 
 // Expression Parsers
 
-Expression_ptr Parser::parse_expression()
-{
-	vector<Expression_ptr> ast;
-	stack<Token_ptr> operator_stack;
-
-	while (true)
-	{
-		Token_ptr current_token = token_pipe->get_current_token();
-
-		if (current_token == nullptr)
-			return nullptr;
-
-		auto current_token_type = current_token->type;
-
-		if (current_token_type == WTokenType::EOL || current_token_type == WTokenType::COMMA)
-			break;
-
-		if (current_token_type == WTokenType::NumberLiteral)
-		{
-			ast.push_back(make_shared<NumberLiteral>(stod(current_token->value)));
-			ADVANCE_PTR;
-		}
-		else if (current_token_type == WTokenType::StringLiteral)
-		{
-			ast.push_back(make_shared<StringLiteral>(current_token->value));
-			ADVANCE_PTR;
-		}
-		else if (current_token_type == WTokenType::TRUE_KEYWORD || current_token_type == WTokenType::FALSE_KEYWORD)
-		{
-			bool bool_value = current_token->value == "true" ? true : false;
-			ast.push_back(make_shared<BooleanLiteral>(bool_value));
-			ADVANCE_PTR;
-		}
-		else if (current_token_type == WTokenType::Identifier)
-		{
-			ADVANCE_PTR;
-
-			if (token_pipe->expect_current_token_to_be(WTokenType::OPEN_BRACKET))
-			{
-				auto expression = parse_expression();
-				RETURN_NULLPTR_IF_NULLPTR(expression);
-				RETURN_NULLPTR_IF_TRUE(!token_pipe->expect_current_token_to_be(WTokenType::CLOSE_BRACKET));
-
-				ast.push_back(make_shared<VectorMemberAccess>(current_token->value, move(expression)));
-			}
-			else if (token_pipe->expect_current_token_to_be(WTokenType::DOT))
-			{
-				auto identifier = token_pipe->consume_token(WTokenType::Identifier);
-				RETURN_NULLPTR_IF_NULLPTR(identifier);
-
-				ast.push_back(make_shared<UDTMemberAccess>(current_token->value, identifier->value));
-			}
-			else
-			{
-				ast.push_back(make_shared<Identifier>(current_token->value));
-			}
-		}
-		else if (current_token_type == WTokenType::OPEN_BRACKET)
-		{
-			ADVANCE_PTR;
-			auto vec = this->parse_vector_literal();
-			RETURN_NULLPTR_IF_NULLPTR(vec);
-
-			ast.push_back(move(vec));
-		}
-		else if (current_token_type == WTokenType::OPEN_PARENTHESIS)
-		{
-			this->inside_function_call.push(false);
-			operator_stack.push(move(current_token));
-			ADVANCE_PTR;
-		}
-		else if (current_token_type == WTokenType::AND || current_token_type == WTokenType::OR)
-		{
-			this->push_operator_to_operator_stack(move(current_token), operator_stack, ast);
-			ADVANCE_PTR;
-		}
-		else if (current_token_type == WTokenType::CLOSE_PARENTHESIS)
-		{
-			if (this->inside_function_call.top() == true)
-				break;
-
-			this->pop_until_open_parenthesis_from_stack_into_ast(operator_stack, ast);
-			ADVANCE_PTR;
-			break;
-		}
-		else if (current_token_type == WTokenType::OPEN_CURLY_BRACE || current_token_type == WTokenType::CLOSE_CURLY_BRACE || current_token_type == WTokenType::CLOSE_BRACKET)
-		{
-			break;
-		}
-		else if (current_token_type == WTokenType::BANG ||
-			current_token_type == WTokenType::UNARY_MINUS ||
-			current_token_type == WTokenType::UNARY_PLUS ||
-			current_token_type == WTokenType::PLUS ||
-			current_token_type == WTokenType::MINUS ||
-			current_token_type == WTokenType::DIVISION ||
-			current_token_type == WTokenType::REMINDER ||
-			current_token_type == WTokenType::STAR ||
-			current_token_type == WTokenType::POWER ||
-			current_token_type == WTokenType::GREATER_THAN ||
-			current_token_type == WTokenType::GREATER_THAN_EQUAL ||
-			current_token_type == WTokenType::LESSER_THAN ||
-			current_token_type == WTokenType::LESSER_THAN_EQUAL ||
-			current_token_type == WTokenType::EQUAL_EQUAL ||
-			current_token_type == WTokenType::BANG_EQUAL)
-		{
-			this->push_operator_to_operator_stack(move(current_token), operator_stack, ast);
-			ADVANCE_PTR;
-		}
-		else if (current_token_type == WTokenType::FunctionIdentifier)
-		{
-			ADVANCE_PTR;
-			vector<Expression_ptr> expressions;
-
-			RETURN_NULLPTR_IF_FALSE(token_pipe->expect_current_token_to_be(WTokenType::OPEN_PARENTHESIS));
-
-			this->inside_function_call.push(true);
-
-			if (token_pipe->expect_current_token_to_be(WTokenType::CLOSE_PARENTHESIS))
-			{
-				this->inside_function_call.pop();
-				ast.push_back(make_shared<FunctionCall>(current_token->value, expressions));
-			}
-			else
-			{
-				while (true)
-				{
-					auto expression = parse_expression();
-					RETURN_NULLPTR_IF_NULLPTR(expression);
-
-					expressions.push_back(move(expression));
-
-					if (token_pipe->expect_current_token_to_be(WTokenType::COMMA))
-						continue;
-
-					if (token_pipe->expect_current_token_to_be(WTokenType::CLOSE_PARENTHESIS))
-					{
-						ast.push_back(make_shared<FunctionCall>(current_token->value, expressions));
-						break;
-					}
-				}
-			}
-		}
-	}
-
-	this->pop_all_from_stack_into_ast(operator_stack, ast);
-
-	if (ast.size() > 1) {
-		// ERROR
-		return nullptr;
-	}
-
-	return move(ast[0]);
-}
-
 Statement_ptr Parser::parse_expression_statement()
 {
-	auto expression = parse_expression();
+	auto expression = expr_parser->parse_expression();
 	RETURN_NULLPTR_IF_NULLPTR(expression);
 	RETURN_NULLPTR_IF_FALSE(token_pipe->expect_current_token_to_be(WTokenType::EOL));
 
 	return make_shared<ExpressionStatement>(move(expression));
 }
 
-Statement_ptr Parser::handle_identifier(Token_ptr identifier)
+Statement_ptr Parser::consume_assignment_or_expression_statement(Token_ptr identifier)
 {
 	auto current_token = token_pipe->get_current_token();
 	WTokenType current_token_type = current_token->type;
@@ -329,7 +162,7 @@ Statement_ptr Parser::handle_identifier(Token_ptr identifier)
 	{
 		ADVANCE_PTR;
 
-		auto expression = parse_expression();
+		auto expression = expr_parser->parse_expression();
 		RETURN_NULLPTR_IF_NULLPTR(expression);
 
 		RETURN_NULLPTR_IF_FALSE(token_pipe->expect_current_token_to_be(WTokenType::EOL));
@@ -346,7 +179,7 @@ Statement_ptr Parser::handle_identifier(Token_ptr identifier)
 		) {
 		ADVANCE_PTR;
 
-		auto expression = parse_expression();
+		auto expression = expr_parser->parse_expression();
 		RETURN_NULLPTR_IF_NULLPTR(expression);
 
 		RETURN_NULLPTR_IF_FALSE(token_pipe->expect_current_token_to_be(WTokenType::EOL));
@@ -361,59 +194,6 @@ Statement_ptr Parser::handle_identifier(Token_ptr identifier)
 
 	RETREAT_PTR; // To point to identifier token
 	return this->parse_expression_statement();
-}
-
-// Literal Parsers
-
-Expression_ptr Parser::parse_vector_literal()
-{
-	vector<Expression_ptr> elements;
-
-	if (token_pipe->expect_current_token_to_be(WTokenType::CLOSE_BRACKET))
-		return make_shared<VectorLiteral>(elements);
-
-	while (true)
-	{
-		auto element = parse_expression();
-		RETURN_NULLPTR_IF_NULLPTR(element);
-
-		elements.push_back(move(element));
-
-		if (token_pipe->expect_current_token_to_be(WTokenType::CLOSE_BRACKET))
-			return make_shared<VectorLiteral>(elements);
-
-		RETURN_NULLPTR_IF_FALSE(token_pipe->expect_current_token_to_be(WTokenType::COMMA));
-	}
-}
-
-Expression_ptr Parser::parse_record_literal()
-{
-	map<string, Expression_ptr> pairs;
-
-	if (token_pipe->expect_current_token_to_be(WTokenType::CLOSE_CURLY_BRACE))
-		return make_shared<UDTLiteral>(pairs);
-
-	while (true)
-	{
-		token_pipe->ignore(WTokenType::EOL);
-
-		auto key = consume_valid_record_key();
-		RETURN_NULLPTR_IF_NULLPTR(key);
-
-		RETURN_NULLPTR_IF_FALSE(token_pipe->expect_current_token_to_be(WTokenType::COLON));
-
-		auto value = parse_expression();
-		RETURN_NULLPTR_IF_NULLPTR(value);
-
-		pairs.insert_or_assign(*key.get(), value);
-
-		token_pipe->ignore(WTokenType::EOL);
-
-		if (token_pipe->expect_current_token_to_be(WTokenType::CLOSE_CURLY_BRACE))
-			return make_shared<UDTLiteral>(pairs);
-
-		RETURN_NULLPTR_IF_FALSE(token_pipe->expect_current_token_to_be(WTokenType::COMMA));
-	}
 }
 
 // Block Statements Parsers
@@ -449,7 +229,7 @@ Statement_ptr Parser::parse_loop_statement()
 
 Statement_ptr Parser::parse_branching_statement()
 {
-	auto condition = parse_expression();
+	auto condition = expr_parser->parse_expression();
 	RETURN_NULLPTR_IF_NULLPTR(condition);
 
 	auto consequence = this->parse_block();
@@ -626,22 +406,6 @@ Type_ptr Parser::consume_datatype_word()
 		return nullptr;
 	}
 	}
-}
-
-shared_ptr<string> Parser::consume_valid_record_key()
-{
-	auto token = token_pipe->get_current_token();
-	RETURN_NULLPTR_IF_NULLPTR(token);
-
-	switch (token->type)
-	{
-	case WTokenType::Identifier:
-	{
-		ADVANCE_PTR;
-		return make_shared<string>(token->value);
-	}
-	}
-	return nullptr;
 }
 
 // Utils

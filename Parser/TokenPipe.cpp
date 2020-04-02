@@ -1,5 +1,6 @@
 #pragma once
-#include "TokenPipeline.h"
+#include "pch.h"
+#include "TokenPipe.h"
 
 Token_ptr TokenPipe::get_current_token() const
 {

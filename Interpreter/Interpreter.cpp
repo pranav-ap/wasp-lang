@@ -168,21 +168,6 @@ Object_ptr Interpreter::visit(VectorLiteral_ptr vector_literal)
 	return expression_objects;
 }
 
-Object_ptr Interpreter::visit(MapLiteral_ptr map_literal)
-{
-	auto map_object = make_shared<MapObject>();
-
-	for (auto const& [key_expr, value_expr] : map_literal->pairs)
-	{
-		auto key_object = key_expr->interpret(*this);
-		auto value_object = value_expr->interpret(*this);
-
-		map_object->add(key_object, value_object);
-	}
-
-	return map_object;
-}
-
 Object_ptr Interpreter::visit(UDTLiteral_ptr udt_literal)
 {
 	auto udt_object = make_shared<UDTObject>();

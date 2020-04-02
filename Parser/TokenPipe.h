@@ -11,6 +11,9 @@
 
 #include "Token.h"
 
+#define ADVANCE_PTR token_pipe->advance_pointer()
+#define RETREAT_PTR token_pipe->retreat_pointer()
+
 class PARSER_API TokenPipe
 {
 	std::vector<Token_ptr> tokens;

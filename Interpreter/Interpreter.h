@@ -42,7 +42,6 @@ class INTERPRETER_API Interpreter : public StatementInterpreter, public Expressi
 	Object_ptr visit(BooleanLiteral_ptr expression);
 
 	Object_ptr visit(VectorLiteral_ptr expression);
-	Object_ptr visit(MapLiteral_ptr expression);
 	Object_ptr visit(UDTLiteral_ptr expression);
 
 	Object_ptr visit(Identifier_ptr expression);

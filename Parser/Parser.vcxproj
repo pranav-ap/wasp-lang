@@ -153,6 +153,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="ExpressionParser.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="OperatorStack.h" />
     <ClInclude Include="Parser.h" />
@@ -161,6 +162,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="ExpressionParser.cpp" />
     <ClCompile Include="OperatorStack.cpp" />
     <ClCompile Include="Parser.cpp" />
     <ClCompile Include="pch.cpp">

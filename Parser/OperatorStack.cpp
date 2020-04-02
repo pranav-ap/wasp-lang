@@ -10,107 +10,111 @@ using std::pair;
 using std::make_pair;
 using std::move;
 
-void OperatorStack::pop_all_from_stack_into_ast(vector<Expression_ptr>& ast)
+void OperatorStack::push_operator_into_ast(Token_ptr operator_token, ExpressionStack& ast)
 {
-	while (op_stack.size() > 0)
-	{
-		Token_ptr top_operator = move(op_stack.top());
-		op_stack.pop();
+	int parity = get_parity(operator_token->type);
 
-		int parity = get_parity(top_operator->type);
-
-		if (parity == 1)
-			this->push_unary_operator_to_ast(move(top_operator), ast);
-		else if (parity == 2)
-			this->push_binary_operator_to_ast(move(top_operator), ast);
-	}
+	if (parity == 1)
+		this->push_unary_operator_to_ast(move(operator_token), ast);
+	else if (parity == 2)
+		this->push_binary_operator_to_ast(move(operator_token), ast);
 }
 
-void OperatorStack::push_unary_operator_to_ast(Token_ptr op, vector<Expression_ptr>& ast)
+void OperatorStack::push_unary_operator_to_ast(Token_ptr operator_token, ExpressionStack& ast)
 {
 	if (ast.size() >= 1)
 	{
-		Expression_ptr node = move(ast.back());
-		ast.pop_back();
+		Expression_ptr expression = move(ast.top());
+		ast.pop();
 
-		ast.push_back(make_shared<Unary>(move(op), move(node)));
+		ast.push(
+			make_shared<Unary>(
+				move(operator_token),
+				move(expression)
+				)
+		);
 	}
 }
 
-void OperatorStack::push_binary_operator_to_ast(Token_ptr op, vector<Expression_ptr>& ast)
+void OperatorStack::push_binary_operator_to_ast(Token_ptr operator_token, ExpressionStack& ast)
 {
 	if (ast.size() >= 2)
 	{
-		Expression_ptr right_expression = move(ast.back());
-		ast.pop_back();
+		Expression_ptr rhs = move(ast.top());
+		ast.pop();
 
-		Expression_ptr left_expression = move(ast.back());
-		ast.pop_back();
+		Expression_ptr lhs = move(ast.top());
+		ast.pop();
 
-		ast.push_back(make_shared<Binary>(move(left_expression), move(op), move(right_expression)));
+		ast.push(
+			make_shared<Binary>(
+				move(lhs),
+				move(operator_token),
+				move(rhs)
+				)
+		);
 	}
 }
 
-void OperatorStack::pop_until_open_parenthesis_from_stack_into_ast(vector<Expression_ptr>& ast)
+void OperatorStack::drain_into_ast(ExpressionStack& ast)
 {
-	while (op_stack.size() > 0)
+	while (operator_stack.size() > 0)
 	{
-		Token_ptr top_operator = move(op_stack.top());
-		op_stack.pop();
+		Token_ptr top_operator = move(operator_stack.top());
+		operator_stack.pop();
+
+		push_operator_into_ast(top_operator, ast);
+	}
+}
+
+void OperatorStack::drain_into_ast_until_open_parenthesis(ExpressionStack& ast)
+{
+	while (operator_stack.size() > 0)
+	{
+		Token_ptr top_operator = move(operator_stack.top());
+		operator_stack.pop();
 
 		if (top_operator->type == WTokenType::OPEN_PARENTHESIS)
 			break;
 
-		int parity = get_parity(top_operator->type);
-
-		if (parity == 1)
-			this->push_unary_operator_to_ast(move(top_operator), ast);
-		else if (parity == 2)
-			this->push_binary_operator_to_ast(move(top_operator), ast);
+		push_operator_into_ast(top_operator, ast);
 	}
 }
 
-void OperatorStack::push_operator_to_operator_stack(Token_ptr op, vector<Expression_ptr>& ast)
+void OperatorStack::dumb_push(Token_ptr operator_token)
 {
-	int operator_precedence = get_precedence(op->type);
+	operator_stack.push(move(operator_token));
+}
 
-	while (op_stack.size() > 0)
+void OperatorStack::smart_push(Token_ptr operator_token, ExpressionStack& ast)
+{
+	int operator_precedence = get_precedence(operator_token->type);
+
+	while (operator_stack.size() > 0)
 	{
-		Token_ptr top_operator = move(op_stack.top());
+		Token_ptr top_operator = operator_stack.top();
 		auto top_operator_type = top_operator->type;
 		int top_operator_precedence = get_precedence(top_operator_type);
 
-		if (
-			(
-				top_operator_type == WTokenType::FunctionIdentifier
-				|| (top_operator_precedence > operator_precedence)
-				|| (top_operator_precedence == operator_precedence && !is_right_associative(top_operator_type))
-				)
-			&& top_operator_type != WTokenType::OPEN_PARENTHESIS
-			)
+		if (top_operator_type != WTokenType::OPEN_PARENTHESIS)
 		{
-			op_stack.pop();
-
-			int parity = get_parity(top_operator_type);
-
-			if (parity == 1)
+			if (top_operator_precedence > operator_precedence ||
+				(top_operator_precedence == operator_precedence && is_left_associative(top_operator_type)))
 			{
-				this->push_unary_operator_to_ast(move(top_operator), ast);
-			}
-			else if (parity == 2)
-			{
-				this->push_binary_operator_to_ast(move(top_operator), ast);
+				operator_stack.pop();
+				push_operator_into_ast(move(top_operator), ast);
 			}
 		}
 		else
 		{
-			op_stack.push(top_operator);
 			break;
 		}
 	}
 
-	op_stack.push(op);
+	operator_stack.push(operator_token);
 }
+
+// UTILS
 
 int OperatorStack::get_parity(WTokenType token_type)
 {
@@ -138,15 +142,6 @@ int OperatorStack::get_parity(WTokenType token_type)
 	case WTokenType::COMMA:
 	case WTokenType::AND:
 	case WTokenType::OR:
-	{
-		return 2;
-	}
-	case WTokenType::PLUS_EQUAL:
-	case WTokenType::MINUS_EQUAL:
-	case WTokenType::STAR_EQUAL:
-	case WTokenType::DIVISION_EQUAL:
-	case WTokenType::REMINDER_EQUAL:
-	case WTokenType::POWER_EQUAL:
 	{
 		return 2;
 	}
@@ -208,12 +203,6 @@ int OperatorStack::get_precedence(WTokenType token_type)
 		return 3;
 	}
 	case WTokenType::EQUAL:
-	case WTokenType::PLUS_EQUAL:
-	case WTokenType::MINUS_EQUAL:
-	case WTokenType::STAR_EQUAL:
-	case WTokenType::DIVISION_EQUAL:
-	case WTokenType::REMINDER_EQUAL:
-	case WTokenType::POWER_EQUAL:
 	{
 		return 2;
 	}
@@ -226,7 +215,7 @@ int OperatorStack::get_precedence(WTokenType token_type)
 	}
 }
 
-bool OperatorStack::is_right_associative(WTokenType token_type)
+bool OperatorStack::is_left_associative(WTokenType token_type)
 {
 	switch (token_type)
 	{
@@ -235,17 +224,10 @@ bool OperatorStack::is_right_associative(WTokenType token_type)
 	case WTokenType::UNARY_PLUS:
 	case WTokenType::BANG:
 	case WTokenType::EQUAL:
-
-	case WTokenType::PLUS_EQUAL:
-	case WTokenType::MINUS_EQUAL:
-	case WTokenType::STAR_EQUAL:
-	case WTokenType::DIVISION_EQUAL:
-	case WTokenType::REMINDER_EQUAL:
-	case WTokenType::POWER_EQUAL:
 	{
-		return true;
+		return false;
 	}
 	default:
-		return false;
+		return true;
 	}
 }

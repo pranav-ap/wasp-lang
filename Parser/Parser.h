@@ -17,44 +17,29 @@
 #include "Expression.h"
 #include "Statement.h"
 #include "TokenPipe.h"
-
-#define ADVANCE_PTR token_pipe->advance_pointer()
-#define RETREAT_PTR token_pipe->retreat_pointer()
+#include "ExpressionParser.h"
 
 #define RETURN_NULLPTR_IF_NULLPTR(x) if (x == nullptr) { return nullptr; }
 #define RETURN_NULLPTR_IF_TRUE(x) if (x) { return nullptr; }
 #define RETURN_NULLPTR_IF_FALSE(x) if (!x) { return nullptr; }
 #define CASE(token_type, call) case token_type: { return call; }
 
-class PARSER_API ExpressionParser
-{
-	TokenPipe_ptr token_pipe;
-	std::stack<bool> inside_function_call;
-
-public:
-};
-
 class PARSER_API Parser
 {
 	TokenPipe_ptr token_pipe;
+	ExpressionParser_ptr expr_parser;
 
 	Statement_ptr parse_statement(bool is_public);
 	Statement_ptr parse_public_statement();
 
 	Statement_ptr parse_expression_statement();
-	Expression_ptr parse_expression();
 
 	Statement_ptr parse_return_statement();
 	Statement_ptr parse_break_statement();
 	Statement_ptr parse_continue_statement();
 
 	Statement_ptr parse_variable_declaration(bool is_public, bool is_mutable);
-	Statement_ptr handle_identifier(Token_ptr identifier);
-
-	// Literal parsers
-
-	Expression_ptr parse_vector_literal();
-	Expression_ptr parse_record_literal();
+	Statement_ptr consume_assignment_or_expression_statement(Token_ptr identifier);
 
 	// Block statement parsing
 
@@ -73,13 +58,14 @@ class PARSER_API Parser
 	Statement_ptr parse_function_definition(bool is_public);
 
 	// Utils
+
 	Block_ptr parse_block();
-	std::shared_ptr<std::string> consume_valid_record_key();
 	void convert_to_equivalent_token(Token_ptr token);
 
 public:
 	Parser(std::vector<Token_ptr>& tokens)
-		: token_pipe(std::make_shared<TokenPipe>(tokens)) {};
+		: token_pipe(std::make_shared<TokenPipe>(tokens)),
+		expr_parser(std::make_shared<ExpressionParser>(token_pipe)) {};
 
 	Module execute();
 };

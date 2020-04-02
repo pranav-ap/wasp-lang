@@ -30,12 +30,6 @@ Object_ptr VectorLiteral::interpret(ExpressionInterpreter& visitor)
 	return visitor.visit(p);
 }
 
-Object_ptr MapLiteral::interpret(ExpressionInterpreter& visitor)
-{
-	INIT_PTR_P(MapLiteral);
-	return visitor.visit(p);
-}
-
 Object_ptr UDTLiteral::interpret(ExpressionInterpreter& visitor)
 {
 	INIT_PTR_P(UDTLiteral);
@@ -109,16 +103,6 @@ MODULE_API std::ostream& operator<<(std::ostream& os, const VectorLiteral_ptr ex
 	for (auto const& e : exp->expressions)
 	{
 		os << e << " ";
-	}
-
-	return os;
-}
-
-MODULE_API std::ostream& operator<<(std::ostream& os, const MapLiteral_ptr exp)
-{
-	for (auto const& [key, value] : exp->pairs)
-	{
-		os << key << " " << value << " ";
 	}
 
 	return os;

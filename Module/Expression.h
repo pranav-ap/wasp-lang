@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <stack>
 #include <memory>
 
 #include "Token.h"
@@ -22,6 +23,9 @@ struct MODULE_API Expression
 };
 
 using Expression_ptr = MODULE_API std::shared_ptr<Expression>;
+using ExpressionVector = MODULE_API std::vector<Expression_ptr>;
+using ExpressionVector_ptr = MODULE_API std::shared_ptr<std::vector<Expression_ptr>>;
+using ExpressionStack = MODULE_API std::stack<Expression_ptr>;
 
 struct MODULE_API StringLiteral : public Expression, public std::enable_shared_from_this<StringLiteral>
 {
