@@ -144,7 +144,7 @@ MODULE_API std::ostream& operator<<(std::ostream& os, const VectorMemberAccess_p
 
 MODULE_API std::ostream& operator<<(std::ostream& os, const UDTMemberAccess_ptr exp)
 {
-	os << exp->record_name << "." << exp->member_name;
+	os << exp->UDT_name << "." << exp->member_name;
 	return os;
 }
 

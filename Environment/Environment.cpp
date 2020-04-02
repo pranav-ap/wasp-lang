@@ -20,86 +20,84 @@ Environment::Environment()
 
 // Getters
 
-shared_ptr<VariableInfo> Environment::get_variable(string name)
+Info_ptr Environment::get_info(std::string name)
 {
 	for (auto scope : scopes)
 	{
-		if (scope->variable_store.contains(name))
+		if (scope->store.contains(name))
 		{
-			return scope->variable_store[name];
+			auto info = scope->store[name];
+			return info;
 		}
 	}
 
 	return nullptr;
 }
 
-shared_ptr<FunctionInfo> Environment::get_function(string name)
+VariableInfo_ptr Environment::get_variable(string name)
 {
-	for (auto scope : scopes)
-	{
-		if (scope->fn_store.contains(name))
-		{
-			return scope->fn_store[name];
-		}
-	}
+	auto info = get_info(name);
 
-	return nullptr;
+	if (info == nullptr)
+		return nullptr;
+
+	if (typeid(*info) != typeid(VariableInfo))
+		return nullptr;
+
+	auto variable_info = dynamic_pointer_cast<VariableInfo>(info);
+	return variable_info;
 }
 
-shared_ptr<UDTInfo> Environment::get_UDT(string name)
+FunctionInfo_ptr Environment::get_function(string name)
 {
-	for (auto scope : scopes)
-	{
-		if (scope->type_store.contains(name))
-		{
-			return scope->type_store[name];
-		}
-	}
+	auto info = get_info(name);
 
-	return nullptr;
+	if (info == nullptr)
+		return nullptr;
+
+	if (typeid(*info) != typeid(FunctionInfo))
+		return nullptr;
+
+	auto function_info = dynamic_pointer_cast<FunctionInfo>(info);
+	return function_info;
+}
+
+UDTInfo_ptr Environment::get_UDT(string name)
+{
+	auto info = get_info(name);
+
+	if (info == nullptr)
+		return nullptr;
+
+	if (typeid(*info) != typeid(UDTInfo))
+		return nullptr;
+
+	auto UDT_info = dynamic_pointer_cast<UDTInfo>(info);
+	return UDT_info;
 }
 
 // Setters
 
-void Environment::set_variable(string name, VariableInfo_ptr info)
+void Environment::set_variable(string name, Object_ptr value)
 {
-	auto scope = scopes.front();
+	if (value == nullptr)
+		return;
 
-	if (!scope->variable_store.contains(name))
-	{
-		// ERROR
-	}
+	auto info = get_info(name);
 
-	scope->variable_store[name] = info;
-}
+	if (info == nullptr)
+		return;
 
-void Environment::set_function(string name, FunctionInfo_ptr info)
-{
-	auto scope = scopes.front();
+	if (typeid(*info) != typeid(VariableInfo))
+		return;
 
-	if (!scope->fn_store.contains(name))
-	{
-		// ERROR
-	}
-
-	scope->fn_store[name] = info;
-}
-
-void Environment::set_UDT(string name, UDTInfo_ptr info)
-{
-	auto scope = scopes.front();
-
-	if (!scope->type_store.contains(name))
-	{
-		// ERROR
-	}
-
-	scope->type_store[name] = info;
+	auto variable_info = dynamic_pointer_cast<VariableInfo>(info);
+	variable_info->value = value;
 }
 
 // Create and Set
 
-void Environment::create_and_set_variable(
+void Environment::create_variable(
 	string name,
 	bool is_public,
 	bool is_mutable,
@@ -108,22 +106,20 @@ void Environment::create_and_set_variable(
 {
 	auto scope = scopes.front();
 
-	auto result = scope->variable_store.insert(
-		pair<string, VariableInfo_ptr>(
+	auto result = scope->store.insert(
+		pair<string, Info_ptr>(
 			name,
-			make_shared<VariableInfo>(
-				is_public, is_mutable, type, value
-				)
+			make_shared<VariableInfo>(is_public, is_mutable, type, value)
 			)
 	);
 
 	if (result.second == false)
 	{
-		// ERROR
+		// ERROR - already existed
 	}
 }
 
-void Environment::create_and_set_function(
+void Environment::create_function(
 	string name,
 	bool is_public,
 	std::map<std::string, Type_ptr> arguments,
@@ -132,15 +128,10 @@ void Environment::create_and_set_function(
 {
 	auto scope = scopes.front();
 
-	auto result = scope->fn_store.insert(
-		pair<string, FunctionInfo_ptr>(
+	auto result = scope->store.insert(
+		pair<string, Info_ptr>(
 			name,
-			make_shared<FunctionInfo>(
-				is_public,
-				arguments,
-				return_type,
-				body
-				)
+			make_shared<FunctionInfo>(is_public, arguments, return_type, body)
 			)
 	);
 
@@ -150,15 +141,15 @@ void Environment::create_and_set_function(
 	}
 }
 
-void Environment::create_and_set_UDT(
+void Environment::create_UDT(
 	string name,
 	bool is_public,
 	std::map<std::string, Type_ptr> member_types)
 {
 	auto scope = scopes.front();
 
-	auto result = scope->type_store.insert(
-		pair<string, UDTInfo_ptr>(
+	auto result = scope->store.insert(
+		pair<string, Info_ptr>(
 			name,
 			make_shared<UDTInfo>(is_public, member_types)
 			)

@@ -12,15 +12,11 @@
 
 struct ENVIRONMENT_API Scope
 {
-	std::map<std::string, VariableInfo_ptr> variable_store;
-	std::map<std::string, FunctionInfo_ptr> fn_store;
-	std::map<std::string, UDTInfo_ptr> type_store;
+	std::map<std::string, Info_ptr> store;
 
 	~Scope()
 	{
-		variable_store.clear();
-		fn_store.clear();
-		type_store.clear();
+		store.clear();
 	}
 };
 

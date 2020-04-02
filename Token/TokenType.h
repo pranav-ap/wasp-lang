@@ -111,4 +111,4 @@ TOKEN_API enum class WTokenType
 	UNKNOWN
 };
 
-TOKEN_API std::ostream& operator<<(std::ostream& os, const WTokenType& type);
+TOKEN_API std::ostream& operator<<(std::ostream& os, const WTokenType type);

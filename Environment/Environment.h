@@ -14,32 +14,41 @@ class ENVIRONMENT_API Environment
 {
 	std::list<Scope_ptr> scopes;
 
+	Info_ptr get_info(std::string name);
+
 public:
+
 	Environment();
+
+	// Getters
 
 	VariableInfo_ptr get_variable(std::string name);
 	FunctionInfo_ptr get_function(std::string name);
 	UDTInfo_ptr get_UDT(std::string name);
 
-	void set_variable(std::string name, VariableInfo_ptr info);
-	void set_function(std::string name, FunctionInfo_ptr info);
-	void set_UDT(std::string name, UDTInfo_ptr info);
+	// Setters
 
-	void create_and_set_variable(
+	void set_variable(std::string name, Object_ptr value);
+
+	// Creation
+
+	void create_variable(
 		std::string name,
 		bool is_public,
 		bool is_mutable,
 		Type_ptr type,
 		Object_ptr result
 	);
-	void create_and_set_function(
+
+	void create_function(
 		std::string name,
 		bool is_public,
 		std::map<std::string, Type_ptr> arguments,
 		std::optional<Type_ptr> return_type,
 		Block_ptr body
 	);
-	void create_and_set_UDT(
+
+	void create_UDT(
 		std::string name,
 		bool is_public,
 		std::map<std::string, Type_ptr> member_types

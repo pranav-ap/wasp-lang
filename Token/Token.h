@@ -26,4 +26,5 @@ struct TOKEN_API Token
 
 using Token_ptr = std::shared_ptr<Token>;
 
-TOKEN_API std::ostream& operator<<(std::ostream& os, const Token& t);
+TOKEN_API std::ostream& operator<<(std::ostream& os, const Token& token);
+TOKEN_API std::ostream& operator<<(std::ostream& os, const Token_ptr& token);

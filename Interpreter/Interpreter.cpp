@@ -7,17 +7,21 @@
 
 #include <memory>
 #include <string>
+#include <map>
+#include <optional>
 
 #define OPERAND_TYPEID typeid(*operand)
 #define LEFT_TYPEID typeid(*left)
 #define RIGHT_TYPEID typeid(*right)
 
 using std::string;
+using std::map;
+using std::optional;
 using std::make_shared;
 
 void Interpreter::execute()
 {
-	for (auto statement : this->mod.get_statements())
+	for (auto statement : mod.get_statements())
 		statement->interpret(*this);
 }
 
@@ -33,13 +37,13 @@ void Interpreter::visit(VariableDeclaration_ptr declaration)
 
 	auto result = declaration->expression->interpret(*this);
 
-	this->env->create_and_set_variable(name, is_public, is_mutable, type, result);
+	env->create_variable(name, is_public, is_mutable, type, result);
 }
 
 void Interpreter::visit(Assignment_ptr assignment)
 {
 	auto name = assignment->name;
-	auto info = this->env->get_variable(name);
+	auto info = env->get_variable(name);
 
 	if (!info->is_mutable)
 	{
@@ -71,11 +75,11 @@ void Interpreter::visit(Branch_ptr branch)
 
 	if (result_boolean_object->value)
 	{
-		this->evaluate_branch_block(branch->consequence);
+		evaluate_branch_block(branch->consequence);
 	}
 	else
 	{
-		this->evaluate_branch_block(branch->alternative);
+		evaluate_branch_block(branch->alternative);
 	}
 }
 
@@ -105,10 +109,12 @@ void Interpreter::visit(Loop_ptr loop)
 
 void Interpreter::visit(Break_ptr statement)
 {
+	// Error
 }
 
 void Interpreter::visit(Continue_ptr statement)
 {
+	// Error
 }
 
 void Interpreter::visit(ExpressionStatement_ptr statement)
@@ -116,18 +122,30 @@ void Interpreter::visit(ExpressionStatement_ptr statement)
 	auto _x = statement->expression->interpret(*this);
 }
 
-// 0.2
-
-void Interpreter::visit(Alias_ptr statement)
-{
-}
-
 void Interpreter::visit(UDTDefinition_ptr statement)
 {
+	bool is_public = statement->is_public;
+	string name = statement->name;
+	map<string, Type_ptr> member_types = statement->member_types;
+
+	env->create_UDT(name, is_public, member_types);
 }
 
 void Interpreter::visit(FunctionDefinition_ptr statement)
 {
+	string name = statement->name;
+	bool is_public = statement->is_public;
+	map<string, Type_ptr> arguments = statement->arguments;
+	optional<Type_ptr> return_type = statement->return_type;
+	Block_ptr body = statement->body;
+
+	env->create_function(
+		name,
+		is_public,
+		arguments,
+		return_type,
+		body
+	);
 }
 
 void Interpreter::visit(Return_ptr statement)
@@ -184,7 +202,7 @@ Object_ptr Interpreter::visit(UDTLiteral_ptr udt_literal)
 Object_ptr Interpreter::visit(Identifier_ptr expression)
 {
 	auto name = expression->name;
-	auto info = this->env->get_variable(name);
+	auto info = env->get_variable(name);
 
 	return info->value;
 }
@@ -197,12 +215,12 @@ Object_ptr Interpreter::visit(Unary_ptr unary_expression)
 	if (OPERAND_TYPEID == typeid(NumberObject))
 	{
 		auto operand_number_object = dynamic_pointer_cast<NumberObject>(operand);
-		return this->perform_unary_operation(token_type, operand_number_object);
+		return perform_operation(token_type, operand_number_object);
 	}
 	else if (OPERAND_TYPEID == typeid(BooleanObject))
 	{
 		auto operand_boolean_object = dynamic_pointer_cast<BooleanObject>(operand);
-		return this->perform_unary_operation(token_type, operand_boolean_object);
+		return perform_operation(token_type, operand_boolean_object);
 	}
 
 	return nullptr;
@@ -218,27 +236,69 @@ Object_ptr Interpreter::visit(Binary_ptr binary_expression)
 	{
 		auto left_number_object = dynamic_pointer_cast<NumberObject>(left);
 		auto right_number_object = dynamic_pointer_cast<NumberObject>(right);
-		return this->perform_binary_operation(token_type, left_number_object, right_number_object);
+		return perform_operation(token_type, left_number_object, right_number_object);
 	}
 	else if (LEFT_TYPEID == typeid(BooleanObject) && RIGHT_TYPEID == typeid(BooleanObject))
 	{
 		auto left_boolean_object = dynamic_pointer_cast<BooleanObject>(left);
 		auto right_boolean_object = dynamic_pointer_cast<BooleanObject>(right);
-		return this->perform_binary_operation(token_type, left_boolean_object, right_boolean_object);
+		return perform_operation(token_type, left_boolean_object, right_boolean_object);
+	}
+	else if (LEFT_TYPEID == typeid(StringObject) && RIGHT_TYPEID == typeid(StringObject))
+	{
+		auto left_string_object = dynamic_pointer_cast<StringObject>(left);
+		auto right_string_object = dynamic_pointer_cast<StringObject>(right);
+		return perform_operation(token_type, left_string_object, right_string_object);
 	}
 
 	return nullptr;
 }
 
-// 0.2
-
 Object_ptr Interpreter::visit(VectorMemberAccess_ptr expression)
 {
+	auto name = expression->name;
+	auto info = env->get_variable(name);
+
+	auto index_expression = expression->expression;
+	auto index_object = index_expression->interpret(*this);
+
+	if (typeid(index_object) == typeid(NumberLiteral))
+	{
+		auto index_number_object = dynamic_pointer_cast<NumberObject>(index_object);
+		double index = index_number_object->value;
+
+		if (!info->value)
+		{
+			// Error
+			return nullptr;
+		}
+
+		auto vector_object = dynamic_pointer_cast<VectorObject>(info->value);
+		return vector_object->values[index];
+	}
+
 	return nullptr;
 }
 
 Object_ptr Interpreter::visit(UDTMemberAccess_ptr expression)
 {
+	auto UDT_name = expression->UDT_name;
+	auto member_name = expression->member_name;
+
+	auto info = env->get_variable(UDT_name);
+
+	if (!info->value)
+	{
+		// Error
+		return nullptr;
+	}
+
+	if (typeid(info->value) == typeid(UDTLiteral))
+	{
+		auto UDT_object = dynamic_pointer_cast<UDTObject>(info->value);
+		return UDT_object->pairs[member_name];
+	}
+
 	return nullptr;
 }
 
@@ -252,7 +312,7 @@ Object_ptr Interpreter::visit(Range_ptr expression)
 	return nullptr;
 }
 
-// UTILS
+// Evaluate Block
 
 void Interpreter::evaluate_branch_block(Block_ptr block)
 {
@@ -273,7 +333,9 @@ void Interpreter::evaluate_branch_block(Block_ptr block)
 	}
 }
 
-Object_ptr Interpreter::perform_unary_operation(WTokenType token_type, NumberObject_ptr operand)
+// Perform Operation
+
+Object_ptr Interpreter::perform_operation(WTokenType token_type, NumberObject_ptr operand)
 {
 	switch (token_type)
 	{
@@ -287,7 +349,7 @@ Object_ptr Interpreter::perform_unary_operation(WTokenType token_type, NumberObj
 	return nullptr;
 }
 
-Object_ptr Interpreter::perform_unary_operation(WTokenType token_type, BooleanObject_ptr operand)
+Object_ptr Interpreter::perform_operation(WTokenType token_type, BooleanObject_ptr operand)
 {
 	switch (token_type)
 	{
@@ -301,7 +363,7 @@ Object_ptr Interpreter::perform_unary_operation(WTokenType token_type, BooleanOb
 	return nullptr;
 }
 
-Object_ptr Interpreter::perform_binary_operation(WTokenType token_type, BooleanObject_ptr left, BooleanObject_ptr right)
+Object_ptr Interpreter::perform_operation(WTokenType token_type, BooleanObject_ptr left, BooleanObject_ptr right)
 {
 	switch (token_type)
 	{
@@ -326,7 +388,7 @@ Object_ptr Interpreter::perform_binary_operation(WTokenType token_type, BooleanO
 	return nullptr;
 }
 
-Object_ptr Interpreter::perform_binary_operation(WTokenType token_type, NumberObject_ptr left, NumberObject_ptr right)
+Object_ptr Interpreter::perform_operation(WTokenType token_type, NumberObject_ptr left, NumberObject_ptr right)
 {
 	switch (token_type)
 	{
@@ -379,4 +441,51 @@ Object_ptr Interpreter::perform_binary_operation(WTokenType token_type, NumberOb
 		return make_shared<BooleanObject>(left->value != right->value);
 	}
 	}
+
+	return nullptr;
+}
+
+Object_ptr Interpreter::perform_operation(WTokenType token_type, StringObject_ptr left, StringObject_ptr right)
+{
+	switch (token_type)
+	{
+	case WTokenType::PLUS:
+	{
+		return make_shared<StringObject>(left->value + right->value);
+	}
+	case WTokenType::EQUAL_EQUAL:
+	{
+		return make_shared<BooleanObject>(left->value == right->value);
+	}
+	case WTokenType::BANG_EQUAL:
+	{
+		return make_shared<BooleanObject>(left->value != right->value);
+	}
+	}
+
+	return nullptr;
+}
+
+Object_ptr Interpreter::perform_operation(WTokenType token_type, StringObject_ptr left, NumberObject_ptr right)
+{
+	switch (token_type)
+	{
+	case WTokenType::STAR:
+	{
+		int count = 0;
+		auto repetitions = right->value;
+
+		string result = "";
+
+		while (count < repetitions)
+		{
+			result += left->value;
+			count++;
+		}
+
+		return make_shared<StringObject>(result);
+	}
+	}
+
+	return nullptr;
 }

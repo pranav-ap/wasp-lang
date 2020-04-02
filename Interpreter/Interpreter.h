@@ -12,6 +12,10 @@
 #include "Expression.h"
 #include "ObjectSystem.h"
 
+#define RETURN_NULLPTR_IF_NULLPTR(x) if (x == nullptr) { return nullptr; }
+#define RETURN_NULLPTR_IF_TRUE(x) if (x) { return nullptr; }
+#define RETURN_NULLPTR_IF_FALSE(x) if (!x) { return nullptr; }
+
 class INTERPRETER_API Interpreter : public StatementInterpreter, public ExpressionInterpreter
 {
 	Module mod;
@@ -26,10 +30,6 @@ class INTERPRETER_API Interpreter : public StatementInterpreter, public Expressi
 	void visit(Break_ptr statement);
 	void visit(Continue_ptr statement);
 	void visit(ExpressionStatement_ptr statement);
-
-	// 0.2
-
-	void visit(Alias_ptr statement);
 	void visit(UDTDefinition_ptr statement);
 	void visit(FunctionDefinition_ptr statement);
 	void visit(Return_ptr statement);
@@ -49,8 +49,6 @@ class INTERPRETER_API Interpreter : public StatementInterpreter, public Expressi
 	Object_ptr visit(Unary_ptr expression);
 	Object_ptr visit(Binary_ptr expression);
 
-	// 0.2
-
 	Object_ptr visit(VectorMemberAccess_ptr expression);
 	Object_ptr visit(UDTMemberAccess_ptr expression);
 	Object_ptr visit(FunctionCall_ptr expression);
@@ -61,11 +59,13 @@ class INTERPRETER_API Interpreter : public StatementInterpreter, public Expressi
 
 	void evaluate_branch_block(Block_ptr block);
 
-	Object_ptr perform_unary_operation(WTokenType token_type, NumberObject_ptr operand);
-	Object_ptr perform_unary_operation(WTokenType token_type, BooleanObject_ptr operand);
+	Object_ptr perform_operation(WTokenType token_type, NumberObject_ptr operand);
+	Object_ptr perform_operation(WTokenType token_type, BooleanObject_ptr operand);
 
-	Object_ptr perform_binary_operation(WTokenType token_type, NumberObject_ptr left, NumberObject_ptr right);
-	Object_ptr perform_binary_operation(WTokenType token_type, BooleanObject_ptr left, BooleanObject_ptr right);
+	Object_ptr perform_operation(WTokenType token_type, NumberObject_ptr left, NumberObject_ptr right);
+	Object_ptr perform_operation(WTokenType token_type, BooleanObject_ptr left, BooleanObject_ptr right);
+	Object_ptr perform_operation(WTokenType token_type, StringObject_ptr left, StringObject_ptr right);
+	Object_ptr perform_operation(WTokenType token_type, StringObject_ptr left, NumberObject_ptr right);
 
 public:
 	Interpreter(Module mod) : mod(mod), env(std::make_shared<Environment>()) {};

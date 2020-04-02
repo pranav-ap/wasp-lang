@@ -296,13 +296,6 @@ Statement_ptr Parser::parse_UDT_declaration(bool is_public)
 			RETURN_NULLPTR_IF_FALSE(token_pipe->expect_current_token_to_be(WTokenType::COMMA));
 		}
 	}
-	else if (token_pipe->expect_current_token_to_be(WTokenType::EQUAL))
-	{
-		auto type = parse_type();
-		RETURN_NULLPTR_IF_NULLPTR(type);
-
-		return make_shared<Alias>(name->value, move(type));
-	}
 
 	return nullptr;
 }

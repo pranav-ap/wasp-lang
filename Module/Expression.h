@@ -73,10 +73,10 @@ struct MODULE_API VectorMemberAccess : public Expression, public std::enable_sha
 
 struct MODULE_API UDTMemberAccess : public Expression, public std::enable_shared_from_this<UDTMemberAccess>
 {
-	std::string record_name;
+	std::string UDT_name;
 	std::string member_name;
 
-	UDTMemberAccess(std::string record_name, std::string member_name) : record_name(record_name), member_name(member_name) {};
+	UDTMemberAccess(std::string UDT_name, std::string member_name) : UDT_name(UDT_name), member_name(member_name) {};
 	Object_ptr interpret(ExpressionInterpreter& visitor);
 };
 

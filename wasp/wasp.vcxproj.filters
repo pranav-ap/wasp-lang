@@ -18,5 +18,16 @@
     <ClCompile Include="wasp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="easylogging++.cc">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CLI11.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="easylogging++.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

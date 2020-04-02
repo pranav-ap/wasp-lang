@@ -129,10 +129,28 @@ Token_ptr Lexer::consume_number_literal(char ch)
 	string number_literal;
 	number_literal.push_back(ch);
 
+	bool reached_decimal_point = false;
+
 	while (ch = this->get_current_char())
 	{
-		if (isdigit(static_cast<unsigned char>(ch)) || ch == '.')
+		if (isdigit(static_cast<unsigned char>(ch)))
 		{
+			number_literal.push_back(ch);
+			NEXT;
+			continue;
+		}
+
+		if (ch == '.')
+		{
+			if (reached_decimal_point)
+			{
+				// Error
+				NEXT;
+				return nullptr;
+			}
+
+			reached_decimal_point = true;
+
 			number_literal.push_back(ch);
 			NEXT;
 			continue;
@@ -140,8 +158,6 @@ Token_ptr Lexer::consume_number_literal(char ch)
 
 		break;
 	}
-
-	// TODO: What if there are multiple '.'
 
 	return MAKE_TOKEN(WTokenType::NumberLiteral, number_literal, LINE_NUM, COL_NUM);
 }

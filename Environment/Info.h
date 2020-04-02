@@ -12,36 +12,45 @@
 #include <map>
 #include <memory>
 
-struct ENVIRONMENT_API VariableInfo
+struct ENVIRONMENT_API Info
 {
 	bool is_public;
+	Info(bool is_public) : is_public(is_public) {};
+	virtual void dummy() = 0;
+};
+
+struct ENVIRONMENT_API VariableInfo : public Info
+{
 	bool is_mutable;
 	Type_ptr type;
 	Object_ptr value;
 
 	VariableInfo(bool is_public, bool is_mutable, Type_ptr type, Object_ptr value)
-		: is_public(is_public), is_mutable(is_mutable), type(type), value(value) {};
+		: Info(is_public), is_mutable(is_mutable), type(type), value(value) {};
+	void dummy() {};
 };
 
-struct ENVIRONMENT_API FunctionInfo
+struct ENVIRONMENT_API FunctionInfo : public Info
 {
-	bool is_public;
 	std::map<std::string, Type_ptr> arguments;
 	std::optional<Type_ptr> return_type;
 	Block_ptr body;
 
 	FunctionInfo(bool is_public, std::map<std::string, Type_ptr> arguments, std::optional<Type_ptr> return_type, Block_ptr body)
-		: is_public(is_public), arguments(arguments), return_type(return_type), body(body) {};
+		: Info(is_public), arguments(arguments), return_type(return_type), body(body) {};
+	void dummy() {};
 };
 
-struct ENVIRONMENT_API UDTInfo
+struct ENVIRONMENT_API UDTInfo : public Info
 {
-	bool is_public;
 	std::map<std::string, Type_ptr> member_types;
 
 	UDTInfo(bool is_public, std::map<std::string, Type_ptr> member_types)
-		: is_public(is_public), member_types(member_types) {};
+		: Info(is_public), member_types(member_types) {};
+	void dummy() {};
 };
+
+using Info_ptr = ENVIRONMENT_API std::shared_ptr<Info>;
 
 using VariableInfo_ptr = ENVIRONMENT_API std::shared_ptr<VariableInfo>;
 using FunctionInfo_ptr = ENVIRONMENT_API std::shared_ptr<FunctionInfo>;

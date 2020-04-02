@@ -35,11 +35,6 @@ void Continue::interpret(StatementInterpreter& visitor)
 	ACCEPT(Continue);
 }
 
-void Alias::interpret(StatementInterpreter& visitor)
-{
-	ACCEPT(Alias);
-}
-
 void UDTDefinition::interpret(StatementInterpreter& visitor)
 {
 	ACCEPT(UDTDefinition);
@@ -100,12 +95,6 @@ MODULE_API std::ostream& operator<<(std::ostream& os, const Break_ptr stat)
 MODULE_API std::ostream& operator<<(std::ostream& os, const Continue_ptr stat)
 {
 	os << "Continue";
-	return os;
-}
-
-MODULE_API std::ostream& operator<<(std::ostream& os, const Alias_ptr stat)
-{
-	os << stat->name << " " << stat->type;
 	return os;
 }
 

@@ -7,7 +7,7 @@
 
 using std::string;
 
-TOKEN_API std::ostream& operator<<(std::ostream& os, const WTokenType& type)
+std::ostream& operator<<(std::ostream& os, const WTokenType type)
 {
 	switch (type)
 	{

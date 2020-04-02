@@ -22,8 +22,14 @@ bool Token::operator==(const Token& token) const
 		);
 }
 
-std::ostream& operator<<(std::ostream& os, const Token& type)
+std::ostream& operator<<(std::ostream& os, const Token& token)
 {
-	os << type.value << " "; // << " : " << type.type;
+	os << token.value << " "; // << " : " << type.type;
+	return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const Token_ptr& token)
+{
+	os << token->value << " "; // << " : " << type.type;
 	return os;
 }

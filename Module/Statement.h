@@ -73,15 +73,6 @@ struct MODULE_API Continue : public Statement, public std::enable_shared_from_th
 	void interpret(StatementInterpreter& StatementInterpreter);
 };
 
-struct MODULE_API Alias : public Statement, public std::enable_shared_from_this<Alias>
-{
-	std::string name;
-	Type_ptr type;
-
-	Alias(std::string name, Type_ptr type) : name(name), type(std::move(type)) {};
-	void interpret(StatementInterpreter& StatementInterpreter);
-};
-
 struct MODULE_API UDTDefinition : public Statement, public std::enable_shared_from_this<UDTDefinition>
 {
 	bool is_public;
@@ -133,7 +124,6 @@ using Branch_ptr = MODULE_API std::shared_ptr<Branch>;
 using Loop_ptr = MODULE_API std::shared_ptr<Loop>;
 using Break_ptr = MODULE_API std::shared_ptr<Break>;
 using Continue_ptr = MODULE_API std::shared_ptr<Continue>;
-using Alias_ptr = MODULE_API std::shared_ptr<Alias>;
 using UDTDefinition_ptr = MODULE_API std::shared_ptr<UDTDefinition>;
 using FunctionDefinition_ptr = MODULE_API std::shared_ptr<FunctionDefinition>;
 using Return_ptr = MODULE_API std::shared_ptr<Return>;
@@ -151,7 +141,6 @@ public:
 	virtual void visit(Loop_ptr statement) = 0;
 	virtual void visit(Break_ptr statement) = 0;
 	virtual void visit(Continue_ptr statement) = 0;
-	virtual void visit(Alias_ptr statement) = 0;
 	virtual void visit(UDTDefinition_ptr statement) = 0;
 	virtual void visit(FunctionDefinition_ptr statement) = 0;
 	virtual void visit(Return_ptr statement) = 0;
@@ -167,7 +156,6 @@ MODULE_API std::ostream& operator<<(std::ostream& os, const Branch_ptr stat);
 MODULE_API std::ostream& operator<<(std::ostream& os, const Loop_ptr stat);
 MODULE_API std::ostream& operator<<(std::ostream& os, const Break_ptr stat);
 MODULE_API std::ostream& operator<<(std::ostream& os, const Continue_ptr stat);
-MODULE_API std::ostream& operator<<(std::ostream& os, const Alias_ptr stat);
 MODULE_API std::ostream& operator<<(std::ostream& os, const UDTDefinition_ptr stat);
 MODULE_API std::ostream& operator<<(std::ostream& os, const FunctionDefinition_ptr stat);
 MODULE_API std::ostream& operator<<(std::ostream& os, const Return_ptr stat);
