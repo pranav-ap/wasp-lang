@@ -21,10 +21,16 @@
     <ClInclude Include="pch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="io.h">
+    <ClInclude Include="Pointer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Pointer.h">
+    <ClInclude Include="logger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\packages\rang.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="file_io.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -35,10 +41,10 @@
     <ClCompile Include="pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="io.cpp">
+    <ClCompile Include="Pointer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Pointer.cpp">
+    <ClCompile Include="file_io.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

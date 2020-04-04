@@ -1,5 +1,6 @@
 #pragma once
 #include "pch.h"
+#include "logger.h"
 #include "Lexer.h"
 #include <map>
 #include <memory>
@@ -12,6 +13,7 @@ using std::vector;
 using std::move;
 using std::isdigit;
 using std::isalpha;
+using std::to_string;
 
 map<string, WTokenType> keyword_map = {
 	{ "if", WTokenType::IF },
@@ -115,7 +117,15 @@ vector<Token_ptr> Lexer::execute()
 
 		if (token != nullptr)
 		{
+			std::stringstream message;
+			message << "Ln " << token->line_num << " Col " << token->column_num << " : " << token->value;
+			INFO(message.str());
+
 			this->tokens.push_back(move(token));
+		}
+		else
+		{
+			FATAL("Token is nullptr");
 		}
 	}
 
@@ -144,7 +154,7 @@ Token_ptr Lexer::consume_number_literal(char ch)
 		{
 			if (reached_decimal_point)
 			{
-				// Error
+				ERROR("Multiple decimal points are detected");
 				NEXT;
 				return nullptr;
 			}
@@ -336,8 +346,6 @@ Token_ptr Lexer::consume_single_char_punctuation(char ch)
 		return MAKE_TOKEN(WTokenType::DOT, ".", LINE_NUM, COL_NUM);
 	case ':':
 		return MAKE_TOKEN(WTokenType::COLON, ":", LINE_NUM, COL_NUM);
-	default:
-		return nullptr;
 	}
 }
 
@@ -368,6 +376,12 @@ Token_ptr Lexer::consume_unknown_token(char ch)
 
 		break;
 	}
+
+	string message =
+		unknown_token +
+		" I have NO idea what this token is! Fix it!";
+
+	ERROR(message);
 
 	return MAKE_TOKEN(WTokenType::UNKNOWN, unknown_token, LINE_NUM, COL_NUM);
 }

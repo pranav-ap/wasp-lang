@@ -1,16 +1,8 @@
 #pragma once
 #include "pch.h"
 #include <iostream>
-#include <iomanip>
-#include <vector>
-#include <string>
 #include "Token.h"
 #include "TokenType.h"
-
-using std::cout;
-using std::endl;
-using std::string;
-using std::setw;
 
 bool Token::operator==(const Token& token) const
 {
@@ -24,12 +16,12 @@ bool Token::operator==(const Token& token) const
 
 std::ostream& operator<<(std::ostream& os, const Token& token)
 {
-	os << token.value << " "; // << " : " << type.type;
+	os << token.value << " ";
 	return os;
 }
 
 std::ostream& operator<<(std::ostream& os, const Token_ptr& token)
 {
-	os << token->value << " "; // << " : " << type.type;
+	os << *token << " ";
 	return os;
 }

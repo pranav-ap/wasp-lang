@@ -91,7 +91,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>..\Token;..\Lexer;..\ObjectSystem;..\Module;..\Parser;..\Environment;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Token;..\Lexer;..\ObjectSystem;..\Module;..\Parser;..\Environment;..\packages;..\Utils;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -185,6 +185,9 @@
     </ProjectReference>
     <ProjectReference Include="..\Token\Token.vcxproj">
       <Project>{5637e073-6798-4882-a7e7-413e1f93f541}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Utils\Utils.vcxproj">
+      <Project>{fd212e30-089e-4160-84e4-201daa0064b7}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

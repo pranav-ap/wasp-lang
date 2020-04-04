@@ -2,10 +2,7 @@
 #include "pch.h"
 #include "TokenType.h"
 
-#include <string>
 #include <iostream>
-
-using std::string;
 
 std::ostream& operator<<(std::ostream& os, const WTokenType type)
 {

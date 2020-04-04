@@ -1,5 +1,6 @@
 #pragma once
 #include "pch.h"
+#include "logger.h"
 #include "OperatorStack.h"
 
 using std::vector;
@@ -22,38 +23,54 @@ void OperatorStack::push_operator_into_ast(Token_ptr operator_token, ExpressionS
 
 void OperatorStack::push_unary_operator_to_ast(Token_ptr operator_token, ExpressionStack& ast)
 {
-	if (ast.size() >= 1)
+	if (ast.size() == 0)
 	{
-		Expression_ptr expression = move(ast.top());
-		ast.pop();
+		std::stringstream message;
+		message
+			<< "Ln " << operator_token->line_num << " Col " << operator_token->column_num
+			<< " : " << operator_token->value
+			<< "\n This operator requries one operand. But the AST is empty.";
 
-		ast.push(
-			make_shared<Unary>(
-				move(operator_token),
-				move(expression)
-				)
-		);
+		FATAL(message.str());
 	}
+
+	Expression_ptr expression = move(ast.top());
+	ast.pop();
+
+	ast.push(
+		make_shared<Unary>(
+			move(operator_token),
+			move(expression)
+			)
+	);
 }
 
 void OperatorStack::push_binary_operator_to_ast(Token_ptr operator_token, ExpressionStack& ast)
 {
-	if (ast.size() >= 2)
+	if (ast.size() < 2)
 	{
-		Expression_ptr rhs = move(ast.top());
-		ast.pop();
+		std::stringstream message;
+		message
+			<< "Ln " << operator_token->line_num << " Col " << operator_token->column_num
+			<< " : " << operator_token->value
+			<< "\n This operator requires two operands. But the AST contains " << ast.size();
 
-		Expression_ptr lhs = move(ast.top());
-		ast.pop();
-
-		ast.push(
-			make_shared<Binary>(
-				move(lhs),
-				move(operator_token),
-				move(rhs)
-				)
-		);
+		FATAL(message.str());
 	}
+
+	Expression_ptr rhs = move(ast.top());
+	ast.pop();
+
+	Expression_ptr lhs = move(ast.top());
+	ast.pop();
+
+	ast.push(
+		make_shared<Binary>(
+			move(lhs),
+			move(operator_token),
+			move(rhs)
+			)
+	);
 }
 
 void OperatorStack::drain_into_ast(ExpressionStack& ast)

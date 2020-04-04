@@ -11,7 +11,7 @@ Token_ptr TokenPipe::get_current_token() const
 	return tokens[index];
 }
 
-bool TokenPipe::expect_current_token_to_be(WTokenType token_type)
+bool TokenPipe::expect_current_token(WTokenType token_type)
 {
 	auto token = get_current_token();
 
@@ -39,7 +39,7 @@ Token_ptr TokenPipe::consume_token(WTokenType token_type)
 
 void TokenPipe::ignore(WTokenType token_type)
 {
-	while (expect_current_token_to_be(token_type))
+	while (expect_current_token(token_type))
 	{
 	}
 }

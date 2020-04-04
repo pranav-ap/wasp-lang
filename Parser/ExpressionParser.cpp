@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "logger.h"
 #include "ExpressionParser.h"
 
 #include <vector>
@@ -20,7 +21,9 @@ Expression_ptr ExpressionParser::parse_expression()
 		Token_ptr current_token = token_pipe->get_current_token();
 
 		if (current_token == nullptr)
-			return nullptr;
+		{
+			FATAL("Current Token == nullptr");
+		}
 
 		switch (current_token->type)
 		{
@@ -77,7 +80,7 @@ Expression_ptr ExpressionParser::parse_expression()
 		{
 			ADVANCE_PTR;
 			auto UDT_literal = parse_UDT_literal();
-			RETURN_NULLPTR_IF_NULLPTR(UDT_literal);
+			FATAL_IF_NULLPTR(UDT_literal, "User defined type literal is malformed.");
 
 			ast.push(move(UDT_literal));
 			break;
@@ -125,6 +128,8 @@ Expression_ptr ExpressionParser::parse_expression()
 			ADVANCE_PTR;
 			auto arguments = parse_function_call_arguments();
 			RETURN_NULLPTR_IF_NULLPTR(arguments);
+
+			// UC
 		}
 		}
 	}
@@ -135,10 +140,7 @@ Expression_ptr ExpressionParser::parse_expression()
 Expression_ptr ExpressionParser::finish_parsing()
 {
 	operator_stack->drain_into_ast(ast);
-
-	if (ast.size() > 1) {
-		return nullptr;
-	}
+	FATAL_IF_TRUE(ast.size() > 1, "Malformed Expression");
 
 	auto result = move(ast.top());
 	ast.pop();
@@ -149,7 +151,7 @@ Expression_ptr ExpressionParser::finish_parsing()
 shared_ptr<string> ExpressionParser::consume_valid_record_key()
 {
 	auto token = token_pipe->get_current_token();
-	RETURN_NULLPTR_IF_NULLPTR(token);
+	FATAL_IF_NULLPTR(token, "Token is nullptr");
 
 	switch (token->type)
 	{
@@ -159,7 +161,8 @@ shared_ptr<string> ExpressionParser::consume_valid_record_key()
 		return make_shared<string>(token->value);
 	}
 	}
-	return nullptr;
+
+	FATAL("Expected a Identifier");
 }
 
 // Literal Parsers
@@ -168,20 +171,23 @@ Expression_ptr ExpressionParser::parse_vector_literal()
 {
 	vector<Expression_ptr> elements;
 
-	if (token_pipe->expect_current_token_to_be(WTokenType::CLOSE_BRACKET))
+	if (token_pipe->expect_current_token(WTokenType::CLOSE_BRACKET))
 		return make_shared<VectorLiteral>(elements);
 
 	while (true)
 	{
 		auto element = parse_expression();
-		RETURN_NULLPTR_IF_NULLPTR(element);
+		FATAL_IF_NULLPTR(element, "Malformed Expression");
 
 		elements.push_back(move(element));
 
-		if (token_pipe->expect_current_token_to_be(WTokenType::CLOSE_BRACKET))
+		if (token_pipe->expect_current_token(WTokenType::CLOSE_BRACKET))
 			return make_shared<VectorLiteral>(elements);
 
-		RETURN_NULLPTR_IF_FALSE(token_pipe->expect_current_token_to_be(WTokenType::COMMA));
+		FATAL_IF_FALSE(
+			token_pipe->expect_current_token(WTokenType::COMMA),
+			"Expected a COMMA"
+		);
 	}
 }
 
@@ -189,7 +195,7 @@ Expression_ptr ExpressionParser::parse_UDT_literal()
 {
 	map<string, Expression_ptr> pairs;
 
-	if (token_pipe->expect_current_token_to_be(WTokenType::CLOSE_CURLY_BRACE))
+	if (token_pipe->expect_current_token(WTokenType::CLOSE_CURLY_BRACE))
 		return make_shared<UDTLiteral>(pairs);
 
 	while (true)
@@ -197,38 +203,48 @@ Expression_ptr ExpressionParser::parse_UDT_literal()
 		token_pipe->ignore(WTokenType::EOL);
 
 		auto key = consume_valid_record_key();
-		RETURN_NULLPTR_IF_NULLPTR(key);
+		FATAL_IF_NULLPTR(key, "Key is malformed");
 
-		RETURN_NULLPTR_IF_FALSE(token_pipe->expect_current_token_to_be(WTokenType::COLON));
+		FATAL_IF_FALSE(
+			token_pipe->expect_current_token(WTokenType::COLON),
+			"Expected a COLON"
+		);
 
 		auto value = parse_expression();
-		RETURN_NULLPTR_IF_NULLPTR(value);
+		FATAL_IF_NULLPTR(value, "Value is malformed");
 
 		pairs.insert_or_assign(*key.get(), value);
 
 		token_pipe->ignore(WTokenType::EOL);
 
-		if (token_pipe->expect_current_token_to_be(WTokenType::CLOSE_CURLY_BRACE))
+		if (token_pipe->expect_current_token(WTokenType::CLOSE_CURLY_BRACE))
 			return make_shared<UDTLiteral>(pairs);
 
-		RETURN_NULLPTR_IF_FALSE(token_pipe->expect_current_token_to_be(WTokenType::COMMA));
+		FATAL_IF_FALSE(
+			token_pipe->expect_current_token(WTokenType::COMMA),
+			"Expected a COMMA"
+		);
 	}
 }
 
 Expression_ptr ExpressionParser::consume_member_access(Token_ptr identifier_token)
 {
-	if (token_pipe->expect_current_token_to_be(WTokenType::OPEN_BRACKET))
+	if (token_pipe->expect_current_token(WTokenType::OPEN_BRACKET))
 	{
 		auto expression = parse_expression();
-		RETURN_NULLPTR_IF_NULLPTR(expression);
-		RETURN_NULLPTR_IF_FALSE(token_pipe->expect_current_token_to_be(WTokenType::CLOSE_BRACKET));
+		FATAL_IF_NULLPTR(expression, "Malformed Expression");
+
+		FATAL_IF_FALSE(
+			token_pipe->expect_current_token(WTokenType::CLOSE_BRACKET),
+			"Expected a CLOSE_BRACKET"
+		);
 
 		return make_shared<VectorMemberAccess>(identifier_token->value, move(expression));
 	}
-	else if (token_pipe->expect_current_token_to_be(WTokenType::DOT))
+	else if (token_pipe->expect_current_token(WTokenType::DOT))
 	{
 		auto identifier = token_pipe->consume_token(WTokenType::Identifier);
-		RETURN_NULLPTR_IF_NULLPTR(identifier);
+		FATAL_IF_NULLPTR(identifier, "Malformed Identifier");
 
 		return make_shared<UDTMemberAccess>(identifier_token->value, identifier->value);
 	}
@@ -240,11 +256,14 @@ ExpressionVector_ptr ExpressionParser::parse_function_call_arguments()
 {
 	ExpressionVector_ptr expressions;
 
-	RETURN_NULLPTR_IF_FALSE(token_pipe->expect_current_token_to_be(WTokenType::OPEN_PARENTHESIS));
+	FATAL_IF_FALSE(
+		token_pipe->expect_current_token(WTokenType::OPEN_PARENTHESIS),
+		"Expected a OPEN_PARENTHESIS"
+	);
 
 	inside_function_call.push(true);
 
-	if (token_pipe->expect_current_token_to_be(WTokenType::CLOSE_PARENTHESIS))
+	if (token_pipe->expect_current_token(WTokenType::CLOSE_PARENTHESIS))
 	{
 		inside_function_call.pop();
 		return expressions;
@@ -253,21 +272,19 @@ ExpressionVector_ptr ExpressionParser::parse_function_call_arguments()
 	while (true)
 	{
 		auto expression = parse_expression();
-		RETURN_NULLPTR_IF_NULLPTR(expression);
+		FATAL_IF_NULLPTR(expression, "Malformed Expression");
 
 		expressions->push_back(move(expression));
 
-		if (token_pipe->expect_current_token_to_be(WTokenType::COMMA))
+		if (token_pipe->expect_current_token(WTokenType::COMMA))
 			continue;
 
-		if (token_pipe->expect_current_token_to_be(WTokenType::CLOSE_PARENTHESIS))
-		{
-			inside_function_call.pop();
-			return expressions;
-		}
-		else
-		{
-			return nullptr;
-		}
+		FATAL_IF_FALSE(
+			token_pipe->expect_current_token(WTokenType::CLOSE_PARENTHESIS),
+			"Expected a CLOSE_PARENTHESIS"
+		);
+
+		inside_function_call.pop();
+		return expressions;
 	}
 }

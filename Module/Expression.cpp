@@ -82,28 +82,32 @@ Object_ptr Binary::interpret(ExpressionInterpreter& visitor)
 
 MODULE_API std::ostream& operator<<(std::ostream& os, const StringLiteral_ptr exp)
 {
-	os << exp->value;
+	os << " " << exp->value << " ";
 	return os;
 }
 
 MODULE_API std::ostream& operator<<(std::ostream& os, const NumberLiteral_ptr exp)
 {
-	os << exp->value;
+	os << " " << exp->value << " ";
 	return os;
 }
 
 MODULE_API std::ostream& operator<<(std::ostream& os, const BooleanLiteral_ptr exp)
 {
-	os << exp->value;
+	os << " " << exp->value << " ";
 	return os;
 }
 
 MODULE_API std::ostream& operator<<(std::ostream& os, const VectorLiteral_ptr exp)
 {
+	os << " [ ";
+
 	for (auto const& e : exp->expressions)
 	{
 		os << e << " ";
 	}
+
+	os << " ] ";
 
 	return os;
 }
@@ -138,7 +142,7 @@ MODULE_API std::ostream& operator<<(std::ostream& os, const Binary_ptr exp)
 
 MODULE_API std::ostream& operator<<(std::ostream& os, const VectorMemberAccess_ptr exp)
 {
-	os << exp->name << "." << exp->expression;
+	os << exp->name << "[" << exp->expression << "]";
 	return os;
 }
 
@@ -150,12 +154,14 @@ MODULE_API std::ostream& operator<<(std::ostream& os, const UDTMemberAccess_ptr 
 
 MODULE_API std::ostream& operator<<(std::ostream& os, const FunctionCall_ptr exp)
 {
-	os << exp->name; // << "(" << exp->arguments << ")";
+	os << "Call" << exp->name;
 	return os;
 }
 
 MODULE_API std::ostream& operator<<(std::ostream& os, const Range_ptr exp)
 {
-	os << exp->left << " " << exp->right;
+	auto op = exp->is_inclusive ? " ... " : "..";
+	os << exp->left << op << exp->right;
+
 	return os;
 }

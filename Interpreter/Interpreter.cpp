@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pch.h"
+#include "logger.h"
 #include "Interpreter.h"
 #include "Module.h"
 #include "ObjectSystem.h"
@@ -15,13 +16,14 @@
 #define RIGHT_TYPEID typeid(*right)
 
 using std::string;
+using std::to_string;
 using std::map;
 using std::optional;
 using std::make_shared;
 
 void Interpreter::execute()
 {
-	for (auto statement : mod.get_statements())
+	for (auto statement : mod.nodes)
 		statement->interpret(*this);
 }
 
@@ -45,18 +47,12 @@ void Interpreter::visit(Assignment_ptr assignment)
 	auto name = assignment->name;
 	auto info = env->get_variable(name);
 
-	if (!info->is_mutable)
-	{
-		return;
-	}
+	std::stringstream message;
+	message << name << " is not mutable";
+	FATAL_IF_FALSE(info->is_mutable, "");
 
 	auto result = assignment->expression->interpret(*this);
-
-	if (result == nullptr)
-	{
-		// Error
-		return;
-	}
+	FATAL_IF_NULLPTR(result, "Cannot assign variable with nullptr");
 
 	info->value = result;
 }
@@ -64,23 +60,14 @@ void Interpreter::visit(Assignment_ptr assignment)
 void Interpreter::visit(Branch_ptr branch)
 {
 	auto result = branch->condition->interpret(*this);
-
-	if (typeid(result) != typeid(BooleanObject))
-	{
-		// ERROR
-		return;
-	}
+	FATAL_IF_TRUE(typeid(result) != typeid(BooleanObject), "Condition has to return boolean value");
 
 	auto result_boolean_object = dynamic_pointer_cast<BooleanObject>(result);
 
 	if (result_boolean_object->value)
-	{
 		evaluate_branch_block(branch->consequence);
-	}
 	else
-	{
 		evaluate_branch_block(branch->alternative);
-	}
 }
 
 void Interpreter::visit(Loop_ptr loop)
@@ -109,17 +96,18 @@ void Interpreter::visit(Loop_ptr loop)
 
 void Interpreter::visit(Break_ptr statement)
 {
-	// Error
+	FATAL("Break must be used within a loop");
 }
 
 void Interpreter::visit(Continue_ptr statement)
 {
-	// Error
+	FATAL("Continue must be used within a loop");
 }
 
 void Interpreter::visit(ExpressionStatement_ptr statement)
 {
-	auto _x = statement->expression->interpret(*this);
+	auto _result = statement->expression->interpret(*this);
+	//std::cout << result;
 }
 
 void Interpreter::visit(UDTDefinition_ptr statement)
@@ -150,6 +138,7 @@ void Interpreter::visit(FunctionDefinition_ptr statement)
 
 void Interpreter::visit(Return_ptr statement)
 {
+	FATAL("Return must be used within a function");
 }
 
 void Interpreter::visit(Import_ptr statement)
@@ -223,7 +212,12 @@ Object_ptr Interpreter::visit(Unary_ptr unary_expression)
 		return perform_operation(token_type, operand_boolean_object);
 	}
 
-	return nullptr;
+	string message =
+		"Ln " + to_string(unary_expression->op->line_num) +
+		" Col " + to_string(unary_expression->op->column_num) +
+		" : Unary Operation is not defined for this operand";
+
+	FATAL(message);
 }
 
 Object_ptr Interpreter::visit(Binary_ptr binary_expression)
@@ -250,8 +244,19 @@ Object_ptr Interpreter::visit(Binary_ptr binary_expression)
 		auto right_string_object = dynamic_pointer_cast<StringObject>(right);
 		return perform_operation(token_type, left_string_object, right_string_object);
 	}
+	else if (LEFT_TYPEID == typeid(StringObject) && RIGHT_TYPEID == typeid(NumberObject))
+	{
+		auto left_string_object = dynamic_pointer_cast<StringObject>(left);
+		auto right_number_object = dynamic_pointer_cast<NumberObject>(right);
+		return perform_operation(token_type, left_string_object, right_number_object);
+	}
 
-	return nullptr;
+	string message =
+		"Ln " + to_string(binary_expression->op->line_num) +
+		" Col " + to_string(binary_expression->op->column_num) +
+		" : Binary Operation is not defined for these operands";
+
+	FATAL(message);
 }
 
 Object_ptr Interpreter::visit(VectorMemberAccess_ptr expression)
@@ -262,22 +267,18 @@ Object_ptr Interpreter::visit(VectorMemberAccess_ptr expression)
 	auto index_expression = expression->expression;
 	auto index_object = index_expression->interpret(*this);
 
-	if (typeid(index_object) == typeid(NumberLiteral))
-	{
-		auto index_number_object = dynamic_pointer_cast<NumberObject>(index_object);
-		double index = index_number_object->value;
+	FATAL_IF_TRUE(
+		typeid(index_object) != typeid(NumberLiteral),
+		"Vector elements must be accessed by a numeric index"
+	);
 
-		if (!info->value)
-		{
-			// Error
-			return nullptr;
-		}
+	auto index_number_object = dynamic_pointer_cast<NumberObject>(index_object);
+	double index = index_number_object->value;
 
-		auto vector_object = dynamic_pointer_cast<VectorObject>(info->value);
-		return vector_object->values[index];
-	}
+	FATAL_IF_NULLPTR(info->value, "Element value is null");
 
-	return nullptr;
+	auto vector_object = dynamic_pointer_cast<VectorObject>(info->value);
+	return vector_object->values[index];
 }
 
 Object_ptr Interpreter::visit(UDTMemberAccess_ptr expression)
@@ -287,19 +288,14 @@ Object_ptr Interpreter::visit(UDTMemberAccess_ptr expression)
 
 	auto info = env->get_variable(UDT_name);
 
-	if (!info->value)
-	{
-		// Error
-		return nullptr;
-	}
+	string message = "UDT " + UDT_name + " value is null";
+	FATAL_IF_NULLPTR(info->value, message);
 
-	if (typeid(info->value) == typeid(UDTLiteral))
-	{
-		auto UDT_object = dynamic_pointer_cast<UDTObject>(info->value);
-		return UDT_object->pairs[member_name];
-	}
+	message = UDT_name + " value is not a UDT";
+	FATAL_IF_TRUE(typeid(info->value) == typeid(UDTLiteral), message);
 
-	return nullptr;
+	auto UDT_object = dynamic_pointer_cast<UDTObject>(info->value);
+	return UDT_object->pairs[member_name];
 }
 
 Object_ptr Interpreter::visit(FunctionCall_ptr expression)
@@ -309,7 +305,7 @@ Object_ptr Interpreter::visit(FunctionCall_ptr expression)
 
 Object_ptr Interpreter::visit(Range_ptr expression)
 {
-	return nullptr;
+	FATAL("Range must be used along with a for loop or for vector slicing");
 }
 
 // Evaluate Block
@@ -320,7 +316,6 @@ void Interpreter::evaluate_branch_block(Block_ptr block)
 	{
 		if (typeid(statement) == typeid(Break))
 		{
-			// pop scope from scopes
 			break;
 		}
 		else if (typeid(statement) == typeid(Continue))

@@ -1,10 +1,8 @@
 #pragma once
-#define ELPP_STL_LOGGING
-
-#include "easylogging++.h"
+#include "logger.h"
 #include "CLI11.hpp"
 
-#include "io.h"
+#include "file_io.h"
 #include "Lexer.h"
 #include "Parser.h"
 #include "Interpreter.h"
@@ -12,21 +10,15 @@
 #include <vector>
 #include <string>
 
-INITIALIZE_EASYLOGGINGPP
-
 using std::string;
 using std::vector;
-using std::cout;
-using std::endl;
 
 int main(int argc, char** argv)
 {
-	CLI::App app{ "Wasp Language Interpreter" };
+	TITLE("\n [ Wasp Interpreter ] ");
+	TITLE("Inefficient, Elegant and Fun!");
 
-	el::Configurations conf("./../log-config.conf");
-	el::Loggers::reconfigureAllLoggers(conf);
-
-	LOG(INFO) << "Wasp Language Interpreter";
+	CLI::App app{ "Wasp Interpreter" };
 
 	string filepath;
 	app.add_option("-f, --file", filepath, "Provide the path to your main file")
@@ -37,14 +29,18 @@ int main(int argc, char** argv)
 
 	string raw_source = read_source(filepath);
 
+	INFO("Executing Lexer..");
 	Lexer lexer(raw_source);
 	vector<Token_ptr> tokens = lexer.execute();
+	INFO("Done");
 
-	LOG(INFO) << tokens;
-
+	INFO("Executing Parser..");
 	Parser parser(tokens);
 	Module mod = parser.execute();
+	INFO("Done");
 
+	INFO("Interpreting code..");
 	Interpreter interpreter(mod);
 	interpreter.execute();
+	INFO("Done");
 }

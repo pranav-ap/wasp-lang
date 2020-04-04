@@ -64,7 +64,7 @@ void Import::interpret(StatementInterpreter& visitor)
 
 MODULE_API std::ostream& operator<<(std::ostream& os, const VariableDeclaration_ptr stat)
 {
-	os << stat->name << " : " << stat->type << " " << stat->is_public << " " << stat->is_public;
+	os << stat->name << " : " << stat->type; // << " " << stat->is_public << " " << stat->is_mutable;
 	return os;
 }
 

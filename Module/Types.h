@@ -7,7 +7,6 @@
 #endif
 
 #include <string>
-#include <vector>
 #include <memory>
 
 // Type Base

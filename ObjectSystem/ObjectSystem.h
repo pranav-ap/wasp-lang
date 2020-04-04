@@ -100,3 +100,10 @@ using BooleanObject_ptr = OBJECTSYSTEM_API std::shared_ptr<BooleanObject>;
 using VectorObject_ptr = OBJECTSYSTEM_API std::shared_ptr<VectorObject>;
 using MapObject_ptr = OBJECTSYSTEM_API std::shared_ptr<MapObject>;
 using UDTObject_ptr = OBJECTSYSTEM_API std::shared_ptr<UDTObject>;
+
+OBJECTSYSTEM_API std::ostream& operator<<(std::ostream& os, const NumberObject_ptr obj);
+OBJECTSYSTEM_API std::ostream& operator<<(std::ostream& os, const StringObject_ptr obj);
+OBJECTSYSTEM_API std::ostream& operator<<(std::ostream& os, const BooleanObject_ptr obj);
+OBJECTSYSTEM_API std::ostream& operator<<(std::ostream& os, const VectorObject_ptr obj);
+OBJECTSYSTEM_API std::ostream& operator<<(std::ostream& os, const MapObject_ptr obj);
+OBJECTSYSTEM_API std::ostream& operator<<(std::ostream& os, const UDTObject_ptr obj);

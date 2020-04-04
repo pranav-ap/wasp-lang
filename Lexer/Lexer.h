@@ -6,12 +6,14 @@
 #define LEXER_API __declspec(dllimport)
 #endif
 
-#include <string>
-#include <vector>
-#include <memory>
+#include "logger.h"
 #include "Token.h"
 #include "TokenPosition.h"
 #include "Pointer.h"
+
+#include <string>
+#include <vector>
+#include <memory>
 
 #define MAKE_TOKEN(type, token, line_num, col_num) std::make_shared<Token>(type, token, line_num, col_num)
 #define CASE_BODY(call) { token = call; break; }

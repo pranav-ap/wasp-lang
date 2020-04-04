@@ -6,16 +6,12 @@
 #define MODULE_API __declspec(dllimport)
 #endif
 
-#include <vector>
 #include "Statement.h"
+#include <vector>
 
-class MODULE_API Module
+struct MODULE_API Module
 {
-	std::vector<Statement_ptr> nodes;
+	Block nodes;
 
-public:
-	std::vector<Statement_ptr>& get_statements();
 	void add(Statement_ptr node);
 };
-
-MODULE_API std::ostream& operator<<(std::ostream& os, const Module& mod);

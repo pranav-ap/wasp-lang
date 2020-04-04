@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "logger.h"
 #include "Info.h"
 #include "Environment.h"
 
@@ -15,7 +16,17 @@ using std::map;
 
 Environment::Environment()
 {
+	enter_scope();
+}
+
+void Environment::enter_scope()
+{
 	scopes.push_back(make_shared<Scope>());
+}
+
+void Environment::leave_scope()
+{
+	scopes.pop_back();
 }
 
 // Getters
@@ -26,23 +37,23 @@ Info_ptr Environment::get_info(std::string name)
 	{
 		if (scope->store.contains(name))
 		{
-			auto info = scope->store[name];
-			return info;
+			return scope->store[name];
 		}
 	}
 
-	return nullptr;
+	string message = name + " does not exist!";
+	FATAL(message);
 }
 
 VariableInfo_ptr Environment::get_variable(string name)
 {
 	auto info = get_info(name);
 
-	if (info == nullptr)
-		return nullptr;
-
 	if (typeid(*info) != typeid(VariableInfo))
-		return nullptr;
+	{
+		string message = name + " is not a Variable!";
+		FATAL(message);
+	}
 
 	auto variable_info = dynamic_pointer_cast<VariableInfo>(info);
 	return variable_info;
@@ -52,11 +63,11 @@ FunctionInfo_ptr Environment::get_function(string name)
 {
 	auto info = get_info(name);
 
-	if (info == nullptr)
-		return nullptr;
-
 	if (typeid(*info) != typeid(FunctionInfo))
-		return nullptr;
+	{
+		string message = name + " is not a Function!";
+		FATAL(message);
+	}
 
 	auto function_info = dynamic_pointer_cast<FunctionInfo>(info);
 	return function_info;
@@ -66,11 +77,11 @@ UDTInfo_ptr Environment::get_UDT(string name)
 {
 	auto info = get_info(name);
 
-	if (info == nullptr)
-		return nullptr;
-
 	if (typeid(*info) != typeid(UDTInfo))
-		return nullptr;
+	{
+		string message = name + " is not a UDT!";
+		FATAL(message);
+	}
 
 	auto UDT_info = dynamic_pointer_cast<UDTInfo>(info);
 	return UDT_info;
@@ -80,16 +91,15 @@ UDTInfo_ptr Environment::get_UDT(string name)
 
 void Environment::set_variable(string name, Object_ptr value)
 {
-	if (value == nullptr)
-		return;
+	FATAL_IF_TRUE(value == nullptr, "Cannot set variable to nullptr");
 
 	auto info = get_info(name);
 
-	if (info == nullptr)
-		return;
-
 	if (typeid(*info) != typeid(VariableInfo))
-		return;
+	{
+		string message = name + " is not a Variable!";
+		FATAL(message);
+	}
 
 	auto variable_info = dynamic_pointer_cast<VariableInfo>(info);
 	variable_info->value = value;
@@ -113,10 +123,8 @@ void Environment::create_variable(
 			)
 	);
 
-	if (result.second == false)
-	{
-		// ERROR - already existed
-	}
+	string message = name + " already exists in scope!";
+	FATAL_IF_FALSE(result.second, message);
 }
 
 void Environment::create_function(
@@ -135,10 +143,8 @@ void Environment::create_function(
 			)
 	);
 
-	if (result.second == false)
-	{
-		// ERROR
-	}
+	string message = name + " already exists in scope!";
+	FATAL_IF_FALSE(result.second, message);
 }
 
 void Environment::create_UDT(
@@ -155,8 +161,6 @@ void Environment::create_UDT(
 			)
 	);
 
-	if (result.second == false)
-	{
-		// ERROR
-	}
+	string message = name + " already exists in scope!";
+	FATAL_IF_FALSE(result.second, message);
 }

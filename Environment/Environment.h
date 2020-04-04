@@ -20,6 +20,9 @@ public:
 
 	Environment();
 
+	void enter_scope();
+	void leave_scope();
+
 	// Getters
 
 	VariableInfo_ptr get_variable(std::string name);

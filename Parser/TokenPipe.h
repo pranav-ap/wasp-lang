@@ -32,7 +32,7 @@ public:
 
 	Token_ptr get_current_token() const;
 	Token_ptr consume_token(WTokenType token_type);
-	bool expect_current_token_to_be(WTokenType token_type);
+	bool expect_current_token(WTokenType token_type);
 	void ignore(WTokenType token_type);
 	size_t get_size() const;
 };

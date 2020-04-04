@@ -16,7 +16,7 @@ struct ENVIRONMENT_API Info
 {
 	bool is_public;
 	Info(bool is_public) : is_public(is_public) {};
-	virtual void dummy() = 0;
+	virtual void accept() = 0;
 };
 
 struct ENVIRONMENT_API VariableInfo : public Info
@@ -27,7 +27,7 @@ struct ENVIRONMENT_API VariableInfo : public Info
 
 	VariableInfo(bool is_public, bool is_mutable, Type_ptr type, Object_ptr value)
 		: Info(is_public), is_mutable(is_mutable), type(type), value(value) {};
-	void dummy() {};
+	void accept() {};
 };
 
 struct ENVIRONMENT_API FunctionInfo : public Info
@@ -38,7 +38,7 @@ struct ENVIRONMENT_API FunctionInfo : public Info
 
 	FunctionInfo(bool is_public, std::map<std::string, Type_ptr> arguments, std::optional<Type_ptr> return_type, Block_ptr body)
 		: Info(is_public), arguments(arguments), return_type(return_type), body(body) {};
-	void dummy() {};
+	void accept() {};
 };
 
 struct ENVIRONMENT_API UDTInfo : public Info
@@ -47,7 +47,7 @@ struct ENVIRONMENT_API UDTInfo : public Info
 
 	UDTInfo(bool is_public, std::map<std::string, Type_ptr> member_types)
 		: Info(is_public), member_types(member_types) {};
-	void dummy() {};
+	void accept() {};
 };
 
 using Info_ptr = ENVIRONMENT_API std::shared_ptr<Info>;

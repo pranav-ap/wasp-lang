@@ -90,7 +90,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>../Utils;../Token;../Lexer;../ObjectSystem;../Module;../Parser;../Environment;../Interpreter;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../Utils;../Token;../Lexer;../ObjectSystem;../Module;../Parser;../Environment;../Interpreter;../packages;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
@@ -149,7 +149,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="easylogging++.cc" />
     <ClCompile Include="wasp.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -180,7 +179,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CLI11.hpp" />
-    <ClInclude Include="easylogging++.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
