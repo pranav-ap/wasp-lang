@@ -35,7 +35,7 @@ void Interpreter::visit(VariableDeclaration_ptr declaration)
 
 	bool is_public = declaration->is_public;
 	bool is_mutable = declaration->is_mutable;
-	Type_ptr type = declaration->type;
+	auto type = declaration->type;
 
 	auto result = declaration->expression->interpret(*this);
 
@@ -114,7 +114,7 @@ void Interpreter::visit(UDTDefinition_ptr statement)
 {
 	bool is_public = statement->is_public;
 	string name = statement->name;
-	map<string, Type_ptr> member_types = statement->member_types;
+	auto member_types = statement->member_types;
 
 	env->create_UDT(name, is_public, member_types);
 }
@@ -123,9 +123,9 @@ void Interpreter::visit(FunctionDefinition_ptr statement)
 {
 	string name = statement->name;
 	bool is_public = statement->is_public;
-	map<string, Type_ptr> arguments = statement->arguments;
-	optional<Type_ptr> return_type = statement->return_type;
-	Block_ptr body = statement->body;
+	auto arguments = statement->arguments;
+	auto return_type = statement->return_type;
+	auto body = statement->body;
 
 	env->create_function(
 		name,
@@ -320,7 +320,7 @@ void Interpreter::evaluate_branch_block(Block_ptr block)
 		}
 		else if (typeid(statement) == typeid(Continue))
 		{
-			// ERROR
+			FATAL("Continue ");
 			break;
 		}
 

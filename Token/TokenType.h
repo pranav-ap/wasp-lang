@@ -97,6 +97,9 @@ TOKEN_API enum class WTokenType
 	TYPE,
 	OPT,
 
+	SOME,
+	NONE,
+
 	TRUE_KEYWORD,
 	FALSE_KEYWORD,
 

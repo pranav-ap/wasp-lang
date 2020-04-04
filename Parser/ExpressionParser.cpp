@@ -71,7 +71,7 @@ Expression_ptr ExpressionParser::parse_expression()
 		{
 			ADVANCE_PTR;
 			auto vector_literal = parse_vector_literal();
-			RETURN_NULLPTR_IF_NULLPTR(vector_literal);
+			FATAL_IF_NULLPTR(vector_literal, "Vector Literal is malformed");
 
 			ast.push(move(vector_literal));
 			break;
@@ -127,9 +127,8 @@ Expression_ptr ExpressionParser::parse_expression()
 		{
 			ADVANCE_PTR;
 			auto arguments = parse_function_call_arguments();
-			RETURN_NULLPTR_IF_NULLPTR(arguments);
-
-			// UC
+			ast.push(make_shared<FunctionCall>(current_token->value, arguments));
+			break;
 		}
 		}
 	}
@@ -252,9 +251,9 @@ Expression_ptr ExpressionParser::consume_member_access(Token_ptr identifier_toke
 	return nullptr;
 }
 
-ExpressionVector_ptr ExpressionParser::parse_function_call_arguments()
+ExpressionVector ExpressionParser::parse_function_call_arguments()
 {
-	ExpressionVector_ptr expressions;
+	ExpressionVector expressions;
 
 	FATAL_IF_FALSE(
 		token_pipe->expect_current_token(WTokenType::OPEN_PARENTHESIS),
@@ -274,7 +273,7 @@ ExpressionVector_ptr ExpressionParser::parse_function_call_arguments()
 		auto expression = parse_expression();
 		FATAL_IF_NULLPTR(expression, "Malformed Expression");
 
-		expressions->push_back(move(expression));
+		expressions.push_back(move(expression));
 
 		if (token_pipe->expect_current_token(WTokenType::COMMA))
 			continue;

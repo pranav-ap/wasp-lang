@@ -41,6 +41,9 @@ map<string, WTokenType> keyword_map = {
 	{ "type", WTokenType::TYPE },
 	{ "opt", WTokenType::OPT },
 
+	{ "some", WTokenType::SOME },
+	{ "none", WTokenType::NONE },
+
 	{ "true", WTokenType::TRUE_KEYWORD },
 	{ "false", WTokenType::FALSE_KEYWORD },
 

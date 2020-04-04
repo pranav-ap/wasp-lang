@@ -11,10 +11,10 @@
 #include "Statement.h"
 #include "Expression.h"
 #include "ObjectSystem.h"
-
-#define RETURN_NULLPTR_IF_NULLPTR(x) if (x == nullptr) { return nullptr; }
-#define RETURN_NULLPTR_IF_TRUE(x) if (x) { return nullptr; }
-#define RETURN_NULLPTR_IF_FALSE(x) if (!x) { return nullptr; }
+//
+//#define RETURN_NULLPTR_IF_NULLPTR(x) if (x == nullptr) { return nullptr; }
+//#define RETURN_NULLPTR_IF_TRUE(x) if (x) { return nullptr; }
+//#define RETURN_NULLPTR_IF_FALSE(x) if (!x) { return nullptr; }
 
 class INTERPRETER_API Interpreter : public StatementInterpreter, public ExpressionInterpreter
 {

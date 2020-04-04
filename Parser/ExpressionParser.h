@@ -27,7 +27,7 @@ class PARSER_API ExpressionParser
 	// Parsers
 
 	Expression_ptr consume_member_access(Token_ptr identifier_token);
-	ExpressionVector_ptr parse_function_call_arguments();
+	ExpressionVector parse_function_call_arguments();
 
 	// Literal parsers
 
