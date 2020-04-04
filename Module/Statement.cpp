@@ -60,6 +60,16 @@ void Import::interpret(StatementInterpreter& visitor)
 	ACCEPT(Import);
 }
 
+void ImportSTD::interpret(StatementInterpreter& visitor)
+{
+	ACCEPT(ImportSTD);
+}
+
+void Enum::interpret(StatementInterpreter& visitor)
+{
+	ACCEPT(Enum);
+}
+
 // Printers
 
 MODULE_API std::ostream& operator<<(std::ostream& os, const VariableDeclaration_ptr stat)
@@ -131,5 +141,17 @@ MODULE_API std::ostream& operator<<(std::ostream& os, const ExpressionStatement_
 MODULE_API std::ostream& operator<<(std::ostream& os, const Import_ptr stat)
 {
 	os << stat->path;
+	return os;
+}
+
+MODULE_API std::ostream& operator<<(std::ostream& os, const ImportSTD_ptr stat)
+{
+	os << stat->name;
+	return os;
+}
+
+MODULE_API std::ostream& operator<<(std::ostream& os, const Enum_ptr stat)
+{
+	os << stat->name;
 	return os;
 }

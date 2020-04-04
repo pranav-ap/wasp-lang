@@ -145,6 +145,14 @@ void Interpreter::visit(Import_ptr statement)
 {
 }
 
+void Interpreter::visit(ImportSTD_ptr statement)
+{
+}
+
+void Interpreter::visit(Enum_ptr statement)
+{
+}
+
 // Expression Visitors
 
 Object_ptr Interpreter::visit(StringLiteral_ptr string_literal)

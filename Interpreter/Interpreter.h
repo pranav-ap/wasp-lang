@@ -11,10 +11,6 @@
 #include "Statement.h"
 #include "Expression.h"
 #include "ObjectSystem.h"
-//
-//#define RETURN_NULLPTR_IF_NULLPTR(x) if (x == nullptr) { return nullptr; }
-//#define RETURN_NULLPTR_IF_TRUE(x) if (x) { return nullptr; }
-//#define RETURN_NULLPTR_IF_FALSE(x) if (!x) { return nullptr; }
 
 class INTERPRETER_API Interpreter : public StatementInterpreter, public ExpressionInterpreter
 {
@@ -34,6 +30,8 @@ class INTERPRETER_API Interpreter : public StatementInterpreter, public Expressi
 	void visit(FunctionDefinition_ptr statement);
 	void visit(Return_ptr statement);
 	void visit(Import_ptr statement);
+	void visit(ImportSTD_ptr statement);
+	void visit(Enum_ptr statement);
 
 	// Expression Visitors
 

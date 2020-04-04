@@ -19,9 +19,6 @@
 #include "TokenPipe.h"
 #include "ExpressionParser.h"
 
-#define RETURN_NULLPTR_IF_NULLPTR(x) if (x == nullptr) { return nullptr; }
-#define RETURN_NULLPTR_IF_TRUE(x) if (x) { return nullptr; }
-#define RETURN_NULLPTR_IF_FALSE(x) if (!x) { return nullptr; }
 #define CASE(token_type, call) case token_type: { return call; }
 
 class PARSER_API Parser
@@ -41,10 +38,13 @@ class PARSER_API Parser
 	Statement_ptr parse_variable_declaration(bool is_public, bool is_mutable);
 	Statement_ptr consume_assignment_or_expression_statement(Token_ptr identifier);
 
+	Statement_ptr parse_import_statement();
+
 	// Block statement parsing
 
 	Statement_ptr parse_branching_statement();
 	Statement_ptr parse_loop_statement();
+	Statement_ptr parse_for_loop_statement();
 
 	// Type parsers
 
@@ -56,6 +56,7 @@ class PARSER_API Parser
 
 	Statement_ptr parse_UDT_declaration(bool is_public);
 	Statement_ptr parse_function_definition(bool is_public);
+	Statement_ptr parse_enum_statement(bool is_public);
 
 	// Utils
 

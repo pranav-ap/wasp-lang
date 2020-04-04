@@ -34,7 +34,7 @@ struct MODULE_API VariableDeclaration : public Statement, public std::enable_sha
 	Expression_ptr expression;
 
 	VariableDeclaration(bool is_public, bool is_mutable, std::string name, Type_ptr type, Expression_ptr expression) : is_public(is_public), is_mutable(is_mutable), name(name), type(std::move(type)), expression(std::move(expression)) {};
-	void interpret(StatementInterpreter& StatementInterpreter);
+	void interpret(StatementInterpreter& visitor);
 };
 
 struct MODULE_API Assignment : public Statement, public std::enable_shared_from_this<Assignment>
@@ -43,7 +43,7 @@ struct MODULE_API Assignment : public Statement, public std::enable_shared_from_
 	Expression_ptr expression;
 
 	Assignment(std::string name, Expression_ptr expression) : name(name), expression(std::move(expression)) {};
-	void interpret(StatementInterpreter& StatementInterpreter);
+	void interpret(StatementInterpreter& visitor);
 };
 
 struct MODULE_API Branch : public Statement, public std::enable_shared_from_this<Branch>
@@ -53,24 +53,24 @@ struct MODULE_API Branch : public Statement, public std::enable_shared_from_this
 	Block_ptr alternative;
 
 	Branch(Expression_ptr condition, Block_ptr consequence, Block_ptr alternative) : condition(std::move(condition)), consequence(std::move(consequence)), alternative(std::move(alternative)) {};
-	void interpret(StatementInterpreter& StatementInterpreter);
+	void interpret(StatementInterpreter& visitor);
 };
 
 struct MODULE_API Loop : public Statement, public std::enable_shared_from_this<Loop>
 {
 	Block_ptr block;
 	Loop(Block_ptr block) : block(block) {};
-	void interpret(StatementInterpreter& StatementInterpreter);
+	void interpret(StatementInterpreter& visitor);
 };
 
 struct MODULE_API Break : public Statement, public std::enable_shared_from_this<Break>
 {
-	void interpret(StatementInterpreter& StatementInterpreter);
+	void interpret(StatementInterpreter& visitor);
 };
 
 struct MODULE_API Continue : public Statement, public std::enable_shared_from_this<Continue>
 {
-	void interpret(StatementInterpreter& StatementInterpreter);
+	void interpret(StatementInterpreter& visitor);
 };
 
 struct MODULE_API UDTDefinition : public Statement, public std::enable_shared_from_this<UDTDefinition>
@@ -80,7 +80,7 @@ struct MODULE_API UDTDefinition : public Statement, public std::enable_shared_fr
 	std::map<std::string, Type_ptr> member_types;
 
 	UDTDefinition(bool is_public, std::string name, std::map<std::string, Type_ptr> member_types) : is_public(is_public), name(name), member_types(member_types) {};
-	void interpret(StatementInterpreter& StatementInterpreter);
+	void interpret(StatementInterpreter& visitor);
 };
 
 struct MODULE_API FunctionDefinition : public Statement, public std::enable_shared_from_this<FunctionDefinition>
@@ -92,21 +92,21 @@ struct MODULE_API FunctionDefinition : public Statement, public std::enable_shar
 	Block_ptr body;
 
 	FunctionDefinition(bool is_public, std::string name, std::map<std::string, Type_ptr> arguments, std::optional<Type_ptr> return_type, Block_ptr body) : is_public(is_public), name(name), arguments(arguments), return_type(return_type), body(body) {};
-	void interpret(StatementInterpreter& StatementInterpreter);
+	void interpret(StatementInterpreter& visitor);
 };
 
 struct MODULE_API Return : public Statement, public std::enable_shared_from_this<Return>
 {
 	std::optional<Expression_ptr> expression;
 	Return(std::optional<Expression_ptr> expression) : expression(std::move(expression)) {};
-	void interpret(StatementInterpreter& StatementInterpreter);
+	void interpret(StatementInterpreter& visitor);
 };
 
 struct MODULE_API ExpressionStatement : public Statement, public std::enable_shared_from_this<ExpressionStatement>
 {
 	Expression_ptr expression;
 	ExpressionStatement(Expression_ptr expression) : expression(std::move(expression)) {};
-	void interpret(StatementInterpreter& StatementInterpreter);
+	void interpret(StatementInterpreter& visitor);
 };
 
 struct MODULE_API Import : public Statement, public std::enable_shared_from_this<Import>
@@ -115,7 +115,26 @@ struct MODULE_API Import : public Statement, public std::enable_shared_from_this
 	std::string path;
 
 	Import(std::vector<std::string> goods, std::string path) : goods(goods), path(path) {};
-	void interpret(StatementInterpreter& StatementInterpreter);
+	void interpret(StatementInterpreter& visitor);
+};
+
+struct MODULE_API ImportSTD : public Statement, public std::enable_shared_from_this<ImportSTD>
+{
+	std::string name;
+
+	ImportSTD(std::string name) : name(name) {};
+	void interpret(StatementInterpreter& visitor);
+};
+
+struct MODULE_API Enum : public Statement, public std::enable_shared_from_this<Enum>
+{
+	std::string name;
+	std::vector<std::string> members;
+
+	Enum(std::string name, std::vector<std::string> members)
+		: name(name), members(members) {};
+
+	void interpret(StatementInterpreter& visitor);
 };
 
 using VariableDeclaration_ptr = MODULE_API std::shared_ptr<VariableDeclaration>;
@@ -129,6 +148,8 @@ using FunctionDefinition_ptr = MODULE_API std::shared_ptr<FunctionDefinition>;
 using Return_ptr = MODULE_API std::shared_ptr<Return>;
 using ExpressionStatement_ptr = MODULE_API std::shared_ptr<ExpressionStatement>;
 using Import_ptr = MODULE_API std::shared_ptr<Import>;
+using ImportSTD_ptr = MODULE_API std::shared_ptr<ImportSTD>;
+using Enum_ptr = MODULE_API std::shared_ptr<Enum>;
 
 // Visitor
 
@@ -146,6 +167,8 @@ public:
 	virtual void visit(Return_ptr statement) = 0;
 	virtual void visit(ExpressionStatement_ptr statement) = 0;
 	virtual void visit(Import_ptr statement) = 0;
+	virtual void visit(ImportSTD_ptr statement) = 0;
+	virtual void visit(Enum_ptr statement) = 0;
 };
 
 // Printers
@@ -161,3 +184,5 @@ MODULE_API std::ostream& operator<<(std::ostream& os, const FunctionDefinition_p
 MODULE_API std::ostream& operator<<(std::ostream& os, const Return_ptr stat);
 MODULE_API std::ostream& operator<<(std::ostream& os, const ExpressionStatement_ptr stat);
 MODULE_API std::ostream& operator<<(std::ostream& os, const Import_ptr stat);
+MODULE_API std::ostream& operator<<(std::ostream& os, const ImportSTD_ptr stat);
+MODULE_API std::ostream& operator<<(std::ostream& os, const Enum_ptr stat);

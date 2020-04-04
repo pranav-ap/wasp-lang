@@ -3,7 +3,7 @@
 ## Fundamental Datatypes
 
 - Scalar - str, bool, num
-- Composite - vector, map, record, enum
+- Composite - vector, map, UDT, enum
 - Optional - opt
 
 ## Variables
@@ -19,15 +19,12 @@ a[3]
 let a : opt [opt num] = [5]
 a[3]
 
-let a : (num, str) = (5, "john")
-a[2]
-
 let a : { str -> str } = { "name": "john" }
 a["name"]
 
 - key cannot be optional
 
-## Record type
+## UDT type
 
 type hello {
 	foo: bool,
@@ -71,8 +68,8 @@ loop { }
 
 for x in vector / map { }
 
-break;
-continue;
+break
+continue
 
 # Functions
 
@@ -87,17 +84,31 @@ fn add (a: num, b: num) -> num {
 
 import { foo, bar } from "path/to/filename"
 
+import core_lib_name
+
 pub fn add (a: num, b: num) -> num {
 	return a + b
 }
  
- # Pattern matching
+# Pattern matching
 
  match expr {
     expr -> {}
  }
 
 
+# Enums
+
+enum NAME
+{
+    ID1,
+    ID2
+}
+
+# Built in core library
+
+echo(string)
+ask(string, variable)
 
 # Code Guidelines
 
