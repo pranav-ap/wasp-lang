@@ -79,6 +79,15 @@ struct MODULE_API UDTMemberAccess : public Expression, public std::enable_shared
 	Object_ptr interpret(ExpressionInterpreter& visitor);
 };
 
+struct MODULE_API EnumMemberAccess : public Expression, public std::enable_shared_from_this<EnumMemberAccess>
+{
+	std::string enum_name;
+	std::string member_name;
+
+	EnumMemberAccess(std::string enum_name, std::string member_name) : enum_name(enum_name), member_name(member_name) {};
+	Object_ptr interpret(ExpressionInterpreter& visitor);
+};
+
 struct MODULE_API Identifier : public Expression, public std::enable_shared_from_this<Identifier>
 {
 	std::string name;
@@ -132,6 +141,7 @@ using UDTLiteral_ptr = MODULE_API std::shared_ptr<UDTLiteral>;
 
 using VectorMemberAccess_ptr = MODULE_API std::shared_ptr<VectorMemberAccess>;
 using UDTMemberAccess_ptr = MODULE_API std::shared_ptr<UDTMemberAccess>;
+using EnumMemberAccess_ptr = MODULE_API std::shared_ptr<EnumMemberAccess>;
 
 using Identifier_ptr = MODULE_API std::shared_ptr<Identifier>;
 
@@ -159,6 +169,7 @@ public:
 
 	virtual Object_ptr visit(VectorMemberAccess_ptr expression) = 0;
 	virtual Object_ptr visit(UDTMemberAccess_ptr expression) = 0;
+	virtual Object_ptr visit(EnumMemberAccess_ptr expression) = 0;
 
 	virtual Object_ptr visit(FunctionCall_ptr expression) = 0;
 
@@ -181,6 +192,8 @@ MODULE_API std::ostream& operator<<(std::ostream& os, const Binary_ptr exp);
 
 MODULE_API std::ostream& operator<<(std::ostream& os, const VectorMemberAccess_ptr exp);
 MODULE_API std::ostream& operator<<(std::ostream& os, const UDTMemberAccess_ptr exp);
+MODULE_API std::ostream& operator<<(std::ostream& os, const EnumMemberAccess_ptr exp);
+
 MODULE_API std::ostream& operator<<(std::ostream& os, const FunctionCall_ptr exp);
 
 MODULE_API std::ostream& operator<<(std::ostream& os, const Range_ptr exp);

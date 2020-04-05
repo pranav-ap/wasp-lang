@@ -50,8 +50,18 @@ struct ENVIRONMENT_API UDTInfo : public Info
 	void accept() {};
 };
 
+struct ENVIRONMENT_API EnumInfo : public Info
+{
+	std::vector<std::string> member_names;
+
+	EnumInfo(bool is_public, std::vector<std::string> member_names)
+		: Info(is_public), member_names(member_names) {};
+	void accept() {};
+};
+
 using Info_ptr = ENVIRONMENT_API std::shared_ptr<Info>;
 
 using VariableInfo_ptr = ENVIRONMENT_API std::shared_ptr<VariableInfo>;
 using FunctionInfo_ptr = ENVIRONMENT_API std::shared_ptr<FunctionInfo>;
 using UDTInfo_ptr = ENVIRONMENT_API std::shared_ptr<UDTInfo>;
+using EnumInfo_ptr = ENVIRONMENT_API std::shared_ptr<EnumInfo>;

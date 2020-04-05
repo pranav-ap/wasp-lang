@@ -92,9 +92,9 @@ pub fn add (a: num, b: num) -> num {
  
 # Pattern matching
 
- match expr {
-    expr -> {}
- }
+match expr {
+   expr -> {}
+}
 
 
 # Enums
@@ -104,6 +104,8 @@ enum NAME
     ID1,
     ID2
 }
+
+NAME::ID1
 
 # Built in core library
 

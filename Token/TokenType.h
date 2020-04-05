@@ -36,6 +36,7 @@ TOKEN_API enum class WTokenType
 	DOT_DOT,
 	DOT_DOT_DOT,
 	COLON,
+	COLON_COLON,
 	ARROW,
 
 	PLUS,

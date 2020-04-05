@@ -58,6 +58,7 @@ class LEXER_API Lexer
 	Token_ptr consume_greater_than();
 	Token_ptr consume_lesser_than();
 	Token_ptr consume_dot();
+	Token_ptr consume_colon();
 
 	Token_ptr consume_single_char_punctuation(char ch);
 	Token_ptr consume_eol();

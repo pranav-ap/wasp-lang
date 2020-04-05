@@ -3,3 +3,5 @@ enum NAME
     ID1,
     ID2
 }
+
+NAME::ID1

@@ -226,7 +226,7 @@ Expression_ptr ExpressionParser::parse_UDT_literal()
 	}
 }
 
-Expression_ptr ExpressionParser::consume_member_access(Token_ptr identifier_token)
+Expression_ptr ExpressionParser::consume_member_access(Token_ptr identifier)
 {
 	if (token_pipe->expect_current_token(WTokenType::OPEN_BRACKET))
 	{
@@ -238,14 +238,21 @@ Expression_ptr ExpressionParser::consume_member_access(Token_ptr identifier_toke
 			"Expected a CLOSE_BRACKET"
 		);
 
-		return make_shared<VectorMemberAccess>(identifier_token->value, move(expression));
+		return make_shared<VectorMemberAccess>(identifier->value, move(expression));
 	}
 	else if (token_pipe->expect_current_token(WTokenType::DOT))
 	{
-		auto identifier = token_pipe->consume_token(WTokenType::Identifier);
-		FATAL_IF_NULLPTR(identifier, "Malformed Identifier");
+		auto member_identifier = token_pipe->consume_token(WTokenType::Identifier);
+		FATAL_IF_NULLPTR(member_identifier, "Malformed Identifier");
 
-		return make_shared<UDTMemberAccess>(identifier_token->value, identifier->value);
+		return make_shared<UDTMemberAccess>(identifier->value, member_identifier->value);
+	}
+	else if (token_pipe->expect_current_token(WTokenType::COLON_COLON))
+	{
+		auto member_identifier = token_pipe->consume_token(WTokenType::Identifier);
+		FATAL_IF_NULLPTR(member_identifier, "Malformed Identifier");
+
+		return make_shared<EnumMemberAccess>(identifier->value, member_identifier->value);
 	}
 
 	return nullptr;

@@ -136,6 +136,19 @@ void Interpreter::visit(FunctionDefinition_ptr statement)
 	);
 }
 
+void Interpreter::visit(Enum_ptr statement)
+{
+	string name = statement->name;
+	bool is_public = statement->is_public;
+	auto members = statement->members;
+
+	env->create_enum(
+		name,
+		is_public,
+		members
+	);
+}
+
 void Interpreter::visit(Return_ptr statement)
 {
 	FATAL("Return must be used within a function");
@@ -146,10 +159,6 @@ void Interpreter::visit(Import_ptr statement)
 }
 
 void Interpreter::visit(ImportSTD_ptr statement)
-{
-}
-
-void Interpreter::visit(Enum_ptr statement)
 {
 }
 
@@ -304,6 +313,11 @@ Object_ptr Interpreter::visit(UDTMemberAccess_ptr expression)
 
 	auto UDT_object = dynamic_pointer_cast<UDTObject>(info->value);
 	return UDT_object->pairs[member_name];
+}
+
+Object_ptr Interpreter::visit(EnumMemberAccess_ptr expression)
+{
+	return Object_ptr();
 }
 
 Object_ptr Interpreter::visit(FunctionCall_ptr expression)

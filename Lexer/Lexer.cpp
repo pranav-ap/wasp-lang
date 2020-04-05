@@ -100,7 +100,6 @@ vector<Token_ptr> Lexer::execute()
 			case '[':
 			case ']':
 			case ',':
-			case ':':
 			case '|': CASE_BODY(this->consume_single_char_punctuation(ch));
 			case '"': CASE_BODY(this->consume_string_literal());
 			case '+': CASE_BODY(this->consume_plus());
@@ -114,6 +113,7 @@ vector<Token_ptr> Lexer::execute()
 			case '<': CASE_BODY(this->consume_lesser_than());
 			case '>': CASE_BODY(this->consume_greater_than());
 			case '.': CASE_BODY(this->consume_dot());
+			case ':': CASE_BODY(this->consume_colon());
 			default: CASE_BODY(this->consume_unknown_token(ch));
 			}
 		}
@@ -325,6 +325,16 @@ Token_ptr Lexer::consume_dot()
 	return MAKE_TOKEN(WTokenType::DOT, ".", LINE_NUM, COL_NUM);
 }
 
+Token_ptr Lexer::consume_colon()
+{
+	if (this->expect_current_char(':'))
+	{
+		return MAKE_TOKEN(WTokenType::COLON_COLON, "::", LINE_NUM, COL_NUM);
+	}
+
+	return MAKE_TOKEN(WTokenType::COLON, ":", LINE_NUM, COL_NUM);
+}
+
 Token_ptr Lexer::consume_single_char_punctuation(char ch)
 {
 	switch (ch)
@@ -347,8 +357,6 @@ Token_ptr Lexer::consume_single_char_punctuation(char ch)
 		return MAKE_TOKEN(WTokenType::COMMA, ",", LINE_NUM, COL_NUM);
 	case '.':
 		return MAKE_TOKEN(WTokenType::DOT, ".", LINE_NUM, COL_NUM);
-	case ':':
-		return MAKE_TOKEN(WTokenType::COLON, ":", LINE_NUM, COL_NUM);
 	}
 }
 

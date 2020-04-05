@@ -128,11 +128,12 @@ struct MODULE_API ImportSTD : public Statement, public std::enable_shared_from_t
 
 struct MODULE_API Enum : public Statement, public std::enable_shared_from_this<Enum>
 {
+	bool is_public;
 	std::string name;
 	std::vector<std::string> members;
 
-	Enum(std::string name, std::vector<std::string> members)
-		: name(name), members(members) {};
+	Enum(bool is_public, std::string name, std::vector<std::string> members)
+		: is_public(is_public), name(name), members(members) {};
 
 	void interpret(StatementInterpreter& visitor);
 };

@@ -485,7 +485,7 @@ Statement_ptr Parser::parse_enum_statement(bool is_public)
 		);
 	}
 
-	return make_shared<Enum>(identifier->value, members);
+	return make_shared<Enum>(is_public, identifier->value, members);
 }
 
 // Type Parsers

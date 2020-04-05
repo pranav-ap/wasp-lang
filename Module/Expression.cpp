@@ -48,6 +48,12 @@ Object_ptr UDTMemberAccess::interpret(ExpressionInterpreter& visitor)
 	return visitor.visit(p);
 }
 
+Object_ptr EnumMemberAccess::interpret(ExpressionInterpreter& visitor)
+{
+	INIT_PTR_P(EnumMemberAccess);
+	return visitor.visit(p);
+}
+
 Object_ptr Identifier::interpret(ExpressionInterpreter& visitor)
 {
 	INIT_PTR_P(Identifier);
@@ -149,6 +155,12 @@ MODULE_API std::ostream& operator<<(std::ostream& os, const VectorMemberAccess_p
 MODULE_API std::ostream& operator<<(std::ostream& os, const UDTMemberAccess_ptr exp)
 {
 	os << exp->UDT_name << "." << exp->member_name;
+	return os;
+}
+
+MODULE_API std::ostream& operator<<(std::ostream& os, const EnumMemberAccess_ptr exp)
+{
+	os << exp->enum_name << "::" << exp->member_name;
 	return os;
 }
 

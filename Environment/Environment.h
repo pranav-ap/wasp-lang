@@ -56,6 +56,11 @@ public:
 		bool is_public,
 		std::map<std::string, Type_ptr> member_types
 	);
+
+	void create_enum(
+		std::string name,
+		bool is_public,
+		std::vector<std::string> member_names);
 };
 
 using Environment_ptr = ENVIRONMENT_API std::shared_ptr<Environment>;

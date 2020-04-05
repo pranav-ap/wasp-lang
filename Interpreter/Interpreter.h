@@ -49,6 +49,8 @@ class INTERPRETER_API Interpreter : public StatementInterpreter, public Expressi
 
 	Object_ptr visit(VectorMemberAccess_ptr expression);
 	Object_ptr visit(UDTMemberAccess_ptr expression);
+	Object_ptr visit(EnumMemberAccess_ptr expression);
+
 	Object_ptr visit(FunctionCall_ptr expression);
 
 	Object_ptr visit(Range_ptr expression);

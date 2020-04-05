@@ -46,6 +46,7 @@ std::ostream& operator<<(std::ostream& os, const WTokenType type)
 	case WTokenType::COMMA:
 	case WTokenType::DOT:
 	case WTokenType::COLON:
+	case WTokenType::COLON_COLON:
 	case WTokenType::ARROW:
 	case WTokenType::PLUS:
 	case WTokenType::UNARY_PLUS:

@@ -55,8 +55,7 @@ VariableInfo_ptr Environment::get_variable(string name)
 		FATAL(message);
 	}
 
-	auto variable_info = dynamic_pointer_cast<VariableInfo>(info);
-	return variable_info;
+	return dynamic_pointer_cast<VariableInfo>(info);
 }
 
 FunctionInfo_ptr Environment::get_function(string name)
@@ -69,8 +68,7 @@ FunctionInfo_ptr Environment::get_function(string name)
 		FATAL(message);
 	}
 
-	auto function_info = dynamic_pointer_cast<FunctionInfo>(info);
-	return function_info;
+	return dynamic_pointer_cast<FunctionInfo>(info);
 }
 
 UDTInfo_ptr Environment::get_UDT(string name)
@@ -83,8 +81,7 @@ UDTInfo_ptr Environment::get_UDT(string name)
 		FATAL(message);
 	}
 
-	auto UDT_info = dynamic_pointer_cast<UDTInfo>(info);
-	return UDT_info;
+	return dynamic_pointer_cast<UDTInfo>(info);
 }
 
 // Setters
@@ -158,6 +155,24 @@ void Environment::create_UDT(
 		pair<string, Info_ptr>(
 			name,
 			make_shared<UDTInfo>(is_public, member_types)
+			)
+	);
+
+	string message = name + " already exists in scope!";
+	FATAL_IF_FALSE(result.second, message);
+}
+
+void Environment::create_enum(
+	string name,
+	bool is_public,
+	std::vector<std::string> member_names)
+{
+	auto scope = scopes.front();
+
+	auto result = scope->store.insert(
+		pair<string, Info_ptr>(
+			name,
+			make_shared<EnumInfo>(is_public, member_names)
 			)
 	);
 
