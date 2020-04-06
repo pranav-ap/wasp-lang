@@ -13,17 +13,14 @@
 class ENVIRONMENT_API Environment
 {
 	std::list<Scope_ptr> scopes;
+
 	Info_ptr get_info(std::string name);
 
 public:
 
 	Environment();
 
-	// Enter and leave
-
-	void enter_block_scope();
-	void enter_function_scope();
-
+	void enter_scope();
 	void leave_scope();
 
 	// Getters
@@ -31,12 +28,10 @@ public:
 	VariableInfo_ptr get_variable(std::string name);
 	FunctionInfo_ptr get_function(std::string name);
 	UDTInfo_ptr get_UDT(std::string name);
-	EnumInfo_ptr get_enum(std::string name);
 
 	// Setters
 
 	void set_variable(std::string name, Object_ptr value);
-	void set_element(std::string name, int index, Object_ptr value);
 
 	// Creation
 
@@ -65,13 +60,7 @@ public:
 	void create_enum(
 		std::string name,
 		bool is_public,
-		std::vector<std::string> member_names
-	);
-
-	// Utils
-
-	bool is_inside_function_scope();
-	bool is_inside_block_scope();
+		std::vector<std::string> member_names);
 };
 
 using Environment_ptr = ENVIRONMENT_API std::shared_ptr<Environment>;

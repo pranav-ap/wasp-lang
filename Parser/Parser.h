@@ -44,7 +44,7 @@ class PARSER_API Parser
 
 	Statement_ptr parse_branching_statement();
 	Statement_ptr parse_loop_statement();
-	Statement_ptr parse_foreach_loop_statement();
+	Statement_ptr parse_for_loop_statement();
 
 	// Type parsers
 

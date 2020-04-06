@@ -3,8 +3,6 @@
 #include "pch.h"
 #include "logger.h"
 #include "Interpreter.h"
-#include "StatementVisitor.h"
-#include "ExpressionVisitor.h"
 #include "Module.h"
 #include "ObjectSystem.h"
 
@@ -66,22 +64,16 @@ void Interpreter::visit(Branch_ptr branch)
 
 	auto result_boolean_object = dynamic_pointer_cast<BooleanObject>(result);
 
-	env->enter_block_scope();
-
 	if (result_boolean_object->value)
 		evaluate_branch_block(branch->consequence);
 	else
 		evaluate_branch_block(branch->alternative);
-
-	env->leave_scope();
 }
 
 void Interpreter::visit(Loop_ptr loop)
 {
 	Block_ptr block = loop->block;
 	bool must_continue = false;
-
-	env->enter_block_scope();
 
 	do
 	{
@@ -94,54 +86,12 @@ void Interpreter::visit(Loop_ptr loop)
 			else if (typeid(statement) == typeid(Continue))
 			{
 				must_continue = true;
-				continue;
+				break;
 			}
 
 			statement->interpret(*this);
 		}
 	} while (must_continue);
-
-	env->leave_scope();
-}
-
-void Interpreter::visit(ForEachLoop_ptr statement)
-{
-	env->enter_block_scope();
-
-	auto info = env->get_variable(statement->iterable_name);
-	FATAL_IF_NULLPTR(info, "Vector Object does not exist");
-
-	auto object = info->value;
-	FATAL_IF_NULLPTR(object, "object is nullptr");
-
-	auto vector_object = dynamic_pointer_cast<VectorObject>(object);
-	FATAL_IF_NULLPTR(vector_object, "vector_object is nullptr");
-
-	for (auto const& element : vector_object->values)
-	{
-		if (typeid(info->type) == typeid(NumberType))
-		{
-			auto number_element = dynamic_pointer_cast<NumberObject>(element);
-			FATAL_IF_NULLPTR(number_element, "number_element is nullptr");
-		}
-		else if (typeid(info->type) == typeid(StringType))
-		{
-			auto string_element = dynamic_pointer_cast<StringObject>(element);
-			FATAL_IF_NULLPTR(string_element, "string_element is nullptr");
-		}
-		else if (typeid(info->type) == typeid(BoolType))
-		{
-			auto boolean_element = dynamic_pointer_cast<BooleanObject>(element);
-			FATAL_IF_NULLPTR(boolean_element, "boolean_element is nullptr");
-		}
-		else if (typeid(info->type) == typeid(UDTType))
-		{
-			auto UDT_element = dynamic_pointer_cast<UDTObject>(element);
-			FATAL_IF_NULLPTR(UDT_element, "UDT_element is nullptr");
-		}
-	}
-
-	env->leave_scope();
 }
 
 void Interpreter::visit(Break_ptr statement)
@@ -156,8 +106,8 @@ void Interpreter::visit(Continue_ptr statement)
 
 void Interpreter::visit(ExpressionStatement_ptr statement)
 {
-	auto result = statement->expression->interpret(*this);
-	std::cout << result;
+	auto _result = statement->expression->interpret(*this);
+	//std::cout << result;
 }
 
 void Interpreter::visit(UDTDefinition_ptr statement)
@@ -201,17 +151,7 @@ void Interpreter::visit(Enum_ptr statement)
 
 void Interpreter::visit(Return_ptr statement)
 {
-	if (env->is_inside_function_scope())
-	{
-		if (statement->expression.has_value())
-		{
-			auto result = statement->expression.value()->interpret(*this);
-			auto result_object = make_shared<ReturnObject>(result);
-			//return result;
-		}
-	}
-
-	FATAL("Return must be used inside a function");
+	FATAL("Return must be used within a function");
 }
 
 void Interpreter::visit(Import_ptr statement)
@@ -382,18 +322,32 @@ Object_ptr Interpreter::visit(EnumMemberAccess_ptr expression)
 
 Object_ptr Interpreter::visit(FunctionCall_ptr expression)
 {
-	auto info = env->get_function(expression->name);
-
-	env->enter_function_scope();
-
-	env->leave_scope();
-
 	return nullptr;
 }
 
 Object_ptr Interpreter::visit(Range_ptr expression)
 {
-	FATAL("Range must be used along with vector slicing or a FOR loop");
+	FATAL("Range must be used along with a for loop or for vector slicing");
+}
+
+// Evaluate Block
+
+void Interpreter::evaluate_branch_block(Block_ptr block)
+{
+	for (auto& statement : *block)
+	{
+		if (typeid(statement) == typeid(Break))
+		{
+			break;
+		}
+		else if (typeid(statement) == typeid(Continue))
+		{
+			FATAL("Continue ");
+			break;
+		}
+
+		statement->interpret(*this);
+	}
 }
 
 // Perform Operation
@@ -409,7 +363,7 @@ Object_ptr Interpreter::perform_operation(WTokenType token_type, NumberObject_pt
 	}
 	}
 
-	FATAL("Operation not supported");
+	return nullptr;
 }
 
 Object_ptr Interpreter::perform_operation(WTokenType token_type, BooleanObject_ptr operand)
@@ -423,7 +377,7 @@ Object_ptr Interpreter::perform_operation(WTokenType token_type, BooleanObject_p
 	}
 	}
 
-	FATAL("Operation not supported");
+	return nullptr;
 }
 
 Object_ptr Interpreter::perform_operation(WTokenType token_type, BooleanObject_ptr left, BooleanObject_ptr right)
@@ -448,7 +402,7 @@ Object_ptr Interpreter::perform_operation(WTokenType token_type, BooleanObject_p
 	}
 	}
 
-	FATAL("Operation not supported");
+	return nullptr;
 }
 
 Object_ptr Interpreter::perform_operation(WTokenType token_type, NumberObject_ptr left, NumberObject_ptr right)
@@ -505,7 +459,7 @@ Object_ptr Interpreter::perform_operation(WTokenType token_type, NumberObject_pt
 	}
 	}
 
-	FATAL("Operation not supported");
+	return nullptr;
 }
 
 Object_ptr Interpreter::perform_operation(WTokenType token_type, StringObject_ptr left, StringObject_ptr right)
@@ -526,7 +480,7 @@ Object_ptr Interpreter::perform_operation(WTokenType token_type, StringObject_pt
 	}
 	}
 
-	FATAL("Operation not supported");
+	return nullptr;
 }
 
 Object_ptr Interpreter::perform_operation(WTokenType token_type, StringObject_ptr left, NumberObject_ptr right)
@@ -550,30 +504,5 @@ Object_ptr Interpreter::perform_operation(WTokenType token_type, StringObject_pt
 	}
 	}
 
-	FATAL("Operation not supported");
-}
-
-// Utils
-
-void Interpreter::evaluate_branch_block(Block_ptr block)
-{
-	for (auto& statement : *block)
-	{
-		if (typeid(statement) == typeid(Break))
-		{
-			if (env->is_inside_block_scope())
-				break;
-
-			FATAL("Break must be used inside a loop");
-		}
-		else if (typeid(statement) == typeid(Continue))
-		{
-			if (env->is_inside_block_scope())
-				continue;
-
-			FATAL("Continue must be used inside a loop");
-		}
-
-		statement->interpret(*this);
-	}
+	return nullptr;
 }

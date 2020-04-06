@@ -11,5 +11,6 @@ public:
 	virtual void visit(BooleanObject_ptr object) = 0;
 
 	virtual void visit(VectorObject_ptr object) = 0;
+	virtual void visit(MapObject_ptr object) = 0;
 	virtual void visit(UDTObject_ptr object) = 0;
 };

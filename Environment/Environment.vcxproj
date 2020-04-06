@@ -91,7 +91,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>..\ObjectSystem;..\Token;..\Utils;..\packages;..\Types;..\Statement;..\Expression;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Module;..\ObjectSystem;..\Token;..\Utils;..\packages</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -170,11 +170,11 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Module\Module.vcxproj">
+      <Project>{c6ceae21-8418-4f75-a649-766c237fd649}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\ObjectSystem\ObjectSystem.vcxproj">
       <Project>{475e263f-ebbe-41af-b49e-e0d8b1a8a3d6}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\Statement\Statement.vcxproj">
-      <Project>{30fca5bc-3c79-48b2-96ec-3d55a2d885fb}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Utils\Utils.vcxproj">
       <Project>{fd212e30-089e-4160-84e4-201daa0064b7}</Project>

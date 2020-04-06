@@ -26,7 +26,7 @@ map<string, WTokenType> keyword_map = {
 	{ "const", WTokenType::CONST_KEYWORD },
 
 	{ "loop", WTokenType::LOOP },
-	{ "foreach", WTokenType::FOREACH },
+	{ "for", WTokenType::FOR },
 	{ "break", WTokenType::BREAK },
 	{ "continue", WTokenType::CONTINUE },
 	{ "in", WTokenType::IN_KEYWORD },

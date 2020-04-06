@@ -141,7 +141,6 @@ Expression_ptr ExpressionParser::finish_parsing()
 	operator_stack->drain_into_ast(ast);
 	FATAL_IF_TRUE(ast.size() > 1, "Malformed Expression");
 
-	FATAL_IF_TRUE(ast.size() == 0, "AST is empty");
 	auto result = move(ast.top());
 	ast.pop();
 

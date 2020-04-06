@@ -84,7 +84,7 @@ std::ostream& operator<<(std::ostream& os, const WTokenType type)
 	case WTokenType::LET:
 	case WTokenType::CONST_KEYWORD:
 	case WTokenType::LOOP:
-	case WTokenType::FOREACH:
+	case WTokenType::FOR:
 	case WTokenType::BREAK:
 	case WTokenType::CONTINUE:
 	case WTokenType::FN:

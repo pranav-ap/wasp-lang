@@ -1,6 +1,7 @@
-let names : [str] = ["jon", "sam", "grenn"];
-
-foreach x in names
+enum NAME
 {
-  x
+    ID1,
+    ID2
 }
+
+NAME::ID1
