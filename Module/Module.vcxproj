@@ -154,10 +154,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Expression.h" />
+    <ClInclude Include="ExpressionVisitor.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Module.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Statement.h" />
+    <ClInclude Include="StatementVisitor.h" />
     <ClInclude Include="Types.h" />
   </ItemGroup>
   <ItemGroup>

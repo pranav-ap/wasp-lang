@@ -154,6 +154,7 @@
   <ItemGroup>
     <ClInclude Include="framework.h" />
     <ClInclude Include="ObjectSystem.h" />
+    <ClInclude Include="ObjectVisitor.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>

@@ -16,12 +16,17 @@ using std::map;
 
 Environment::Environment()
 {
-	enter_scope();
+	scopes.push_back(make_shared<ModuleScope>());
 }
 
-void Environment::enter_scope()
+void Environment::enter_block_scope()
 {
-	scopes.push_back(make_shared<Scope>());
+	scopes.push_back(make_shared<BlockScope>());
+}
+
+void Environment::enter_function_scope()
+{
+	scopes.push_back(make_shared<FunctionScope>());
 }
 
 void Environment::leave_scope()
@@ -82,6 +87,19 @@ UDTInfo_ptr Environment::get_UDT(string name)
 	}
 
 	return dynamic_pointer_cast<UDTInfo>(info);
+}
+
+EnumInfo_ptr Environment::get_enum(std::string name)
+{
+	auto info = get_info(name);
+
+	if (typeid(*info) != typeid(EnumInfo))
+	{
+		string message = name + " is not an Enum!";
+		FATAL(message);
+	}
+
+	return dynamic_pointer_cast<EnumInfo>(info);
 }
 
 // Setters
@@ -178,4 +196,30 @@ void Environment::create_enum(
 
 	string message = name + " already exists in scope!";
 	FATAL_IF_FALSE(result.second, message);
+}
+
+bool Environment::is_inside_block_scope()
+{
+	for (auto scope : scopes)
+	{
+		if (typeid(scope) == typeid(BlockScope))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool Environment::is_inside_function_scope()
+{
+	for (auto scope : scopes)
+	{
+		if (typeid(scope) == typeid(FunctionScope))
+		{
+			return true;
+		}
+	}
+
+	return false;
 }

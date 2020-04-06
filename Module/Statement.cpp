@@ -1,71 +1,79 @@
 #include "pch.h"
 #include "Statement.h"
+#include "StatementVisitor.h"
 
 #define ACCEPT(name)								\
 	std::shared_ptr<name> p{ shared_from_this() };	\
 	visitor.visit(p)
 
-void VariableDeclaration::interpret(StatementInterpreter& visitor)
+class StatementVisitor;
+
+void VariableDeclaration::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(VariableDeclaration);
 }
 
-void Assignment::interpret(StatementInterpreter& visitor)
+void Assignment::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(Assignment);
 }
 
-void Branch::interpret(StatementInterpreter& visitor)
+void Branch::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(Branch);
 }
 
-void Loop::interpret(StatementInterpreter& visitor)
+void Loop::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(Loop);
 }
 
-void Break::interpret(StatementInterpreter& visitor)
+void ForEachLoop::interpret(StatementVisitor& visitor)
+{
+	ACCEPT(ForEachLoop);
+}
+
+void Break::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(Break);
 }
 
-void Continue::interpret(StatementInterpreter& visitor)
+void Continue::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(Continue);
 }
 
-void UDTDefinition::interpret(StatementInterpreter& visitor)
+void UDTDefinition::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(UDTDefinition);
 }
 
-void FunctionDefinition::interpret(StatementInterpreter& visitor)
+void FunctionDefinition::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(FunctionDefinition);
 }
 
-void Return::interpret(StatementInterpreter& visitor)
+void Return::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(Return);
 }
 
-void ExpressionStatement::interpret(StatementInterpreter& visitor)
+void ExpressionStatement::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(ExpressionStatement);
 }
 
-void Import::interpret(StatementInterpreter& visitor)
+void Import::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(Import);
 }
 
-void ImportSTD::interpret(StatementInterpreter& visitor)
+void ImportSTD::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(ImportSTD);
 }
 
-void Enum::interpret(StatementInterpreter& visitor)
+void Enum::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(Enum);
 }
@@ -93,6 +101,12 @@ MODULE_API std::ostream& operator<<(std::ostream& os, const Branch_ptr stat)
 MODULE_API std::ostream& operator<<(std::ostream& os, const Loop_ptr stat)
 {
 	os << "LOOP";
+	return os;
+}
+
+MODULE_API std::ostream& operator<<(std::ostream& os, const ForEachLoop_ptr stat)
+{
+	os << "ForEachLoop";
 	return os;
 }
 

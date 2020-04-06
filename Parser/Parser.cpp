@@ -69,7 +69,7 @@ Statement_ptr Parser::parse_statement(bool is_public)
 		CASE(WTokenType::PUB, parse_public_statement());
 		CASE(WTokenType::IF, parse_branching_statement());
 		CASE(WTokenType::LOOP, parse_loop_statement());
-		CASE(WTokenType::FOR, parse_for_loop_statement());
+		CASE(WTokenType::FOREACH, parse_foreach_loop_statement());
 		CASE(WTokenType::TYPE, parse_UDT_declaration(is_public));
 		CASE(WTokenType::FN, parse_function_definition(is_public));
 		CASE(WTokenType::IMPORT, parse_import_statement());
@@ -318,9 +318,23 @@ Statement_ptr Parser::parse_loop_statement()
 	return make_shared<Loop>(block);
 }
 
-Statement_ptr Parser::parse_for_loop_statement()
+Statement_ptr Parser::parse_foreach_loop_statement()
 {
-	return Statement_ptr();
+	auto identifier = token_pipe->consume_token(WTokenType::Identifier);
+	FATAL_IF_NULLPTR(identifier, "Expected an identifier");
+
+	FATAL_IF_NULLPTR(
+		token_pipe->consume_token(WTokenType::IN_KEYWORD),
+		"Expected the IN keyword"
+	);
+
+	auto iterable_identifier = token_pipe->consume_token(WTokenType::Identifier);
+	FATAL_IF_NULLPTR(iterable_identifier, "Expected an identifier");
+
+	auto block = parse_block();
+	FATAL_IF_NULLPTR(block, "Malformed Statement Block");
+
+	return make_shared<ForEachLoop>(identifier->value, iterable_identifier->value, block);
 }
 
 Statement_ptr Parser::parse_branching_statement()
