@@ -80,61 +80,61 @@ void Enum::interpret(StatementVisitor& visitor)
 
 // Printers
 
-STATEMENT_API std::ostream& operator<<(std::ostream& os, const VariableDeclaration_ptr stat)
+MODULE_API std::ostream& operator<<(std::ostream& os, const VariableDeclaration_ptr stat)
 {
 	os << stat->name << " : " << stat->type; // << " " << stat->is_public << " " << stat->is_mutable;
 	return os;
 }
 
-STATEMENT_API std::ostream& operator<<(std::ostream& os, const Assignment_ptr stat)
+MODULE_API std::ostream& operator<<(std::ostream& os, const Assignment_ptr stat)
 {
 	os << stat->name << " " << stat->expression;
 	return os;
 }
 
-STATEMENT_API std::ostream& operator<<(std::ostream& os, const Branch_ptr stat)
+MODULE_API std::ostream& operator<<(std::ostream& os, const Branch_ptr stat)
 {
 	os << stat->condition << " " << stat->consequence << " " << stat->alternative;
 	return os;
 }
 
-STATEMENT_API std::ostream& operator<<(std::ostream& os, const Loop_ptr stat)
+MODULE_API std::ostream& operator<<(std::ostream& os, const Loop_ptr stat)
 {
 	os << "LOOP";
 	return os;
 }
 
-STATEMENT_API std::ostream& operator<<(std::ostream& os, const ForEachLoop_ptr stat)
+MODULE_API std::ostream& operator<<(std::ostream& os, const ForEachLoop_ptr stat)
 {
 	os << "ForEachLoop";
 	return os;
 }
 
-STATEMENT_API std::ostream& operator<<(std::ostream& os, const Break_ptr stat)
+MODULE_API std::ostream& operator<<(std::ostream& os, const Break_ptr stat)
 {
 	os << "Break";
 	return os;
 }
 
-STATEMENT_API std::ostream& operator<<(std::ostream& os, const Continue_ptr stat)
+MODULE_API std::ostream& operator<<(std::ostream& os, const Continue_ptr stat)
 {
 	os << "Continue";
 	return os;
 }
 
-STATEMENT_API std::ostream& operator<<(std::ostream& os, const UDTDefinition_ptr stat)
+MODULE_API std::ostream& operator<<(std::ostream& os, const UDTDefinition_ptr stat)
 {
 	os << "Record : " << stat->name;
 	return os;
 }
 
-STATEMENT_API std::ostream& operator<<(std::ostream& os, const FunctionDefinition_ptr stat)
+MODULE_API std::ostream& operator<<(std::ostream& os, const FunctionDefinition_ptr stat)
 {
 	os << "Function Definition : " << stat->name;
 	return os;
 }
 
-STATEMENT_API std::ostream& operator<<(std::ostream& os, const Return_ptr stat)
+MODULE_API std::ostream& operator<<(std::ostream& os, const Return_ptr stat)
 {
 	if (stat->expression.has_value()) {
 		os << stat->expression.value();
@@ -146,25 +146,25 @@ STATEMENT_API std::ostream& operator<<(std::ostream& os, const Return_ptr stat)
 	return os;
 }
 
-STATEMENT_API std::ostream& operator<<(std::ostream& os, const ExpressionStatement_ptr stat)
+MODULE_API std::ostream& operator<<(std::ostream& os, const ExpressionStatement_ptr stat)
 {
 	os << stat->expression;
 	return os;
 }
 
-STATEMENT_API std::ostream& operator<<(std::ostream& os, const Import_ptr stat)
+MODULE_API std::ostream& operator<<(std::ostream& os, const Import_ptr stat)
 {
 	os << stat->path;
 	return os;
 }
 
-STATEMENT_API std::ostream& operator<<(std::ostream& os, const ImportSTD_ptr stat)
+MODULE_API std::ostream& operator<<(std::ostream& os, const ImportSTD_ptr stat)
 {
 	os << stat->name;
 	return os;
 }
 
-STATEMENT_API std::ostream& operator<<(std::ostream& os, const Enum_ptr stat)
+MODULE_API std::ostream& operator<<(std::ostream& os, const Enum_ptr stat)
 {
 	os << stat->name;
 	return os;

@@ -91,7 +91,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>..\Token;..\Statement;..\Expression;..\ObjectSystem;..\Module;..\Environment;..\packages;..\Utils;..\Types</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\packages;..\Utils;..\Token;..\ObjectSystem;..\Module;..\Environment</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -171,23 +171,14 @@
     <ProjectReference Include="..\Environment\Environment.vcxproj">
       <Project>{f8144420-f63d-487d-a664-fd9f671c1e21}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\Expression\Expression.vcxproj">
-      <Project>{b6232589-92f8-4a1a-912a-10cdbd0d0f46}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\Module\Module.vcxproj">
       <Project>{c6ceae21-8418-4f75-a649-766c237fd649}</Project>
     </ProjectReference>
     <ProjectReference Include="..\ObjectSystem\ObjectSystem.vcxproj">
       <Project>{475e263f-ebbe-41af-b49e-e0d8b1a8a3d6}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\Statement\Statement.vcxproj">
-      <Project>{30fca5bc-3c79-48b2-96ec-3d55a2d885fb}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\Token\Token.vcxproj">
       <Project>{5637e073-6798-4882-a7e7-413e1f93f541}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\Types\Types.vcxproj">
-      <Project>{5215f1fc-6529-4036-9a16-dd0297881968}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Utils\Utils.vcxproj">
       <Project>{fd212e30-089e-4160-84e4-201daa0064b7}</Project>

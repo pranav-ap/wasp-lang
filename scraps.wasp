@@ -1,4 +1,4 @@
-let names : [str] = ["jon", "sam", "grenn"];
+let names : [str] = ["jon", "sam", "grenn"]
 
 foreach x in names
 {

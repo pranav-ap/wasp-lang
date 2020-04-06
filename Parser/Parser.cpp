@@ -513,7 +513,7 @@ Type_ptr Parser::parse_type()
 	auto type = consume_datatype_word();
 	FATAL_IF_NULLPTR(type, "Expected a datatype");
 
-	return nullptr;
+	return type;
 }
 
 Type_ptr Parser::parse_vector_type()
@@ -549,7 +549,7 @@ Type_ptr Parser::consume_datatype_word()
 	case WTokenType::BOOL:
 	{
 		ADVANCE_PTR;
-		return make_shared<BoolType>();
+		return make_shared<BooleanType>();
 	}
 	case WTokenType::Identifier:
 	{

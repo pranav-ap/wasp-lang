@@ -56,7 +56,7 @@ class INTERPRETER_API Interpreter
 
 	// Utils
 
-	void evaluate_branch_block(Block_ptr block);
+	void evaluate_block(Block_ptr block);
 
 	Object_ptr perform_operation(WTokenType token_type, NumberObject_ptr operand);
 	Object_ptr perform_operation(WTokenType token_type, BooleanObject_ptr operand);

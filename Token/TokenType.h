@@ -9,7 +9,7 @@
 #include <string>
 #include <iostream>
 
-TOKEN_API enum class WTokenType
+enum class TOKEN_API WTokenType
 {
 	// Literals
 

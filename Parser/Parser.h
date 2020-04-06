@@ -12,11 +12,11 @@
 #include <utility>
 
 #include "Token.h"
+#include "TokenPipe.h"
 #include "Types.h"
-#include "Module.h"
 #include "Expression.h"
 #include "Statement.h"
-#include "TokenPipe.h"
+#include "Module.h"
 #include "ExpressionParser.h"
 
 #define CASE(token_type, call) case token_type: { return call; }

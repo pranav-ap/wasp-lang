@@ -1,15 +1,15 @@
 #pragma once
 
-#ifdef EXPRESSION_EXPORTS
-#define EXPRESSION_API __declspec(dllexport)
+#ifdef MODULE_EXPORTS
+#define MODULE_API __declspec(dllexport)
 #else
-#define EXPRESSION_API __declspec(dllimport)
+#define MODULE_API __declspec(dllimport)
 #endif
 
 #include "Expression.h"
 #include "ObjectSystem.h"
 
-class EXPRESSION_API ExpressionVisitor
+class MODULE_API ExpressionVisitor
 {
 public:
 	virtual Object_ptr visit(StringLiteral_ptr expression) = 0;

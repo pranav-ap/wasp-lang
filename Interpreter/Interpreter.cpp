@@ -69,9 +69,9 @@ void Interpreter::visit(Branch_ptr branch)
 	env->enter_block_scope();
 
 	if (result_boolean_object->value)
-		evaluate_branch_block(branch->consequence);
+		evaluate_block(branch->consequence);
 	else
-		evaluate_branch_block(branch->alternative);
+		evaluate_block(branch->alternative);
 
 	env->leave_scope();
 }
@@ -117,29 +117,29 @@ void Interpreter::visit(ForEachLoop_ptr statement)
 	auto vector_object = dynamic_pointer_cast<VectorObject>(object);
 	FATAL_IF_NULLPTR(vector_object, "vector_object is nullptr");
 
-	for (auto const& element : vector_object->values)
-	{
-		if (typeid(info->type) == typeid(NumberType))
-		{
-			auto number_element = dynamic_pointer_cast<NumberObject>(element);
-			FATAL_IF_NULLPTR(number_element, "number_element is nullptr");
-		}
-		else if (typeid(info->type) == typeid(StringType))
-		{
-			auto string_element = dynamic_pointer_cast<StringObject>(element);
-			FATAL_IF_NULLPTR(string_element, "string_element is nullptr");
-		}
-		else if (typeid(info->type) == typeid(BoolType))
-		{
-			auto boolean_element = dynamic_pointer_cast<BooleanObject>(element);
-			FATAL_IF_NULLPTR(boolean_element, "boolean_element is nullptr");
-		}
-		else if (typeid(info->type) == typeid(UDTType))
-		{
-			auto UDT_element = dynamic_pointer_cast<UDTObject>(element);
-			FATAL_IF_NULLPTR(UDT_element, "UDT_element is nullptr");
-		}
-	}
+	//for (auto const& element : vector_object->values)
+	//{
+	//	if (typeid(info->type) == typeid(NumberType))
+	//	{
+	//		auto number_element = dynamic_pointer_cast<NumberObject>(element);
+	//		FATAL_IF_NULLPTR(number_element, "number_element is nullptr");
+	//	}
+	//	else if (typeid(info->type) == typeid(StringType))
+	//	{
+	//		auto string_element = dynamic_pointer_cast<StringObject>(element);
+	//		FATAL_IF_NULLPTR(string_element, "string_element is nullptr");
+	//	}
+	//	else if (typeid(info->type) == typeid(BooleanType))
+	//	{
+	//		auto boolean_element = dynamic_pointer_cast<BooleanObject>(element);
+	//		FATAL_IF_NULLPTR(boolean_element, "boolean_element is nullptr");
+	//	}
+	//	else if (typeid(info->type) == typeid(UDTType))
+	//	{
+	//		auto UDT_element = dynamic_pointer_cast<UDTObject>(element);
+	//		FATAL_IF_NULLPTR(UDT_element, "UDT_element is nullptr");
+	//	}
+	//}
 
 	env->leave_scope();
 }
@@ -555,7 +555,7 @@ Object_ptr Interpreter::perform_operation(WTokenType token_type, StringObject_pt
 
 // Utils
 
-void Interpreter::evaluate_branch_block(Block_ptr block)
+void Interpreter::evaluate_block(Block_ptr block)
 {
 	for (auto& statement : *block)
 	{

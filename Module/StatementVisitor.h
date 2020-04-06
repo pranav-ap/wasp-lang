@@ -1,14 +1,14 @@
 #pragma once
 
-#ifdef STATEMENT_EXPORTS
-#define STATEMENT_API __declspec(dllexport)
+#ifdef MODULE_EXPORTS
+#define MODULE_API __declspec(dllexport)
 #else
-#define STATEMENT_API __declspec(dllimport)
+#define MODULE_API __declspec(dllimport)
 #endif
 
 #include "Statement.h"
 
-class STATEMENT_API StatementVisitor
+class MODULE_API StatementVisitor
 {
 public:
 	virtual void visit(VariableDeclaration_ptr statement) = 0;
