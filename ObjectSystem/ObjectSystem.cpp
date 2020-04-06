@@ -1,6 +1,7 @@
 #pragma once
 #include "pch.h"
 #include "ObjectSystem.h"
+#include "ObjectVisitor.h"
 #include <iostream>
 #include <string>
 
@@ -59,23 +60,13 @@ void OptionalObject::accept(ObjectVisitor& visitor)
 	return visitor.visit(p);
 }
 
-// Printers
-
-std::ostream& operator<<(std::ostream& os, const OptionalObject_ptr obj)
+void ReturnObject::accept(ObjectVisitor& visitor)
 {
-	os << "Optional Object : ";
-
-	if (obj->value.has_value())
-	{
-		os << obj->value.value();
-	}
-	else
-	{
-		os << "NONE";
-	}
-
-	return os;
+	INIT_PTR_P(ReturnObject);
+	return visitor.visit(p);
 }
+
+// Printers
 
 std::ostream& operator<<(std::ostream& os, const NumberObject_ptr obj)
 {
@@ -109,34 +100,34 @@ std::ostream& operator<<(std::ostream& os, const UDTObject_ptr obj)
 	return os;
 }
 
-// Visitor functions
-
-void ObjectPrinterVisitor::visit(OptionalObject_ptr obj)
+std::ostream& operator<<(std::ostream& os, const OptionalObject_ptr obj)
 {
-	cout << obj;
+	os << "Optional Object : ";
+
+	if (obj->value.has_value())
+	{
+		os << obj->value.value();
+	}
+	else
+	{
+		os << "NONE";
+	}
+
+	return os;
 }
 
-void ObjectPrinterVisitor::visit(NumberObject_ptr obj)
+std::ostream& operator<<(std::ostream& os, const ReturnObject_ptr obj)
 {
-	cout << obj;
-}
+	os << "Return Object : ";
 
-void ObjectPrinterVisitor::visit(StringObject_ptr obj)
-{
-	cout << obj;
-}
+	if (obj->value.has_value())
+	{
+		os << obj->value.value();
+	}
+	else
+	{
+		os << "NONE";
+	}
 
-void ObjectPrinterVisitor::visit(BooleanObject_ptr obj)
-{
-	cout << obj;
-}
-
-void ObjectPrinterVisitor::visit(VectorObject_ptr obj)
-{
-	cout << obj;
-}
-
-void ObjectPrinterVisitor::visit(UDTObject_ptr obj)
-{
-	cout << obj;
+	return os;
 }

@@ -11,8 +11,12 @@
 #include "Statement.h"
 #include "Expression.h"
 #include "ObjectSystem.h"
+#include "StatementVisitor.h"
+#include "ExpressionVisitor.h"
+#include "ObjectVisitor.h"
 
-class INTERPRETER_API Interpreter : public StatementInterpreter, public ExpressionInterpreter
+class INTERPRETER_API Interpreter
+	: public StatementVisitor, public ExpressionVisitor
 {
 	Module mod;
 	Environment_ptr env;
@@ -23,6 +27,7 @@ class INTERPRETER_API Interpreter : public StatementInterpreter, public Expressi
 	void visit(Assignment_ptr statement);
 	void visit(Branch_ptr statement);
 	void visit(Loop_ptr statement);
+	void visit(ForEachLoop_ptr statement);
 	void visit(Break_ptr statement);
 	void visit(Continue_ptr statement);
 	void visit(ExpressionStatement_ptr statement);
@@ -38,21 +43,15 @@ class INTERPRETER_API Interpreter : public StatementInterpreter, public Expressi
 	Object_ptr visit(StringLiteral_ptr expression);
 	Object_ptr visit(NumberLiteral_ptr expression);
 	Object_ptr visit(BooleanLiteral_ptr expression);
-
 	Object_ptr visit(VectorLiteral_ptr expression);
 	Object_ptr visit(UDTLiteral_ptr expression);
-
 	Object_ptr visit(Identifier_ptr expression);
-
 	Object_ptr visit(Unary_ptr expression);
 	Object_ptr visit(Binary_ptr expression);
-
 	Object_ptr visit(VectorMemberAccess_ptr expression);
 	Object_ptr visit(UDTMemberAccess_ptr expression);
 	Object_ptr visit(EnumMemberAccess_ptr expression);
-
 	Object_ptr visit(FunctionCall_ptr expression);
-
 	Object_ptr visit(Range_ptr expression);
 
 	// Utils
