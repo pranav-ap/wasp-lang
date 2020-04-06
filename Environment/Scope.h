@@ -13,14 +13,9 @@
 struct ENVIRONMENT_API Scope
 {
 	std::map<std::string, Info_ptr> store;
-
-	~Scope()
-	{
-		store.clear();
-	}
 };
 
-struct ENVIRONMENT_API GlobalScope : public Scope
+struct ENVIRONMENT_API ModuleScope : public Scope
 {
 };
 
@@ -33,6 +28,6 @@ struct ENVIRONMENT_API FunctionScope : public Scope
 };
 
 using Scope_ptr = ENVIRONMENT_API std::shared_ptr<Scope>;
-using ModuleScope_ptr = ENVIRONMENT_API std::shared_ptr<GlobalScope>;
+using ModuleScope_ptr = ENVIRONMENT_API std::shared_ptr<ModuleScope>;
 using BlockScope_ptr = ENVIRONMENT_API std::shared_ptr<BlockScope>;
 using FunctionScope_ptr = ENVIRONMENT_API std::shared_ptr<FunctionScope>;

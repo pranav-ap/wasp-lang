@@ -83,7 +83,7 @@ TOKEN_API enum class WTokenType
 	CONST_KEYWORD,
 
 	LOOP,
-	FOR,
+	FOREACH,
 	BREAK,
 	CONTINUE,
 	IN_KEYWORD,
