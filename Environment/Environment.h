@@ -6,6 +6,7 @@
 #define ENVIRONMENT_API __declspec(dllimport)
 #endif
 
+#include "ObjectVisitor.h"
 #include "Scope.h"
 #include "Info.h"
 #include <list>
@@ -39,7 +40,7 @@ public:
 	void set_variable(std::string name, Object_ptr value);
 	void set_element(std::string name, int index, Object_ptr value);
 
-	// Creation
+	// Creators
 
 	void create_variable(
 		std::string name,
@@ -48,8 +49,6 @@ public:
 		Type_ptr type,
 		Object_ptr result
 	);
-
-	void create_variable(std::string name, Type_ptr type);
 
 	void create_function(
 		std::string name,

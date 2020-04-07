@@ -36,7 +36,7 @@ class INTERPRETER_API Interpreter
 	Object_ptr visit(Return_ptr statement);
 	Object_ptr visit(Import_ptr statement);
 	Object_ptr visit(ImportSTD_ptr statement);
-	Object_ptr visit(Enum_ptr statement);
+	Object_ptr visit(EnumDefinition_ptr statement);
 
 	// Expression Visitors
 
@@ -59,8 +59,12 @@ class INTERPRETER_API Interpreter
 	Object_ptr evaluate_block(Block_ptr block);
 	Object_ptr evaluate_loop(Block_ptr block);
 
+	Object_ptr perform_operation(WTokenType token_type, Object_ptr operand);
+
 	Object_ptr perform_operation(WTokenType token_type, NumberObject_ptr operand);
 	Object_ptr perform_operation(WTokenType token_type, BooleanObject_ptr operand);
+
+	Object_ptr perform_operation(WTokenType token_type, Object_ptr left, Object_ptr right);
 
 	Object_ptr perform_operation(WTokenType token_type, NumberObject_ptr left, NumberObject_ptr right);
 	Object_ptr perform_operation(WTokenType token_type, BooleanObject_ptr left, BooleanObject_ptr right);

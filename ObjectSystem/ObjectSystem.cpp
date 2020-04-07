@@ -65,24 +65,16 @@ void OptionalObject::accept(ObjectVisitor& visitor)
 
 void ReturnObject::accept(ObjectVisitor& visitor)
 {
-	INIT_PTR_P(ReturnObject);
-	return visitor.visit(p);
 }
 
 void VoidObject::accept(ObjectVisitor& visitor)
 {
-	INIT_PTR_P(VoidObject);
-	return visitor.visit(p);
 }
 
 void BreakObject::accept(ObjectVisitor& visitor)
 {
-	INIT_PTR_P(BreakObject);
-	return visitor.visit(p);
 }
 
 void ContinueObject::accept(ObjectVisitor& visitor)
 {
-	INIT_PTR_P(ContinueObject);
-	return visitor.visit(p);
 }

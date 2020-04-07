@@ -138,13 +138,13 @@ struct MODULE_API ImportSTD : public Statement, public std::enable_shared_from_t
 	Object_ptr interpret(StatementVisitor& visitor);
 };
 
-struct MODULE_API Enum : public Statement, public std::enable_shared_from_this<Enum>
+struct MODULE_API EnumDefinition : public Statement, public std::enable_shared_from_this<EnumDefinition>
 {
 	bool is_public;
 	std::string name;
 	std::vector<std::string> members;
 
-	Enum(bool is_public, std::string name, std::vector<std::string> members)
+	EnumDefinition(bool is_public, std::string name, std::vector<std::string> members)
 		: is_public(is_public), name(name), members(members) {};
 
 	Object_ptr interpret(StatementVisitor& visitor);
@@ -163,7 +163,7 @@ using Return_ptr = MODULE_API std::shared_ptr<Return>;
 using ExpressionStatement_ptr = MODULE_API std::shared_ptr<ExpressionStatement>;
 using Import_ptr = MODULE_API std::shared_ptr<Import>;
 using ImportSTD_ptr = MODULE_API std::shared_ptr<ImportSTD>;
-using Enum_ptr = MODULE_API std::shared_ptr<Enum>;
+using EnumDefinition_ptr = MODULE_API std::shared_ptr<EnumDefinition>;
 
 // Printers
 
@@ -180,4 +180,4 @@ MODULE_API std::ostream& operator<<(std::ostream& os, const Return_ptr stat);
 MODULE_API std::ostream& operator<<(std::ostream& os, const ExpressionStatement_ptr stat);
 MODULE_API std::ostream& operator<<(std::ostream& os, const Import_ptr stat);
 MODULE_API std::ostream& operator<<(std::ostream& os, const ImportSTD_ptr stat);
-MODULE_API std::ostream& operator<<(std::ostream& os, const Enum_ptr stat);
+MODULE_API std::ostream& operator<<(std::ostream& os, const EnumDefinition_ptr stat);

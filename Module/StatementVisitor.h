@@ -25,5 +25,5 @@ public:
 	virtual Object_ptr visit(ExpressionStatement_ptr statement) = 0;
 	virtual Object_ptr visit(Import_ptr statement) = 0;
 	virtual Object_ptr visit(ImportSTD_ptr statement) = 0;
-	virtual Object_ptr visit(Enum_ptr statement) = 0;
+	virtual Object_ptr visit(EnumDefinition_ptr statement) = 0;
 };

@@ -177,9 +177,6 @@
     <ProjectReference Include="..\Module\Module.vcxproj">
       <Project>{c6ceae21-8418-4f75-a649-766c237fd649}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\ObjectSystem\ObjectSystem.vcxproj">
-      <Project>{475e263f-ebbe-41af-b49e-e0d8b1a8a3d6}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\Token\Token.vcxproj">
       <Project>{5637e073-6798-4882-a7e7-413e1f93f541}</Project>
     </ProjectReference>

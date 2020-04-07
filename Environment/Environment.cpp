@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "logger.h"
-#include "Info.h"
 #include "Environment.h"
+#include "Info.h"
 
 #include <memory>
 #include <string>
@@ -147,11 +147,6 @@ void Environment::create_variable(
 
 	string message = name + " already exists in scope!";
 	FATAL_IF_FALSE(result.second, message);
-}
-
-void Environment::create_variable(string name, Type_ptr type)
-{
-	create_variable(name, false, true, type, make_shared<VoidObject>());
 }
 
 void Environment::create_function(

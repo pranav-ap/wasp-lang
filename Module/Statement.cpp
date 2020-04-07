@@ -84,9 +84,9 @@ Object_ptr ImportSTD::interpret(StatementVisitor& visitor)
 	return visitor.visit(p);
 }
 
-Object_ptr Enum::interpret(StatementVisitor& visitor)
+Object_ptr EnumDefinition::interpret(StatementVisitor& visitor)
 {
-	ACCEPT(Enum);
+	ACCEPT(EnumDefinition);
 	return visitor.visit(p);
 }
 
@@ -176,7 +176,7 @@ MODULE_API std::ostream& operator<<(std::ostream& os, const ImportSTD_ptr stat)
 	return os;
 }
 
-MODULE_API std::ostream& operator<<(std::ostream& os, const Enum_ptr stat)
+MODULE_API std::ostream& operator<<(std::ostream& os, const EnumDefinition_ptr stat)
 {
 	os << stat->name;
 	return os;

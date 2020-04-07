@@ -39,6 +39,12 @@
     <ClInclude Include="Types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="StatementVisitor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ExpressionVisitor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">

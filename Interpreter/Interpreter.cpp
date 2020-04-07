@@ -114,30 +114,7 @@ Object_ptr Interpreter::visit(ForEachLoop_ptr statement)
 
 	for (auto const& element : vector_object->values)
 	{
-		if (typeid(*vector_type->type) == typeid(NumberType))
-		{
-			auto number_element = dynamic_pointer_cast<NumberObject>(element);
-			FATAL_IF_NULLPTR(number_element, "number_element is nullptr");
-			env->set_variable(statement->item_name, number_element);
-		}
-		else if (typeid(*vector_type->type) == typeid(StringType))
-		{
-			auto string_element = dynamic_pointer_cast<StringObject>(element);
-			FATAL_IF_NULLPTR(string_element, "string_element is nullptr");
-			env->set_variable(statement->item_name, string_element);
-		}
-		else if (typeid(*vector_type->type) == typeid(BooleanType))
-		{
-			auto boolean_element = dynamic_pointer_cast<BooleanObject>(element);
-			FATAL_IF_NULLPTR(boolean_element, "boolean_element is nullptr");
-			env->set_variable(statement->item_name, boolean_element);
-		}
-		else if (typeid(*vector_type->type) == typeid(UDTType))
-		{
-			auto UDT_element = dynamic_pointer_cast<UDTObject>(element);
-			FATAL_IF_NULLPTR(UDT_element, "UDT_element is nullptr");
-			env->set_variable(statement->item_name, UDT_element);
-		}
+		env->set_variable(statement->item_name, element);
 
 		auto result = evaluate_block(statement->block);
 		FATAL_IF_NULLPTR(result, "result is nullptr");
@@ -200,7 +177,7 @@ Object_ptr Interpreter::visit(FunctionDefinition_ptr statement)
 	return make_shared<VoidObject>();
 }
 
-Object_ptr Interpreter::visit(Enum_ptr statement)
+Object_ptr Interpreter::visit(EnumDefinition_ptr statement)
 {
 	string name = statement->name;
 	bool is_public = statement->is_public;
@@ -291,23 +268,7 @@ Object_ptr Interpreter::visit(Unary_ptr unary_expression)
 	auto operand = unary_expression->operand->interpret(*this);
 	auto token_type = unary_expression->op->type;
 
-	if (OPERAND_TYPEID == typeid(NumberObject))
-	{
-		auto operand_number_object = dynamic_pointer_cast<NumberObject>(operand);
-		return perform_operation(token_type, operand_number_object);
-	}
-	else if (OPERAND_TYPEID == typeid(BooleanObject))
-	{
-		auto operand_boolean_object = dynamic_pointer_cast<BooleanObject>(operand);
-		return perform_operation(token_type, operand_boolean_object);
-	}
-
-	string message =
-		"Ln " + to_string(unary_expression->op->line_num) +
-		" Col " + to_string(unary_expression->op->column_num) +
-		" : Unary Operation is not defined for this operand";
-
-	FATAL(message);
+	return perform_operation(token_type, operand);
 }
 
 Object_ptr Interpreter::visit(Binary_ptr binary_expression)
@@ -316,37 +277,7 @@ Object_ptr Interpreter::visit(Binary_ptr binary_expression)
 	auto right = binary_expression->right->interpret(*this);
 	auto token_type = binary_expression->op->type;
 
-	if (LEFT_TYPEID == typeid(NumberObject) && RIGHT_TYPEID == typeid(NumberObject))
-	{
-		auto left_number_object = dynamic_pointer_cast<NumberObject>(left);
-		auto right_number_object = dynamic_pointer_cast<NumberObject>(right);
-		return perform_operation(token_type, left_number_object, right_number_object);
-	}
-	else if (LEFT_TYPEID == typeid(BooleanObject) && RIGHT_TYPEID == typeid(BooleanObject))
-	{
-		auto left_boolean_object = dynamic_pointer_cast<BooleanObject>(left);
-		auto right_boolean_object = dynamic_pointer_cast<BooleanObject>(right);
-		return perform_operation(token_type, left_boolean_object, right_boolean_object);
-	}
-	else if (LEFT_TYPEID == typeid(StringObject) && RIGHT_TYPEID == typeid(StringObject))
-	{
-		auto left_string_object = dynamic_pointer_cast<StringObject>(left);
-		auto right_string_object = dynamic_pointer_cast<StringObject>(right);
-		return perform_operation(token_type, left_string_object, right_string_object);
-	}
-	else if (LEFT_TYPEID == typeid(StringObject) && RIGHT_TYPEID == typeid(NumberObject))
-	{
-		auto left_string_object = dynamic_pointer_cast<StringObject>(left);
-		auto right_number_object = dynamic_pointer_cast<NumberObject>(right);
-		return perform_operation(token_type, left_string_object, right_number_object);
-	}
-
-	string message =
-		"Ln " + to_string(binary_expression->op->line_num) +
-		" Col " + to_string(binary_expression->op->column_num) +
-		" : Binary Operation is not defined for these operands";
-
-	FATAL(message);
+	return perform_operation(token_type, left, right);
 }
 
 Object_ptr Interpreter::visit(VectorMemberAccess_ptr expression)
@@ -404,58 +335,15 @@ Object_ptr Interpreter::visit(FunctionCall_ptr expression)
 
 	for (auto const& argument : expression->arguments)
 	{
-		if (typeid(*formal_arguments[index].second) == typeid(NumberType))
-		{
-			auto number_element = dynamic_pointer_cast<NumberObject>(argument);
-			FATAL_IF_NULLPTR(number_element, "number_element is nullptr");
+		auto object = argument->interpret(*this);
 
-			env->create_variable(
-				formal_arguments[index].first,
-				false,
-				true,
-				formal_arguments[index].second,
-				number_element
-			);
-		}
-		else if (typeid(*formal_arguments[index].second) == typeid(StringType))
-		{
-			auto string_element = dynamic_pointer_cast<StringObject>(argument);
-			FATAL_IF_NULLPTR(string_element, "string_element is nullptr");
-
-			env->create_variable(
-				formal_arguments[index].first,
-				false,
-				true,
-				formal_arguments[index].second,
-				string_element
-			);
-		}
-		else if (typeid(*formal_arguments[index].second) == typeid(BooleanType))
-		{
-			auto boolean_element = dynamic_pointer_cast<BooleanObject>(argument);
-			FATAL_IF_NULLPTR(boolean_element, "boolean_element is nullptr");
-
-			env->create_variable(
-				formal_arguments[index].first,
-				false,
-				true,
-				formal_arguments[index].second,
-				boolean_element
-			);
-		}
-		else if (typeid(*formal_arguments[index].second) == typeid(UDTType))
-		{
-			auto UDT_element = dynamic_pointer_cast<UDTObject>(argument);
-			FATAL_IF_NULLPTR(UDT_element, "UDT_element is nullptr");
-
-			env->create_variable(
-				formal_arguments[index].first,
-				false,
-				true,
-				formal_arguments[index].second,
-				UDT_element
-			);
-		}
+		env->create_variable(
+			formal_arguments[index].first,
+			false,
+			true,
+			formal_arguments[index].second,
+			object
+		);
 
 		index++;
 	}
@@ -473,6 +361,52 @@ Object_ptr Interpreter::visit(Range_ptr expression)
 }
 
 // Perform Operation
+
+Object_ptr Interpreter::perform_operation(WTokenType token_type, Object_ptr operand)
+{
+	if (OPERAND_TYPEID == typeid(NumberObject))
+	{
+		auto operand_number_object = dynamic_pointer_cast<NumberObject>(operand);
+		return perform_operation(token_type, operand_number_object);
+	}
+	else if (OPERAND_TYPEID == typeid(BooleanObject))
+	{
+		auto operand_boolean_object = dynamic_pointer_cast<BooleanObject>(operand);
+		return perform_operation(token_type, operand_boolean_object);
+	}
+
+	FATAL("The Unary Operation is not defined for this operand");
+}
+
+Object_ptr Interpreter::perform_operation(WTokenType token_type, Object_ptr left, Object_ptr right)
+{
+	if (LEFT_TYPEID == typeid(NumberObject) && RIGHT_TYPEID == typeid(NumberObject))
+	{
+		auto left_number_object = dynamic_pointer_cast<NumberObject>(left);
+		auto right_number_object = dynamic_pointer_cast<NumberObject>(right);
+		return perform_operation(token_type, left_number_object, right_number_object);
+	}
+	else if (LEFT_TYPEID == typeid(BooleanObject) && RIGHT_TYPEID == typeid(BooleanObject))
+	{
+		auto left_boolean_object = dynamic_pointer_cast<BooleanObject>(left);
+		auto right_boolean_object = dynamic_pointer_cast<BooleanObject>(right);
+		return perform_operation(token_type, left_boolean_object, right_boolean_object);
+	}
+	else if (LEFT_TYPEID == typeid(StringObject) && RIGHT_TYPEID == typeid(StringObject))
+	{
+		auto left_string_object = dynamic_pointer_cast<StringObject>(left);
+		auto right_string_object = dynamic_pointer_cast<StringObject>(right);
+		return perform_operation(token_type, left_string_object, right_string_object);
+	}
+	else if (LEFT_TYPEID == typeid(StringObject) && RIGHT_TYPEID == typeid(NumberObject))
+	{
+		auto left_string_object = dynamic_pointer_cast<StringObject>(left);
+		auto right_number_object = dynamic_pointer_cast<NumberObject>(right);
+		return perform_operation(token_type, left_string_object, right_number_object);
+	}
+
+	FATAL("The Binary Operation is not defined for these operands");
+}
 
 Object_ptr Interpreter::perform_operation(WTokenType token_type, NumberObject_ptr operand)
 {
