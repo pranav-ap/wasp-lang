@@ -19,9 +19,14 @@ Environment::Environment()
 	scopes.push_back(make_shared<ModuleScope>());
 }
 
-void Environment::enter_block_scope()
+void Environment::enter_branch_scope()
 {
-	scopes.push_back(make_shared<BlockScope>());
+	scopes.push_back(make_shared<BranchScope>());
+}
+
+void Environment::enter_loop_scope()
+{
+	scopes.push_back(make_shared<LoopScope>());
 }
 
 void Environment::enter_function_scope()
@@ -146,22 +151,7 @@ void Environment::create_variable(
 
 void Environment::create_variable(string name, Type_ptr type)
 {
-	auto scope = scopes.front();
-
-	auto result = scope->store.insert(
-		pair<string, Info_ptr>(
-			name,
-			make_shared<VariableInfo>(
-				false,
-				true,
-				type,
-				make_shared<VoidObject>()
-				)
-			)
-	);
-
-	string message = name + " already exists in scope!";
-	FATAL_IF_FALSE(result.second, message);
+	create_variable(name, false, true, type, make_shared<VoidObject>());
 }
 
 void Environment::create_function(
@@ -220,19 +210,28 @@ void Environment::create_enum(
 	FATAL_IF_FALSE(result.second, message);
 }
 
-bool Environment::is_inside_block_scope()
+bool Environment::is_inside_function_scope()
 {
 	for (auto scope : scopes)
-		if (typeid(scope) == typeid(BlockScope))
+		if (typeid(scope) == typeid(FunctionScope))
 			return true;
 
 	return false;
 }
 
-bool Environment::is_inside_function_scope()
+bool Environment::is_inside_branch_scope()
 {
 	for (auto scope : scopes)
-		if (typeid(scope) == typeid(FunctionScope))
+		if (typeid(scope) == typeid(BranchScope))
+			return true;
+
+	return false;
+}
+
+bool Environment::is_inside_loop_scope()
+{
+	for (auto scope : scopes)
+		if (typeid(scope) == typeid(LoopScope))
 			return true;
 
 	return false;

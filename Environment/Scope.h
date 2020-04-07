@@ -19,15 +19,25 @@ struct ENVIRONMENT_API ModuleScope : public Scope
 {
 };
 
+struct ENVIRONMENT_API FunctionScope : public Scope
+{
+};
+
 struct ENVIRONMENT_API BlockScope : public Scope
 {
 };
 
-struct ENVIRONMENT_API FunctionScope : public Scope
+struct ENVIRONMENT_API BranchScope : public BlockScope
+{
+};
+
+struct ENVIRONMENT_API LoopScope : public BlockScope
 {
 };
 
 using Scope_ptr = ENVIRONMENT_API std::shared_ptr<Scope>;
 using ModuleScope_ptr = ENVIRONMENT_API std::shared_ptr<ModuleScope>;
-using BlockScope_ptr = ENVIRONMENT_API std::shared_ptr<BlockScope>;
 using FunctionScope_ptr = ENVIRONMENT_API std::shared_ptr<FunctionScope>;
+using BlockScope_ptr = ENVIRONMENT_API std::shared_ptr<BlockScope>;
+using BranchScope_ptr = ENVIRONMENT_API std::shared_ptr<BranchScope>;
+using LoopScope_ptr = ENVIRONMENT_API std::shared_ptr<LoopScope>;

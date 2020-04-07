@@ -26,9 +26,7 @@ using std::make_shared;
 void Interpreter::execute()
 {
 	for (auto statement : mod.nodes)
-	{
-		auto _x = statement->interpret(*this);
-	}
+		statement->interpret(*this);
 }
 
 // Statement Visitors
@@ -54,9 +52,8 @@ Object_ptr Interpreter::visit(Assignment_ptr assignment)
 	auto name = assignment->name;
 	auto info = env->get_variable(name);
 
-	std::stringstream message;
-	message << name << " is not mutable";
-	FATAL_IF_FALSE(info->is_mutable, "");
+	string message = name + " is not mutable";
+	FATAL_IF_FALSE(info->is_mutable, message);
 
 	auto result = assignment->expression->interpret(*this);
 	FATAL_IF_NULLPTR(result, "Cannot assign variable with nullptr");
@@ -69,75 +66,34 @@ Object_ptr Interpreter::visit(Assignment_ptr assignment)
 Object_ptr Interpreter::visit(Branch_ptr branch)
 {
 	auto result = branch->condition->interpret(*this);
+	FATAL_IF_NULLPTR(result, "result is nullptr");
 	FATAL_IF_TRUE(typeid(result) != typeid(BooleanObject), "Condition has to return boolean value");
 
 	auto result_boolean_object = dynamic_pointer_cast<BooleanObject>(result);
+	auto block = result_boolean_object->value ?
+		branch->consequence :
+		branch->alternative;
 
-	env->enter_block_scope();
+	env->enter_branch_scope();
 
-	if (result_boolean_object->value)
-	{
-		auto result = evaluate_block(branch->consequence);
-		FATAL_IF_NULLPTR(result, "result is null");
-
-		if (typeid(*result) == typeid(ReturnObject))
-		{
-			env->leave_scope();
-			return result;
-		}
-	}
-	else
-	{
-		auto result = evaluate_block(branch->alternative);
-		FATAL_IF_NULLPTR(result, "result is null");
-
-		if (typeid(*result) == typeid(ReturnObject))
-		{
-			env->leave_scope();
-			return result;
-		}
-	}
+	result = evaluate_block(move(block));
+	FATAL_IF_NULLPTR(result, "result is nullptr");
 
 	env->leave_scope();
 
-	return make_shared<VoidObject>();
+	return result;
 }
 
 Object_ptr Interpreter::visit(Loop_ptr loop)
 {
-	Block_ptr block = loop->block;
-	bool must_continue = false;
+	env->enter_loop_scope();
 
-	env->enter_block_scope();
-
-	do
-	{
-		for (auto const& statement : *block)
-		{
-			if (typeid(statement) == typeid(Break))
-			{
-				break;
-			}
-			else if (typeid(statement) == typeid(Continue))
-			{
-				must_continue = true;
-				continue;
-			}
-
-			auto result = statement->interpret(*this);
-			FATAL_IF_NULLPTR(result, "result is null");
-
-			if (typeid(*result) == typeid(ReturnObject))
-			{
-				env->leave_scope();
-				return result;
-			}
-		}
-	} while (must_continue);
+	auto result = evaluate_loop(loop->block);
+	FATAL_IF_NULLPTR(result, "result is nullptr");
 
 	env->leave_scope();
 
-	return make_shared<VoidObject>();
+	return result;
 }
 
 Object_ptr Interpreter::visit(ForEachLoop_ptr statement)
@@ -151,7 +107,7 @@ Object_ptr Interpreter::visit(ForEachLoop_ptr statement)
 	auto vector_object = dynamic_pointer_cast<VectorObject>(object);
 	FATAL_IF_NULLPTR(vector_object, "vector_object is nullptr");
 
-	env->enter_block_scope();
+	env->enter_loop_scope();
 	env->create_variable(statement->item_name, info->type);
 
 	auto vector_type = dynamic_pointer_cast<VectorType>(info->type);
@@ -200,18 +156,24 @@ Object_ptr Interpreter::visit(ForEachLoop_ptr statement)
 
 Object_ptr Interpreter::visit(Break_ptr statement)
 {
+	if (env->is_inside_loop_scope())
+		return make_shared<BreakObject>();
+
 	FATAL("Break must be used within a loop");
 }
 
 Object_ptr Interpreter::visit(Continue_ptr statement)
 {
+	if (env->is_inside_loop_scope())
+		return make_shared<ContinueObject>();
+
 	FATAL("Continue must be used within a loop");
 }
 
 Object_ptr Interpreter::visit(ExpressionStatement_ptr statement)
 {
 	auto result = statement->expression->interpret(*this);
-	return make_shared<VoidObject>();
+	return result;
 }
 
 Object_ptr Interpreter::visit(UDTDefinition_ptr statement)
@@ -233,13 +195,7 @@ Object_ptr Interpreter::visit(FunctionDefinition_ptr statement)
 	auto return_type = statement->return_type;
 	auto body = statement->body;
 
-	env->create_function(
-		name,
-		is_public,
-		arguments,
-		return_type,
-		body
-	);
+	env->create_function(name, is_public, arguments, return_type, body);
 
 	return make_shared<VoidObject>();
 }
@@ -250,11 +206,7 @@ Object_ptr Interpreter::visit(Enum_ptr statement)
 	bool is_public = statement->is_public;
 	auto members = statement->members;
 
-	env->create_enum(
-		name,
-		is_public,
-		members
-	);
+	env->create_enum(name, is_public, members);
 
 	return make_shared<VoidObject>();
 }
@@ -266,8 +218,6 @@ Object_ptr Interpreter::visit(Return_ptr statement)
 		if (statement->expression.has_value())
 		{
 			auto result = statement->expression.value()->interpret(*this);
-
-			env->leave_scope();
 			return make_shared<ReturnObject>(result);
 		}
 	}
@@ -317,15 +267,15 @@ Object_ptr Interpreter::visit(VectorLiteral_ptr vector_literal)
 
 Object_ptr Interpreter::visit(UDTLiteral_ptr udt_literal)
 {
-	auto udt_object = make_shared<UDTObject>();
+	auto UDT_object = make_shared<UDTObject>();
 
 	for (auto const& [key, value_expr] : udt_literal->pairs)
 	{
 		auto value_object = value_expr->interpret(*this);
-		udt_object->add(key, value_object);
+		UDT_object->add(key, value_object);
 	}
 
-	return udt_object;
+	return UDT_object;
 }
 
 Object_ptr Interpreter::visit(Identifier_ptr expression)
@@ -454,7 +404,7 @@ Object_ptr Interpreter::visit(FunctionCall_ptr expression)
 
 	for (auto const& argument : expression->arguments)
 	{
-		if (typeid(argument) == typeid(NumberType))
+		if (typeid(*formal_arguments[index].second) == typeid(NumberType))
 		{
 			auto number_element = dynamic_pointer_cast<NumberObject>(argument);
 			FATAL_IF_NULLPTR(number_element, "number_element is nullptr");
@@ -467,7 +417,7 @@ Object_ptr Interpreter::visit(FunctionCall_ptr expression)
 				number_element
 			);
 		}
-		else if (typeid(argument) == typeid(StringType))
+		else if (typeid(*formal_arguments[index].second) == typeid(StringType))
 		{
 			auto string_element = dynamic_pointer_cast<StringObject>(argument);
 			FATAL_IF_NULLPTR(string_element, "string_element is nullptr");
@@ -480,7 +430,7 @@ Object_ptr Interpreter::visit(FunctionCall_ptr expression)
 				string_element
 			);
 		}
-		else if (typeid(argument) == typeid(BooleanType))
+		else if (typeid(*formal_arguments[index].second) == typeid(BooleanType))
 		{
 			auto boolean_element = dynamic_pointer_cast<BooleanObject>(argument);
 			FATAL_IF_NULLPTR(boolean_element, "boolean_element is nullptr");
@@ -493,7 +443,7 @@ Object_ptr Interpreter::visit(FunctionCall_ptr expression)
 				boolean_element
 			);
 		}
-		else if (typeid(argument) == typeid(UDTType))
+		else if (typeid(*formal_arguments[index].second) == typeid(UDTType))
 		{
 			auto UDT_element = dynamic_pointer_cast<UDTObject>(argument);
 			FATAL_IF_NULLPTR(UDT_element, "UDT_element is nullptr");
@@ -685,28 +635,38 @@ Object_ptr Interpreter::evaluate_block(Block_ptr block)
 {
 	for (auto& statement : *block)
 	{
-		if (typeid(statement) == typeid(Break))
-		{
-			if (env->is_inside_block_scope())
-				break;
-
-			FATAL("Break must be used inside a loop");
-		}
-		else if (typeid(statement) == typeid(Continue))
-		{
-			if (env->is_inside_block_scope())
-				continue;
-
-			FATAL("Continue must be used inside a loop");
-		}
-
 		auto result = statement->interpret(*this);
 		FATAL_IF_NULLPTR(result, "result is null");
 
+		if (
+			typeid(*result) == typeid(ReturnObject) ||
+			typeid(*result) == typeid(ContinueObject) ||
+			typeid(*result) == typeid(BreakObject)
+			) {
+			return result;
+		}
+	}
+
+	return make_shared<VoidObject>();
+}
+
+Object_ptr Interpreter::evaluate_loop(Block_ptr block)
+{
+	while (true)
+	{
+		auto result = evaluate_block(block);
+
 		if (typeid(*result) == typeid(ReturnObject))
 		{
-			env->leave_scope();
 			return result;
+		}
+		else if (typeid(*result) == typeid(ContinueObject))
+		{
+			continue;
+		}
+		else if (typeid(*result) == typeid(BreakObject))
+		{
+			break;
 		}
 	}
 

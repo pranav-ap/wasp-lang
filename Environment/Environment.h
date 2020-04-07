@@ -21,7 +21,8 @@ public:
 
 	// Enter and leave
 
-	void enter_block_scope();
+	void enter_branch_scope();
+	void enter_loop_scope();
 	void enter_function_scope();
 
 	void leave_scope();
@@ -72,8 +73,9 @@ public:
 
 	// Utils
 
+	bool is_inside_branch_scope();
+	bool is_inside_loop_scope();
 	bool is_inside_function_scope();
-	bool is_inside_block_scope();
 };
 
 using Environment_ptr = ENVIRONMENT_API std::shared_ptr<Environment>;

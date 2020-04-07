@@ -75,75 +75,14 @@ void VoidObject::accept(ObjectVisitor& visitor)
 	return visitor.visit(p);
 }
 
-// Printers
-
-std::ostream& operator<<(std::ostream& os, const NumberObject_ptr obj)
+void BreakObject::accept(ObjectVisitor& visitor)
 {
-	os << to_string(obj->value);
-	return os;
+	INIT_PTR_P(BreakObject);
+	return visitor.visit(p);
 }
 
-std::ostream& operator<<(std::ostream& os, const StringObject_ptr obj)
+void ContinueObject::accept(ObjectVisitor& visitor)
 {
-	os << obj->value;
-	return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const BooleanObject_ptr obj)
-{
-	os << to_string(obj->value);
-	return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const VectorObject_ptr obj)
-{
-	string x = "Vector Object";
-	os << x;
-	return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const UDTObject_ptr obj)
-{
-	string x = "Map Object";
-	os << x;
-	return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const OptionalObject_ptr obj)
-{
-	os << "Optional Object : ";
-
-	if (obj->value.has_value())
-	{
-		os << obj->value.value();
-	}
-	else
-	{
-		os << "NONE";
-	}
-
-	return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const ReturnObject_ptr obj)
-{
-	os << "Return Object : ";
-
-	if (obj->value.has_value())
-	{
-		os << obj->value.value();
-	}
-	else
-	{
-		os << "NONE";
-	}
-
-	return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const VoidObject_ptr obj)
-{
-	os << "Void Object";
-
-	return os;
+	INIT_PTR_P(ContinueObject);
+	return visitor.visit(p);
 }

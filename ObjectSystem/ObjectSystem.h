@@ -52,11 +52,23 @@ struct OBJECTSYSTEM_API VoidObject : public Object, public std::enable_shared_fr
 	void accept(ObjectVisitor& visitor);
 };
 
+struct OBJECTSYSTEM_API BreakObject : public Object, public std::enable_shared_from_this<BreakObject>
+{
+	void accept(ObjectVisitor& visitor);
+};
+
+struct OBJECTSYSTEM_API ContinueObject : public Object, public std::enable_shared_from_this<ContinueObject>
+{
+	void accept(ObjectVisitor& visitor);
+};
+
 using ScalarObject_ptr = OBJECTSYSTEM_API std::shared_ptr<ScalarObject>;
 using CompositeObject_ptr = OBJECTSYSTEM_API std::shared_ptr<CompositeObject>;
 using OptionalObject_ptr = OBJECTSYSTEM_API std::shared_ptr<OptionalObject>;
 using ReturnObject_ptr = OBJECTSYSTEM_API std::shared_ptr<ReturnObject>;
 using VoidObject_ptr = OBJECTSYSTEM_API std::shared_ptr<VoidObject>;
+using BreakObject_ptr = OBJECTSYSTEM_API std::shared_ptr<BreakObject>;
+using ContinueObject_ptr = OBJECTSYSTEM_API std::shared_ptr<ContinueObject>;
 
 // Scalar Objects
 
@@ -106,14 +118,3 @@ using StringObject_ptr = OBJECTSYSTEM_API std::shared_ptr<StringObject>;
 using BooleanObject_ptr = OBJECTSYSTEM_API std::shared_ptr<BooleanObject>;
 using VectorObject_ptr = OBJECTSYSTEM_API std::shared_ptr<VectorObject>;
 using UDTObject_ptr = OBJECTSYSTEM_API std::shared_ptr<UDTObject>;
-
-// Printers
-
-OBJECTSYSTEM_API std::ostream& operator<<(std::ostream& os, const NumberObject_ptr obj);
-OBJECTSYSTEM_API std::ostream& operator<<(std::ostream& os, const StringObject_ptr obj);
-OBJECTSYSTEM_API std::ostream& operator<<(std::ostream& os, const BooleanObject_ptr obj);
-OBJECTSYSTEM_API std::ostream& operator<<(std::ostream& os, const VectorObject_ptr obj);
-OBJECTSYSTEM_API std::ostream& operator<<(std::ostream& os, const UDTObject_ptr obj);
-OBJECTSYSTEM_API std::ostream& operator<<(std::ostream& os, const OptionalObject_ptr obj);
-OBJECTSYSTEM_API std::ostream& operator<<(std::ostream& os, const ReturnObject_ptr obj);
-OBJECTSYSTEM_API std::ostream& operator<<(std::ostream& os, const VoidObject_ptr obj);
