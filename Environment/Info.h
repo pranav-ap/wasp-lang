@@ -32,11 +32,11 @@ struct ENVIRONMENT_API VariableInfo : public Info
 
 struct ENVIRONMENT_API FunctionInfo : public Info
 {
-	std::map<std::string, Type_ptr> arguments;
+	std::vector<std::pair<std::string, Type_ptr>> arguments;
 	std::optional<Type_ptr> return_type;
 	Block_ptr body;
 
-	FunctionInfo(bool is_public, std::map<std::string, Type_ptr> arguments, std::optional<Type_ptr> return_type, Block_ptr body)
+	FunctionInfo(bool is_public, std::vector<std::pair<std::string, Type_ptr>> arguments, std::optional<Type_ptr> return_type, Block_ptr body)
 		: Info(is_public), arguments(arguments), return_type(return_type), body(body) {};
 	void accept() {};
 };

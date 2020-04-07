@@ -8,12 +8,12 @@
 
 #include "Environment.h"
 #include "Module.h"
-#include "Statement.h"
-#include "Expression.h"
 #include "ObjectSystem.h"
-#include "StatementVisitor.h"
-#include "ExpressionVisitor.h"
 #include "ObjectVisitor.h"
+#include "Expression.h"
+#include "ExpressionVisitor.h"
+#include "Statement.h"
+#include "StatementVisitor.h"
 
 class INTERPRETER_API Interpreter
 	: public StatementVisitor, public ExpressionVisitor
@@ -23,20 +23,20 @@ class INTERPRETER_API Interpreter
 
 	// Statement Visitors
 
-	void visit(VariableDeclaration_ptr statement);
-	void visit(Assignment_ptr statement);
-	void visit(Branch_ptr statement);
-	void visit(Loop_ptr statement);
-	void visit(ForEachLoop_ptr statement);
-	void visit(Break_ptr statement);
-	void visit(Continue_ptr statement);
-	void visit(ExpressionStatement_ptr statement);
-	void visit(UDTDefinition_ptr statement);
-	void visit(FunctionDefinition_ptr statement);
-	void visit(Return_ptr statement);
-	void visit(Import_ptr statement);
-	void visit(ImportSTD_ptr statement);
-	void visit(Enum_ptr statement);
+	Object_ptr visit(VariableDeclaration_ptr statement);
+	Object_ptr visit(Assignment_ptr statement);
+	Object_ptr visit(Branch_ptr statement);
+	Object_ptr visit(Loop_ptr statement);
+	Object_ptr visit(ForEachLoop_ptr statement);
+	Object_ptr visit(Break_ptr statement);
+	Object_ptr visit(Continue_ptr statement);
+	Object_ptr visit(ExpressionStatement_ptr statement);
+	Object_ptr visit(UDTDefinition_ptr statement);
+	Object_ptr visit(FunctionDefinition_ptr statement);
+	Object_ptr visit(Return_ptr statement);
+	Object_ptr visit(Import_ptr statement);
+	Object_ptr visit(ImportSTD_ptr statement);
+	Object_ptr visit(Enum_ptr statement);
 
 	// Expression Visitors
 
@@ -56,7 +56,7 @@ class INTERPRETER_API Interpreter
 
 	// Utils
 
-	void evaluate_block(Block_ptr block);
+	Object_ptr evaluate_block(Block_ptr block);
 
 	Object_ptr perform_operation(WTokenType token_type, NumberObject_ptr operand);
 	Object_ptr perform_operation(WTokenType token_type, BooleanObject_ptr operand);

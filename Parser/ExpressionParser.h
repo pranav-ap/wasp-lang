@@ -11,10 +11,6 @@
 #include "OperatorStack.h"
 #include "Expression.h"
 
-#define RETURN_NULLPTR_IF_NULLPTR(x) if (x == nullptr) { return nullptr; }
-#define RETURN_NULLPTR_IF_TRUE(x) if (x) { return nullptr; }
-#define RETURN_NULLPTR_IF_FALSE(x) if (!x) { return nullptr; }
-
 class PARSER_API ExpressionParser
 {
 	TokenPipe_ptr token_pipe;
@@ -37,7 +33,7 @@ class PARSER_API ExpressionParser
 	// Utils
 
 	Expression_ptr finish_parsing();
-	std::shared_ptr<std::string> consume_valid_record_key();
+	std::shared_ptr<std::string> consume_valid_UDT_key();
 
 public:
 	ExpressionParser(TokenPipe_ptr token_pipe)

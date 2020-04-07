@@ -48,10 +48,12 @@ public:
 		Object_ptr result
 	);
 
+	void create_variable(std::string name, Type_ptr type);
+
 	void create_function(
 		std::string name,
 		bool is_public,
-		std::map<std::string, Type_ptr> arguments,
+		std::vector<std::pair<std::string, Type_ptr>> arguments,
 		std::optional<Type_ptr> return_type,
 		Block_ptr body
 	);

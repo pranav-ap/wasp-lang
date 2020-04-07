@@ -42,7 +42,13 @@ struct OBJECTSYSTEM_API OptionalObject : public Object, public std::enable_share
 struct OBJECTSYSTEM_API ReturnObject : public Object, public std::enable_shared_from_this<ReturnObject>
 {
 	std::optional<Object_ptr> value;
-	ReturnObject(std::optional<Object_ptr> value) : value(std::move(value)) {};
+	ReturnObject() : value(std::nullopt) {};
+	ReturnObject(Object_ptr value) : value(std::optional<Object_ptr>(value)) {};
+	void accept(ObjectVisitor& visitor);
+};
+
+struct OBJECTSYSTEM_API VoidObject : public Object, public std::enable_shared_from_this<VoidObject>
+{
 	void accept(ObjectVisitor& visitor);
 };
 
@@ -50,6 +56,7 @@ using ScalarObject_ptr = OBJECTSYSTEM_API std::shared_ptr<ScalarObject>;
 using CompositeObject_ptr = OBJECTSYSTEM_API std::shared_ptr<CompositeObject>;
 using OptionalObject_ptr = OBJECTSYSTEM_API std::shared_ptr<OptionalObject>;
 using ReturnObject_ptr = OBJECTSYSTEM_API std::shared_ptr<ReturnObject>;
+using VoidObject_ptr = OBJECTSYSTEM_API std::shared_ptr<VoidObject>;
 
 // Scalar Objects
 
@@ -109,3 +116,4 @@ OBJECTSYSTEM_API std::ostream& operator<<(std::ostream& os, const VectorObject_p
 OBJECTSYSTEM_API std::ostream& operator<<(std::ostream& os, const UDTObject_ptr obj);
 OBJECTSYSTEM_API std::ostream& operator<<(std::ostream& os, const OptionalObject_ptr obj);
 OBJECTSYSTEM_API std::ostream& operator<<(std::ostream& os, const ReturnObject_ptr obj);
+OBJECTSYSTEM_API std::ostream& operator<<(std::ostream& os, const VoidObject_ptr obj);

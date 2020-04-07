@@ -1,5 +1,6 @@
 #pragma once
 #include "pch.h"
+#include "logger.h"
 #include "ObjectSystem.h"
 #include "ObjectVisitor.h"
 #include <iostream>
@@ -14,11 +15,13 @@ using std::endl;
 
 void VectorObject::add(Object_ptr value)
 {
+	FATAL_IF_NULLPTR(value, "Cannot add nullptr to VectorObject");
 	values.push_back(value);
 }
 
 void UDTObject::add(std::string key, Object_ptr value)
 {
+	FATAL_IF_NULLPTR(value, "Cannot assign nullptr to a key in UDTObject");
 	pairs.insert_or_assign(key, value);
 }
 
@@ -63,6 +66,12 @@ void OptionalObject::accept(ObjectVisitor& visitor)
 void ReturnObject::accept(ObjectVisitor& visitor)
 {
 	INIT_PTR_P(ReturnObject);
+	return visitor.visit(p);
+}
+
+void VoidObject::accept(ObjectVisitor& visitor)
+{
+	INIT_PTR_P(VoidObject);
 	return visitor.visit(p);
 }
 
@@ -128,6 +137,13 @@ std::ostream& operator<<(std::ostream& os, const ReturnObject_ptr obj)
 	{
 		os << "NONE";
 	}
+
+	return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const VoidObject_ptr obj)
+{
+	os << "Void Object";
 
 	return os;
 }

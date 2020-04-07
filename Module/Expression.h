@@ -145,19 +145,3 @@ using FunctionCall_ptr = MODULE_API std::shared_ptr<FunctionCall>;
 using Range_ptr = MODULE_API std::shared_ptr<Range>;
 using Unary_ptr = MODULE_API std::shared_ptr<Unary>;
 using Binary_ptr = MODULE_API std::shared_ptr<Binary>;
-
-// Printers
-//
-//MODULE_API std::ostream& operator<<(std::ostream& os, const StringLiteral_ptr exp);
-//MODULE_API std::ostream& operator<<(std::ostream& os, const NumberLiteral_ptr exp);
-//MODULE_API std::ostream& operator<<(std::ostream& os, const BooleanLiteral_ptr exp);
-//MODULE_API std::ostream& operator<<(std::ostream& os, const VectorLiteral_ptr exp);
-//MODULE_API std::ostream& operator<<(std::ostream& os, const UDTLiteral_ptr exp);
-//MODULE_API std::ostream& operator<<(std::ostream& os, const Identifier_ptr exp);
-//MODULE_API std::ostream& operator<<(std::ostream& os, const Unary_ptr exp);
-//MODULE_API std::ostream& operator<<(std::ostream& os, const Binary_ptr exp);
-//MODULE_API std::ostream& operator<<(std::ostream& os, const VectorMemberAccess_ptr exp);
-//MODULE_API std::ostream& operator<<(std::ostream& os, const UDTMemberAccess_ptr exp);
-//MODULE_API std::ostream& operator<<(std::ostream& os, const EnumMemberAccess_ptr exp);
-//MODULE_API std::ostream& operator<<(std::ostream& os, const FunctionCall_ptr exp);
-//MODULE_API std::ostream& operator<<(std::ostream& os, const Range_ptr exp);

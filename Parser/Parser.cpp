@@ -54,10 +54,11 @@ Statement_ptr Parser::parse_statement(bool is_public)
 	token_pipe->ignore(WTokenType::EOL);
 
 	auto token = token_pipe->get_current_token();
-	ADVANCE_PTR;
 
 	if (token == nullptr)
 		return nullptr;
+
+	ADVANCE_PTR;
 
 	switch (token->type)
 	{
@@ -85,10 +86,9 @@ Statement_ptr Parser::parse_statement(bool is_public)
 Statement_ptr Parser::parse_public_statement()
 {
 	auto token = token_pipe->get_current_token();
-	ADVANCE_PTR;
+	FATAL_IF_NULLPTR(token, "Pub keyword followed by a nullptr.");
 
-	if (token == nullptr)
-		return nullptr;
+	ADVANCE_PTR;
 
 	const bool is_public = true;
 
@@ -98,6 +98,7 @@ Statement_ptr Parser::parse_public_statement()
 		CASE(WTokenType::CONST_KEYWORD, parse_variable_declaration(is_public, false));
 		CASE(WTokenType::TYPE, parse_UDT_declaration(is_public));
 		CASE(WTokenType::FN, parse_function_definition(is_public));
+		CASE(WTokenType::ENUM, parse_enum_statement(is_public));
 	default: {
 		std::stringstream message;
 		message << token->type << " cannot be made public";
@@ -109,14 +110,18 @@ Statement_ptr Parser::parse_public_statement()
 Statement_ptr Parser::parse_return_statement()
 {
 	auto expression = expr_parser->parse_expression();
-	FATAL_IF_NULLPTR(expression, "Malformed Expression");
 
 	FATAL_IF_FALSE(
 		token_pipe->expect_current_token(WTokenType::EOL),
 		"Expected an EOL"
 	);
 
-	return make_shared<Return>(make_optional(move(expression)));
+	if (expression)
+	{
+		return make_shared<Return>(make_optional(move(expression)));
+	}
+
+	return make_shared<Return>(std::nullopt);
 }
 
 Statement_ptr Parser::parse_break_statement()
@@ -143,7 +148,7 @@ Statement_ptr Parser::parse_variable_declaration(bool is_public, bool is_mutable
 {
 	// Identifier
 	auto identifier = token_pipe->consume_token(WTokenType::Identifier);
-	FATAL_IF_NULLPTR(identifier, "Malformed Identifier");
+	FATAL_IF_NULLPTR(identifier, "Malformed Identifier declared");
 
 	FATAL_IF_FALSE(
 		token_pipe->expect_current_token(WTokenType::COLON),
@@ -152,7 +157,7 @@ Statement_ptr Parser::parse_variable_declaration(bool is_public, bool is_mutable
 
 	// Type
 	auto type = parse_type();
-	FATAL_IF_NULLPTR(type, "Malformed Type");
+	FATAL_IF_NULLPTR(type, "Malformed Type in variable declaration");
 
 	// Equal
 	FATAL_IF_FALSE(
@@ -162,7 +167,7 @@ Statement_ptr Parser::parse_variable_declaration(bool is_public, bool is_mutable
 
 	// Expression
 	Expression_ptr expression = expr_parser->parse_expression();
-	FATAL_IF_NULLPTR(expression, "Malformed Expression");
+	FATAL_IF_NULLPTR(expression, "Malformed Expression assigned in variable declaration");
 
 	// EOL
 	FATAL_IF_FALSE(
@@ -191,14 +196,22 @@ Statement_ptr Parser::parse_expression_statement()
 Statement_ptr Parser::consume_assignment_or_expression_statement(Token_ptr identifier)
 {
 	auto current_token = token_pipe->get_current_token();
-	WTokenType current_token_type = current_token->type;
 
-	if (current_token_type == WTokenType::EQUAL)
+	WTokenType current_token_type = WTokenType::UNKNOWN;
+
+	if (current_token)
+	{
+		current_token_type = current_token->type;
+	}
+
+	switch (current_token_type)
+	{
+	case WTokenType::EQUAL:
 	{
 		ADVANCE_PTR;
 
 		auto expression = expr_parser->parse_expression();
-		FATAL_IF_NULLPTR(expression, "Malformed Expression");
+		FATAL_IF_NULLPTR(expression, "Cannot assign a malformed expression to a variable");
 
 		FATAL_IF_FALSE(
 			token_pipe->expect_current_token(WTokenType::EOL),
@@ -207,14 +220,13 @@ Statement_ptr Parser::consume_assignment_or_expression_statement(Token_ptr ident
 
 		return make_shared<Assignment>(identifier->value, move(expression));
 	}
-	else if (
-		current_token_type == WTokenType::PLUS_EQUAL ||
-		current_token_type == WTokenType::MINUS_EQUAL ||
-		current_token_type == WTokenType::STAR_EQUAL ||
-		current_token_type == WTokenType::DIVISION_EQUAL ||
-		current_token_type == WTokenType::REMINDER_EQUAL ||
-		current_token_type == WTokenType::POWER_EQUAL
-		) {
+	case WTokenType::PLUS_EQUAL:
+	case WTokenType::MINUS_EQUAL:
+	case WTokenType::STAR_EQUAL:
+	case WTokenType::DIVISION_EQUAL:
+	case WTokenType::REMINDER_EQUAL:
+	case WTokenType::POWER_EQUAL:
+	{
 		ADVANCE_PTR;
 
 		auto expression = expr_parser->parse_expression();
@@ -232,9 +244,12 @@ Statement_ptr Parser::consume_assignment_or_expression_statement(Token_ptr ident
 
 		return make_shared<Assignment>(identifier->value, move(rhs));
 	}
-
-	RETREAT_PTR;
-	return parse_expression_statement();
+	default:
+	{
+		RETREAT_PTR;
+		return parse_expression_statement();
+	}
+	}
 }
 
 Statement_ptr Parser::parse_import_statement()
@@ -427,7 +442,7 @@ Statement_ptr Parser::parse_function_definition(bool is_public)
 		"Expected a OPEN_PARENTHESIS"
 	);
 
-	map<string, Type_ptr> arguments;
+	vector<pair<string, Type_ptr>> arguments;
 
 	while (true)
 	{
@@ -445,7 +460,7 @@ Statement_ptr Parser::parse_function_definition(bool is_public)
 		auto type = parse_type();
 		FATAL_IF_NULLPTR(type, "Malformed Type");
 
-		arguments.insert_or_assign(identifier->value, type);
+		arguments.push_back(pair(identifier->value, type));
 	}
 
 	optional<Type_ptr> optional_return_type = std::nullopt;
@@ -519,7 +534,7 @@ Type_ptr Parser::parse_type()
 Type_ptr Parser::parse_vector_type()
 {
 	auto type = parse_type();
-	FATAL_IF_NULLPTR(type, "Malformed Type");
+	FATAL_IF_NULLPTR(type, "Malformed Type set for vector");
 
 	FATAL_IF_FALSE(
 		token_pipe->expect_current_token(WTokenType::CLOSE_BRACKET),
@@ -532,7 +547,7 @@ Type_ptr Parser::parse_vector_type()
 Type_ptr Parser::consume_datatype_word()
 {
 	auto token = token_pipe->get_current_token();
-	FATAL_IF_NULLPTR(token, "Expected a datatype");
+	FATAL_IF_NULLPTR(token, "Expected a datatype word");
 
 	switch (token->type)
 	{

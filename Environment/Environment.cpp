@@ -42,6 +42,8 @@ Info_ptr Environment::get_info(std::string name)
 	{
 		if (scope->store.contains(name))
 		{
+			string message = name + " exists, but is nullptr";
+			FATAL_IF_NULLPTR(scope->store[name], message);
 			return scope->store[name];
 		}
 	}
@@ -67,11 +69,8 @@ FunctionInfo_ptr Environment::get_function(string name)
 {
 	auto info = get_info(name);
 
-	if (typeid(*info) != typeid(FunctionInfo))
-	{
-		string message = name + " is not a Function!";
-		FATAL(message);
-	}
+	string message = name + " is not a Function!";
+	FATAL_IF_TRUE(typeid(*info) != typeid(FunctionInfo), message);
 
 	return dynamic_pointer_cast<FunctionInfo>(info);
 }
@@ -80,11 +79,8 @@ UDTInfo_ptr Environment::get_UDT(string name)
 {
 	auto info = get_info(name);
 
-	if (typeid(*info) != typeid(UDTInfo))
-	{
-		string message = name + " is not a UDT!";
-		FATAL(message);
-	}
+	string message = name + " is not a UDT!";
+	FATAL_IF_TRUE(typeid(*info) != typeid(UDTInfo), message);
 
 	return dynamic_pointer_cast<UDTInfo>(info);
 }
@@ -93,11 +89,8 @@ EnumInfo_ptr Environment::get_enum(std::string name)
 {
 	auto info = get_info(name);
 
-	if (typeid(*info) != typeid(EnumInfo))
-	{
-		string message = name + " is not an Enum!";
-		FATAL(message);
-	}
+	string message = name + " is not an Enum!";
+	FATAL_IF_TRUE(typeid(*info) != typeid(EnumInfo), message);
 
 	return dynamic_pointer_cast<EnumInfo>(info);
 }
@@ -110,14 +103,23 @@ void Environment::set_variable(string name, Object_ptr value)
 
 	auto info = get_info(name);
 
-	if (typeid(*info) != typeid(VariableInfo))
-	{
-		string message = name + " is not a Variable!";
-		FATAL(message);
-	}
+	string message = name + " is not an Variable!";
+	FATAL_IF_TRUE(typeid(*info) != typeid(VariableInfo), message);
 
 	auto variable_info = dynamic_pointer_cast<VariableInfo>(info);
 	variable_info->value = value;
+}
+
+void Environment::set_element(std::string name, int index, Object_ptr value)
+{
+	auto info = get_info(name);
+
+	string message = name + " is not an Variable!";
+	FATAL_IF_TRUE(typeid(*info) != typeid(VariableInfo), message);
+
+	auto variable_info = dynamic_pointer_cast<VariableInfo>(info);
+	auto vector_object = dynamic_pointer_cast<VectorObject>(variable_info->value);
+	vector_object->values[index] = value;
 }
 
 // Create and Set
@@ -142,10 +144,30 @@ void Environment::create_variable(
 	FATAL_IF_FALSE(result.second, message);
 }
 
+void Environment::create_variable(string name, Type_ptr type)
+{
+	auto scope = scopes.front();
+
+	auto result = scope->store.insert(
+		pair<string, Info_ptr>(
+			name,
+			make_shared<VariableInfo>(
+				false,
+				true,
+				type,
+				make_shared<VoidObject>()
+				)
+			)
+	);
+
+	string message = name + " already exists in scope!";
+	FATAL_IF_FALSE(result.second, message);
+}
+
 void Environment::create_function(
 	string name,
 	bool is_public,
-	std::map<std::string, Type_ptr> arguments,
+	std::vector<std::pair<std::string, Type_ptr>> arguments,
 	std::optional<Type_ptr> return_type,
 	Block_ptr body)
 {
@@ -201,12 +223,8 @@ void Environment::create_enum(
 bool Environment::is_inside_block_scope()
 {
 	for (auto scope : scopes)
-	{
 		if (typeid(scope) == typeid(BlockScope))
-		{
 			return true;
-		}
-	}
 
 	return false;
 }
@@ -214,12 +232,8 @@ bool Environment::is_inside_block_scope()
 bool Environment::is_inside_function_scope()
 {
 	for (auto scope : scopes)
-	{
 		if (typeid(scope) == typeid(FunctionScope))
-		{
 			return true;
-		}
-	}
 
 	return false;
 }

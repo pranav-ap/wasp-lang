@@ -2,80 +2,92 @@
 #include "Statement.h"
 #include "StatementVisitor.h"
 
-#define ACCEPT(name)								\
-	std::shared_ptr<name> p{ shared_from_this() };	\
-	visitor.visit(p)
+#define ACCEPT(name) std::shared_ptr<name> p{ shared_from_this() }
 
 class StatementVisitor;
 
-void VariableDeclaration::interpret(StatementVisitor& visitor)
+Object_ptr VariableDeclaration::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(VariableDeclaration);
+	return visitor.visit(p);
 }
 
-void Assignment::interpret(StatementVisitor& visitor)
+Object_ptr Assignment::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(Assignment);
+	return visitor.visit(p);
 }
 
-void Branch::interpret(StatementVisitor& visitor)
+Object_ptr Branch::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(Branch);
+	return visitor.visit(p);
 }
 
-void Loop::interpret(StatementVisitor& visitor)
+Object_ptr Loop::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(Loop);
+	return visitor.visit(p);
 }
 
-void ForEachLoop::interpret(StatementVisitor& visitor)
+Object_ptr ForEachLoop::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(ForEachLoop);
+	return visitor.visit(p);
 }
 
-void Break::interpret(StatementVisitor& visitor)
+Object_ptr Break::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(Break);
+	return visitor.visit(p);
 }
 
-void Continue::interpret(StatementVisitor& visitor)
+Object_ptr Continue::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(Continue);
+	return visitor.visit(p);
 }
 
-void UDTDefinition::interpret(StatementVisitor& visitor)
+Object_ptr UDTDefinition::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(UDTDefinition);
+	return visitor.visit(p);
 }
 
-void FunctionDefinition::interpret(StatementVisitor& visitor)
+Object_ptr FunctionDefinition::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(FunctionDefinition);
+	return visitor.visit(p);
 }
 
-void Return::interpret(StatementVisitor& visitor)
+Object_ptr Return::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(Return);
+	return visitor.visit(p);
 }
 
-void ExpressionStatement::interpret(StatementVisitor& visitor)
+Object_ptr ExpressionStatement::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(ExpressionStatement);
+	return visitor.visit(p);
 }
 
-void Import::interpret(StatementVisitor& visitor)
+Object_ptr Import::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(Import);
+	return visitor.visit(p);
 }
 
-void ImportSTD::interpret(StatementVisitor& visitor)
+Object_ptr ImportSTD::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(ImportSTD);
+	return visitor.visit(p);
 }
 
-void Enum::interpret(StatementVisitor& visitor)
+Object_ptr Enum::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(Enum);
+	return visitor.visit(p);
 }
 
 // Printers

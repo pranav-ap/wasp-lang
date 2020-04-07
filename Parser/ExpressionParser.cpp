@@ -19,11 +19,7 @@ Expression_ptr ExpressionParser::parse_expression()
 	while (true)
 	{
 		Token_ptr current_token = token_pipe->get_current_token();
-
-		if (current_token == nullptr)
-		{
-			FATAL("Current Token == nullptr");
-		}
+		FATAL_IF_NULLPTR(current_token, "Current Token is nullptr. Cannot parse expression.");
 
 		switch (current_token->type)
 		{
@@ -47,10 +43,14 @@ Expression_ptr ExpressionParser::parse_expression()
 			break;
 		}
 		case WTokenType::TRUE_KEYWORD:
+		{
+			ast.push(make_shared<BooleanLiteral>(true));
+			ADVANCE_PTR;
+			break;
+		}
 		case WTokenType::FALSE_KEYWORD:
 		{
-			bool bool_value = current_token->value == "true" ? true : false;
-			ast.push(make_shared<BooleanLiteral>(bool_value));
+			ast.push(make_shared<BooleanLiteral>(false));
 			ADVANCE_PTR;
 			break;
 		}
@@ -139,7 +139,7 @@ Expression_ptr ExpressionParser::parse_expression()
 Expression_ptr ExpressionParser::finish_parsing()
 {
 	operator_stack->drain_into_ast(ast);
-	FATAL_IF_TRUE(ast.size() > 1, "Malformed Expression");
+	FATAL_IF_TRUE(ast.size() > 1, "Malformed Expression. AST size > 1");
 
 	FATAL_IF_TRUE(ast.size() == 0, "AST is empty");
 	auto result = move(ast.top());
@@ -148,7 +148,7 @@ Expression_ptr ExpressionParser::finish_parsing()
 	return result;
 }
 
-shared_ptr<string> ExpressionParser::consume_valid_record_key()
+shared_ptr<string> ExpressionParser::consume_valid_UDT_key()
 {
 	auto token = token_pipe->get_current_token();
 	FATAL_IF_NULLPTR(token, "Token is nullptr");
@@ -162,7 +162,7 @@ shared_ptr<string> ExpressionParser::consume_valid_record_key()
 	}
 	}
 
-	FATAL("Expected a Identifier");
+	FATAL("Expected a UDT key Identifier");
 }
 
 // Literal Parsers
@@ -177,7 +177,7 @@ Expression_ptr ExpressionParser::parse_vector_literal()
 	while (true)
 	{
 		auto element = parse_expression();
-		FATAL_IF_NULLPTR(element, "Malformed Expression");
+		FATAL_IF_NULLPTR(element, "Vector element is expression is malformed");
 
 		elements.push_back(move(element));
 
@@ -202,7 +202,7 @@ Expression_ptr ExpressionParser::parse_UDT_literal()
 	{
 		token_pipe->ignore(WTokenType::EOL);
 
-		auto key = consume_valid_record_key();
+		auto key = consume_valid_UDT_key();
 		FATAL_IF_NULLPTR(key, "Key is malformed");
 
 		FATAL_IF_FALSE(
@@ -211,7 +211,7 @@ Expression_ptr ExpressionParser::parse_UDT_literal()
 		);
 
 		auto value = parse_expression();
-		FATAL_IF_NULLPTR(value, "Value is malformed");
+		FATAL_IF_NULLPTR(value, "Malformed Expression");
 
 		pairs.insert_or_assign(*key.get(), value);
 
@@ -232,7 +232,7 @@ Expression_ptr ExpressionParser::consume_member_access(Token_ptr identifier)
 	if (token_pipe->expect_current_token(WTokenType::OPEN_BRACKET))
 	{
 		auto expression = parse_expression();
-		FATAL_IF_NULLPTR(expression, "Malformed Expression");
+		FATAL_IF_NULLPTR(expression, "Index Expression is malformed");
 
 		FATAL_IF_FALSE(
 			token_pipe->expect_current_token(WTokenType::CLOSE_BRACKET),
@@ -244,14 +244,14 @@ Expression_ptr ExpressionParser::consume_member_access(Token_ptr identifier)
 	else if (token_pipe->expect_current_token(WTokenType::DOT))
 	{
 		auto member_identifier = token_pipe->consume_token(WTokenType::Identifier);
-		FATAL_IF_NULLPTR(member_identifier, "Malformed Identifier");
+		FATAL_IF_NULLPTR(member_identifier, "Malformed UDT key Identifier");
 
 		return make_shared<UDTMemberAccess>(identifier->value, member_identifier->value);
 	}
 	else if (token_pipe->expect_current_token(WTokenType::COLON_COLON))
 	{
 		auto member_identifier = token_pipe->consume_token(WTokenType::Identifier);
-		FATAL_IF_NULLPTR(member_identifier, "Malformed Identifier");
+		FATAL_IF_NULLPTR(member_identifier, "Malformed Enum Identifier");
 
 		return make_shared<EnumMemberAccess>(identifier->value, member_identifier->value);
 	}
@@ -279,7 +279,7 @@ ExpressionVector ExpressionParser::parse_function_call_arguments()
 	while (true)
 	{
 		auto expression = parse_expression();
-		FATAL_IF_NULLPTR(expression, "Malformed Expression");
+		FATAL_IF_NULLPTR(expression, "Argument is malformed");
 
 		expressions.push_back(move(expression));
 
