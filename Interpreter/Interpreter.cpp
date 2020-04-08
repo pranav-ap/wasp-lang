@@ -352,6 +352,11 @@ Object_ptr Interpreter::visit(FunctionCall_ptr expression)
 {
 	env->enter_function_scope();
 
+	if (expression->name == "echo" || expression->name == "ask")
+	{
+		return call_builtin(expression->name, expression->arguments);
+	}
+
 	auto info = env->get_function(expression->name);
 	auto formal_arguments = info->arguments;
 
@@ -634,6 +639,33 @@ bool Interpreter::are_same_type(Object_ptr obj, Type_ptr type)
 	}
 
 	return false;
+}
+
+Object_ptr Interpreter::call_builtin(string fn_name, ExpressionVector arguments)
+{
+	Core core;
+
+	if (fn_name == "echo")
+	{
+		FATAL_IF_TRUE(arguments.size() != 1, "echo function takes one argument");
+		auto content = arguments[0]->interpret(*this);
+		core.echo(content);
+	}
+	else if (fn_name == "ask")
+	{
+		FATAL_IF_TRUE(arguments.size() != 2, "echo function takes two arguments");
+
+		auto text_object = arguments[0]->interpret(*this);
+		FATAL_IF_NULLPTR(text_object, "text_object to ask is malformed");
+		FATAL_IF_NULLPTR(text_object, "text_object to ask is malformed");
+
+		auto variable_object = arguments[1]->interpret(*this);
+		FATAL_IF_NULLPTR(variable_object, "variable_object to store reply is malformed");
+
+		core.ask(text_object, variable_object);
+	}
+
+	return make_shared<VoidObject>();
 }
 
 // Converters

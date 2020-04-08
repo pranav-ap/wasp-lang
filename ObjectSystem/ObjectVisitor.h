@@ -18,4 +18,5 @@ public:
 	virtual void visit(UDTObject_ptr obj) = 0;
 	virtual void visit(OptionalObject_ptr obj) = 0;
 	virtual void visit(EnumObject_ptr obj) = 0;
+	virtual void visit(BuiltInsObject_ptr obj) = 0;
 };

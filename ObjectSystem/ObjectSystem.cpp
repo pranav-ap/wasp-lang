@@ -84,3 +84,9 @@ void EnumObject::accept(ObjectVisitor& visitor)
 	INIT_PTR_P(EnumObject);
 	return visitor.visit(p);
 }
+
+void BuiltInsObject::accept(ObjectVisitor& visitor)
+{
+	INIT_PTR_P(BuiltInsObject);
+	return visitor.visit(p);
+}

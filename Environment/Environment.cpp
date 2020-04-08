@@ -16,6 +16,11 @@ using std::map;
 
 Environment::Environment()
 {
+	enter_branch_scope();
+}
+
+void Environment::enter_module_scope()
+{
 	scopes.push_back(make_shared<ModuleScope>());
 }
 

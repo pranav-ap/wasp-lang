@@ -144,9 +144,10 @@ struct MODULE_API Import : public Statement, public std::enable_shared_from_this
 
 struct MODULE_API ImportSTD : public Statement, public std::enable_shared_from_this<ImportSTD>
 {
-	std::string name;
+	std::vector<std::string> goods;
+	std::string module_name;
 
-	ImportSTD(std::string name) : name(name) {};
+	ImportSTD(std::vector<std::string> goods, std::string module_name) : goods(goods), module_name(module_name) {};
 	Object_ptr interpret(StatementVisitor& visitor);
 };
 

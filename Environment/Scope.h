@@ -18,7 +18,7 @@ struct ENVIRONMENT_API Scope
 
 struct ENVIRONMENT_API ModuleScope : public Scope
 {
-	std::vector<std::string> built_in_imports;
+	void import_builtin(std::string name);
 };
 
 struct ENVIRONMENT_API FunctionScope : public Scope

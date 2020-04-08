@@ -172,7 +172,7 @@ MODULE_API std::ostream& operator<<(std::ostream& os, const Import_ptr stat)
 
 MODULE_API std::ostream& operator<<(std::ostream& os, const ImportSTD_ptr stat)
 {
-	os << stat->name;
+	os << stat->module_name;
 	return os;
 }
 

@@ -22,6 +22,7 @@ public:
 
 	// Enter and leave
 
+	void enter_module_scope();
 	void enter_branch_scope();
 	void enter_loop_scope();
 	void enter_function_scope();

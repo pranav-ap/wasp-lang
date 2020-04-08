@@ -62,6 +62,11 @@ struct OBJECTSYSTEM_API ContinueObject : public Object, public std::enable_share
 	void accept(ObjectVisitor& visitor);
 };
 
+struct OBJECTSYSTEM_API BuiltInsObject : public Object, public std::enable_shared_from_this<BuiltInsObject>
+{
+	void accept(ObjectVisitor& visitor);
+};
+
 using ScalarObject_ptr = OBJECTSYSTEM_API std::shared_ptr<ScalarObject>;
 using CompositeObject_ptr = OBJECTSYSTEM_API std::shared_ptr<CompositeObject>;
 using OptionalObject_ptr = OBJECTSYSTEM_API std::shared_ptr<OptionalObject>;
@@ -69,6 +74,7 @@ using ReturnObject_ptr = OBJECTSYSTEM_API std::shared_ptr<ReturnObject>;
 using VoidObject_ptr = OBJECTSYSTEM_API std::shared_ptr<VoidObject>;
 using BreakObject_ptr = OBJECTSYSTEM_API std::shared_ptr<BreakObject>;
 using ContinueObject_ptr = OBJECTSYSTEM_API std::shared_ptr<ContinueObject>;
+using BuiltInsObject_ptr = OBJECTSYSTEM_API std::shared_ptr<BuiltInsObject>;
 
 // Scalar Objects
 

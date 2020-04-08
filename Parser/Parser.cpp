@@ -254,13 +254,6 @@ Statement_ptr Parser::consume_assignment_or_expression_statement(Token_ptr ident
 
 Statement_ptr Parser::parse_import_statement()
 {
-	auto current_token = token_pipe->consume_token(WTokenType::Identifier);
-
-	if (current_token)
-	{
-		return make_shared<ImportSTD>(current_token->value);
-	}
-
 	FATAL_IF_NULLPTR(
 		token_pipe->consume_token(WTokenType::OPEN_CURLY_BRACE),
 		"Expected a OPEN_CURLY_BRACE"
@@ -289,13 +282,15 @@ Statement_ptr Parser::parse_import_statement()
 		"Expected the FROM keyword"
 	);
 
+	auto current_token = token_pipe->consume_token(WTokenType::Identifier);
+
+	if (current_token)
+	{
+		return make_shared<ImportSTD>(goods, current_token->value);
+	}
+
 	auto path_token = token_pipe->consume_token(WTokenType::StringLiteral);
 	FATAL_IF_NULLPTR(path_token, "Expected the path StringLiteral");
-
-	FATAL_IF_FALSE(
-		token_pipe->expect_current_token(WTokenType::EOL),
-		"Expected an EOL"
-	);
 
 	return make_shared<Import>(goods, path_token->value);
 }

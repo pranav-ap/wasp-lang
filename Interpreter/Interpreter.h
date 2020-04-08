@@ -14,6 +14,7 @@
 #include "ExpressionVisitor.h"
 #include "Statement.h"
 #include "StatementVisitor.h"
+#include "BuiltIns.h"
 
 class INTERPRETER_API Interpreter
 	: public StatementVisitor, public ExpressionVisitor
@@ -72,6 +73,8 @@ class INTERPRETER_API Interpreter
 	Object_ptr perform_operation(WTokenType token_type, StringObject_ptr left, NumberObject_ptr right);
 
 	bool are_same_type(Object_ptr obj, Type_ptr type);
+
+	Object_ptr call_builtin(std::string fn_name, ExpressionVector arguments);
 
 	// Converters
 

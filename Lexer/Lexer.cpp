@@ -120,9 +120,9 @@ vector<Token_ptr> Lexer::execute()
 
 		if (token != nullptr)
 		{
-			std::stringstream message;
+			/*std::stringstream message;
 			message << "Ln " << token->line_num << " Col " << token->column_num << " : " << token->value;
-			INFO(message.str());
+			INFO(message.str());*/
 
 			this->tokens.push_back(move(token));
 		}
