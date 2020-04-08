@@ -120,9 +120,9 @@ vector<Token_ptr> Lexer::execute()
 
 		if (token != nullptr)
 		{
-			//std::stringstream message;
-			//message << "Ln " << token->line_num << " Col " << token->column_num << " : " << token->value;
-			//INFO(message.str());
+			std::stringstream message;
+			message << "Ln " << token->line_num << " Col " << token->column_num << " : " << token->value;
+			INFO(message.str());
 
 			this->tokens.push_back(move(token));
 		}
@@ -217,7 +217,7 @@ Token_ptr Lexer::consume_identifier(char ch)
 		return MAKE_TOKEN(keyword_type, identifier, LINE_NUM, COL_NUM);
 	}
 
-	if (this->get_right_char() == '(') {
+	if (this->get_current_char() == '(') {
 		return MAKE_TOKEN(WTokenType::FunctionIdentifier, identifier, LINE_NUM, COL_NUM);
 	}
 

@@ -20,6 +20,7 @@
 using std::string;
 using std::to_string;
 using std::map;
+using std::vector;
 using std::optional;
 using std::make_shared;
 
@@ -342,7 +343,7 @@ Object_ptr Interpreter::visit(EnumMemberAccess_ptr expression)
 	auto info = env->get_enum(enum_name);
 
 	string message = enum_name + " value is not a UDT";
-	FATAL_IF_TRUE(typeid(info->members) != typeid(std::vector<std::string>), message);
+	FATAL_IF_TRUE(typeid(info->members) != typeid(vector<string>), message);
 
 	return make_shared<EnumObject>(enum_name, expression->member_name);
 }
@@ -358,13 +359,16 @@ Object_ptr Interpreter::visit(FunctionCall_ptr expression)
 
 	for (auto const& argument : expression->arguments)
 	{
+		auto formal_argument_name = formal_arguments[index].first;
+		auto formal_argument_type = formal_arguments[index].second;
+
 		auto object = argument->interpret(*this);
 
 		env->create_variable(
-			formal_arguments[index].first,
+			formal_argument_name,
 			false,
 			true,
-			formal_arguments[index].second,
+			formal_argument_type,
 			object
 		);
 
@@ -372,9 +376,7 @@ Object_ptr Interpreter::visit(FunctionCall_ptr expression)
 	}
 
 	auto result = evaluate_block(info->body);
-
 	env->leave_scope();
-
 	return result;
 }
 

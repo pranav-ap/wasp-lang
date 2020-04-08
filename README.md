@@ -10,6 +10,7 @@
 
 - all variables need to be initialized on declaration
 
+```js
 let a : num = 5
 a
 
@@ -21,11 +22,13 @@ a[3]
 
 let a : { str -> str } = { "name": "john" }
 a["name"]
+```
 
 - key cannot be optional
 
 ## UDT type
 
+```js
 type hello {
 	foo: bool,
     bar: str
@@ -35,6 +38,7 @@ let foo : hello = {
   bar : true,
   name : "jim"
 }
+```js
 
 foo.name
 
