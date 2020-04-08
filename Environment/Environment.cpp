@@ -112,6 +112,9 @@ void Environment::set_variable(string name, Object_ptr value)
 	FATAL_IF_TRUE(typeid(*info) != typeid(VariableInfo), message);
 
 	auto variable_info = dynamic_pointer_cast<VariableInfo>(info);
+
+	FATAL_IF_FALSE(variable_info->is_mutable, "Variable is not mutable");
+
 	variable_info->value = value;
 }
 
@@ -123,11 +126,14 @@ void Environment::set_element(std::string name, int index, Object_ptr value)
 	FATAL_IF_TRUE(typeid(*info) != typeid(VariableInfo), message);
 
 	auto variable_info = dynamic_pointer_cast<VariableInfo>(info);
+
+	FATAL_IF_FALSE(variable_info->is_mutable, "Vector is not mutable");
+
 	auto vector_object = dynamic_pointer_cast<VectorObject>(variable_info->value);
 	vector_object->values[index] = value;
 }
 
-// Create and Set
+// Create
 
 void Environment::create_variable(
 	string name,
@@ -204,6 +210,8 @@ void Environment::create_enum(
 	string message = name + " already exists in scope!";
 	FATAL_IF_FALSE(result.second, message);
 }
+
+// Utils
 
 bool Environment::is_inside_function_scope()
 {

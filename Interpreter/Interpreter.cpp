@@ -40,7 +40,9 @@ Object_ptr Interpreter::visit(VariableDeclaration_ptr declaration)
 	auto type = declaration->type;
 
 	auto result = declaration->expression->interpret(*this);
-	FATAL_IF_NULLPTR(result, "result is nullptr");
+
+	string message = "Cannot initialize " + name + " with a malformed expresion";
+	FATAL_IF_NULLPTR(result, message);
 
 	env->create_variable(name, is_public, is_mutable, type, result);
 
@@ -56,7 +58,9 @@ Object_ptr Interpreter::visit(Assignment_ptr assignment)
 	FATAL_IF_FALSE(info->is_mutable, message);
 
 	auto result = assignment->expression->interpret(*this);
-	FATAL_IF_NULLPTR(result, "Cannot assign variable with nullptr");
+
+	message = "Cannot assign a malformed expresion to " + name;
+	FATAL_IF_NULLPTR(result, message);
 
 	info->value = result;
 
@@ -65,35 +69,35 @@ Object_ptr Interpreter::visit(Assignment_ptr assignment)
 
 Object_ptr Interpreter::visit(Branch_ptr branch)
 {
-	auto result = branch->condition->interpret(*this);
-	FATAL_IF_NULLPTR(result, "result is nullptr");
-	FATAL_IF_TRUE(typeid(result) != typeid(BooleanObject), "Condition has to return boolean value");
+	auto condition_object = branch->condition->interpret(*this);
+	FATAL_IF_NULLPTR(condition_object, "Condition is malformed");
+	FATAL_IF_TRUE(typeid(condition_object) != typeid(BooleanObject), "Condition has to return boolean value");
 
-	auto result_boolean_object = dynamic_pointer_cast<BooleanObject>(result);
-	auto block = result_boolean_object->value ?
+	auto condition_boolean_object = to_boolean_object(condition_object);
+	auto block = condition_boolean_object->value ?
 		branch->consequence :
 		branch->alternative;
 
 	env->enter_branch_scope();
 
-	result = evaluate_block(move(block));
-	FATAL_IF_NULLPTR(result, "result is nullptr");
+	auto block_result_object = evaluate_block(move(block));
+	FATAL_IF_NULLPTR(block_result_object, "The branch's evaluated result is nullptr");
 
 	env->leave_scope();
 
-	return result;
+	return block_result_object;
 }
 
 Object_ptr Interpreter::visit(Loop_ptr loop)
 {
 	env->enter_loop_scope();
 
-	auto result = evaluate_loop(loop->block);
-	FATAL_IF_NULLPTR(result, "result is nullptr");
+	auto block_result_object = evaluate_loop(loop->block);
+	FATAL_IF_NULLPTR(block_result_object, "The loop's evaluated result is nullptr");
 
 	env->leave_scope();
 
-	return result;
+	return block_result_object;
 }
 
 Object_ptr Interpreter::visit(ForEachLoop_ptr statement)
@@ -104,16 +108,18 @@ Object_ptr Interpreter::visit(ForEachLoop_ptr statement)
 	auto object = info->value;
 	FATAL_IF_NULLPTR(object, "object is nullptr");
 
-	auto vector_object = dynamic_pointer_cast<VectorObject>(object);
+	auto vector_object = to_vector_object(object);
 	FATAL_IF_NULLPTR(vector_object, "vector_object is nullptr");
 
 	env->enter_loop_scope();
-	env->create_variable(statement->item_name, info->type);
+	env->create_variable(statement->item_name, false, true, info->type, make_shared<VoidObject>());
 
 	auto vector_type = dynamic_pointer_cast<VectorType>(info->type);
 
 	for (auto const& element : vector_object->values)
 	{
+		FATAL_IF_FALSE(are_same_type(element, vector_type->type), "Element has incorrect type");
+
 		env->set_variable(statement->item_name, element);
 
 		auto result = evaluate_block(statement->block);
@@ -123,6 +129,14 @@ Object_ptr Interpreter::visit(ForEachLoop_ptr statement)
 		{
 			env->leave_scope();
 			return result;
+		}
+		else if (typeid(*result) == typeid(BreakObject))
+		{
+			break;
+		}
+		else if (typeid(*result) == typeid(ContinueObject))
+		{
+			continue;
 		}
 	}
 
@@ -147,9 +161,28 @@ Object_ptr Interpreter::visit(Continue_ptr statement)
 	FATAL("Continue must be used within a loop");
 }
 
+Object_ptr Interpreter::visit(Return_ptr statement)
+{
+	if (env->is_inside_function_scope())
+	{
+		if (statement->expression.has_value())
+		{
+			auto result = statement->expression.value()->interpret(*this);
+			FATAL_IF_NULLPTR(result, "The evaluated return expession results in nullptr");
+			return make_shared<ReturnObject>(result);
+		}
+
+		return make_shared<ReturnObject>();
+	}
+
+	FATAL("Return must be used inside a function");
+}
+
 Object_ptr Interpreter::visit(ExpressionStatement_ptr statement)
 {
 	auto result = statement->expression->interpret(*this);
+	FATAL_IF_NULLPTR(result, "The evaluated expession results in nullptr");
+
 	return result;
 }
 
@@ -186,20 +219,6 @@ Object_ptr Interpreter::visit(EnumDefinition_ptr statement)
 	env->create_enum(name, is_public, members);
 
 	return make_shared<VoidObject>();
-}
-
-Object_ptr Interpreter::visit(Return_ptr statement)
-{
-	if (env->is_inside_function_scope())
-	{
-		if (statement->expression.has_value())
-		{
-			auto result = statement->expression.value()->interpret(*this);
-			return make_shared<ReturnObject>(result);
-		}
-	}
-
-	FATAL("Return must be used inside a function");
 }
 
 Object_ptr Interpreter::visit(Import_ptr statement)
@@ -239,7 +258,7 @@ Object_ptr Interpreter::visit(VectorLiteral_ptr vector_literal)
 		expression_objects->add(result);
 	}
 
-	return expression_objects;
+	return move(expression_objects);
 }
 
 Object_ptr Interpreter::visit(UDTLiteral_ptr udt_literal)
@@ -252,7 +271,7 @@ Object_ptr Interpreter::visit(UDTLiteral_ptr udt_literal)
 		UDT_object->add(key, value_object);
 	}
 
-	return UDT_object;
+	return move(UDT_object);
 }
 
 Object_ptr Interpreter::visit(Identifier_ptr expression)
@@ -285,6 +304,12 @@ Object_ptr Interpreter::visit(VectorMemberAccess_ptr expression)
 	auto name = expression->name;
 	auto info = env->get_variable(name);
 
+	string message = name + " is not a vector";
+	FATAL_IF_TRUE(info->value, message);
+	auto vector_object = to_vector_object(info->value);
+
+	// Get Index
+
 	auto index_expression = expression->expression;
 	auto index_object = index_expression->interpret(*this);
 
@@ -293,35 +318,33 @@ Object_ptr Interpreter::visit(VectorMemberAccess_ptr expression)
 		"Vector elements must be accessed by a numeric index"
 	);
 
-	auto index_number_object = dynamic_pointer_cast<NumberObject>(index_object);
+	auto index_number_object = to_number_object(index_object);
 	double index = index_number_object->value;
 
-	FATAL_IF_NULLPTR(info->value, "Element value is null");
-
-	auto vector_object = dynamic_pointer_cast<VectorObject>(info->value);
 	return vector_object->values[index];
 }
 
 Object_ptr Interpreter::visit(UDTMemberAccess_ptr expression)
 {
 	auto UDT_name = expression->UDT_name;
-	auto member_name = expression->member_name;
-
 	auto info = env->get_variable(UDT_name);
 
-	string message = "UDT " + UDT_name + " value is null";
-	FATAL_IF_NULLPTR(info->value, message);
+	string message = UDT_name + " value is not a UDT";
+	FATAL_IF_TRUE(typeid(info->value) != typeid(UDTLiteral), message);
 
-	message = UDT_name + " value is not a UDT";
-	FATAL_IF_TRUE(typeid(info->value) == typeid(UDTLiteral), message);
-
-	auto UDT_object = dynamic_pointer_cast<UDTObject>(info->value);
-	return UDT_object->pairs[member_name];
+	auto UDT_object = to_UDT_object(info->value);
+	return UDT_object->pairs[expression->member_name];
 }
 
 Object_ptr Interpreter::visit(EnumMemberAccess_ptr expression)
 {
-	return Object_ptr();
+	auto enum_name = expression->enum_name;
+	auto info = env->get_enum(enum_name);
+
+	string message = enum_name + " value is not a UDT";
+	FATAL_IF_TRUE(typeid(info->members) != typeid(std::vector<std::string>), message);
+
+	return make_shared<EnumObject>(enum_name, expression->member_name);
 }
 
 Object_ptr Interpreter::visit(FunctionCall_ptr expression)
@@ -366,13 +389,11 @@ Object_ptr Interpreter::perform_operation(WTokenType token_type, Object_ptr oper
 {
 	if (OPERAND_TYPEID == typeid(NumberObject))
 	{
-		auto operand_number_object = dynamic_pointer_cast<NumberObject>(operand);
-		return perform_operation(token_type, operand_number_object);
+		return perform_operation(token_type, to_number_object(operand));
 	}
 	else if (OPERAND_TYPEID == typeid(BooleanObject))
 	{
-		auto operand_boolean_object = dynamic_pointer_cast<BooleanObject>(operand);
-		return perform_operation(token_type, operand_boolean_object);
+		return perform_operation(token_type, to_boolean_object(operand));
 	}
 
 	FATAL("The Unary Operation is not defined for this operand");
@@ -382,27 +403,19 @@ Object_ptr Interpreter::perform_operation(WTokenType token_type, Object_ptr left
 {
 	if (LEFT_TYPEID == typeid(NumberObject) && RIGHT_TYPEID == typeid(NumberObject))
 	{
-		auto left_number_object = dynamic_pointer_cast<NumberObject>(left);
-		auto right_number_object = dynamic_pointer_cast<NumberObject>(right);
-		return perform_operation(token_type, left_number_object, right_number_object);
+		return perform_operation(token_type, to_number_object(left), to_number_object(right));
 	}
 	else if (LEFT_TYPEID == typeid(BooleanObject) && RIGHT_TYPEID == typeid(BooleanObject))
 	{
-		auto left_boolean_object = dynamic_pointer_cast<BooleanObject>(left);
-		auto right_boolean_object = dynamic_pointer_cast<BooleanObject>(right);
-		return perform_operation(token_type, left_boolean_object, right_boolean_object);
+		return perform_operation(token_type, to_boolean_object(left), to_boolean_object(right));
 	}
 	else if (LEFT_TYPEID == typeid(StringObject) && RIGHT_TYPEID == typeid(StringObject))
 	{
-		auto left_string_object = dynamic_pointer_cast<StringObject>(left);
-		auto right_string_object = dynamic_pointer_cast<StringObject>(right);
-		return perform_operation(token_type, left_string_object, right_string_object);
+		return perform_operation(token_type, to_string_object(left), to_string_object(right));
 	}
 	else if (LEFT_TYPEID == typeid(StringObject) && RIGHT_TYPEID == typeid(NumberObject))
 	{
-		auto left_string_object = dynamic_pointer_cast<StringObject>(left);
-		auto right_number_object = dynamic_pointer_cast<NumberObject>(right);
-		return perform_operation(token_type, left_string_object, right_number_object);
+		return perform_operation(token_type, to_string_object(left), to_number_object(right));
 	}
 
 	FATAL("The Binary Operation is not defined for these operands");
@@ -563,8 +576,6 @@ Object_ptr Interpreter::perform_operation(WTokenType token_type, StringObject_pt
 	FATAL("Operation not supported");
 }
 
-// Utils
-
 Object_ptr Interpreter::evaluate_block(Block_ptr block)
 {
 	for (auto& statement : *block)
@@ -605,4 +616,47 @@ Object_ptr Interpreter::evaluate_loop(Block_ptr block)
 	}
 
 	return make_shared<VoidObject>();
+}
+
+bool Interpreter::are_same_type(Object_ptr obj, Type_ptr type)
+{
+	if (
+		(typeid(*obj) == typeid(NumberObject) && typeid(*type) == typeid(NumberType)) ||
+		(typeid(*obj) == typeid(StringObject) && typeid(*type) == typeid(StringType)) ||
+		(typeid(*obj) == typeid(BooleanObject) && typeid(*type) == typeid(BooleanType)) ||
+		(typeid(*obj) == typeid(VectorObject) && typeid(*type) == typeid(VectorType)) ||
+		(typeid(*obj) == typeid(UDTObject) && typeid(*type) == typeid(UDTType))
+		)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+// Converters
+
+NumberObject_ptr Interpreter::to_number_object(Object_ptr obj)
+{
+	return dynamic_pointer_cast<NumberObject>(obj);
+}
+
+StringObject_ptr Interpreter::to_string_object(Object_ptr obj)
+{
+	return dynamic_pointer_cast<StringObject>(obj);
+}
+
+BooleanObject_ptr Interpreter::to_boolean_object(Object_ptr obj)
+{
+	return dynamic_pointer_cast<BooleanObject>(obj);
+}
+
+VectorObject_ptr Interpreter::to_vector_object(Object_ptr obj)
+{
+	return dynamic_pointer_cast<VectorObject>(obj);
+}
+
+UDTObject_ptr Interpreter::to_UDT_object(Object_ptr obj)
+{
+	return dynamic_pointer_cast<UDTObject>(obj);
 }

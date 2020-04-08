@@ -78,3 +78,9 @@ void BreakObject::accept(ObjectVisitor& visitor)
 void ContinueObject::accept(ObjectVisitor& visitor)
 {
 }
+
+void EnumObject::accept(ObjectVisitor& visitor)
+{
+	INIT_PTR_P(EnumObject);
+	return visitor.visit(p);
+}

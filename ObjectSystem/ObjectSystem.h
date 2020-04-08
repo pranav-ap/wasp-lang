@@ -113,8 +113,19 @@ struct OBJECTSYSTEM_API UDTObject : public CompositeObject, public std::enable_s
 	void accept(ObjectVisitor& visitor);
 };
 
+struct OBJECTSYSTEM_API EnumObject : public CompositeObject, public std::enable_shared_from_this<EnumObject>
+{
+	std::string enum_name;
+	std::string member_name;
+
+	EnumObject(std::string enum_name, std::string member_name)
+		: enum_name(enum_name), member_name(member_name) {};
+	void accept(ObjectVisitor& visitor);
+};
+
 using NumberObject_ptr = OBJECTSYSTEM_API std::shared_ptr<NumberObject>;
 using StringObject_ptr = OBJECTSYSTEM_API std::shared_ptr<StringObject>;
 using BooleanObject_ptr = OBJECTSYSTEM_API std::shared_ptr<BooleanObject>;
 using VectorObject_ptr = OBJECTSYSTEM_API std::shared_ptr<VectorObject>;
 using UDTObject_ptr = OBJECTSYSTEM_API std::shared_ptr<UDTObject>;
+using EnumObject_ptr = OBJECTSYSTEM_API std::shared_ptr<EnumObject>;

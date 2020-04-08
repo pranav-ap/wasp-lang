@@ -494,6 +494,7 @@ Statement_ptr Parser::parse_enum_statement(bool is_public)
 	);
 
 	vector<string> members;
+	vector<string>::iterator it;
 
 	while (true)
 	{
@@ -502,6 +503,8 @@ Statement_ptr Parser::parse_enum_statement(bool is_public)
 		auto identifier = token_pipe->consume_token(WTokenType::Identifier);
 		FATAL_IF_NULLPTR(identifier, "Expected an Identifier");
 
+		it = std::find(members.begin(), members.end(), identifier->value);
+		FATAL_IF_TRUE(it != members.end(), "Duplicate Enum members are present");
 		members.push_back(identifier->value);
 
 		token_pipe->ignore(WTokenType::EOL);

@@ -71,6 +71,16 @@ class INTERPRETER_API Interpreter
 	Object_ptr perform_operation(WTokenType token_type, StringObject_ptr left, StringObject_ptr right);
 	Object_ptr perform_operation(WTokenType token_type, StringObject_ptr left, NumberObject_ptr right);
 
+	bool are_same_type(Object_ptr obj, Type_ptr type);
+
+	// Converters
+
+	NumberObject_ptr to_number_object(Object_ptr obj);
+	StringObject_ptr to_string_object(Object_ptr obj);
+	BooleanObject_ptr to_boolean_object(Object_ptr obj);
+	VectorObject_ptr to_vector_object(Object_ptr obj);
+	UDTObject_ptr to_UDT_object(Object_ptr obj);
+
 public:
 	Interpreter(Module mod) : mod(mod), env(std::make_shared<Environment>()) {};
 	void execute();

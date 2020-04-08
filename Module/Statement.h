@@ -107,6 +107,18 @@ struct MODULE_API FunctionDefinition : public Statement, public std::enable_shar
 	Object_ptr interpret(StatementVisitor& visitor);
 };
 
+struct MODULE_API EnumDefinition : public Statement, public std::enable_shared_from_this<EnumDefinition>
+{
+	bool is_public;
+	std::string name;
+	std::vector<std::string> members;
+
+	EnumDefinition(bool is_public, std::string name, std::vector<std::string> members)
+		: is_public(is_public), name(name), members(members) {};
+
+	Object_ptr interpret(StatementVisitor& visitor);
+};
+
 struct MODULE_API Return : public Statement, public std::enable_shared_from_this<Return>
 {
 	std::optional<Expression_ptr> expression;
@@ -135,18 +147,6 @@ struct MODULE_API ImportSTD : public Statement, public std::enable_shared_from_t
 	std::string name;
 
 	ImportSTD(std::string name) : name(name) {};
-	Object_ptr interpret(StatementVisitor& visitor);
-};
-
-struct MODULE_API EnumDefinition : public Statement, public std::enable_shared_from_this<EnumDefinition>
-{
-	bool is_public;
-	std::string name;
-	std::vector<std::string> members;
-
-	EnumDefinition(bool is_public, std::string name, std::vector<std::string> members)
-		: is_public(is_public), name(name), members(members) {};
-
 	Object_ptr interpret(StatementVisitor& visitor);
 };
 

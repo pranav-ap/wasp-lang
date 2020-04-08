@@ -52,10 +52,10 @@ struct ENVIRONMENT_API UDTInfo : public Info
 
 struct ENVIRONMENT_API EnumInfo : public Info
 {
-	std::vector<std::string> member_names;
+	std::vector<std::string> members;
 
-	EnumInfo(bool is_public, std::vector<std::string> member_names)
-		: Info(is_public), member_names(member_names) {};
+	EnumInfo(bool is_public, std::vector<std::string> members)
+		: Info(is_public), members(members) {};
 	void accept() {};
 };
 

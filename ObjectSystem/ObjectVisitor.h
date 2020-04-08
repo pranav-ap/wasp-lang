@@ -17,4 +17,5 @@ public:
 	virtual void visit(VectorObject_ptr obj) = 0;
 	virtual void visit(UDTObject_ptr obj) = 0;
 	virtual void visit(OptionalObject_ptr obj) = 0;
+	virtual void visit(EnumObject_ptr obj) = 0;
 };
