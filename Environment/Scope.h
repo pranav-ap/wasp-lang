@@ -13,12 +13,12 @@
 
 struct ENVIRONMENT_API Scope
 {
-	std::map<std::string, Info_ptr> store;
+	std::map<std::string, InfoVariant_ptr> store;
+	void import_builtin(std::string name);
 };
 
 struct ENVIRONMENT_API ModuleScope : public Scope
 {
-	void import_builtin(std::string name);
 };
 
 struct ENVIRONMENT_API FunctionScope : public Scope

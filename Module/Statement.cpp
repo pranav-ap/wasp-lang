@@ -6,85 +6,85 @@
 
 class StatementVisitor;
 
-Object_ptr VariableDeclaration::interpret(StatementVisitor& visitor)
+ObjectVariant_ptr VariableDeclaration::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(VariableDeclaration);
 	return visitor.visit(p);
 }
 
-Object_ptr Assignment::interpret(StatementVisitor& visitor)
+ObjectVariant_ptr Assignment::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(Assignment);
 	return visitor.visit(p);
 }
 
-Object_ptr Branch::interpret(StatementVisitor& visitor)
+ObjectVariant_ptr Branch::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(Branch);
 	return visitor.visit(p);
 }
 
-Object_ptr Loop::interpret(StatementVisitor& visitor)
+ObjectVariant_ptr Loop::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(Loop);
 	return visitor.visit(p);
 }
 
-Object_ptr ForEachLoop::interpret(StatementVisitor& visitor)
+ObjectVariant_ptr ForEachLoop::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(ForEachLoop);
 	return visitor.visit(p);
 }
 
-Object_ptr Break::interpret(StatementVisitor& visitor)
+ObjectVariant_ptr Break::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(Break);
 	return visitor.visit(p);
 }
 
-Object_ptr Continue::interpret(StatementVisitor& visitor)
+ObjectVariant_ptr Continue::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(Continue);
 	return visitor.visit(p);
 }
 
-Object_ptr UDTDefinition::interpret(StatementVisitor& visitor)
+ObjectVariant_ptr UDTDefinition::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(UDTDefinition);
 	return visitor.visit(p);
 }
 
-Object_ptr FunctionDefinition::interpret(StatementVisitor& visitor)
+ObjectVariant_ptr FunctionDefinition::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(FunctionDefinition);
 	return visitor.visit(p);
 }
 
-Object_ptr Return::interpret(StatementVisitor& visitor)
+ObjectVariant_ptr Return::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(Return);
 	return visitor.visit(p);
 }
 
-Object_ptr ExpressionStatement::interpret(StatementVisitor& visitor)
+ObjectVariant_ptr ExpressionStatement::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(ExpressionStatement);
 	return visitor.visit(p);
 }
 
-Object_ptr Import::interpret(StatementVisitor& visitor)
+ObjectVariant_ptr Import::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(Import);
 	return visitor.visit(p);
 }
 
-Object_ptr ImportSTD::interpret(StatementVisitor& visitor)
+ObjectVariant_ptr ImportSTD::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(ImportSTD);
 	return visitor.visit(p);
 }
 
-Object_ptr EnumDefinition::interpret(StatementVisitor& visitor)
+ObjectVariant_ptr EnumDefinition::interpret(StatementVisitor& visitor)
 {
 	ACCEPT(EnumDefinition);
 	return visitor.visit(p);

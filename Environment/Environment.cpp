@@ -2,17 +2,24 @@
 #include "logger.h"
 #include "Environment.h"
 #include "Info.h"
+#include "ObjectSystem.h"
 
 #include <memory>
 #include <string>
 #include <list>
 #include <utility>
+#include <type_traits>
+#include <variant>
 
 using std::shared_ptr;
 using std::make_shared;
 using std::string;
 using std::pair;
+using std::vector;
 using std::map;
+using std::optional;
+using std::get;
+using std::holds_alternative;
 
 Environment::Environment()
 {
@@ -46,14 +53,14 @@ void Environment::leave_scope()
 
 // Getters
 
-Info_ptr Environment::get_info(std::string name)
+InfoVariant_ptr Environment::get_info(string name)
 {
 	for (auto scope : scopes)
 	{
 		if (scope->store.contains(name))
 		{
-			string message = name + " exists, but is nullptr";
-			FATAL_IF_NULLPTR(scope->store[name], message);
+			FATAL_IF_NULLPTR(scope->store[name], "Info is nullptr");
+			FATAL_IF_TRUE(scope->store[name]->index() == 0, "Info is monostate");
 			return scope->store[name];
 		}
 	}
@@ -62,80 +69,78 @@ Info_ptr Environment::get_info(std::string name)
 	FATAL(message);
 }
 
-VariableInfo_ptr Environment::get_variable(string name)
+VariableInfo Environment::get_variable(string name)
 {
 	auto info = get_info(name);
 
-	if (typeid(*info) != typeid(VariableInfo))
-	{
-		string message = name + " is not a Variable!";
-		FATAL(message);
-	}
+	string message = name + " is not a Variable!";
+	FATAL_IF_FALSE(holds_alternative<VariableInfo>(*info), message);
 
-	return dynamic_pointer_cast<VariableInfo>(info);
+	return get<VariableInfo>(*info);
 }
 
-FunctionInfo_ptr Environment::get_function(string name)
+FunctionInfo Environment::get_function(string name)
 {
 	auto info = get_info(name);
 
 	string message = name + " is not a Function!";
-	FATAL_IF_TRUE(typeid(*info) != typeid(FunctionInfo), message);
+	FATAL_IF_FALSE(holds_alternative<FunctionInfo>(*info), message);
 
-	return dynamic_pointer_cast<FunctionInfo>(info);
+	return get<FunctionInfo>(*info);
 }
 
-UDTInfo_ptr Environment::get_UDT(string name)
+UDTInfo Environment::get_UDT(string name)
 {
 	auto info = get_info(name);
 
 	string message = name + " is not a UDT!";
-	FATAL_IF_TRUE(typeid(*info) != typeid(UDTInfo), message);
+	FATAL_IF_FALSE(holds_alternative<UDTInfo>(*info), message);
 
-	return dynamic_pointer_cast<UDTInfo>(info);
+	return get<UDTInfo>(*info);
 }
 
-EnumInfo_ptr Environment::get_enum(std::string name)
+EnumInfo Environment::get_enum(string name)
 {
 	auto info = get_info(name);
 
 	string message = name + " is not an Enum!";
-	FATAL_IF_TRUE(typeid(*info) != typeid(EnumInfo), message);
+	FATAL_IF_FALSE(holds_alternative<EnumInfo>(*info), message);
 
-	return dynamic_pointer_cast<EnumInfo>(info);
+	return get<EnumInfo>(*info);
 }
 
 // Setters
 
-void Environment::set_variable(string name, Object_ptr value)
+void Environment::set_variable(string name, ObjectVariant_ptr value)
 {
-	FATAL_IF_TRUE(value == nullptr, "Cannot set variable to nullptr");
+	FATAL_IF_NULLPTR(value, "Cannot set nullptr to variable");
+	FATAL_IF_TRUE(value->index() == 0, "Cannot set variable to monostate");
 
 	auto info = get_info(name);
 
-	string message = name + " is not an Variable!";
-	FATAL_IF_TRUE(typeid(*info) != typeid(VariableInfo), message);
+	string message = name + " is not a Variable!";
+	FATAL_IF_FALSE(holds_alternative<VariableInfo>(*info), message);
+	auto variable_info = get<VariableInfo>(*info);
 
-	auto variable_info = dynamic_pointer_cast<VariableInfo>(info);
-
-	FATAL_IF_FALSE(variable_info->is_mutable, "Variable is not mutable");
-
-	variable_info->value = value;
+	FATAL_IF_FALSE(variable_info.is_mutable, "Variable is not mutable");
+	variable_info.value = value;
 }
 
-void Environment::set_element(std::string name, int index, Object_ptr value)
+void Environment::set_element(string name, int index, ObjectVariant_ptr value)
 {
+	FATAL_IF_NULLPTR(value, "Cannot set nullptr to variable");
+	FATAL_IF_TRUE(value->index() == 0, "Cannot set variable to monostate");
+
 	auto info = get_info(name);
 
-	string message = name + " is not an Variable!";
-	FATAL_IF_TRUE(typeid(*info) != typeid(VariableInfo), message);
+	string message = name + " is not a Variable!";
+	FATAL_IF_FALSE(holds_alternative<VariableInfo>(*info), message);
+	auto variable_info = get<VariableInfo>(*info);
 
-	auto variable_info = dynamic_pointer_cast<VariableInfo>(info);
-
-	FATAL_IF_FALSE(variable_info->is_mutable, "Vector is not mutable");
-
-	auto vector_object = dynamic_pointer_cast<VectorObject>(variable_info->value);
-	vector_object->values[index] = value;
+	FATAL_IF_FALSE(variable_info.is_mutable, "Vector is not mutable");
+	FATAL_IF_FALSE(holds_alternative<VectorObject>(*variable_info.value), "Variable is not a Vector");
+	auto vector_object = get<VectorObject>(*variable_info.value);
+	vector_object.values[index] = value;
 }
 
 // Create
@@ -145,14 +150,16 @@ void Environment::create_variable(
 	bool is_public,
 	bool is_mutable,
 	Type_ptr type,
-	Object_ptr value)
+	ObjectVariant_ptr value)
 {
 	auto scope = scopes.front();
 
 	auto result = scope->store.insert(
-		pair<string, Info_ptr>(
+		pair<string, InfoVariant_ptr>(
 			name,
-			make_shared<VariableInfo>(is_public, is_mutable, type, value)
+			make_shared<InfoVariant>(
+				VariableInfo(is_public, is_mutable, type, value)
+				)
 			)
 	);
 
@@ -163,16 +170,18 @@ void Environment::create_variable(
 void Environment::create_function(
 	string name,
 	bool is_public,
-	std::vector<std::pair<std::string, Type_ptr>> arguments,
-	std::optional<Type_ptr> return_type,
+	vector<pair<string, Type_ptr>> arguments,
+	optional<Type_ptr> return_type,
 	Block_ptr body)
 {
 	auto scope = scopes.front();
 
 	auto result = scope->store.insert(
-		pair<string, Info_ptr>(
+		pair<string, InfoVariant_ptr>(
 			name,
-			make_shared<FunctionInfo>(is_public, arguments, return_type, body)
+			make_shared<InfoVariant>(
+				FunctionInfo(is_public, arguments, return_type, body)
+				)
 			)
 	);
 
@@ -183,14 +192,16 @@ void Environment::create_function(
 void Environment::create_UDT(
 	string name,
 	bool is_public,
-	std::map<std::string, Type_ptr> member_types)
+	map<string, Type_ptr> member_types)
 {
 	auto scope = scopes.front();
 
 	auto result = scope->store.insert(
-		pair<string, Info_ptr>(
+		pair<string, InfoVariant_ptr>(
 			name,
-			make_shared<UDTInfo>(is_public, member_types)
+			make_shared<InfoVariant>(
+				UDTInfo(is_public, member_types)
+				)
 			)
 	);
 
@@ -201,14 +212,16 @@ void Environment::create_UDT(
 void Environment::create_enum(
 	string name,
 	bool is_public,
-	std::vector<std::string> member_names)
+	vector<string> member_names)
 {
 	auto scope = scopes.front();
 
 	auto result = scope->store.insert(
-		pair<string, Info_ptr>(
+		pair<string, InfoVariant_ptr>(
 			name,
-			make_shared<EnumInfo>(is_public, member_names)
+			make_shared<InfoVariant>(
+				EnumInfo(is_public, member_names)
+				)
 			)
 	);
 
@@ -221,7 +234,7 @@ void Environment::create_enum(
 bool Environment::is_inside_function_scope()
 {
 	for (auto scope : scopes)
-		if (typeid(scope) == typeid(FunctionScope))
+		if (typeid(*scope) == typeid(FunctionScope))
 			return true;
 
 	return false;
@@ -230,7 +243,7 @@ bool Environment::is_inside_function_scope()
 bool Environment::is_inside_branch_scope()
 {
 	for (auto scope : scopes)
-		if (typeid(scope) == typeid(BranchScope))
+		if (typeid(*scope) == typeid(BranchScope))
 			return true;
 
 	return false;
@@ -239,7 +252,7 @@ bool Environment::is_inside_branch_scope()
 bool Environment::is_inside_loop_scope()
 {
 	for (auto scope : scopes)
-		if (typeid(scope) == typeid(LoopScope))
+		if (typeid(*scope) == typeid(LoopScope))
 			return true;
 
 	return false;

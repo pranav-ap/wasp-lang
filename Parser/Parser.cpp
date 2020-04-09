@@ -100,9 +100,7 @@ Statement_ptr Parser::parse_public_statement()
 		CASE(WTokenType::FN, parse_function_definition(is_public));
 		CASE(WTokenType::ENUM, parse_enum_statement(is_public));
 	default: {
-		std::stringstream message;
-		message << token->type << " cannot be made public";
-		FATAL(message.str());
+		FATAL(token->value + " cannot be made public");
 	}
 	}
 }

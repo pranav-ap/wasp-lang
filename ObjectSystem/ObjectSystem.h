@@ -12,126 +12,106 @@
 #include <map>
 #include <utility>
 #include <memory>
+#include <variant>
 
-class ObjectVisitor;
+#define MAKE_OBJECT_VARIANT(x) std::make_shared<ObjectVariant>(x)
+#define VOID std::make_shared<ObjectVariant>(ReturnObject())
+
+template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
+
+struct VectorObject;
+struct UDTObject;
+struct EnumObject;
+struct OptionalObject;
+struct ReturnObject;
+struct BreakObject;
+struct ContinueObject;
+struct BuiltInsObject;
+
+// Variant Definition
+
+using ObjectVariant = OBJECTSYSTEM_API std::variant<
+	std::monostate,
+	// Scalar Objects
+	double, std::string, bool,
+	// Composite Objects
+	VectorObject, UDTObject, EnumObject, OptionalObject,
+	// Action Objects
+	ReturnObject, BreakObject, ContinueObject, BuiltInsObject
+>;
+
+using ObjectVariant_ptr = OBJECTSYSTEM_API std::shared_ptr<ObjectVariant>;
+
+// Defining Objects
 
 struct OBJECTSYSTEM_API Object
 {
-	virtual void accept(ObjectVisitor& visitor) = 0;
-};
-
-using Object_ptr = OBJECTSYSTEM_API std::shared_ptr<Object>;
-
-struct OBJECTSYSTEM_API ScalarObject : public Object
-{
-	virtual void accept(ObjectVisitor& visitor) = 0;
 };
 
 struct OBJECTSYSTEM_API CompositeObject : public Object
 {
-	virtual void accept(ObjectVisitor& visitor) = 0;
 };
 
-struct OBJECTSYSTEM_API OptionalObject : public Object, public std::enable_shared_from_this<OptionalObject>
+struct OBJECTSYSTEM_API ActionObject : public Object
 {
-	std::optional<Object_ptr> value;
-	OptionalObject(std::optional<Object_ptr> value) : value(std::move(value)) {};
-	void accept(ObjectVisitor& visitor);
 };
 
-struct OBJECTSYSTEM_API ReturnObject : public Object, public std::enable_shared_from_this<ReturnObject>
+// Action Objects
+
+struct OBJECTSYSTEM_API ReturnObject : public ActionObject
 {
-	std::optional<Object_ptr> value;
+	std::optional<ObjectVariant_ptr> value;
+
 	ReturnObject() : value(std::nullopt) {};
-	ReturnObject(Object_ptr value) : value(std::optional<Object_ptr>(value)) {};
-	void accept(ObjectVisitor& visitor);
+	ReturnObject(std::optional<ObjectVariant_ptr> value)
+		: value(std::optional<ObjectVariant_ptr>(std::move(value))) {};
 };
 
-struct OBJECTSYSTEM_API VoidObject : public Object, public std::enable_shared_from_this<VoidObject>
+struct OBJECTSYSTEM_API BreakObject : public ActionObject
 {
-	void accept(ObjectVisitor& visitor);
 };
 
-struct OBJECTSYSTEM_API BreakObject : public Object, public std::enable_shared_from_this<BreakObject>
+struct OBJECTSYSTEM_API ContinueObject : public ActionObject
 {
-	void accept(ObjectVisitor& visitor);
 };
 
-struct OBJECTSYSTEM_API ContinueObject : public Object, public std::enable_shared_from_this<ContinueObject>
+struct OBJECTSYSTEM_API BuiltInsObject : public ActionObject
 {
-	void accept(ObjectVisitor& visitor);
 };
 
-struct OBJECTSYSTEM_API BuiltInsObject : public Object, public std::enable_shared_from_this<BuiltInsObject>
+// Composite Objects
+
+struct OBJECTSYSTEM_API VectorObject : public CompositeObject
 {
-	void accept(ObjectVisitor& visitor);
-};
-
-using ScalarObject_ptr = OBJECTSYSTEM_API std::shared_ptr<ScalarObject>;
-using CompositeObject_ptr = OBJECTSYSTEM_API std::shared_ptr<CompositeObject>;
-using OptionalObject_ptr = OBJECTSYSTEM_API std::shared_ptr<OptionalObject>;
-using ReturnObject_ptr = OBJECTSYSTEM_API std::shared_ptr<ReturnObject>;
-using VoidObject_ptr = OBJECTSYSTEM_API std::shared_ptr<VoidObject>;
-using BreakObject_ptr = OBJECTSYSTEM_API std::shared_ptr<BreakObject>;
-using ContinueObject_ptr = OBJECTSYSTEM_API std::shared_ptr<ContinueObject>;
-using BuiltInsObject_ptr = OBJECTSYSTEM_API std::shared_ptr<BuiltInsObject>;
-
-// Scalar Objects
-
-struct OBJECTSYSTEM_API NumberObject : public ScalarObject, public std::enable_shared_from_this<NumberObject>
-{
-	double value;
-	NumberObject(double value) : value(value) {};
-	void accept(ObjectVisitor& visitor);
-};
-
-struct OBJECTSYSTEM_API StringObject : public ScalarObject, public std::enable_shared_from_this<StringObject>
-{
-	std::string value;
-	StringObject(std::string value) : value(value) {};
-	void accept(ObjectVisitor& visitor);
-};
-
-struct OBJECTSYSTEM_API BooleanObject : public ScalarObject, public std::enable_shared_from_this<BooleanObject>
-{
-	bool value;
-	BooleanObject(bool value) : value(value) {};
-	void accept(ObjectVisitor& visitor);
-};
-
-// Composite Object
-
-struct OBJECTSYSTEM_API VectorObject : public CompositeObject, public std::enable_shared_from_this<VectorObject>
-{
-	std::vector<Object_ptr> values;
+	std::vector<ObjectVariant_ptr> values;
 
 	VectorObject() {};
-	void add(Object_ptr value);
-	void accept(ObjectVisitor& visitor);
+	void add(ObjectVariant_ptr value);
 };
 
-struct OBJECTSYSTEM_API UDTObject : public CompositeObject, public std::enable_shared_from_this<UDTObject>
+struct OBJECTSYSTEM_API UDTObject : public CompositeObject
 {
-	std::map<std::string, Object_ptr> pairs;
+	std::map<std::string, ObjectVariant_ptr> pairs;
 
 	UDTObject() {};
-	void add(std::string key, Object_ptr value);
-	void accept(ObjectVisitor& visitor);
+	void add(std::string key, ObjectVariant_ptr value);
 };
 
-struct OBJECTSYSTEM_API EnumObject : public CompositeObject, public std::enable_shared_from_this<EnumObject>
+struct OBJECTSYSTEM_API EnumObject : public CompositeObject
 {
 	std::string enum_name;
 	std::string member_name;
 
 	EnumObject(std::string enum_name, std::string member_name)
 		: enum_name(enum_name), member_name(member_name) {};
-	void accept(ObjectVisitor& visitor);
 };
 
-using NumberObject_ptr = OBJECTSYSTEM_API std::shared_ptr<NumberObject>;
-using StringObject_ptr = OBJECTSYSTEM_API std::shared_ptr<StringObject>;
-using BooleanObject_ptr = OBJECTSYSTEM_API std::shared_ptr<BooleanObject>;
-using VectorObject_ptr = OBJECTSYSTEM_API std::shared_ptr<VectorObject>;
-using UDTObject_ptr = OBJECTSYSTEM_API std::shared_ptr<UDTObject>;
-using EnumObject_ptr = OBJECTSYSTEM_API std::shared_ptr<EnumObject>;
+struct OBJECTSYSTEM_API OptionalObject : public CompositeObject
+{
+	std::optional<ObjectVariant_ptr> value;
+
+	OptionalObject() : value(std::nullopt) {};
+	OptionalObject(std::optional<ObjectVariant_ptr> value)
+		: value(std::optional<ObjectVariant_ptr>(std::move(value))) {};
+};

@@ -3,29 +3,33 @@
 #include <iomanip>
 #include <iostream>
 #include <stdlib.h>
-#include <sstream>
+#include <string>
+
+#ifdef UTILS_EXPORTS
+#define UTILS_API __declspec(dllexport)
+#else
+#define UTILS_API __declspec(dllimport)
+#endif
 
 #define TITLE(text) \
     std::cout << rang::style::bold << rang::fg::yellow << " " << text << "\n" \
     << rang::style::reset << rang::fg::reset << std::endl
 
-#define INFO(text) \
-    std::cout << " " << rang::bgB::cyan << rang::fg::black  << std::setw(9) << std::left \
-    << "  INFO" << rang::bg::reset << rang::fg::reset << " " << text << std::endl
+#define INFO(text) Logger::info(text)
+#define TRACE(text) Logger::trace(text)
+#define ERROR(text) Logger::error(text)
+#define FATAL(text) Logger::fatal(text)
 
-#define TRACE(text) \
-    std::cout << " " << rang::bgB::gray << rang::fg::black << std::setw(9) << std::left \
-    << "  TRACE" << rang::bg::reset << rang::fg::reset << " " << text << std::endl
+#define FATAL_IF_NULLPTR(x, text) if (!x) { Logger::fatal(text); }
+#define FATAL_IF_TRUE(x, text) if (x) { Logger::fatal(text); }
+#define FATAL_IF_FALSE(x, text) if (!x) { Logger::fatal(text); }
 
-#define ERROR(text) \
-    std::cout << " " << rang::bgB::red << rang::fg::black << std::setw(9) << std::left \
-    << "  ERROR" << rang::bg::reset << rang::fg::reset << " " << text << std::endl
+namespace Logger
+{
+	void UTILS_API log(rang::bgB bg, std::string type, std::string text);
 
-#define FATAL(text) \
-    std::cout << " " << rang::bgB::magenta << rang::fg::black << std::setw(9) << std::left \
-    << "  FATAL" << rang::bg::reset << rang::fg::reset << " " << text << std::endl;        \
-    exit(1)
-
-#define FATAL_IF_NULLPTR(x, text) if (!x) { FATAL(text); }
-#define FATAL_IF_TRUE(x, text) if (x) { FATAL(text); }
-#define FATAL_IF_FALSE(x, text) if (!x) { FATAL(text); }
+	void UTILS_API info(std::string text);
+	void UTILS_API fatal(std::string text);
+	void UTILS_API trace(std::string text);
+	void UTILS_API error(std::string text);
+};

@@ -25,13 +25,7 @@ void OperatorStack::push_unary_operator_to_ast(Token_ptr operator_token, Express
 {
 	if (ast.size() == 0)
 	{
-		std::stringstream message;
-		message
-			<< "Ln " << operator_token->line_num << " Col " << operator_token->column_num
-			<< " : " << operator_token->value
-			<< "\n This operator requries one operand. But the AST is empty.";
-
-		FATAL(message.str());
+		FATAL(operator_token->value + " requries one operand. But the AST is empty.");
 	}
 
 	Expression_ptr expression = move(ast.top());
@@ -49,13 +43,7 @@ void OperatorStack::push_binary_operator_to_ast(Token_ptr operator_token, Expres
 {
 	if (ast.size() < 2)
 	{
-		std::stringstream message;
-		message
-			<< "Ln " << operator_token->line_num << " Col " << operator_token->column_num
-			<< " : " << operator_token->value
-			<< "\n This operator requires two operands. But the AST contains " << ast.size();
-
-		FATAL(message.str());
+		FATAL(operator_token->value + " requires two operands.");
 	}
 
 	Expression_ptr rhs = move(ast.top());

@@ -6,7 +6,7 @@
 #define ENVIRONMENT_API __declspec(dllimport)
 #endif
 
-#include "ObjectVisitor.h"
+#include "ObjectSystem.h"
 #include "Scope.h"
 #include "Info.h"
 #include <list>
@@ -14,7 +14,7 @@
 class ENVIRONMENT_API Environment
 {
 	std::list<Scope_ptr> scopes;
-	Info_ptr get_info(std::string name);
+	InfoVariant_ptr get_info(std::string name);
 
 public:
 
@@ -31,15 +31,15 @@ public:
 
 	// Getters
 
-	VariableInfo_ptr get_variable(std::string name);
-	FunctionInfo_ptr get_function(std::string name);
-	UDTInfo_ptr get_UDT(std::string name);
-	EnumInfo_ptr get_enum(std::string name);
+	VariableInfo get_variable(std::string name);
+	FunctionInfo get_function(std::string name);
+	UDTInfo get_UDT(std::string name);
+	EnumInfo get_enum(std::string name);
 
 	// Setters
 
-	void set_variable(std::string name, Object_ptr value);
-	void set_element(std::string name, int index, Object_ptr value);
+	void set_variable(std::string name, ObjectVariant_ptr value);
+	void set_element(std::string name, int index, ObjectVariant_ptr value);
 
 	// Creators
 
@@ -48,7 +48,7 @@ public:
 		bool is_public,
 		bool is_mutable,
 		Type_ptr type,
-		Object_ptr result
+		ObjectVariant_ptr result
 	);
 
 	void create_function(
