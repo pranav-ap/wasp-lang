@@ -16,6 +16,7 @@
 
 #define MAKE_OBJECT_VARIANT(x) std::make_shared<ObjectVariant>(x)
 #define VOID std::make_shared<ObjectVariant>(ReturnObject())
+#define THROW(message) std::make_shared<ObjectVariant>(ErrorObject(message))
 
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
@@ -25,6 +26,7 @@ struct UDTObject;
 struct EnumObject;
 struct OptionalObject;
 struct ReturnObject;
+struct ErrorObject;
 struct BreakObject;
 struct ContinueObject;
 struct BuiltInsObject;
@@ -38,7 +40,8 @@ using ObjectVariant = OBJECTSYSTEM_API std::variant<
 	// Composite Objects
 	VectorObject, UDTObject, EnumObject, OptionalObject,
 	// Action Objects
-	ReturnObject, BreakObject, ContinueObject, BuiltInsObject
+	ReturnObject, BreakObject, ContinueObject, BuiltInsObject,
+	ErrorObject
 >;
 
 using ObjectVariant_ptr = OBJECTSYSTEM_API std::shared_ptr<ObjectVariant>;
@@ -54,29 +57,6 @@ struct OBJECTSYSTEM_API CompositeObject : public Object
 };
 
 struct OBJECTSYSTEM_API ActionObject : public Object
-{
-};
-
-// Action Objects
-
-struct OBJECTSYSTEM_API ReturnObject : public ActionObject
-{
-	std::optional<ObjectVariant_ptr> value;
-
-	ReturnObject() : value(std::nullopt) {};
-	ReturnObject(std::optional<ObjectVariant_ptr> value)
-		: value(std::optional<ObjectVariant_ptr>(std::move(value))) {};
-};
-
-struct OBJECTSYSTEM_API BreakObject : public ActionObject
-{
-};
-
-struct OBJECTSYSTEM_API ContinueObject : public ActionObject
-{
-};
-
-struct OBJECTSYSTEM_API BuiltInsObject : public ActionObject
 {
 };
 
@@ -114,4 +94,33 @@ struct OBJECTSYSTEM_API OptionalObject : public CompositeObject
 	OptionalObject() : value(std::nullopt) {};
 	OptionalObject(std::optional<ObjectVariant_ptr> value)
 		: value(std::optional<ObjectVariant_ptr>(std::move(value))) {};
+};
+
+// Action Objects
+
+struct OBJECTSYSTEM_API ReturnObject : public ActionObject
+{
+	std::optional<ObjectVariant_ptr> value;
+
+	ReturnObject() : value(std::nullopt) {};
+	ReturnObject(std::optional<ObjectVariant_ptr> value)
+		: value(std::optional<ObjectVariant_ptr>(std::move(value))) {};
+};
+
+struct OBJECTSYSTEM_API BreakObject : public ActionObject
+{
+};
+
+struct OBJECTSYSTEM_API ContinueObject : public ActionObject
+{
+};
+
+struct OBJECTSYSTEM_API BuiltInsObject : public ActionObject
+{
+};
+
+struct OBJECTSYSTEM_API ErrorObject : public ActionObject
+{
+	std::string message;
+	ErrorObject(std::string message) : message(message) {};
 };

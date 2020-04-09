@@ -74,7 +74,7 @@ ObjectVariant_ptr Interpreter::visit(Branch_ptr branch)
 	auto block_result = evaluate_block(move(block));
 	env->leave_scope();
 
-	return block_result;
+	return move(block_result);
 }
 
 ObjectVariant_ptr Interpreter::visit(Loop_ptr loop)
@@ -150,7 +150,7 @@ ObjectVariant_ptr Interpreter::visit(ForEachLoop_ptr statement)
 ObjectVariant_ptr Interpreter::visit(Break_ptr statement)
 {
 	if (env->is_inside_loop_scope())
-		return make_shared<ObjectVariant>(BreakObject());
+		return MAKE_OBJECT_VARIANT(BreakObject());
 
 	FATAL("Break must be used within a loop");
 }
@@ -158,7 +158,7 @@ ObjectVariant_ptr Interpreter::visit(Break_ptr statement)
 ObjectVariant_ptr Interpreter::visit(Continue_ptr statement)
 {
 	if (env->is_inside_loop_scope())
-		return make_shared<ObjectVariant>(ContinueObject());
+		return MAKE_OBJECT_VARIANT(ContinueObject());
 
 	FATAL("Continue must be used within a loop");
 }
@@ -171,7 +171,7 @@ ObjectVariant_ptr Interpreter::visit(Return_ptr statement)
 		{
 			auto result = statement->expression.value()->interpret(*this);
 			FATAL_IF_NULLPTR(result, "The evaluated return expession results in nullptr");
-			return make_shared<ObjectVariant>(ReturnObject(result));
+			return MAKE_OBJECT_VARIANT(ReturnObject(result));
 		}
 
 		return VOID;
@@ -234,22 +234,22 @@ ObjectVariant_ptr Interpreter::visit(ImportSTD_ptr statement)
 
 ObjectVariant_ptr Interpreter::visit(StringLiteral_ptr string_literal)
 {
-	return make_shared<ObjectVariant>(string_literal->value);
+	return MAKE_OBJECT_VARIANT(string_literal->value);
 }
 
 ObjectVariant_ptr Interpreter::visit(NumberLiteral_ptr number_literal)
 {
-	return make_shared<ObjectVariant>(number_literal->value);
+	return MAKE_OBJECT_VARIANT(number_literal->value);
 }
 
 ObjectVariant_ptr Interpreter::visit(BooleanLiteral_ptr bool_literal)
 {
-	return make_shared<ObjectVariant>(bool_literal->value);
+	return MAKE_OBJECT_VARIANT(bool_literal->value);
 }
 
 ObjectVariant_ptr Interpreter::visit(VectorLiteral_ptr vector_literal)
 {
-	auto vector_variant = make_shared<ObjectVariant>(VectorObject());
+	auto vector_variant = MAKE_OBJECT_VARIANT(VectorObject());
 	auto vector_object = get<VectorObject>(*vector_variant);
 
 	for (const auto expression : vector_literal->expressions)
@@ -263,7 +263,7 @@ ObjectVariant_ptr Interpreter::visit(VectorLiteral_ptr vector_literal)
 
 ObjectVariant_ptr Interpreter::visit(UDTLiteral_ptr udt_literal)
 {
-	auto UDT_variant = make_shared<ObjectVariant>(UDTObject());
+	auto UDT_variant = MAKE_OBJECT_VARIANT(UDTObject());
 	auto UDT_object = get<UDTObject>(*UDT_variant);
 
 	for (auto const& [key, value_expr] : udt_literal->pairs)
@@ -351,7 +351,7 @@ ObjectVariant_ptr Interpreter::visit(EnumMemberAccess_ptr expression)
 	auto enum_name = expression->enum_name;
 	auto info = env->get_enum(enum_name);
 
-	return make_shared<ObjectVariant>(EnumObject(enum_name, expression->member_name));
+	return MAKE_OBJECT_VARIANT(EnumObject(enum_name, expression->member_name));
 }
 
 ObjectVariant_ptr Interpreter::visit(FunctionCall_ptr call_expression)
@@ -366,8 +366,10 @@ ObjectVariant_ptr Interpreter::visit(FunctionCall_ptr call_expression)
 	auto info = env->get_function(call_expression->name);
 	auto formal_arguments = info.arguments;
 
-	FATAL_IF_FALSE(formal_arguments.size() == call_expression->arguments.size(),
-		"Number of arguments in the function call " + call_expression->name + " is incorrect.");
+	FATAL_IF_FALSE(
+		formal_arguments.size() == call_expression->arguments.size(),
+		"Number of arguments in the function call " + call_expression->name + " is incorrect."
+	);
 
 	int index = 0;
 
@@ -378,8 +380,11 @@ ObjectVariant_ptr Interpreter::visit(FunctionCall_ptr call_expression)
 
 		auto object = argument->interpret(*this);
 
-		FATAL_IF_FALSE(are_same_type(object, formal_argument_type),
-			"The type of argument " + formal_argument_name + " in the function call " + call_expression->name + " is incorrect.");
+		FATAL_IF_FALSE(
+			are_same_type(object, formal_argument_type),
+			"The type of argument " + formal_argument_name + " in the function call " +
+			call_expression->name + " is incorrect."
+		);
 
 		env->create_variable(
 			formal_argument_name,
@@ -411,7 +416,7 @@ ObjectVariant_ptr Interpreter::perform_operation(WTokenType token_type, double o
 	{
 	case WTokenType::UNARY_MINUS:
 	{
-		return make_shared<ObjectVariant>(-operand);
+		return MAKE_OBJECT_VARIANT(-operand);
 	}
 	}
 
@@ -424,7 +429,7 @@ ObjectVariant_ptr Interpreter::perform_operation(WTokenType token_type, bool ope
 	{
 	case WTokenType::BANG:
 	{
-		return make_shared<ObjectVariant>(!operand);
+		return MAKE_OBJECT_VARIANT(!operand);
 	}
 	}
 
@@ -437,19 +442,19 @@ ObjectVariant_ptr Interpreter::perform_operation(WTokenType token_type, bool lef
 	{
 	case WTokenType::EQUAL_EQUAL:
 	{
-		return make_shared<ObjectVariant>(left == right);
+		return MAKE_OBJECT_VARIANT(left == right);
 	}
 	case WTokenType::BANG_EQUAL:
 	{
-		return make_shared<ObjectVariant>(left != right);
+		return MAKE_OBJECT_VARIANT(left != right);
 	}
 	case WTokenType::AND:
 	{
-		return make_shared<ObjectVariant>(left && right);
+		return MAKE_OBJECT_VARIANT(left && right);
 	}
 	case WTokenType::OR:
 	{
-		return make_shared<ObjectVariant>(left || right);
+		return MAKE_OBJECT_VARIANT(left || right);
 	}
 	}
 
@@ -462,51 +467,51 @@ ObjectVariant_ptr Interpreter::perform_operation(WTokenType token_type, double l
 	{
 	case WTokenType::POWER:
 	{
-		return make_shared<ObjectVariant>(std::pow(left, right));
+		return MAKE_OBJECT_VARIANT(std::pow(left, right));
 	}
 	case WTokenType::DIVISION:
 	{
-		return make_shared<ObjectVariant>(left / right);
+		return MAKE_OBJECT_VARIANT(left / right);
 	}
 	case WTokenType::REMINDER:
 	{
-		return make_shared<ObjectVariant>(std::remainder(left, right));
+		return MAKE_OBJECT_VARIANT(std::remainder(left, right));
 	}
 	case WTokenType::STAR:
 	{
-		return make_shared<ObjectVariant>(left * right);
+		return MAKE_OBJECT_VARIANT(left * right);
 	}
 	case WTokenType::PLUS:
 	{
-		return make_shared<ObjectVariant>(left + right);
+		return MAKE_OBJECT_VARIANT(left + right);
 	}
 	case WTokenType::MINUS:
 	{
-		return make_shared<ObjectVariant>(left - right);
+		return MAKE_OBJECT_VARIANT(left - right);
 	}
 	case WTokenType::GREATER_THAN:
 	{
-		return make_shared<ObjectVariant>(left > right);
+		return MAKE_OBJECT_VARIANT(left > right);
 	}
 	case WTokenType::GREATER_THAN_EQUAL:
 	{
-		return make_shared<ObjectVariant>(left >= right);
+		return MAKE_OBJECT_VARIANT(left >= right);
 	}
 	case WTokenType::LESSER_THAN:
 	{
-		return make_shared<ObjectVariant>(left < right);
+		return MAKE_OBJECT_VARIANT(left < right);
 	}
 	case WTokenType::LESSER_THAN_EQUAL:
 	{
-		return make_shared<ObjectVariant>(left <= right);
+		return MAKE_OBJECT_VARIANT(left <= right);
 	}
 	case WTokenType::EQUAL_EQUAL:
 	{
-		return make_shared<ObjectVariant>(left == right);
+		return MAKE_OBJECT_VARIANT(left == right);
 	}
 	case WTokenType::BANG_EQUAL:
 	{
-		return make_shared<ObjectVariant>(left != right);
+		return MAKE_OBJECT_VARIANT(left != right);
 	}
 	}
 
@@ -519,15 +524,15 @@ ObjectVariant_ptr Interpreter::perform_operation(WTokenType token_type, string l
 	{
 	case WTokenType::PLUS:
 	{
-		return make_shared<ObjectVariant>(left + right);
+		return MAKE_OBJECT_VARIANT(left + right);
 	}
 	case WTokenType::EQUAL_EQUAL:
 	{
-		return make_shared<ObjectVariant>(left == right);
+		return MAKE_OBJECT_VARIANT(left == right);
 	}
 	case WTokenType::BANG_EQUAL:
 	{
-		return make_shared<ObjectVariant>(left != right);
+		return MAKE_OBJECT_VARIANT(left != right);
 	}
 	}
 
@@ -551,7 +556,7 @@ ObjectVariant_ptr Interpreter::perform_operation(WTokenType token_type, string l
 			count++;
 		}
 
-		return make_shared<ObjectVariant>(result);
+		return MAKE_OBJECT_VARIANT(result);
 	}
 	}
 
