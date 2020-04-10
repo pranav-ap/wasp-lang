@@ -1,6 +1,7 @@
+#pragma once
 #include "pch.h"
-#include "logger.h"
 #include "ExpressionParser.h"
+#include "Assertion.h"
 
 #include <vector>
 #include <string>
@@ -13,13 +14,18 @@ using std::make_shared;
 using std::shared_ptr;
 using std::map;
 using std::move;
+using namespace Assertion;
 
 Expression_ptr ExpressionParser::parse_expression()
 {
 	while (true)
 	{
 		Token_ptr current_token = token_pipe->get_current_token();
-		FATAL_IF_NULLPTR(current_token, "Current Token is nullptr. Cannot parse expression.");
+
+		ASSERT(
+			!current_token,
+			"Current Token is nullptr. Cannot parse expression."
+		);
 
 		switch (current_token->type)
 		{
@@ -71,8 +77,6 @@ Expression_ptr ExpressionParser::parse_expression()
 		{
 			ADVANCE_PTR;
 			auto vector_literal = parse_vector_literal();
-			FATAL_IF_NULLPTR(vector_literal, "Vector Literal is malformed");
-
 			ast.push(move(vector_literal));
 			break;
 		}
@@ -80,8 +84,6 @@ Expression_ptr ExpressionParser::parse_expression()
 		{
 			ADVANCE_PTR;
 			auto UDT_literal = parse_UDT_literal();
-			FATAL_IF_NULLPTR(UDT_literal, "User defined type literal is malformed.");
-
 			ast.push(move(UDT_literal));
 			break;
 		}
@@ -139,26 +141,27 @@ Expression_ptr ExpressionParser::parse_expression()
 Expression_ptr ExpressionParser::finish_parsing()
 {
 	operator_stack->drain_into_ast(ast);
-	FATAL_IF_TRUE(ast.size() > 1, "Malformed Expression. AST size > 1");
 
-	FATAL_IF_TRUE(ast.size() == 0, "AST is empty");
+	ASSERT(ast.size() > 0, "Malformed Expression. AST size > 1.");
+	ASSERT(ast.size() == 0, "Malformed Expression. AST is empty.");
+
 	auto result = move(ast.top());
 	ast.pop();
 
-	return result;
+	return move(result);
 }
 
-shared_ptr<string> ExpressionParser::consume_valid_UDT_key()
+string ExpressionParser::consume_valid_UDT_key()
 {
 	auto token = token_pipe->get_current_token();
-	FATAL_IF_NULLPTR(token, "Token is nullptr");
+	ASSERT(!token, "Token is nullptr");
 
 	switch (token->type)
 	{
 	case WTokenType::Identifier:
 	{
 		ADVANCE_PTR;
-		return make_shared<string>(token->value);
+		return token->value;
 	}
 	}
 
@@ -177,15 +180,13 @@ Expression_ptr ExpressionParser::parse_vector_literal()
 	while (true)
 	{
 		auto element = parse_expression();
-		FATAL_IF_NULLPTR(element, "Vector element is expression is malformed");
-
 		elements.push_back(move(element));
 
 		if (token_pipe->expect_current_token(WTokenType::CLOSE_BRACKET))
 			return make_shared<VectorLiteral>(elements);
 
-		FATAL_IF_FALSE(
-			token_pipe->expect_current_token(WTokenType::COMMA),
+		ASSERT(
+			!token_pipe->expect_current_token(WTokenType::COMMA),
 			"Expected a COMMA"
 		);
 	}
@@ -203,25 +204,22 @@ Expression_ptr ExpressionParser::parse_UDT_literal()
 		token_pipe->ignore(WTokenType::EOL);
 
 		auto key = consume_valid_UDT_key();
-		FATAL_IF_NULLPTR(key, "Key is malformed");
 
-		FATAL_IF_FALSE(
-			token_pipe->expect_current_token(WTokenType::COLON),
+		ASSERT(
+			!token_pipe->expect_current_token(WTokenType::COLON),
 			"Expected a COLON"
 		);
 
 		auto value = parse_expression();
-		FATAL_IF_NULLPTR(value, "Malformed Expression");
-
-		pairs.insert_or_assign(*key.get(), value);
+		pairs.insert_or_assign(key, value);
 
 		token_pipe->ignore(WTokenType::EOL);
 
 		if (token_pipe->expect_current_token(WTokenType::CLOSE_CURLY_BRACE))
 			return make_shared<UDTLiteral>(pairs);
 
-		FATAL_IF_FALSE(
-			token_pipe->expect_current_token(WTokenType::COMMA),
+		ASSERT(
+			!token_pipe->expect_current_token(WTokenType::COMMA),
 			"Expected a COMMA"
 		);
 	}
@@ -232,10 +230,9 @@ Expression_ptr ExpressionParser::consume_member_access(Token_ptr identifier)
 	if (token_pipe->expect_current_token(WTokenType::OPEN_BRACKET))
 	{
 		auto expression = parse_expression();
-		FATAL_IF_NULLPTR(expression, "Index Expression is malformed");
 
-		FATAL_IF_FALSE(
-			token_pipe->expect_current_token(WTokenType::CLOSE_BRACKET),
+		ASSERT(
+			!token_pipe->expect_current_token(WTokenType::CLOSE_BRACKET),
 			"Expected a CLOSE_BRACKET"
 		);
 
@@ -244,15 +241,11 @@ Expression_ptr ExpressionParser::consume_member_access(Token_ptr identifier)
 	else if (token_pipe->expect_current_token(WTokenType::DOT))
 	{
 		auto member_identifier = token_pipe->consume_token(WTokenType::Identifier);
-		FATAL_IF_NULLPTR(member_identifier, "Malformed UDT key Identifier");
-
 		return make_shared<UDTMemberAccess>(identifier->value, member_identifier->value);
 	}
 	else if (token_pipe->expect_current_token(WTokenType::COLON_COLON))
 	{
 		auto member_identifier = token_pipe->consume_token(WTokenType::Identifier);
-		FATAL_IF_NULLPTR(member_identifier, "Malformed Enum Identifier");
-
 		return make_shared<EnumMemberAccess>(identifier->value, member_identifier->value);
 	}
 
@@ -263,8 +256,8 @@ ExpressionVector ExpressionParser::parse_function_call_arguments()
 {
 	ExpressionVector expressions;
 
-	FATAL_IF_FALSE(
-		token_pipe->expect_current_token(WTokenType::OPEN_PARENTHESIS),
+	ASSERT(
+		!token_pipe->expect_current_token(WTokenType::OPEN_PARENTHESIS),
 		"Expected a OPEN_PARENTHESIS"
 	);
 
@@ -279,15 +272,13 @@ ExpressionVector ExpressionParser::parse_function_call_arguments()
 	while (true)
 	{
 		auto expression = parse_expression();
-		FATAL_IF_NULLPTR(expression, "Argument is malformed");
-
 		expressions.push_back(move(expression));
 
 		if (token_pipe->expect_current_token(WTokenType::COMMA))
 			continue;
 
-		FATAL_IF_FALSE(
-			token_pipe->expect_current_token(WTokenType::CLOSE_PARENTHESIS),
+		ASSERT(
+			!token_pipe->expect_current_token(WTokenType::CLOSE_PARENTHESIS),
 			"Expected a CLOSE_PARENTHESIS"
 		);
 

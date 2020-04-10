@@ -1,7 +1,8 @@
 #pragma once
 #include "pch.h"
-#include "logger.h"
 #include "Lexer.h"
+#include "spdlog.h"
+
 #include <map>
 #include <memory>
 #include <string>
@@ -14,44 +15,6 @@ using std::move;
 using std::isdigit;
 using std::isalpha;
 using std::to_string;
-
-map<string, WTokenType> keyword_map = {
-	{ "if", WTokenType::IF },
-	{ "else", WTokenType::ELSE },
-
-	{ "and", WTokenType::AND },
-	{ "or", WTokenType::OR },
-
-	{ "let", WTokenType::LET },
-	{ "const", WTokenType::CONST_KEYWORD },
-
-	{ "loop", WTokenType::LOOP },
-	{ "foreach", WTokenType::FOREACH },
-	{ "break", WTokenType::BREAK },
-	{ "continue", WTokenType::CONTINUE },
-	{ "in", WTokenType::IN_KEYWORD },
-
-	{ "fn", WTokenType::FN },
-	{ "return", WTokenType::RETURN },
-
-	{ "num", WTokenType::NUM },
-	{ "str", WTokenType::STR },
-	{ "bool", WTokenType::BOOL },
-	{ "enum", WTokenType::ENUM },
-	{ "type", WTokenType::TYPE },
-	{ "opt", WTokenType::OPT },
-
-	{ "some", WTokenType::SOME },
-	{ "none", WTokenType::NONE },
-
-	{ "true", WTokenType::TRUE_KEYWORD },
-	{ "false", WTokenType::FALSE_KEYWORD },
-
-	{ "import", WTokenType::IMPORT },
-	{ "from", WTokenType::FROM },
-
-	{ "pub", WTokenType::PUB }
-};
 
 vector<Token_ptr> Lexer::execute()
 {
@@ -118,17 +81,15 @@ vector<Token_ptr> Lexer::execute()
 			}
 		}
 
-		if (token != nullptr)
+		if (token)
 		{
-			/*std::stringstream message;
-			message << "Ln " << token->line_num << " Col " << token->column_num << " : " << token->value;
-			INFO(message.str());*/
-
+			spdlog::info("Ln {} Col {} : {}", token->line_num, token->column_num, token->value);
 			this->tokens.push_back(move(token));
 		}
 		else
 		{
-			FATAL("Token is nullptr");
+			spdlog::error("Token == nullptr");
+			exit(1);
 		}
 	}
 
@@ -157,7 +118,7 @@ Token_ptr Lexer::consume_number_literal(char ch)
 		{
 			if (reached_decimal_point)
 			{
-				ERROR("Multiple decimal points are detected");
+				spdlog::error("Multiple decimal points are detected");
 				NEXT;
 				return nullptr;
 			}
@@ -213,7 +174,7 @@ Token_ptr Lexer::consume_identifier(char ch)
 
 	if (keyword_map.count(identifier) > 0)
 	{
-		WTokenType keyword_type = keyword_map[identifier];
+		WTokenType keyword_type = keyword_map.at(identifier);
 		return MAKE_TOKEN(keyword_type, identifier, LINE_NUM, COL_NUM);
 	}
 

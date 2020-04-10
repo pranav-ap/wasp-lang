@@ -91,7 +91,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>..\packages;..\Utils;..\Token</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include;..\include\spdlog;..\Token</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -156,6 +156,7 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="Lexer.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="Pointer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
@@ -167,13 +168,11 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Pointer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Token\Token.vcxproj">
       <Project>{5637e073-6798-4882-a7e7-413e1f93f541}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\Utils\Utils.vcxproj">
-      <Project>{fd212e30-089e-4160-84e4-201daa0064b7}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

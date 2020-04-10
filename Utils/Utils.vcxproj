@@ -91,7 +91,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>..\packages</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include;../include/spdlog</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -153,24 +153,21 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\packages\rang.hpp" />
+    <ClInclude Include="Assertion.h" />
     <ClInclude Include="framework.h" />
-    <ClInclude Include="logger.h" />
     <ClInclude Include="file_io.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="Pointer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Assertion.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="file_io.cpp" />
-    <ClCompile Include="logger.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Pointer.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

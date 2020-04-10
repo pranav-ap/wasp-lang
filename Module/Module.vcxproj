@@ -90,7 +90,7 @@
       <PreprocessorDefinitions>_DEBUG;MODULE_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\packages;..\Utils;..\Token;..\ObjectSystem</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include;..\include\spdlog;..\Token;..\ObjectSystem</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
@@ -177,9 +177,6 @@
   <ItemGroup>
     <ProjectReference Include="..\ObjectSystem\ObjectSystem.vcxproj">
       <Project>{475e263f-ebbe-41af-b49e-e0d8b1a8a3d6}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\Utils\Utils.vcxproj">
-      <Project>{fd212e30-089e-4160-84e4-201daa0064b7}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

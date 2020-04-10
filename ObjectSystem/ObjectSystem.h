@@ -16,15 +16,7 @@
 
 #define MAKE_OBJECT_VARIANT(x) std::make_shared<ObjectVariant>(x)
 #define VOID std::make_shared<ObjectVariant>(ReturnObject())
-
-#define THROW(message) \
-	return std::make_shared<ObjectVariant>(ErrorObject(message))
-
-#define THROW_IF_TRUTHY(condition, message) \
-	if (condition) { return std::make_shared<ObjectVariant>(ErrorObject(message)); }
-
-#define THROW_IF_FALSY(condition, message) \
-	if (!condition) { return std::make_shared<ObjectVariant>(ErrorObject(message)); }
+#define THROW(message) return std::make_shared<ObjectVariant>(ErrorObject(message))
 
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
@@ -130,5 +122,6 @@ struct OBJECTSYSTEM_API BuiltInsObject : public ActionObject
 struct OBJECTSYSTEM_API ErrorObject : public ActionObject
 {
 	std::string message;
+	ErrorObject() : message("") {};
 	ErrorObject(std::string message) : message(message) {};
 };

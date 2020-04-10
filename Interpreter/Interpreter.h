@@ -34,7 +34,6 @@ class INTERPRETER_API Interpreter
 	ObjectVariant_ptr visit(FunctionDefinition_ptr statement);
 	ObjectVariant_ptr visit(Return_ptr statement);
 	ObjectVariant_ptr visit(Import_ptr statement);
-	ObjectVariant_ptr visit(ImportSTD_ptr statement);
 	ObjectVariant_ptr visit(EnumDefinition_ptr statement);
 
 	// Expression Visitors

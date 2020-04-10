@@ -32,6 +32,4 @@ const InBuiltModule_DispatchTableType module_dispatch_table = {
 	{"io", io_dispatch_table }
 };
 
-InBuiltFunction_VisitorType get_inbuilt_function_visitor(
-	std::string module_name,
-	std::string function_name);
+InBuiltFunction_VisitorType get_inbuilt_function_visitor(std::string module_name, std::string function_name);

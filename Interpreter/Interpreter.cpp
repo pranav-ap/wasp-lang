@@ -8,6 +8,7 @@
 #include "ObjectSystem.h"
 #include "Builtins.h"
 #include "DispatchTables.h"
+#include "Assertion.h"
 
 #include <memory>
 #include <string>
@@ -22,6 +23,7 @@ using std::vector;
 using std::optional;
 using std::make_shared;
 using std::holds_alternative;
+using namespace Assertion;
 
 void Interpreter::execute()
 {
@@ -224,17 +226,15 @@ ObjectVariant_ptr Interpreter::visit(EnumDefinition_ptr def)
 
 ObjectVariant_ptr Interpreter::visit(Import_ptr statement)
 {
-	return VOID;
-}
-
-ObjectVariant_ptr Interpreter::visit(ImportSTD_ptr statement)
-{
-	std::string module_name = statement->module_name;
-
-	for (auto const name : statement->goods)
+	if (statement->is_inbuilt)
 	{
-		auto function_visitor = get_inbuilt_function_visitor(module_name, name);
-		env->import_builtin(name, function_visitor);
+		std::string module_name = statement->path;
+
+		for (auto const name : statement->goods)
+		{
+			auto function_visitor = get_inbuilt_function_visitor(module_name, name);
+			env->import_builtin(name, function_visitor);
+		}
 	}
 
 	return VOID;

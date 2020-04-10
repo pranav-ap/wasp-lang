@@ -1,17 +1,11 @@
 #pragma once
 
-#ifdef PARSER_EXPORTS
-#define PARSER_API __declspec(dllexport)
-#else
-#define PARSER_API __declspec(dllimport)
-#endif
-
 #include <stack>
 #include "TokenPipe.h"
 #include "OperatorStack.h"
 #include "Expression.h"
 
-class PARSER_API ExpressionParser
+class ExpressionParser
 {
 	TokenPipe_ptr token_pipe;
 
@@ -33,7 +27,7 @@ class PARSER_API ExpressionParser
 	// Utils
 
 	Expression_ptr finish_parsing();
-	std::shared_ptr<std::string> consume_valid_UDT_key();
+	std::string consume_valid_UDT_key();
 
 public:
 	ExpressionParser(TokenPipe_ptr token_pipe)

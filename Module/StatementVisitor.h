@@ -24,6 +24,5 @@ public:
 	virtual ObjectVariant_ptr visit(Return_ptr statement) = 0;
 	virtual ObjectVariant_ptr visit(ExpressionStatement_ptr statement) = 0;
 	virtual ObjectVariant_ptr visit(Import_ptr statement) = 0;
-	virtual ObjectVariant_ptr visit(ImportSTD_ptr statement) = 0;
 	virtual ObjectVariant_ptr visit(EnumDefinition_ptr statement) = 0;
 };

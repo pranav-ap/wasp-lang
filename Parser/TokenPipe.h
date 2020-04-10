@@ -1,11 +1,5 @@
 #pragma once
 
-#ifdef PARSER_EXPORTS
-#define PARSER_API __declspec(dllexport)
-#else
-#define PARSER_API __declspec(dllimport)
-#endif
-
 #include <vector>
 #include <memory>
 
@@ -14,7 +8,7 @@
 #define ADVANCE_PTR token_pipe->advance_pointer()
 #define RETREAT_PTR token_pipe->retreat_pointer()
 
-class PARSER_API TokenPipe
+class TokenPipe
 {
 	std::vector<Token_ptr> tokens;
 	int index;
@@ -37,4 +31,4 @@ public:
 	size_t get_size() const;
 };
 
-using TokenPipe_ptr = PARSER_API std::shared_ptr<TokenPipe>;
+using TokenPipe_ptr = std::shared_ptr<TokenPipe>;

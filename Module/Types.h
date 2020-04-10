@@ -9,48 +9,60 @@
 #include "pch.h"
 #include <string>
 #include <memory>
+#include <variant>
+
+struct NumberType;
+struct StringType;
+struct BooleanType;
+struct VectorType;
+struct UDTType;
+struct OptionalType;
+
+// Variant Definition
+
+using TypeVariant = MODULE_API std::variant<
+	std::monostate,
+	NumberType, StringType, BooleanType,
+	VectorType, UDTType,
+	OptionalType
+>;
+
+using TypeVariant_ptr = MODULE_API std::shared_ptr<TypeVariant>;
 
 // Type Base
 
 struct MODULE_API Type
 {
-	virtual void accept() = 0;
 };
 
 using Type_ptr = std::shared_ptr<Type>;
 
 struct MODULE_API ScalarType : public Type
 {
-	virtual void accept() = 0;
 };
 
 struct MODULE_API CompositeType : public Type
 {
-	virtual void accept() = 0;
 };
 
 struct MODULE_API OptionalType : public Type
 {
 	Type_ptr optional_type;
 	OptionalType(Type_ptr optional_type) : optional_type(std::move(optional_type)) {};
-	void accept() {};
 };
 
 // Scalar Types
 
 struct MODULE_API NumberType : public ScalarType
 {
-	void accept() {};
 };
 
 struct MODULE_API StringType : public ScalarType
 {
-	void accept() {};
 };
 
 struct MODULE_API BooleanType : public ScalarType
 {
-	void accept() {};
 };
 
 // Composite Types
@@ -59,12 +71,10 @@ struct MODULE_API VectorType : public CompositeType
 {
 	Type_ptr type;
 	VectorType(Type_ptr type) : type(std::move(type)) {};
-	void accept() {};
 };
 
 struct MODULE_API UDTType : public CompositeType
 {
 	std::string name;
 	UDTType(std::string name) : name(name) {};
-	void accept() {};
 };

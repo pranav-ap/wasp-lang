@@ -6,20 +6,59 @@
 #define LEXER_API __declspec(dllimport)
 #endif
 
-#include "logger.h"
 #include "Token.h"
 #include "TokenPosition.h"
+#include "TokenType.h"
 #include "Pointer.h"
 
 #include <string>
 #include <vector>
 #include <memory>
+#include <map>
 
 #define MAKE_TOKEN(type, token, line_num, col_num) std::make_shared<Token>(type, token, line_num, col_num)
 #define CASE_BODY(call) { token = call; break; }
 #define NEXT this->pointer.advance(); this->position.increment_column_number();
 #define LINE_NUM this->position.get_line_num()
 #define COL_NUM this->position.get_column_num()
+
+const std::map<std::string, WTokenType> keyword_map = {
+	{ "if", WTokenType::IF },
+	{ "else", WTokenType::ELSE },
+
+	{ "and", WTokenType::AND },
+	{ "or", WTokenType::OR },
+
+	{ "let", WTokenType::LET },
+	{ "const", WTokenType::CONST_KEYWORD },
+
+	{ "loop", WTokenType::LOOP },
+	{ "foreach", WTokenType::FOREACH },
+	{ "break", WTokenType::BREAK },
+	{ "continue", WTokenType::CONTINUE },
+	{ "in", WTokenType::IN_KEYWORD },
+
+	{ "fn", WTokenType::FN },
+	{ "return", WTokenType::RETURN },
+
+	{ "num", WTokenType::NUM },
+	{ "str", WTokenType::STR },
+	{ "bool", WTokenType::BOOL },
+	{ "enum", WTokenType::ENUM },
+	{ "type", WTokenType::TYPE },
+	{ "opt", WTokenType::OPT },
+
+	{ "some", WTokenType::SOME },
+	{ "none", WTokenType::NONE },
+
+	{ "true", WTokenType::TRUE_KEYWORD },
+	{ "false", WTokenType::FALSE_KEYWORD },
+
+	{ "import", WTokenType::IMPORT },
+	{ "from", WTokenType::FROM },
+
+	{ "pub", WTokenType::PUB }
+};
 
 class LEXER_API Lexer
 {

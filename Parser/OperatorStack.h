@@ -1,11 +1,5 @@
 #pragma once
 
-#ifdef PARSER_EXPORTS
-#define PARSER_API __declspec(dllexport)
-#else
-#define PARSER_API __declspec(dllimport)
-#endif
-
 #include <stack>
 #include <vector>
 
@@ -13,7 +7,7 @@
 #include "TokenType.h"
 #include "Expression.h"
 
-class PARSER_API OperatorStack
+class OperatorStack
 {
 	std::stack<Token_ptr> operator_stack;
 
@@ -36,4 +30,4 @@ public:
 	void smart_push(Token_ptr operator_token, ExpressionStack& ast);
 };
 
-using OperatorStack_ptr = PARSER_API std::shared_ptr<OperatorStack>;
+using OperatorStack_ptr = std::shared_ptr<OperatorStack>;

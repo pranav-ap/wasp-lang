@@ -122,6 +122,7 @@ struct MODULE_API EnumDefinition : public Statement, public std::enable_shared_f
 struct MODULE_API Return : public Statement, public std::enable_shared_from_this<Return>
 {
 	std::optional<Expression_ptr> expression;
+	Return() : expression(std::nullopt) {};
 	Return(std::optional<Expression_ptr> expression) : expression(std::move(expression)) {};
 	ObjectVariant_ptr interpret(StatementVisitor& visitor);
 };
@@ -137,17 +138,10 @@ struct MODULE_API Import : public Statement, public std::enable_shared_from_this
 {
 	std::vector<std::string> goods;
 	std::string path;
+	bool is_inbuilt;
 
-	Import(std::vector<std::string> goods, std::string path) : goods(goods), path(path) {};
-	ObjectVariant_ptr interpret(StatementVisitor& visitor);
-};
-
-struct MODULE_API ImportSTD : public Statement, public std::enable_shared_from_this<ImportSTD>
-{
-	std::vector<std::string> goods;
-	std::string module_name;
-
-	ImportSTD(std::vector<std::string> goods, std::string module_name) : goods(goods), module_name(module_name) {};
+	Import(std::string path, std::vector<std::string> goods, bool is_inbuilt)
+		: goods(goods), path(path), is_inbuilt(is_inbuilt) {};
 	ObjectVariant_ptr interpret(StatementVisitor& visitor);
 };
 
@@ -163,22 +157,4 @@ using FunctionDefinition_ptr = MODULE_API std::shared_ptr<FunctionDefinition>;
 using Return_ptr = MODULE_API std::shared_ptr<Return>;
 using ExpressionStatement_ptr = MODULE_API std::shared_ptr<ExpressionStatement>;
 using Import_ptr = MODULE_API std::shared_ptr<Import>;
-using ImportSTD_ptr = MODULE_API std::shared_ptr<ImportSTD>;
 using EnumDefinition_ptr = MODULE_API std::shared_ptr<EnumDefinition>;
-
-// Printers
-
-MODULE_API std::ostream& operator<<(std::ostream& os, const VariableDeclaration_ptr stat);
-MODULE_API std::ostream& operator<<(std::ostream& os, const Assignment_ptr stat);
-MODULE_API std::ostream& operator<<(std::ostream& os, const Branch_ptr stat);
-MODULE_API std::ostream& operator<<(std::ostream& os, const Loop_ptr stat);
-MODULE_API std::ostream& operator<<(std::ostream& os, const ForEachLoop_ptr stat);
-MODULE_API std::ostream& operator<<(std::ostream& os, const Break_ptr stat);
-MODULE_API std::ostream& operator<<(std::ostream& os, const Continue_ptr stat);
-MODULE_API std::ostream& operator<<(std::ostream& os, const UDTDefinition_ptr stat);
-MODULE_API std::ostream& operator<<(std::ostream& os, const FunctionDefinition_ptr stat);
-MODULE_API std::ostream& operator<<(std::ostream& os, const Return_ptr stat);
-MODULE_API std::ostream& operator<<(std::ostream& os, const ExpressionStatement_ptr stat);
-MODULE_API std::ostream& operator<<(std::ostream& os, const Import_ptr stat);
-MODULE_API std::ostream& operator<<(std::ostream& os, const ImportSTD_ptr stat);
-MODULE_API std::ostream& operator<<(std::ostream& os, const EnumDefinition_ptr stat);

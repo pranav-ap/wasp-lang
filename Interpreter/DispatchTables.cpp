@@ -2,21 +2,22 @@
 
 #include "pch.h"
 #include "DispatchTables.h"
-#include "logger.h"
+#include "spdlog.h"
+#include <string>
 
-InBuiltFunction_VisitorType get_inbuilt_function_visitor(
-	std::string module_name,
-	std::string function_name)
+using std::string;
+
+InBuiltFunction_VisitorType get_inbuilt_function_visitor(string module_name, string function_name)
 {
-	FATAL_IF_FALSE(
-		module_dispatch_table.contains(module_name),
-		"There is no inbuilt module called " + module_name
-	);
+	if (module_dispatch_table.contains(module_name))
+	{
+		if (module_dispatch_table.at(module_name).contains(function_name))
+		{
+			return module_dispatch_table.at(module_name).at(function_name);
+		}
 
-	FATAL_IF_FALSE(
-		module_dispatch_table.at(module_name).contains(function_name),
-		"There is no inbuilt function " + function_name + " in module " + module_name
-	);
+		spdlog::error("There is no inbuilt function {} in module {}", function_name, module_name);
+	}
 
-	return module_dispatch_table.at(module_name).at(function_name);
+	spdlog::error("There is no inbuilt module called {} ", module_name);
 }

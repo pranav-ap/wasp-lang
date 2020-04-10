@@ -1,12 +1,12 @@
 #pragma once
 
-#ifdef UTILS_EXPORTS
-#define UTILS_API __declspec(dllexport)
+#ifdef LEXER_EXPORTS
+#define LEXER_API __declspec(dllexport)
 #else
-#define UTILS_API __declspec(dllimport)
+#define LEXER_API __declspec(dllimport)
 #endif
 
-class UTILS_API Pointer
+class LEXER_API Pointer
 {
 	int index;
 public:

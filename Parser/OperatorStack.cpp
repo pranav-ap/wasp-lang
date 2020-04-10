@@ -1,7 +1,7 @@
 #pragma once
 #include "pch.h"
-#include "logger.h"
 #include "OperatorStack.h"
+#include "spdlog.h"
 
 using std::vector;
 using std::stack;
@@ -25,7 +25,8 @@ void OperatorStack::push_unary_operator_to_ast(Token_ptr operator_token, Express
 {
 	if (ast.size() == 0)
 	{
-		FATAL(operator_token->value + " requries one operand. But the AST is empty.");
+		spdlog::error("{} requries one operand. But the AST is empty.", operator_token->value);
+		exit(1);
 	}
 
 	Expression_ptr expression = move(ast.top());
@@ -43,7 +44,8 @@ void OperatorStack::push_binary_operator_to_ast(Token_ptr operator_token, Expres
 {
 	if (ast.size() < 2)
 	{
-		FATAL(operator_token->value + " requires two operands.");
+		spdlog::error("{} requires two operands", operator_token->value);
+		exit(1);
 	}
 
 	Expression_ptr rhs = move(ast.top());

@@ -1,18 +1,12 @@
 #pragma once
 
-#ifdef ENVIRONMENT_EXPORTS
-#define ENVIRONMENT_API __declspec(dllexport)
-#else
-#define ENVIRONMENT_API __declspec(dllimport)
-#endif
-
 #include "ObjectSystem.h"
 #include "Scope.h"
 #include "Info.h"
 #include <list>
 #include <functional>
 
-class ENVIRONMENT_API Environment
+class Environment
 {
 	std::list<Scope_ptr> scopes;
 
@@ -84,4 +78,4 @@ public:
 	bool is_inside_function_scope();
 };
 
-using Environment_ptr = ENVIRONMENT_API std::shared_ptr<Environment>;
+using Environment_ptr = std::shared_ptr<Environment>;

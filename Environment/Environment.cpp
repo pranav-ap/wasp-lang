@@ -1,10 +1,10 @@
 #pragma once
 
 #include "pch.h"
-#include "logger.h"
 #include "Environment.h"
 #include "Info.h"
 #include "ObjectSystem.h"
+#include "Assertion.h"
 
 #include <memory>
 #include <string>
@@ -21,6 +21,7 @@ using std::map;
 using std::optional;
 using std::get;
 using std::holds_alternative;
+using namespace Assertion;
 
 Environment::Environment()
 {
@@ -60,8 +61,7 @@ InfoVariant_ptr Environment::get_info(string name)
 	{
 		if (scope->store.contains(name))
 		{
-			FATAL_IF_NULLPTR(scope->store[name], "Info is nullptr");
-			FATAL_IF_TRUE(scope->store[name]->index() == 0, "Info is monostate");
+			ASSERT(scope->store[name]->index() != 0, "Info must not be monostate");
 			return scope->store[name];
 		}
 	}
@@ -72,7 +72,7 @@ InfoVariant_ptr Environment::get_info(string name)
 VariableInfo Environment::get_variable(string name)
 {
 	auto info = get_info(name);
-	FATAL_IF_FALSE(holds_alternative<VariableInfo>(*info), name + " is not a Variable!");
+	ASSERT(holds_alternative<VariableInfo>(*info), name + " is not a Variable!");
 
 	return get<VariableInfo>(*info);
 }
@@ -80,7 +80,7 @@ VariableInfo Environment::get_variable(string name)
 UDTInfo Environment::get_UDT(string name)
 {
 	auto info = get_info(name);
-	FATAL_IF_FALSE(holds_alternative<UDTInfo>(*info), name + " is not a UDT!");
+	ASSERT(holds_alternative<UDTInfo>(*info), name + " is not a UDT!");
 
 	return get<UDTInfo>(*info);
 }
@@ -88,7 +88,7 @@ UDTInfo Environment::get_UDT(string name)
 EnumInfo Environment::get_enum(string name)
 {
 	auto info = get_info(name);
-	FATAL_IF_FALSE(holds_alternative<EnumInfo>(*info), name + " is not an Enum!");
+	ASSERT(holds_alternative<EnumInfo>(*info), name + " is not an Enum!");
 
 	return get<EnumInfo>(*info);
 }
@@ -97,28 +97,28 @@ EnumInfo Environment::get_enum(string name)
 
 void Environment::set_variable(string name, ObjectVariant_ptr value)
 {
-	FATAL_IF_NULLPTR(value, "Cannot set nullptr to variable");
-	FATAL_IF_TRUE(value->index() == 0, "Cannot set variable to monostate");
+	ASSERT(!value, "Cannot set variable = nullptr");
+	ASSERT(value->index() != 0, "Cannot set variable = monostate");
 
 	auto info = get_info(name);
-	FATAL_IF_FALSE(holds_alternative<VariableInfo>(*info), name + " is not a Variable!");
+	ASSERT(holds_alternative<VariableInfo>(*info), name + " is not a Variable!");
 	auto variable_info = get<VariableInfo>(*info);
 
-	FATAL_IF_FALSE(variable_info.is_mutable, "Variable is not mutable");
+	ASSERT(variable_info.is_mutable, "Variable is not mutable");
 	variable_info.value = value;
 }
 
 void Environment::set_element(string name, int index, ObjectVariant_ptr value)
 {
-	FATAL_IF_NULLPTR(value, "Cannot set nullptr to variable");
-	FATAL_IF_TRUE(value->index() == 0, "Cannot set variable to monostate");
+	ASSERT(!value, "Cannot set element = nullptr");
+	ASSERT(value->index() != 0, "Cannot set element = monostate");
 
 	auto info = get_info(name);
-	FATAL_IF_FALSE(holds_alternative<VariableInfo>(*info), name + " is not a Variable!");
+	ASSERT(holds_alternative<VariableInfo>(*info), name + " is not a Variable!");
 	auto variable_info = get<VariableInfo>(*info);
 
-	FATAL_IF_FALSE(variable_info.is_mutable, "Vector is not mutable");
-	FATAL_IF_FALSE(holds_alternative<VectorObject>(*variable_info.value), "Variable is not a Vector");
+	ASSERT(variable_info.is_mutable, "Vector is not mutable");
+	ASSERT(holds_alternative<VectorObject>(*variable_info.value), "Variable is not a Vector");
 	auto vector_object = get<VectorObject>(*variable_info.value);
 	vector_object.values[index] = value;
 }
@@ -143,7 +143,7 @@ void Environment::create_variable(
 			)
 	);
 
-	FATAL_IF_FALSE(result.second, name + " already exists in scope!");
+	ASSERT(result.second, name + " already exists in scope!");
 }
 
 void Environment::create_function(
@@ -164,7 +164,7 @@ void Environment::create_function(
 			)
 	);
 
-	FATAL_IF_FALSE(result.second, name + " already exists in scope!");
+	ASSERT(result.second, name + " already exists in scope!");
 }
 
 void Environment::create_UDT(
@@ -183,7 +183,7 @@ void Environment::create_UDT(
 			)
 	);
 
-	FATAL_IF_FALSE(result.second, name + " already exists in scope!");
+	ASSERT(result.second, name + " already exists in scope!");
 }
 
 void Environment::create_enum(
@@ -202,7 +202,7 @@ void Environment::create_enum(
 			)
 	);
 
-	FATAL_IF_FALSE(result.second, name + " already exists in scope!");
+	ASSERT(result.second, name + " already exists in scope!");
 }
 
 void Environment::import_builtin(
@@ -218,7 +218,7 @@ void Environment::import_builtin(
 			)
 	);
 
-	FATAL_IF_FALSE(result.second, name + " already exists in scope!");
+	ASSERT(result.second, name + " already exists in scope!");
 }
 
 // Utils
