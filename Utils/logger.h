@@ -11,10 +11,6 @@
 #define UTILS_API __declspec(dllimport)
 #endif
 
-#define TITLE(text) \
-    std::cout << rang::style::bold << rang::fg::yellow << " " << text << "\n" \
-    << rang::style::reset << rang::fg::reset << std::endl
-
 #define INFO(text) Logger::info(text)
 #define TRACE(text) Logger::trace(text)
 #define ERROR(text) Logger::error(text)

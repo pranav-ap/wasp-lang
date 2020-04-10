@@ -10,11 +10,11 @@
 #include "Scope.h"
 #include "Info.h"
 #include <list>
+#include <functional>
 
 class ENVIRONMENT_API Environment
 {
 	std::list<Scope_ptr> scopes;
-	InfoVariant_ptr get_info(std::string name);
 
 public:
 
@@ -31,8 +31,9 @@ public:
 
 	// Getters
 
+	InfoVariant_ptr get_info(std::string name);
+
 	VariableInfo get_variable(std::string name);
-	FunctionInfo get_function(std::string name);
 	UDTInfo get_UDT(std::string name);
 	EnumInfo get_enum(std::string name);
 
@@ -69,6 +70,11 @@ public:
 		std::string name,
 		bool is_public,
 		std::vector<std::string> member_names
+	);
+
+	void import_builtin(
+		std::string name,
+		std::function<ObjectVariant_ptr(std::vector<ObjectVariant_ptr>)> func
 	);
 
 	// Utils

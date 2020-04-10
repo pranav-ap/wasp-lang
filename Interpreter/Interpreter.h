@@ -66,6 +66,9 @@ class INTERPRETER_API Interpreter
 	// Utils
 
 	ObjectVariant_ptr evaluate_block(Block_ptr block);
+	ObjectVariant_ptr evaluate_function_call(FunctionCall_ptr call_expression, FunctionInfo info);
+	ObjectVariant_ptr evaluate_function_call(FunctionCall_ptr call_expression, InBuiltFunctionInfo info);
+
 	bool are_same_type(ObjectVariant_ptr obj, Type_ptr type);
 
 public:

@@ -153,11 +153,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Builtins.h" />
+    <ClInclude Include="DispatchTables.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Interpreter.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Builtins.cpp" />
+    <ClCompile Include="DispatchTables.cpp" />
     <ClCompile Include="Interpreter.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="pch.cpp">

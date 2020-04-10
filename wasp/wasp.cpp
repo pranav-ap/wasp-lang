@@ -1,5 +1,4 @@
 #pragma once
-#include "logger.h"
 #include "CLI11.hpp"
 
 #include "file_io.h"
@@ -15,13 +14,15 @@ using std::vector;
 
 int main(int argc, char** argv)
 {
-	TITLE("\n [ Wasp Interpreter ] ");
-	TITLE("Inefficient, Elegant and Fun!");
-
 	CLI::App app{ "Wasp Interpreter" };
 
+	// RUN Command
+
+	CLI::App* run_cmd = app.add_subcommand("run", "Executes a wasp file");
+
 	string filepath;
-	app.add_option("-f, --file", filepath, "Provide the path to your main file")
+	run_cmd
+		->add_option("-f, --file", filepath, "Provide the path to your main file")
 		->required()
 		->check(CLI::ExistingFile);
 
@@ -29,18 +30,12 @@ int main(int argc, char** argv)
 
 	string raw_source = read_source(filepath);
 
-	INFO("Executing Lexer..");
 	Lexer lexer(raw_source);
 	vector<Token_ptr> tokens = lexer.execute();
-	INFO("Done");
 
-	INFO("Executing Parser..");
 	Parser parser(tokens);
 	Module mod = parser.execute();
-	INFO("Done");
 
-	INFO("Interpreting code..");
 	Interpreter interpreter(mod);
 	interpreter.execute();
-	INFO("Done");
 }

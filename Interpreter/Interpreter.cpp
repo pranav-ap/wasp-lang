@@ -1,22 +1,19 @@
 #pragma once
 
 #include "pch.h"
-#include "logger.h"
 #include "Interpreter.h"
 #include "StatementVisitor.h"
 #include "ExpressionVisitor.h"
 #include "Module.h"
 #include "ObjectSystem.h"
+#include "Builtins.h"
+#include "DispatchTables.h"
 
 #include <memory>
 #include <string>
 #include <map>
 #include <optional>
 #include <variant>
-
-#define OPERAND_TYPEID typeid(*operand)
-#define LEFT_TYPEID typeid(*left)
-#define RIGHT_TYPEID typeid(*right)
 
 using std::string;
 using std::to_string;
@@ -54,7 +51,7 @@ ObjectVariant_ptr Interpreter::visit(Assignment_ptr assignment)
 	auto name = assignment->name;
 	auto info = env->get_variable(name);
 
-	FATAL_IF_FALSE(info.is_mutable, name + " is not mutable");
+	THROW_IF_TRUTHY(info.is_mutable, name + " is not mutable");
 
 	auto result = assignment->expression->interpret(*this);
 	info.value = result;
@@ -65,7 +62,7 @@ ObjectVariant_ptr Interpreter::visit(Assignment_ptr assignment)
 ObjectVariant_ptr Interpreter::visit(Branch_ptr branch)
 {
 	auto condition = branch->condition->interpret(*this);
-	FATAL_IF_FALSE(holds_alternative<bool>(*condition), "Condition has to return bool");
+	THROW_IF_FALSY(holds_alternative<bool>(*condition), "Condition has to return bool");
 
 	bool result = get<bool>(*condition);
 	auto block = result ? branch->consequence : branch->alternative;
@@ -85,7 +82,10 @@ ObjectVariant_ptr Interpreter::visit(Loop_ptr loop)
 	{
 		auto result = evaluate_block(loop->block);
 
-		if (holds_alternative<ReturnObject>(*result))
+		if (
+			holds_alternative<ReturnObject>(*result) ||
+			holds_alternative<ErrorObject>(*result)
+			)
 		{
 			env->leave_scope();
 			return result;
@@ -107,7 +107,7 @@ ObjectVariant_ptr Interpreter::visit(Loop_ptr loop)
 ObjectVariant_ptr Interpreter::visit(ForEachLoop_ptr statement)
 {
 	auto info = env->get_variable(statement->iterable_name);
-	FATAL_IF_FALSE(holds_alternative<VectorObject>(*info.value), "Foreach can only iterate over Vector Objects");
+	THROW_IF_FALSY(holds_alternative<VectorObject>(*info.value), "Foreach can only iterate over Vector Objects");
 	auto vector_object = get<VectorObject>(*info.value);
 
 	env->enter_loop_scope();
@@ -123,12 +123,15 @@ ObjectVariant_ptr Interpreter::visit(ForEachLoop_ptr statement)
 
 	for (auto const& element : vector_object.values)
 	{
-		FATAL_IF_FALSE(are_same_type(element, vector_type->type), "Element has incorrect type");
+		THROW_IF_FALSY(are_same_type(element, vector_type->type), "Element has incorrect type");
 		env->set_variable(statement->item_name, element);
 
 		auto result = evaluate_block(statement->block);
 
-		if (holds_alternative<ReturnObject>(*result))
+		if (
+			holds_alternative<ReturnObject>(*result) ||
+			holds_alternative<ErrorObject>(*result)
+			)
 		{
 			env->leave_scope();
 			return result;
@@ -152,7 +155,7 @@ ObjectVariant_ptr Interpreter::visit(Break_ptr statement)
 	if (env->is_inside_loop_scope())
 		return MAKE_OBJECT_VARIANT(BreakObject());
 
-	FATAL("Break must be used within a loop");
+	THROW("Break must be used within a loop");
 }
 
 ObjectVariant_ptr Interpreter::visit(Continue_ptr statement)
@@ -160,7 +163,7 @@ ObjectVariant_ptr Interpreter::visit(Continue_ptr statement)
 	if (env->is_inside_loop_scope())
 		return MAKE_OBJECT_VARIANT(ContinueObject());
 
-	FATAL("Continue must be used within a loop");
+	THROW("Continue must be used within a loop");
 }
 
 ObjectVariant_ptr Interpreter::visit(Return_ptr statement)
@@ -170,14 +173,13 @@ ObjectVariant_ptr Interpreter::visit(Return_ptr statement)
 		if (statement->expression.has_value())
 		{
 			auto result = statement->expression.value()->interpret(*this);
-			FATAL_IF_NULLPTR(result, "The evaluated return expession results in nullptr");
 			return MAKE_OBJECT_VARIANT(ReturnObject(result));
 		}
 
 		return VOID;
 	}
 
-	FATAL("Return must be used inside a function");
+	THROW("Return must be used inside a function");
 }
 
 ObjectVariant_ptr Interpreter::visit(ExpressionStatement_ptr statement)
@@ -227,6 +229,14 @@ ObjectVariant_ptr Interpreter::visit(Import_ptr statement)
 
 ObjectVariant_ptr Interpreter::visit(ImportSTD_ptr statement)
 {
+	std::string module_name = statement->module_name;
+
+	for (auto const name : statement->goods)
+	{
+		auto function_visitor = get_inbuilt_function_visitor(module_name, name);
+		env->import_builtin(name, function_visitor);
+	}
+
 	return VOID;
 }
 
@@ -293,7 +303,7 @@ ObjectVariant_ptr Interpreter::visit(Unary_ptr unary_expression)
 		[=](bool boolean) { return perform_operation(token_type, boolean); },
 
 		[](auto) {
-			FATAL("The Unary Operation is not defined for this operand");
+			THROW("The Unary Operation is not defined for this operand");
 			return VOID;
 			}
 		}, *operand);
@@ -312,7 +322,7 @@ ObjectVariant_ptr Interpreter::visit(Binary_ptr binary_expression)
 		[=](string left, double right) { return perform_operation(token_type, left, right); },
 
 		[](auto, auto) {
-			FATAL("The Binary Operation is not defined for these operands");
+			THROW("The Binary Operation is not defined for these operands");
 			return VOID;
 		}
 		}, *left_variant, *right_variant);
@@ -323,13 +333,13 @@ ObjectVariant_ptr Interpreter::visit(VectorMemberAccess_ptr access_expression)
 	auto name = access_expression->name;
 	auto info = env->get_variable(name);
 
-	FATAL_IF_FALSE(holds_alternative<VectorObject>(*info.value), name + " is not a vector");
+	THROW_IF_FALSY(holds_alternative<VectorObject>(*info.value), name + " is not a vector");
 	auto vector_object = get<VectorObject>(*info.value);
 
 	// Get Index
 	auto index_variant = access_expression->expression->interpret(*this);
 
-	FATAL_IF_FALSE(holds_alternative<double>(*index_variant), "Vector elements must be accessed by a numeric index");
+	THROW_IF_FALSY(holds_alternative<double>(*index_variant), "Vector elements must be accessed by a numeric index");
 	double index = get<double>(*index_variant);
 
 	return move(vector_object.values[index]);
@@ -340,7 +350,7 @@ ObjectVariant_ptr Interpreter::visit(UDTMemberAccess_ptr expression)
 	auto UDT_name = expression->UDT_name;
 	auto info = env->get_variable(UDT_name);
 
-	FATAL_IF_FALSE(holds_alternative<UDTObject>(*info.value), UDT_name + " value is not a UDT");
+	THROW_IF_FALSY(holds_alternative<UDTObject>(*info.value), UDT_name + " value is not a UDT");
 	auto UDT_object = get<UDTObject>(*info.value);
 
 	return move(UDT_object.pairs[expression->member_name]);
@@ -358,54 +368,32 @@ ObjectVariant_ptr Interpreter::visit(FunctionCall_ptr call_expression)
 {
 	env->enter_function_scope();
 
-	//if (expression->name == "echo" || expression->name == "ask")
-	//{
-	//	return call_builtin(expression->name, expression->arguments);
-	//}
+	auto info_variant = env->get_info(call_expression->name);
 
-	auto info = env->get_function(call_expression->name);
-	auto formal_arguments = info.arguments;
+	return std::visit(overloaded{
+		[=](FunctionInfo info) {
+			auto result = evaluate_function_call(call_expression, info);
+			env->leave_scope();
+			return move(result);
+		},
+		[=](InBuiltFunctionInfo info) {
+			auto result = evaluate_function_call(call_expression, info);
+			env->leave_scope();
+			return move(result);
+		},
 
-	FATAL_IF_FALSE(
-		formal_arguments.size() == call_expression->arguments.size(),
-		"Number of arguments in the function call " + call_expression->name + " is incorrect."
-	);
-
-	int index = 0;
-
-	for (auto const& argument : call_expression->arguments)
-	{
-		auto formal_argument_name = formal_arguments[index].first;
-		auto formal_argument_type = formal_arguments[index].second;
-
-		auto object = argument->interpret(*this);
-
-		FATAL_IF_FALSE(
-			are_same_type(object, formal_argument_type),
-			"The type of argument " + formal_argument_name + " in the function call " +
-			call_expression->name + " is incorrect."
-		);
-
-		env->create_variable(
-			formal_argument_name,
-			false,
-			true,
-			formal_argument_type,
-			move(object)
-		);
-
-		index++;
-	}
-
-	auto result = evaluate_block(move(info.body));
-	env->leave_scope();
-	return move(result);
+		[=](auto) {
+			env->leave_scope();
+			THROW("It is neither a function nor a builtin function!");
+			return VOID;
+		}
+		}, *info_variant);
 }
 
 ObjectVariant_ptr Interpreter::visit(Range_ptr expression)
 {
 	return VOID;
-	//FATAL("Range must be used along with vector slicing or a FOR loop");
+	//THROW("Range must be used along with vector slicing or a FOR loop");
 }
 
 // Perform Operation
@@ -420,7 +408,7 @@ ObjectVariant_ptr Interpreter::perform_operation(WTokenType token_type, double o
 	}
 	}
 
-	FATAL("Operation not supported");
+	THROW("Operation not supported");
 }
 
 ObjectVariant_ptr Interpreter::perform_operation(WTokenType token_type, bool operand)
@@ -433,7 +421,7 @@ ObjectVariant_ptr Interpreter::perform_operation(WTokenType token_type, bool ope
 	}
 	}
 
-	FATAL("Operation not supported");
+	THROW("Operation not supported");
 }
 
 ObjectVariant_ptr Interpreter::perform_operation(WTokenType token_type, bool left, bool right)
@@ -458,7 +446,7 @@ ObjectVariant_ptr Interpreter::perform_operation(WTokenType token_type, bool lef
 	}
 	}
 
-	FATAL("Operation not supported");
+	THROW("Operation not supported");
 }
 
 ObjectVariant_ptr Interpreter::perform_operation(WTokenType token_type, double left, double right)
@@ -515,7 +503,7 @@ ObjectVariant_ptr Interpreter::perform_operation(WTokenType token_type, double l
 	}
 	}
 
-	FATAL("Operation not supported");
+	THROW("Operation not supported");
 }
 
 ObjectVariant_ptr Interpreter::perform_operation(WTokenType token_type, string left, string right)
@@ -536,7 +524,7 @@ ObjectVariant_ptr Interpreter::perform_operation(WTokenType token_type, string l
 	}
 	}
 
-	FATAL("Operation not supported");
+	THROW("Operation not supported");
 }
 
 ObjectVariant_ptr Interpreter::perform_operation(WTokenType token_type, string left, double right)
@@ -560,7 +548,7 @@ ObjectVariant_ptr Interpreter::perform_operation(WTokenType token_type, string l
 	}
 	}
 
-	FATAL("Operation not supported");
+	THROW("Operation not supported");
 }
 
 // Utils
@@ -573,6 +561,7 @@ ObjectVariant_ptr Interpreter::evaluate_block(Block_ptr block)
 
 		if (
 			holds_alternative<ReturnObject>(*result) ||
+			holds_alternative<ErrorObject>(*result) ||
 			holds_alternative<ContinueObject>(*result) ||
 			holds_alternative<BreakObject>(*result)
 			) {
@@ -581,6 +570,57 @@ ObjectVariant_ptr Interpreter::evaluate_block(Block_ptr block)
 	}
 
 	return VOID;
+}
+
+ObjectVariant_ptr Interpreter::evaluate_function_call(FunctionCall_ptr call_expression, FunctionInfo info)
+{
+	auto formal_arguments = info.arguments;
+
+	THROW_IF_FALSY(
+		formal_arguments.size() == call_expression->arguments.size(),
+		"Number of arguments in the function call " + call_expression->name + " is incorrect."
+	);
+
+	int index = 0;
+
+	for (auto const& argument : call_expression->arguments)
+	{
+		auto formal_argument_name = formal_arguments[index].first;
+		auto formal_argument_type = formal_arguments[index].second;
+
+		auto object = argument->interpret(*this);
+
+		THROW_IF_FALSY(
+			are_same_type(object, formal_argument_type),
+			"The type of argument " + formal_argument_name + " in the function call " +
+			call_expression->name + " is incorrect."
+		);
+
+		env->create_variable(
+			formal_argument_name,
+			false,
+			true,
+			formal_argument_type,
+			move(object)
+		);
+
+		index++;
+	}
+
+	return evaluate_block(move(info.body));
+}
+
+ObjectVariant_ptr Interpreter::evaluate_function_call(FunctionCall_ptr call_expression, InBuiltFunctionInfo info)
+{
+	vector<ObjectVariant_ptr> argument_objects;
+
+	for (auto const& argument : call_expression->arguments)
+	{
+		auto result = argument->interpret(*this);
+		argument_objects.push_back(move(result));
+	}
+
+	return info.func(argument_objects);
 }
 
 bool Interpreter::are_same_type(ObjectVariant_ptr obj, Type_ptr type)

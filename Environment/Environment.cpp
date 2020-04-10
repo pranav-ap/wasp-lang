@@ -1,3 +1,5 @@
+#pragma once
+
 #include "pch.h"
 #include "logger.h"
 #include "Environment.h"
@@ -8,7 +10,6 @@
 #include <string>
 #include <list>
 #include <utility>
-#include <type_traits>
 #include <variant>
 
 using std::shared_ptr;
@@ -65,36 +66,21 @@ InfoVariant_ptr Environment::get_info(string name)
 		}
 	}
 
-	string message = name + " does not exist!";
-	FATAL(message);
+	FATAL(name + " does not exist!");
 }
 
 VariableInfo Environment::get_variable(string name)
 {
 	auto info = get_info(name);
-
-	string message = name + " is not a Variable!";
-	FATAL_IF_FALSE(holds_alternative<VariableInfo>(*info), message);
+	FATAL_IF_FALSE(holds_alternative<VariableInfo>(*info), name + " is not a Variable!");
 
 	return get<VariableInfo>(*info);
-}
-
-FunctionInfo Environment::get_function(string name)
-{
-	auto info = get_info(name);
-
-	string message = name + " is not a Function!";
-	FATAL_IF_FALSE(holds_alternative<FunctionInfo>(*info), message);
-
-	return get<FunctionInfo>(*info);
 }
 
 UDTInfo Environment::get_UDT(string name)
 {
 	auto info = get_info(name);
-
-	string message = name + " is not a UDT!";
-	FATAL_IF_FALSE(holds_alternative<UDTInfo>(*info), message);
+	FATAL_IF_FALSE(holds_alternative<UDTInfo>(*info), name + " is not a UDT!");
 
 	return get<UDTInfo>(*info);
 }
@@ -102,9 +88,7 @@ UDTInfo Environment::get_UDT(string name)
 EnumInfo Environment::get_enum(string name)
 {
 	auto info = get_info(name);
-
-	string message = name + " is not an Enum!";
-	FATAL_IF_FALSE(holds_alternative<EnumInfo>(*info), message);
+	FATAL_IF_FALSE(holds_alternative<EnumInfo>(*info), name + " is not an Enum!");
 
 	return get<EnumInfo>(*info);
 }
@@ -117,9 +101,7 @@ void Environment::set_variable(string name, ObjectVariant_ptr value)
 	FATAL_IF_TRUE(value->index() == 0, "Cannot set variable to monostate");
 
 	auto info = get_info(name);
-
-	string message = name + " is not a Variable!";
-	FATAL_IF_FALSE(holds_alternative<VariableInfo>(*info), message);
+	FATAL_IF_FALSE(holds_alternative<VariableInfo>(*info), name + " is not a Variable!");
 	auto variable_info = get<VariableInfo>(*info);
 
 	FATAL_IF_FALSE(variable_info.is_mutable, "Variable is not mutable");
@@ -132,9 +114,7 @@ void Environment::set_element(string name, int index, ObjectVariant_ptr value)
 	FATAL_IF_TRUE(value->index() == 0, "Cannot set variable to monostate");
 
 	auto info = get_info(name);
-
-	string message = name + " is not a Variable!";
-	FATAL_IF_FALSE(holds_alternative<VariableInfo>(*info), message);
+	FATAL_IF_FALSE(holds_alternative<VariableInfo>(*info), name + " is not a Variable!");
 	auto variable_info = get<VariableInfo>(*info);
 
 	FATAL_IF_FALSE(variable_info.is_mutable, "Vector is not mutable");
@@ -163,8 +143,7 @@ void Environment::create_variable(
 			)
 	);
 
-	string message = name + " already exists in scope!";
-	FATAL_IF_FALSE(result.second, message);
+	FATAL_IF_FALSE(result.second, name + " already exists in scope!");
 }
 
 void Environment::create_function(
@@ -185,8 +164,7 @@ void Environment::create_function(
 			)
 	);
 
-	string message = name + " already exists in scope!";
-	FATAL_IF_FALSE(result.second, message);
+	FATAL_IF_FALSE(result.second, name + " already exists in scope!");
 }
 
 void Environment::create_UDT(
@@ -205,8 +183,7 @@ void Environment::create_UDT(
 			)
 	);
 
-	string message = name + " already exists in scope!";
-	FATAL_IF_FALSE(result.second, message);
+	FATAL_IF_FALSE(result.second, name + " already exists in scope!");
 }
 
 void Environment::create_enum(
@@ -225,8 +202,23 @@ void Environment::create_enum(
 			)
 	);
 
-	string message = name + " already exists in scope!";
-	FATAL_IF_FALSE(result.second, message);
+	FATAL_IF_FALSE(result.second, name + " already exists in scope!");
+}
+
+void Environment::import_builtin(
+	std::string name,
+	std::function<ObjectVariant_ptr(std::vector<ObjectVariant_ptr>)> func)
+{
+	auto scope = scopes.front();
+
+	auto result = scope->store.insert(
+		pair<string, InfoVariant_ptr>(
+			name,
+			make_shared<InfoVariant>(InBuiltFunctionInfo(func))
+			)
+	);
+
+	FATAL_IF_FALSE(result.second, name + " already exists in scope!");
 }
 
 // Utils

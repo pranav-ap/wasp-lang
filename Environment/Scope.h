@@ -14,7 +14,6 @@
 struct ENVIRONMENT_API Scope
 {
 	std::map<std::string, InfoVariant_ptr> store;
-	void import_builtin(std::string name);
 };
 
 struct ENVIRONMENT_API ModuleScope : public Scope

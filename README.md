@@ -24,8 +24,6 @@ let a : { str -> str } = { "name": "john" }
 a["name"]
 ```
 
-- key cannot be optional
-
 ## UDT type
 
 ```js
@@ -38,19 +36,23 @@ let foo : hello = {
   bar : true,
   name : "jim"
 }
-```js
 
 foo.name
+```
 
 ## Alias
 
+```js
 type length = num
+```
 
 ## Variant
 
+```js
 let a : <str, int, bool> = 0
 
 let a : [str, <int, bool>] = ["hello", 0]
+```
 
 # Comments
 
@@ -58,6 +60,7 @@ Comments begin with `//`.
 
 # Conditional
 
+```js
 if expr {
 
 } else if expr {
@@ -65,44 +68,52 @@ if expr {
 } else {
 
 }
+```
 
 # Looping
 
+```js
 loop { }
 
 for x in vector / map { }
 
 break
 continue
+```
 
 # Functions
 
+```rust
 fn add (a: num, b: num) -> num {
 	return a + b
 }
+```
 
 # Module system
 
 - Everything is private by default.
 - use the `pub` keyword
 
+```js
 import { foo, bar } from "path/to/filename"
-
-import core_lib_name
+import { foo, bar } from std_lib
 
 pub fn add (a: num, b: num) -> num {
 	return a + b
 }
- 
+```
+
 # Pattern matching
 
+```rust
 match expr {
    expr -> {}
 }
-
+```
 
 # Enums
 
+```js
 enum NAME
 {
     ID1,
@@ -111,12 +122,11 @@ enum NAME
 
 NAME::ID1
 
+```
+
 # Built in core library
 
+```js
 echo(string)
 ask(string, variable)
-
-# Code Guidelines
-
-- Every function is responsible for pointing to the next unexplored 
-character or token before transfering control
+```
