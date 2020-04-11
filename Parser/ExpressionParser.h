@@ -1,9 +1,9 @@
 #pragma once
 
-#include <stack>
 #include "TokenPipe.h"
 #include "OperatorStack.h"
 #include "Expression.h"
+#include <stack>
 
 class ExpressionParser
 {
@@ -32,8 +32,8 @@ class ExpressionParser
 public:
 	ExpressionParser(TokenPipe_ptr token_pipe)
 		: token_pipe(token_pipe),
-		operator_stack(std::make_shared<OperatorStack>())
-	{};
+		operator_stack(std::make_shared<OperatorStack>()) {};
+
 	Expression_ptr parse_expression();
 };
 

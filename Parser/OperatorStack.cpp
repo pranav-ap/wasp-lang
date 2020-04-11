@@ -1,7 +1,8 @@
 #pragma once
 #include "pch.h"
 #include "OperatorStack.h"
-#include "spdlog.h"
+#include "CommonAssertion.h"
+#include <iostream>
 
 using std::vector;
 using std::stack;
@@ -15,19 +16,31 @@ void OperatorStack::push_operator_into_ast(Token_ptr operator_token, ExpressionS
 {
 	int parity = get_parity(operator_token->type);
 
-	if (parity == 1)
+	switch (parity)
+	{
+	case 1:
+	{
 		this->push_unary_operator_to_ast(move(operator_token), ast);
-	else if (parity == 2)
+		break;
+	}
+	case 2:
+	{
 		this->push_binary_operator_to_ast(move(operator_token), ast);
+		break;
+	}
+	default:
+	{
+		FATAL(operator_token->value + " operator parity is neither 1 nor 2");
+	}
+	}
 }
 
 void OperatorStack::push_unary_operator_to_ast(Token_ptr operator_token, ExpressionStack& ast)
 {
-	if (ast.size() == 0)
-	{
-		spdlog::error("{} requries one operand. But the AST is empty.", operator_token->value);
-		exit(1);
-	}
+	ASSERT(
+		ast.size() != 0,
+		operator_token->value + " requries one operand. But the AST is empty."
+	);
 
 	Expression_ptr expression = move(ast.top());
 	ast.pop();
@@ -42,11 +55,10 @@ void OperatorStack::push_unary_operator_to_ast(Token_ptr operator_token, Express
 
 void OperatorStack::push_binary_operator_to_ast(Token_ptr operator_token, ExpressionStack& ast)
 {
-	if (ast.size() < 2)
-	{
-		spdlog::error("{} requires two operands", operator_token->value);
-		exit(1);
-	}
+	ASSERT(
+		ast.size() < 2,
+		operator_token->value + " requires two operands"
+	);
 
 	Expression_ptr rhs = move(ast.top());
 	ast.pop();

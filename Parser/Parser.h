@@ -48,9 +48,9 @@ class PARSER_API Parser
 
 	// Type parsers
 
-	Type_ptr parse_type();
-	Type_ptr parse_vector_type();
-	Type_ptr consume_datatype_word();
+	TypeVariant_ptr parse_type();
+	TypeVariant_ptr parse_vector_type();
+	TypeVariant_ptr consume_datatype_word();
 
 	// Definition Parsers
 
@@ -61,7 +61,7 @@ class PARSER_API Parser
 	// Utils
 
 	Block_ptr parse_block();
-	void convert_to_equivalent_token(Token_ptr token);
+	void convert_shortcut_token(Token_ptr token);
 
 public:
 	Parser(std::vector<Token_ptr>& tokens)

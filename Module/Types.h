@@ -47,8 +47,8 @@ struct MODULE_API CompositeType : public Type
 
 struct MODULE_API OptionalType : public Type
 {
-	Type_ptr optional_type;
-	OptionalType(Type_ptr optional_type) : optional_type(std::move(optional_type)) {};
+	TypeVariant_ptr optional_type;
+	OptionalType(TypeVariant_ptr optional_type) : optional_type(std::move(optional_type)) {};
 };
 
 // Scalar Types
@@ -69,8 +69,8 @@ struct MODULE_API BooleanType : public ScalarType
 
 struct MODULE_API VectorType : public CompositeType
 {
-	Type_ptr type;
-	VectorType(Type_ptr type) : type(std::move(type)) {};
+	TypeVariant_ptr type;
+	VectorType(TypeVariant_ptr type) : type(std::move(type)) {};
 };
 
 struct MODULE_API UDTType : public CompositeType

@@ -14,17 +14,18 @@
 #include <memory>
 #include <variant>
 
-#define MAKE_OBJECT_VARIANT(x) std::make_shared<ObjectVariant>(x)
-#define VOID std::make_shared<ObjectVariant>(ReturnObject())
-#define THROW(message) return std::make_shared<ObjectVariant>(ErrorObject(message))
-
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
 
-struct VectorObject;
 struct UDTObject;
+struct UDTKeyValuePairObject;
+
 struct EnumObject;
+struct EnumMemberObject;
+
+struct VectorObject;
 struct OptionalObject;
+
 struct ReturnObject;
 struct ErrorObject;
 struct BreakObject;
@@ -38,10 +39,13 @@ using ObjectVariant = OBJECTSYSTEM_API std::variant<
 	// Scalar Objects
 	double, std::string, bool,
 	// Composite Objects
-	VectorObject, UDTObject, EnumObject, OptionalObject,
+	VectorObject, OptionalObject,
+	UDTObject, UDTKeyValuePairObject,
+	EnumObject, EnumMemberObject,
 	// Action Objects
-	ReturnObject, BreakObject, ContinueObject, BuiltInsObject,
-	ErrorObject
+	ReturnObject, ErrorObject,
+	BreakObject, ContinueObject,
+	BuiltInsObject
 >;
 
 using ObjectVariant_ptr = OBJECTSYSTEM_API std::shared_ptr<ObjectVariant>;
@@ -67,7 +71,17 @@ struct OBJECTSYSTEM_API VectorObject : public CompositeObject
 	std::vector<ObjectVariant_ptr> values;
 
 	VectorObject() {};
-	void add(ObjectVariant_ptr value);
+	ObjectVariant_ptr add(ObjectVariant_ptr value);
+	ObjectVariant_ptr get_element(double index);
+};
+
+struct OBJECTSYSTEM_API UDTKeyValuePairObject : public CompositeObject
+{
+	std::string key;
+	ObjectVariant_ptr value;
+
+	UDTKeyValuePairObject(std::string key, ObjectVariant_ptr value)
+		: key(key), value(value) {};
 };
 
 struct OBJECTSYSTEM_API UDTObject : public CompositeObject
@@ -75,15 +89,25 @@ struct OBJECTSYSTEM_API UDTObject : public CompositeObject
 	std::map<std::string, ObjectVariant_ptr> pairs;
 
 	UDTObject() {};
-	void add(std::string key, ObjectVariant_ptr value);
+	ObjectVariant_ptr add(std::string key, ObjectVariant_ptr value);
+	ObjectVariant_ptr get_pair(std::string key);
+	ObjectVariant_ptr get_value(std::string key);
 };
 
 struct OBJECTSYSTEM_API EnumObject : public CompositeObject
 {
+	std::vector<std::string> member_names;
+
+	EnumObject(std::vector<std::string> member_names)
+		: member_names(member_names) {};
+};
+
+struct OBJECTSYSTEM_API EnumMemberObject : public CompositeObject
+{
 	std::string enum_name;
 	std::string member_name;
 
-	EnumObject(std::string enum_name, std::string member_name)
+	EnumMemberObject(std::string enum_name, std::string member_name)
 		: enum_name(enum_name), member_name(member_name) {};
 };
 

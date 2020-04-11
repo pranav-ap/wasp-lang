@@ -153,13 +153,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Assertion.h" />
+    <ClInclude Include="CommonAssertion.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="file_io.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Assertion.cpp" />
+    <ClCompile Include="CommonAssertion.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="file_io.cpp" />
     <ClCompile Include="pch.cpp">

@@ -1,8 +1,8 @@
 #pragma once
 #include "pch.h"
-#include "Assertion.h"
+#include "CommonAssertion.h"
 
-void Assertion::ASSERT(bool condition, std::string message)
+void ASSERT(bool condition, std::string message)
 {
 	if (!condition)
 	{
@@ -11,7 +11,7 @@ void Assertion::ASSERT(bool condition, std::string message)
 	}
 }
 
-void Assertion::FATAL(std::string message)
+void FATAL(std::string message)
 {
 	spdlog::error(message);
 	exit(1);

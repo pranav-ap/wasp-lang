@@ -36,17 +36,17 @@ struct Info
 struct VariableInfo : public Info
 {
 	bool is_mutable;
-	Type_ptr type;
+	TypeVariant_ptr type;
 	ObjectVariant_ptr value;
 
-	VariableInfo(bool is_public, bool is_mutable, Type_ptr type, ObjectVariant_ptr value)
+	VariableInfo(bool is_public, bool is_mutable, TypeVariant_ptr type, ObjectVariant_ptr value)
 		: Info(is_public), is_mutable(is_mutable), type(type), value(std::move(value)) {};
 };
 
 struct UDTInfo : public Info
 {
-	std::map<std::string, Type_ptr> member_types;
-	UDTInfo(bool is_public, std::map<std::string, Type_ptr> member_types)
+	std::map<std::string, TypeVariant_ptr> member_types;
+	UDTInfo(bool is_public, std::map<std::string, TypeVariant_ptr> member_types)
 		: Info(is_public), member_types(member_types) {};
 };
 
@@ -59,11 +59,11 @@ struct EnumInfo : public Info
 
 struct FunctionInfo : public Info
 {
-	std::vector<std::pair<std::string, Type_ptr>> arguments;
-	std::optional<Type_ptr> return_type;
+	std::vector<std::pair<std::string, TypeVariant_ptr>> arguments;
+	std::optional<TypeVariant_ptr> return_type;
 	Block_ptr body;
 
-	FunctionInfo(bool is_public, std::vector<std::pair<std::string, Type_ptr>> arguments, std::optional<Type_ptr> return_type, Block_ptr body)
+	FunctionInfo(bool is_public, std::vector<std::pair<std::string, TypeVariant_ptr>> arguments, std::optional<TypeVariant_ptr> return_type, Block_ptr body)
 		: Info(is_public), arguments(arguments), return_type(return_type), body(body) {};
 };
 

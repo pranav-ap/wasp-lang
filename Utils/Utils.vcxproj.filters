@@ -24,7 +24,7 @@
     <ClInclude Include="file_io.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Assertion.h">
+    <ClInclude Include="CommonAssertion.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -38,7 +38,7 @@
     <ClCompile Include="file_io.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Assertion.cpp">
+    <ClCompile Include="CommonAssertion.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

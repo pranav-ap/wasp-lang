@@ -3,7 +3,7 @@
 #include "Parser.h"
 #include "TokenType.h"
 #include "TokenPipe.h"
-#include "Assertion.h"
+#include "CommonAssertion.h"
 
 #include <iostream>
 #include <vector>
@@ -23,7 +23,6 @@ using std::make_pair;
 using std::optional;
 using std::make_optional;
 using std::move;
-using namespace Assertion;
 
 // API
 
@@ -54,7 +53,7 @@ Statement_ptr Parser::parse_statement(bool is_public)
 {
 	token_pipe->ignore(WTokenType::EOL);
 
-	auto token = token_pipe->get_current_token();
+	auto token = token_pipe->consume_current_token();
 
 	if (token == nullptr)
 		return nullptr;
@@ -77,7 +76,8 @@ Statement_ptr Parser::parse_statement(bool is_public)
 		CASE(WTokenType::FN, parse_function_definition(is_public));
 		CASE(WTokenType::IMPORT, parse_import_statement());
 		CASE(WTokenType::ENUM, parse_enum_statement(is_public));
-	default: {
+	default:
+	{
 		RETREAT_PTR;
 		return parse_expression_statement();
 	}
@@ -86,8 +86,7 @@ Statement_ptr Parser::parse_statement(bool is_public)
 
 Statement_ptr Parser::parse_public_statement()
 {
-	auto token = token_pipe->get_current_token();
-	ASSERT(!token, "Pub keyword followed by a nullptr.");
+	auto token = token_pipe->consume_significant_token();
 
 	ADVANCE_PTR;
 
@@ -111,14 +110,9 @@ Statement_ptr Parser::parse_return_statement()
 {
 	auto expression = expr_parser->parse_expression();
 
-	ASSERT(
-		!token_pipe->expect_current_token(WTokenType::EOL),
-		"Expected an EOL"
-	);
-
 	if (expression)
 	{
-		return make_shared<Return>(make_optional(move(expression)));
+		return make_shared<Return>(move(expression));
 	}
 
 	return make_shared<Return>();
@@ -126,47 +120,31 @@ Statement_ptr Parser::parse_return_statement()
 
 Statement_ptr Parser::parse_break_statement()
 {
-	ASSERT(
-		!token_pipe->expect_current_token(WTokenType::EOL),
-		"Expected an EOL"
-	);
-
 	return make_shared<Break>();
 }
 
 Statement_ptr Parser::parse_continue_statement()
 {
-	ASSERT(
-		!token_pipe->expect_current_token(WTokenType::EOL),
-		"Expected an EOL"
-	);
-
 	return make_shared<Continue>();
 }
 
 Statement_ptr Parser::parse_variable_declaration(bool is_public, bool is_mutable)
 {
-	auto identifier = token_pipe->consume_token(WTokenType::Identifier);
-	ASSERT(!identifier, "Malformed Identifier declared");
+	auto identifier = token_pipe->consume_required_token(WTokenType::Identifier);
 
 	ASSERT(
-		!token_pipe->expect_current_token(WTokenType::COLON),
+		token_pipe->next_significant_token_is(WTokenType::COLON),
 		"Expected a COLON"
 	);
 
 	auto type = parse_type();
 
 	ASSERT(
-		!token_pipe->expect_current_token(WTokenType::EQUAL),
+		token_pipe->next_significant_token_is(WTokenType::EQUAL),
 		"Expected a EQUAL"
 	);
 
 	Expression_ptr expression = expr_parser->parse_expression();
-
-	ASSERT(
-		!token_pipe->expect_current_token(WTokenType::EOL),
-		"Expected an EOL"
-	);
 
 	return make_shared<VariableDeclaration>(is_public, is_mutable, identifier->value, move(type), move(expression));
 }
@@ -176,18 +154,12 @@ Statement_ptr Parser::parse_variable_declaration(bool is_public, bool is_mutable
 Statement_ptr Parser::parse_expression_statement()
 {
 	auto expression = expr_parser->parse_expression();
-
-	ASSERT(
-		!token_pipe->expect_current_token(WTokenType::EOL),
-		"Expected an EOL"
-	);
-
 	return make_shared<ExpressionStatement>(move(expression));
 }
 
 Statement_ptr Parser::consume_assignment_or_expression_statement(Token_ptr identifier)
 {
-	auto current_token = token_pipe->get_current_token();
+	auto current_token = token_pipe->consume_current_token();
 
 	WTokenType current_token_type = current_token ? current_token->type : WTokenType::UNKNOWN;
 
@@ -198,12 +170,6 @@ Statement_ptr Parser::consume_assignment_or_expression_statement(Token_ptr ident
 		ADVANCE_PTR;
 
 		auto expression = expr_parser->parse_expression();
-
-		ASSERT(
-			!token_pipe->expect_current_token(WTokenType::EOL),
-			"Expected an EOL"
-		);
-
 		return make_shared<Assignment>(identifier->value, move(expression));
 	}
 	case WTokenType::PLUS_EQUAL:
@@ -216,13 +182,7 @@ Statement_ptr Parser::consume_assignment_or_expression_statement(Token_ptr ident
 		ADVANCE_PTR;
 
 		auto expression = expr_parser->parse_expression();
-
-		ASSERT(
-			!token_pipe->expect_current_token(WTokenType::EOL),
-			"Expected an EOL"
-		);
-
-		convert_to_equivalent_token(current_token);
+		convert_shortcut_token(current_token);
 
 		auto identifier_expression = make_shared<Identifier>(identifier->value);
 		auto rhs = make_shared<Binary>(identifier_expression, current_token, move(expression));
@@ -240,7 +200,7 @@ Statement_ptr Parser::consume_assignment_or_expression_statement(Token_ptr ident
 Statement_ptr Parser::parse_import_statement()
 {
 	ASSERT(
-		!token_pipe->consume_token(WTokenType::OPEN_CURLY_BRACE),
+		token_pipe->next_significant_token_is(WTokenType::OPEN_CURLY_BRACE),
 		"Expected a OPEN_CURLY_BRACE"
 	);
 
@@ -248,35 +208,32 @@ Statement_ptr Parser::parse_import_statement()
 
 	while (true)
 	{
-		auto identifier = token_pipe->consume_token(WTokenType::Identifier);
-		ASSERT(!identifier, "Expected an Identifier");
+		auto identifier = token_pipe->consume_required_token(WTokenType::Identifier);
 
 		goods.push_back(identifier->value);
 
-		if (token_pipe->expect_current_token(WTokenType::CLOSE_CURLY_BRACE))
+		if (token_pipe->next_significant_token_is(WTokenType::CLOSE_CURLY_BRACE))
 			break;
 
 		ASSERT(
-			!token_pipe->expect_current_token(WTokenType::COMMA),
+			token_pipe->next_significant_token_is(WTokenType::COMMA),
 			"Expected a COMMA or a CLOSE_CURLY_BRACE"
 		);
 	}
 
 	ASSERT(
-		!token_pipe->expect_current_token(WTokenType::FROM),
+		token_pipe->next_significant_token_is(WTokenType::FROM),
 		"Expected the FROM keyword"
 	);
 
-	auto current_token = token_pipe->consume_token(WTokenType::Identifier);
+	auto current_token = token_pipe->consume_optional_token(WTokenType::Identifier);
 
 	if (current_token)
 	{
 		return make_shared<Import>(current_token->value, goods, true);
 	}
 
-	auto path_token = token_pipe->consume_token(WTokenType::StringLiteral);
-	ASSERT(!path_token, "Expected a path");
-
+	auto path_token = token_pipe->consume_required_token(WTokenType::StringLiteral);
 	return make_shared<Import>(path_token->value, goods, false);
 }
 
@@ -284,20 +241,17 @@ Statement_ptr Parser::parse_import_statement()
 
 Block_ptr Parser::parse_block()
 {
-	Block_ptr statements = make_shared<Block>();
-
-	token_pipe->ignore(WTokenType::EOL);
 	ASSERT(
-		!token_pipe->expect_current_token(WTokenType::OPEN_CURLY_BRACE),
+		token_pipe->next_significant_token_is(WTokenType::OPEN_CURLY_BRACE),
 		"Expected a OPEN_CURLY_BRACE"
 	);
 
+	Block_ptr statements = make_shared<Block>();
+
 	while (true)
 	{
-		if (token_pipe->expect_current_token(WTokenType::CLOSE_CURLY_BRACE))
+		if (token_pipe->next_significant_token_is(WTokenType::CLOSE_CURLY_BRACE))
 			return statements;
-
-		token_pipe->ignore(WTokenType::EOL);
 
 		auto statement = parse_statement(false);
 		statements->push_back(move(statement));
@@ -312,17 +266,14 @@ Statement_ptr Parser::parse_loop_statement()
 
 Statement_ptr Parser::parse_foreach_loop_statement()
 {
-	auto identifier = token_pipe->consume_token(WTokenType::Identifier);
-	ASSERT(!identifier, "Expected an identifier");
+	auto identifier = token_pipe->consume_required_token(WTokenType::Identifier);
 
 	ASSERT(
-		!token_pipe->consume_token(WTokenType::IN_KEYWORD),
+		token_pipe->next_significant_token_is(WTokenType::IN_KEYWORD),
 		"Expected the IN keyword"
 	);
 
-	auto iterable_identifier = token_pipe->consume_token(WTokenType::Identifier);
-	ASSERT(!iterable_identifier, "Expected an identifier");
-
+	auto iterable_identifier = token_pipe->consume_required_token(WTokenType::Identifier);
 	auto block = parse_block();
 
 	return make_shared<ForEachLoop>(identifier->value, iterable_identifier->value, block);
@@ -336,9 +287,9 @@ Statement_ptr Parser::parse_branching_statement()
 	// empty alternative
 	auto alternative = make_shared<vector<Statement_ptr>>();
 
-	if (token_pipe->expect_current_token(WTokenType::ELSE))
+	if (token_pipe->next_significant_token_is(WTokenType::ELSE))
 	{
-		if (token_pipe->expect_current_token(WTokenType::IF))
+		if (token_pipe->next_significant_token_is(WTokenType::IF))
 		{
 			auto alternative_stat = parse_branching_statement();
 			alternative->push_back(move(alternative_stat));
@@ -356,40 +307,32 @@ Statement_ptr Parser::parse_branching_statement()
 
 Statement_ptr Parser::parse_UDT_declaration(bool is_public)
 {
-	auto name = token_pipe->consume_token(WTokenType::Identifier);
-	ASSERT(!name, "Malformed Identifier");
+	auto name = token_pipe->consume_required_token(WTokenType::Identifier);
 
-	if (token_pipe->expect_current_token(WTokenType::OPEN_CURLY_BRACE))
+	if (token_pipe->next_significant_token_is(WTokenType::OPEN_CURLY_BRACE))
 	{
-		map<string, Type_ptr> member_types;
+		map<string, TypeVariant_ptr> member_types;
 
-		token_pipe->ignore(WTokenType::EOL);
-
-		if (token_pipe->expect_current_token(WTokenType::CLOSE_CURLY_BRACE))
+		if (token_pipe->next_significant_token_is(WTokenType::CLOSE_CURLY_BRACE))
 			return make_shared<UDTDefinition>(is_public, name->value, member_types);
 
 		while (true)
 		{
-			token_pipe->ignore(WTokenType::EOL);
-
-			auto identifier = token_pipe->consume_token(WTokenType::Identifier);
-			ASSERT(!identifier, "Malformed Identifier");
+			auto identifier = token_pipe->consume_required_token(WTokenType::Identifier);
 
 			ASSERT(
-				!token_pipe->expect_current_token(WTokenType::COLON),
+				token_pipe->next_significant_token_is(WTokenType::COLON),
 				"Expected a COLON"
 			);
 
 			auto type = parse_type();
 			member_types.insert_or_assign(identifier->value, type);
 
-			token_pipe->ignore(WTokenType::EOL);
-
-			if (token_pipe->expect_current_token(WTokenType::CLOSE_CURLY_BRACE))
+			if (token_pipe->next_significant_token_is(WTokenType::CLOSE_CURLY_BRACE))
 				return make_shared<UDTDefinition>(is_public, name->value, member_types);
 
 			ASSERT(
-				!token_pipe->expect_current_token(WTokenType::COMMA),
+				token_pipe->next_significant_token_is(WTokenType::COMMA),
 				"Expected a COMMA"
 			);
 		}
@@ -400,26 +343,24 @@ Statement_ptr Parser::parse_UDT_declaration(bool is_public)
 
 Statement_ptr Parser::parse_function_definition(bool is_public)
 {
-	auto identifier = token_pipe->consume_token(WTokenType::FunctionIdentifier);
-	ASSERT(!identifier, "Malformed Identifier");
+	auto identifier = token_pipe->consume_required_token(WTokenType::FunctionIdentifier);
 
 	ASSERT(
-		!token_pipe->expect_current_token(WTokenType::OPEN_PARENTHESIS),
+		token_pipe->next_significant_token_is(WTokenType::OPEN_PARENTHESIS),
 		"Expected a OPEN_PARENTHESIS"
 	);
 
-	vector<pair<string, Type_ptr>> arguments;
+	vector<pair<string, TypeVariant_ptr>> arguments;
 
 	while (true)
 	{
-		if (token_pipe->expect_current_token(WTokenType::CLOSE_PARENTHESIS))
+		if (token_pipe->next_significant_token_is(WTokenType::CLOSE_PARENTHESIS))
 			break;
 
-		auto identifier = token_pipe->consume_token(WTokenType::Identifier);
-		ASSERT(!identifier, "Malformed Identifier");
+		auto identifier = token_pipe->consume_required_token(WTokenType::Identifier);
 
 		ASSERT(
-			!token_pipe->expect_current_token(WTokenType::COLON),
+			token_pipe->next_significant_token_is(WTokenType::COLON),
 			"Expected a COLON"
 		);
 
@@ -427,15 +368,13 @@ Statement_ptr Parser::parse_function_definition(bool is_public)
 		arguments.push_back(pair(identifier->value, type));
 	}
 
-	optional<Type_ptr> optional_return_type = std::nullopt;
+	optional<TypeVariant_ptr> optional_return_type = std::nullopt;
 
-	if (token_pipe->consume_token(WTokenType::ARROW))
+	if (token_pipe->consume_optional_token(WTokenType::ARROW))
 	{
 		auto return_type = parse_type();
 		optional_return_type = std::make_optional(return_type);
 	}
-
-	token_pipe->ignore(WTokenType::EOL);
 
 	auto block = parse_block();
 
@@ -444,13 +383,10 @@ Statement_ptr Parser::parse_function_definition(bool is_public)
 
 Statement_ptr Parser::parse_enum_statement(bool is_public)
 {
-	auto identifier = token_pipe->consume_token(WTokenType::Identifier);
-	ASSERT(!identifier, "Expected an Identifier");
-
-	token_pipe->ignore(WTokenType::EOL);
+	auto identifier = token_pipe->consume_required_token(WTokenType::Identifier);
 
 	ASSERT(
-		!token_pipe->consume_token(WTokenType::OPEN_CURLY_BRACE),
+		token_pipe->next_significant_token_is(WTokenType::OPEN_CURLY_BRACE),
 		"Expected a OPEN_CURLY_BRACE"
 	);
 
@@ -459,22 +395,17 @@ Statement_ptr Parser::parse_enum_statement(bool is_public)
 
 	while (true)
 	{
-		token_pipe->ignore(WTokenType::EOL);
-
-		auto identifier = token_pipe->consume_token(WTokenType::Identifier);
-		ASSERT(!identifier, "Expected an Identifier");
+		auto identifier = token_pipe->consume_required_token(WTokenType::Identifier);
 
 		it = std::find(members.begin(), members.end(), identifier->value);
 		ASSERT(it != members.end(), "Duplicate Enum members are present");
 		members.push_back(identifier->value);
 
-		token_pipe->ignore(WTokenType::EOL);
-
-		if (token_pipe->expect_current_token(WTokenType::CLOSE_CURLY_BRACE))
+		if (token_pipe->next_significant_token_is(WTokenType::CLOSE_CURLY_BRACE))
 			break;
 
 		ASSERT(
-			!token_pipe->expect_current_token(WTokenType::COMMA),
+			token_pipe->next_significant_token_is(WTokenType::COMMA),
 			"Expected a COMMA"
 		);
 	}
@@ -484,55 +415,51 @@ Statement_ptr Parser::parse_enum_statement(bool is_public)
 
 // Type Parsers
 
-Type_ptr Parser::parse_type()
+TypeVariant_ptr Parser::parse_type()
 {
-	if (token_pipe->expect_current_token(WTokenType::OPEN_BRACKET))
+	if (token_pipe->next_significant_token_is(WTokenType::OPEN_BRACKET))
 		return parse_vector_type();
 
-	auto type = consume_datatype_word();
-	ASSERT(!type, "Expected a datatype");
-
-	return type;
+	return consume_datatype_word();
 }
 
-Type_ptr Parser::parse_vector_type()
+TypeVariant_ptr Parser::parse_vector_type()
 {
 	auto type = parse_type();
 
 	ASSERT(
-		!token_pipe->expect_current_token(WTokenType::CLOSE_BRACKET),
+		token_pipe->next_significant_token_is(WTokenType::CLOSE_BRACKET),
 		"Expected a CLOSE_BRACKET"
 	);
 
-	return make_shared<VectorType>(move(type));
+	return make_shared<TypeVariant>(VectorType(move(type)));
 }
 
-Type_ptr Parser::consume_datatype_word()
+TypeVariant_ptr Parser::consume_datatype_word()
 {
-	auto token = token_pipe->get_current_token();
-	ASSERT(!token, "Expected a datatype word");
+	auto token = token_pipe->consume_significant_token();
 
 	switch (token->type)
 	{
 	case WTokenType::NUM:
 	{
 		ADVANCE_PTR;
-		return make_shared<NumberType>();
+		return make_shared<TypeVariant>(NumberType());
 	}
 	case WTokenType::STR:
 	{
 		ADVANCE_PTR;
-		return make_shared<StringType>();
+		return make_shared<TypeVariant>(StringType());
 	}
 	case WTokenType::BOOL:
 	{
 		ADVANCE_PTR;
-		return make_shared<BooleanType>();
+		return make_shared<TypeVariant>(BooleanType());
 	}
 	case WTokenType::Identifier:
 	{
 		ADVANCE_PTR;
-		return make_shared<UDTType>(token->value);
+		return make_shared<TypeVariant>(UDTType(token->value));
 	}
 	default:
 	{
@@ -543,7 +470,7 @@ Type_ptr Parser::consume_datatype_word()
 
 // Utils
 
-void Parser::convert_to_equivalent_token(Token_ptr token)
+void Parser::convert_shortcut_token(Token_ptr token)
 {
 	switch (token->type)
 	{
@@ -583,4 +510,6 @@ void Parser::convert_to_equivalent_token(Token_ptr token)
 		break;
 	}
 	}
+
+	FATAL(token->value + " is not a shortcut token");
 }

@@ -3,6 +3,8 @@
 #include "pch.h"
 #include "Builtins.h"
 #include "ObjectSystem.h"
+#include "CommonAssertion.h"
+
 #include <iostream>
 #include <string>
 #include <variant>
@@ -12,51 +14,39 @@ using std::cin;
 using std::endl;
 using std::string;
 
+#define MAKE_OBJECT_VARIANT(x) std::make_shared<ObjectVariant>(x)
+#define VOID std::make_shared<ObjectVariant>(ReturnObject())
+#define THROW(message) return std::make_shared<ObjectVariant>(ErrorObject(message))
+
+#define THROW_ASSERT(condition, message)								\
+	if (!condition) {													\
+		spdlog::error(message);											\
+		return std::make_shared<ObjectVariant>(ErrorObject(message));	\
+	}
+
 // ECHO
 
 ObjectVariant_ptr io::echo_visit(std::vector<ObjectVariant_ptr> arguments)
 {
-	THROW_IF_TRUTHY(arguments.size() != 1, "echo(..) takes one string as argument.");
+	THROW_ASSERT(arguments.size() == 1, "echo(..) takes one string as argument");
 
 	return std::visit(overloaded{
-		[](std::string text) { return io::echo(text); },
+		[](std::string text) { cout << text; return VOID; },
 
-		[](auto) {
-			THROW("echo(..) takes a string as argument.");
-			}
+		[](auto) { THROW("echo(..) takes a string as argument"); }
 		}, *arguments[0]);
-}
-
-ObjectVariant_ptr io::echo(std::string text)
-{
-	cout << text;
-	return VOID;
 }
 
 // ASK
 
 ObjectVariant_ptr io::ask_visit(std::vector<ObjectVariant_ptr> arguments)
 {
-	THROW_IF_TRUTHY(arguments.size() != 1, "ask(..) takes one string or number as argument.");
+	THROW_ASSERT(arguments.size() == 1, "ask(..) takes one string or number as argument");
 
 	return std::visit(overloaded{
-		[](std::string text) { return io::ask(text); },
-		[](double number) { return io::ask(number); },
+		[](std::string& text) { cin >> text; return VOID; },
+		[](double& number) { cin >> number; return VOID; },
 
-		[](auto) {
-			THROW("ask(..) takes one string or number as argument.");
-			}
+		[](auto) { THROW("ask(..) takes one string or number as argument."); }
 		}, *arguments[0]);
-}
-
-ObjectVariant_ptr io::ask(string& content)
-{
-	cin >> content;
-	return VOID;
-}
-
-ObjectVariant_ptr io::ask(double& number)
-{
-	cin >> number;
-	return VOID;
 }

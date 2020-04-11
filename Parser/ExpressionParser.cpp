@@ -1,7 +1,7 @@
 #pragma once
 #include "pch.h"
 #include "ExpressionParser.h"
-#include "Assertion.h"
+#include "CommonAssertion.h"
 
 #include <vector>
 #include <string>
@@ -14,18 +14,15 @@ using std::make_shared;
 using std::shared_ptr;
 using std::map;
 using std::move;
-using namespace Assertion;
 
 Expression_ptr ExpressionParser::parse_expression()
 {
 	while (true)
 	{
-		Token_ptr current_token = token_pipe->get_current_token();
+		Token_ptr current_token = token_pipe->consume_current_token();
 
-		ASSERT(
-			!current_token,
-			"Current Token is nullptr. Cannot parse expression."
-		);
+		if (current_token == nullptr)
+			break;
 
 		switch (current_token->type)
 		{
@@ -143,7 +140,7 @@ Expression_ptr ExpressionParser::finish_parsing()
 	operator_stack->drain_into_ast(ast);
 
 	ASSERT(ast.size() > 0, "Malformed Expression. AST size > 1.");
-	ASSERT(ast.size() == 0, "Malformed Expression. AST is empty.");
+	ASSERT(ast.size() != 0, "Malformed Expression. AST is empty.");
 
 	auto result = move(ast.top());
 	ast.pop();
@@ -153,8 +150,7 @@ Expression_ptr ExpressionParser::finish_parsing()
 
 string ExpressionParser::consume_valid_UDT_key()
 {
-	auto token = token_pipe->get_current_token();
-	ASSERT(!token, "Token is nullptr");
+	auto token = token_pipe->consume_significant_token();
 
 	switch (token->type)
 	{
@@ -174,7 +170,7 @@ Expression_ptr ExpressionParser::parse_vector_literal()
 {
 	vector<Expression_ptr> elements;
 
-	if (token_pipe->expect_current_token(WTokenType::CLOSE_BRACKET))
+	if (token_pipe->next_significant_token_is(WTokenType::CLOSE_BRACKET))
 		return make_shared<VectorLiteral>(elements);
 
 	while (true)
@@ -182,11 +178,11 @@ Expression_ptr ExpressionParser::parse_vector_literal()
 		auto element = parse_expression();
 		elements.push_back(move(element));
 
-		if (token_pipe->expect_current_token(WTokenType::CLOSE_BRACKET))
+		if (token_pipe->next_significant_token_is(WTokenType::CLOSE_BRACKET))
 			return make_shared<VectorLiteral>(elements);
 
 		ASSERT(
-			!token_pipe->expect_current_token(WTokenType::COMMA),
+			token_pipe->next_significant_token_is(WTokenType::COMMA),
 			"Expected a COMMA"
 		);
 	}
@@ -196,30 +192,26 @@ Expression_ptr ExpressionParser::parse_UDT_literal()
 {
 	map<string, Expression_ptr> pairs;
 
-	if (token_pipe->expect_current_token(WTokenType::CLOSE_CURLY_BRACE))
+	if (token_pipe->next_significant_token_is(WTokenType::CLOSE_CURLY_BRACE))
 		return make_shared<UDTLiteral>(pairs);
 
 	while (true)
 	{
-		token_pipe->ignore(WTokenType::EOL);
-
 		auto key = consume_valid_UDT_key();
 
 		ASSERT(
-			!token_pipe->expect_current_token(WTokenType::COLON),
+			token_pipe->next_significant_token_is(WTokenType::COLON),
 			"Expected a COLON"
 		);
 
 		auto value = parse_expression();
 		pairs.insert_or_assign(key, value);
 
-		token_pipe->ignore(WTokenType::EOL);
-
-		if (token_pipe->expect_current_token(WTokenType::CLOSE_CURLY_BRACE))
+		if (token_pipe->next_significant_token_is(WTokenType::CLOSE_CURLY_BRACE))
 			return make_shared<UDTLiteral>(pairs);
 
 		ASSERT(
-			!token_pipe->expect_current_token(WTokenType::COMMA),
+			token_pipe->next_significant_token_is(WTokenType::COMMA),
 			"Expected a COMMA"
 		);
 	}
@@ -227,25 +219,25 @@ Expression_ptr ExpressionParser::parse_UDT_literal()
 
 Expression_ptr ExpressionParser::consume_member_access(Token_ptr identifier)
 {
-	if (token_pipe->expect_current_token(WTokenType::OPEN_BRACKET))
+	if (token_pipe->next_significant_token_is(WTokenType::OPEN_BRACKET))
 	{
 		auto expression = parse_expression();
 
 		ASSERT(
-			!token_pipe->expect_current_token(WTokenType::CLOSE_BRACKET),
+			token_pipe->next_significant_token_is(WTokenType::CLOSE_BRACKET),
 			"Expected a CLOSE_BRACKET"
 		);
 
 		return make_shared<VectorMemberAccess>(identifier->value, move(expression));
 	}
-	else if (token_pipe->expect_current_token(WTokenType::DOT))
+	else if (token_pipe->next_significant_token_is(WTokenType::DOT))
 	{
-		auto member_identifier = token_pipe->consume_token(WTokenType::Identifier);
+		auto member_identifier = token_pipe->consume_optional_token(WTokenType::Identifier);
 		return make_shared<UDTMemberAccess>(identifier->value, member_identifier->value);
 	}
-	else if (token_pipe->expect_current_token(WTokenType::COLON_COLON))
+	else if (token_pipe->next_significant_token_is(WTokenType::COLON_COLON))
 	{
-		auto member_identifier = token_pipe->consume_token(WTokenType::Identifier);
+		auto member_identifier = token_pipe->consume_optional_token(WTokenType::Identifier);
 		return make_shared<EnumMemberAccess>(identifier->value, member_identifier->value);
 	}
 
@@ -257,13 +249,13 @@ ExpressionVector ExpressionParser::parse_function_call_arguments()
 	ExpressionVector expressions;
 
 	ASSERT(
-		!token_pipe->expect_current_token(WTokenType::OPEN_PARENTHESIS),
+		token_pipe->next_significant_token_is(WTokenType::OPEN_PARENTHESIS),
 		"Expected a OPEN_PARENTHESIS"
 	);
 
 	inside_function_call.push(true);
 
-	if (token_pipe->expect_current_token(WTokenType::CLOSE_PARENTHESIS))
+	if (token_pipe->next_significant_token_is(WTokenType::CLOSE_PARENTHESIS))
 	{
 		inside_function_call.pop();
 		return expressions;
@@ -274,11 +266,11 @@ ExpressionVector ExpressionParser::parse_function_call_arguments()
 		auto expression = parse_expression();
 		expressions.push_back(move(expression));
 
-		if (token_pipe->expect_current_token(WTokenType::COMMA))
+		if (token_pipe->next_significant_token_is(WTokenType::COMMA))
 			continue;
 
 		ASSERT(
-			!token_pipe->expect_current_token(WTokenType::CLOSE_PARENTHESIS),
+			token_pipe->next_significant_token_is(WTokenType::CLOSE_PARENTHESIS),
 			"Expected a CLOSE_PARENTHESIS"
 		);
 

@@ -1,8 +1,9 @@
 #pragma once
 #include "pch.h"
 #include "TokenPipe.h"
+#include "CommonAssertion.h"
 
-Token_ptr TokenPipe::get_current_token() const
+Token_ptr TokenPipe::consume_current_token() const
 {
 	if (index >= tokens.size()) {
 		return nullptr;
@@ -11,24 +12,22 @@ Token_ptr TokenPipe::get_current_token() const
 	return tokens[index];
 }
 
-bool TokenPipe::expect_current_token(WTokenType token_type)
+Token_ptr TokenPipe::consume_significant_token()
 {
-	auto token = get_current_token();
+	ignore(WTokenType::EOL);
+	auto token = consume_current_token();
 
-	if (token != nullptr && token_type == token->type)
-	{
-		advance_pointer();
-		return true;
-	}
+	ASSERT(token != nullptr, "Token == nullptr");
 
-	return false;
+	//advance_pointer();
+	return token;
 }
 
-Token_ptr TokenPipe::consume_token(WTokenType token_type)
+Token_ptr TokenPipe::consume_optional_token(WTokenType token_type)
 {
-	auto token = get_current_token();
+	auto token = consume_significant_token();
 
-	if (token != nullptr && token_type == token->type)
+	if (token_type == token->type)
 	{
 		advance_pointer();
 		return token;
@@ -37,12 +36,51 @@ Token_ptr TokenPipe::consume_token(WTokenType token_type)
 	return nullptr;
 }
 
+Token_ptr TokenPipe::consume_required_token(WTokenType token_type)
+{
+	auto token = consume_significant_token();
+	ASSERT(token_type == token->type, "Token is incorrect type");
+
+	advance_pointer();
+	return token;
+}
+
+bool TokenPipe::next_significant_token_is(WTokenType token_type)
+{
+	auto token = consume_significant_token();
+
+	if (token_type == token->type)
+	{
+		advance_pointer();
+		return true;
+	}
+
+	return false;
+}
+
 void TokenPipe::ignore(WTokenType token_type)
 {
-	while (expect_current_token(token_type))
+	while (true)
 	{
+		auto token = consume_current_token();
+
+		if (token)
+		{
+			if (token->type != token_type)
+			{
+				break;
+			}
+
+			advance_pointer();
+		}
+		else
+		{
+			break;
+		}
 	}
 }
+
+// Utils
 
 size_t TokenPipe::get_size() const
 {

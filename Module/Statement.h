@@ -31,10 +31,10 @@ struct MODULE_API VariableDeclaration : public Statement, public std::enable_sha
 	bool is_public;
 	bool is_mutable;
 	std::string name;
-	Type_ptr type;
+	TypeVariant_ptr type;
 	Expression_ptr expression;
 
-	VariableDeclaration(bool is_public, bool is_mutable, std::string name, Type_ptr type, Expression_ptr expression) : is_public(is_public), is_mutable(is_mutable), name(name), type(std::move(type)), expression(std::move(expression)) {};
+	VariableDeclaration(bool is_public, bool is_mutable, std::string name, TypeVariant_ptr type, Expression_ptr expression) : is_public(is_public), is_mutable(is_mutable), name(name), type(std::move(type)), expression(std::move(expression)) {};
 	ObjectVariant_ptr interpret(StatementVisitor& visitor);
 };
 
@@ -89,9 +89,9 @@ struct MODULE_API UDTDefinition : public Statement, public std::enable_shared_fr
 {
 	bool is_public;
 	std::string name;
-	std::map<std::string, Type_ptr> member_types;
+	std::map<std::string, TypeVariant_ptr> member_types;
 
-	UDTDefinition(bool is_public, std::string name, std::map<std::string, Type_ptr> member_types) : is_public(is_public), name(name), member_types(member_types) {};
+	UDTDefinition(bool is_public, std::string name, std::map<std::string, TypeVariant_ptr> member_types) : is_public(is_public), name(name), member_types(member_types) {};
 	ObjectVariant_ptr interpret(StatementVisitor& visitor);
 };
 
@@ -99,11 +99,11 @@ struct MODULE_API FunctionDefinition : public Statement, public std::enable_shar
 {
 	bool is_public;
 	std::string name;
-	std::vector<std::pair<std::string, Type_ptr>> arguments;
-	std::optional<Type_ptr> return_type;
+	std::vector<std::pair<std::string, TypeVariant_ptr>> arguments;
+	std::optional<TypeVariant_ptr> return_type;
 	Block_ptr body;
 
-	FunctionDefinition(bool is_public, std::string name, std::vector<std::pair<std::string, Type_ptr>> arguments, std::optional<Type_ptr> return_type, Block_ptr body) : is_public(is_public), name(name), arguments(arguments), return_type(return_type), body(body) {};
+	FunctionDefinition(bool is_public, std::string name, std::vector<std::pair<std::string, TypeVariant_ptr>> arguments, std::optional<TypeVariant_ptr> return_type, Block_ptr body) : is_public(is_public), name(name), arguments(arguments), return_type(return_type), body(body) {};
 	ObjectVariant_ptr interpret(StatementVisitor& visitor);
 };
 
@@ -122,8 +122,9 @@ struct MODULE_API EnumDefinition : public Statement, public std::enable_shared_f
 struct MODULE_API Return : public Statement, public std::enable_shared_from_this<Return>
 {
 	std::optional<Expression_ptr> expression;
+
 	Return() : expression(std::nullopt) {};
-	Return(std::optional<Expression_ptr> expression) : expression(std::move(expression)) {};
+	Return(Expression_ptr expression) : expression(std::make_optional(std::move(expression))) {};
 	ObjectVariant_ptr interpret(StatementVisitor& visitor);
 };
 

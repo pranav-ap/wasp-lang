@@ -68,7 +68,7 @@ class INTERPRETER_API Interpreter
 	ObjectVariant_ptr evaluate_function_call(FunctionCall_ptr call_expression, FunctionInfo info);
 	ObjectVariant_ptr evaluate_function_call(FunctionCall_ptr call_expression, InBuiltFunctionInfo info);
 
-	bool are_same_type(ObjectVariant_ptr obj, Type_ptr type);
+	bool are_same_type(ObjectVariant_ptr obj, TypeVariant_ptr type);
 
 public:
 	Interpreter(Module mod) : mod(mod), env(std::make_shared<Environment>()) {};

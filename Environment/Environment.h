@@ -1,12 +1,18 @@
 #pragma once
 
+#ifdef ENVIRONMENT_EXPORTS
+#define ENVIRONMENT_API __declspec(dllexport)
+#else
+#define ENVIRONMENT_API __declspec(dllimport)
+#endif
+
 #include "ObjectSystem.h"
 #include "Scope.h"
 #include "Info.h"
 #include <list>
 #include <functional>
 
-class Environment
+class ENVIRONMENT_API Environment
 {
 	std::list<Scope_ptr> scopes;
 
@@ -42,22 +48,22 @@ public:
 		std::string name,
 		bool is_public,
 		bool is_mutable,
-		Type_ptr type,
+		TypeVariant_ptr type,
 		ObjectVariant_ptr result
 	);
 
 	void create_function(
 		std::string name,
 		bool is_public,
-		std::vector<std::pair<std::string, Type_ptr>> arguments,
-		std::optional<Type_ptr> return_type,
+		std::vector<std::pair<std::string, TypeVariant_ptr>> arguments,
+		std::optional<TypeVariant_ptr> return_type,
 		Block_ptr body
 	);
 
 	void create_UDT(
 		std::string name,
 		bool is_public,
-		std::map<std::string, Type_ptr> member_types
+		std::map<std::string, TypeVariant_ptr> member_types
 	);
 
 	void create_enum(
@@ -78,4 +84,4 @@ public:
 	bool is_inside_function_scope();
 };
 
-using Environment_ptr = std::shared_ptr<Environment>;
+using Environment_ptr = ENVIRONMENT_API std::shared_ptr<Environment>;

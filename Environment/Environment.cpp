@@ -4,7 +4,7 @@
 #include "Environment.h"
 #include "Info.h"
 #include "ObjectSystem.h"
-#include "Assertion.h"
+#include "CommonAssertion.h"
 
 #include <memory>
 #include <string>
@@ -21,7 +21,6 @@ using std::map;
 using std::optional;
 using std::get;
 using std::holds_alternative;
-using namespace Assertion;
 
 Environment::Environment()
 {
@@ -129,7 +128,7 @@ void Environment::create_variable(
 	string name,
 	bool is_public,
 	bool is_mutable,
-	Type_ptr type,
+	TypeVariant_ptr type,
 	ObjectVariant_ptr value)
 {
 	auto scope = scopes.front();
@@ -149,8 +148,8 @@ void Environment::create_variable(
 void Environment::create_function(
 	string name,
 	bool is_public,
-	vector<pair<string, Type_ptr>> arguments,
-	optional<Type_ptr> return_type,
+	vector<pair<string, TypeVariant_ptr>> arguments,
+	optional<TypeVariant_ptr> return_type,
 	Block_ptr body)
 {
 	auto scope = scopes.front();
@@ -170,7 +169,7 @@ void Environment::create_function(
 void Environment::create_UDT(
 	string name,
 	bool is_public,
-	map<string, Type_ptr> member_types)
+	map<string, TypeVariant_ptr> member_types)
 {
 	auto scope = scopes.front();
 
