@@ -1,3 +1,6 @@
 import { echo } from io
+import { size } from core
 
-echo("hello world!")
+echo(size("hello"))
+
+

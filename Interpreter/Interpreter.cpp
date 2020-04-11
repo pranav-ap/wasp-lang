@@ -373,19 +373,23 @@ ObjectVariant_ptr Interpreter::visit(EnumMemberAccess_ptr expression)
 
 ObjectVariant_ptr Interpreter::visit(FunctionCall_ptr call_expression)
 {
-	env->enter_function_scope();
-
 	auto info_variant = env->get_info(call_expression->name);
 
-	auto result = std::visit(overloaded{
-		[&](FunctionInfo info) { return evaluate_function_call(call_expression, info); },
-		[&](InBuiltFunctionInfo info) { return evaluate_function_call(call_expression, info); },
+	return std::visit(overloaded{
+		[&](FunctionInfo info)
+		{
+			env->enter_function_scope();
+			auto result = evaluate_function_call(call_expression, info);
+			env->leave_scope();
+			return move(result);
+		},
+		[&](InBuiltFunctionInfo info)
+		{
+			return evaluate_function_call(call_expression, info);
+		},
 
 		[](auto) { THROW("It is neither a function nor a builtin function!"); }
 		}, *info_variant);
-
-	env->leave_scope();
-	return move(result);
 }
 
 ObjectVariant_ptr Interpreter::visit(Range_ptr expression)

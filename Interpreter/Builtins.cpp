@@ -28,12 +28,13 @@ using std::string;
 
 ObjectVariant_ptr io::echo_visit(std::vector<ObjectVariant_ptr> arguments)
 {
-	THROW_ASSERT(arguments.size() == 1, "echo(..) takes one string as argument");
+	THROW_ASSERT(arguments.size() == 1, "echo(..) takes a string or number as argument");
 
 	return std::visit(overloaded{
 		[](std::string text) { cout << text; return VOID; },
+		[](double number) { cout << number; return VOID; },
 
-		[](auto) { THROW("echo(..) takes a string as argument"); }
+		[](auto) { THROW("echo(..) takes a string or number as argument"); }
 		}, *arguments[0]);
 }
 
@@ -48,5 +49,17 @@ ObjectVariant_ptr io::ask_visit(std::vector<ObjectVariant_ptr> arguments)
 		[](double& number) { cin >> number; return VOID; },
 
 		[](auto) { THROW("ask(..) takes one string or number as argument."); }
+		}, *arguments[0]);
+}
+
+ObjectVariant_ptr core::size_visit(std::vector<ObjectVariant_ptr> arguments)
+{
+	THROW_ASSERT(arguments.size() == 1, "size(..) takes a string or vector as argument");
+
+	return std::visit(overloaded{
+		[](std::string text) { return MAKE_OBJECT_VARIANT((double)text.length()); },
+		[](VectorObject& vec) { return MAKE_OBJECT_VARIANT((double)vec.values.size()); },
+
+		[](auto) { THROW("size(..) takes a string or vector as argument"); }
 		}, *arguments[0]);
 }
