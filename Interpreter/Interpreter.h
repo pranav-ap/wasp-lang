@@ -14,10 +14,8 @@
 #include "Statement.h"
 #include "StatementVisitor.h"
 
-class INTERPRETER_API Interpreter
-	: public StatementVisitor, public ExpressionVisitor
+class INTERPRETER_API Interpreter : public StatementVisitor, public ExpressionVisitor
 {
-	Module mod;
 	Environment_ptr env;
 
 	// Statement Visitors
@@ -71,6 +69,6 @@ class INTERPRETER_API Interpreter
 	bool are_same_type(ObjectVariant_ptr obj, TypeVariant_ptr type);
 
 public:
-	Interpreter(Module mod) : mod(mod), env(std::make_shared<Environment>()) {};
-	void execute();
+	Interpreter(Environment_ptr env) : env(env) {};
+	void execute(Module mod);
 };

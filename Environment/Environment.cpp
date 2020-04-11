@@ -24,7 +24,12 @@ using std::holds_alternative;
 
 Environment::Environment()
 {
-	enter_branch_scope();
+	enter_global_scope();
+}
+
+void Environment::enter_global_scope()
+{
+	scopes.push_back(make_shared<GlobalScope>());
 }
 
 void Environment::enter_module_scope()
@@ -49,7 +54,10 @@ void Environment::enter_function_scope()
 
 void Environment::leave_scope()
 {
-	scopes.pop_back();
+	if (scopes.size() != 1)
+	{
+		scopes.pop_back();
+	}
 }
 
 // Getters
@@ -221,6 +229,15 @@ void Environment::import_builtin(
 }
 
 // Utils
+
+bool Environment::is_inside_module_scope()
+{
+	for (auto scope : scopes)
+		if (typeid(*scope) == typeid(ModuleScope))
+			return true;
+
+	return false;
+}
 
 bool Environment::is_inside_function_scope()
 {

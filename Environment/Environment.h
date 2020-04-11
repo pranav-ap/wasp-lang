@@ -22,6 +22,7 @@ public:
 
 	// Enter and leave
 
+	void enter_global_scope();
 	void enter_module_scope();
 	void enter_branch_scope();
 	void enter_loop_scope();
@@ -79,6 +80,7 @@ public:
 
 	// Utils
 
+	bool is_inside_module_scope();
 	bool is_inside_branch_scope();
 	bool is_inside_loop_scope();
 	bool is_inside_function_scope();

@@ -150,8 +150,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="wasp.cpp" />
+    <ClCompile Include="WaspCLI.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Environment\Environment.vcxproj">
+      <Project>{f8144420-f63d-487d-a664-fd9f671c1e21}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\Interpreter\Interpreter.vcxproj">
       <Project>{96ddac50-3f73-44a3-ad41-a33b05f49335}</Project>
     </ProjectReference>
@@ -173,6 +177,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CLI11.hpp" />
+    <ClInclude Include="WaspCLI.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

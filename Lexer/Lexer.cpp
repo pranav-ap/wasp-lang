@@ -83,7 +83,7 @@ vector<Token_ptr> Lexer::execute()
 
 		if (token)
 		{
-			spdlog::info("Ln {} Col {} : {}", token->line_num, token->column_num, token->value);
+			//spdlog::info("Ln {} Col {} : {}", token->line_num, token->column_num, token->value);
 			this->tokens.push_back(move(token));
 		}
 		else

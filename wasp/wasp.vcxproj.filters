@@ -18,9 +18,15 @@
     <ClCompile Include="wasp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="WaspCLI.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CLI11.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WaspCLI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

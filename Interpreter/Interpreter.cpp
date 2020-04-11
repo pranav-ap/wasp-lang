@@ -34,7 +34,7 @@ using std::optional;
 using std::make_shared;
 using std::holds_alternative;
 
-void Interpreter::execute()
+void Interpreter::execute(Module mod)
 {
 	for (auto statement : mod.nodes)
 	{
