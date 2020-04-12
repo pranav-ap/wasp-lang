@@ -22,7 +22,7 @@ using std::vector;
 using std::map;
 using std::set;
 using std::optional;
-using std::get;
+using std::get_if;
 using std::holds_alternative;
 
 Environment::Environment()
@@ -77,50 +77,50 @@ InfoVariant_ptr Environment::get_info(string name)
 	FATAL(name + " does not exist!");
 }
 
-VariableInfo& Environment::get_variable_info(string name)
+VariableInfo* Environment::get_variable_info(string name)
 {
 	auto info = get_info(name);
 	ASSERT(holds_alternative<VariableInfo>(*info), name + " is not a Variable!");
 
-	return get<VariableInfo>(*info);
+	return get_if<VariableInfo>(&*info);
 }
 
-UDTInfo& Environment::get_UDT_info(string name)
+UDTInfo* Environment::get_UDT_info(string name)
 {
 	auto info = get_info(name);
 	ASSERT(holds_alternative<UDTInfo>(*info), name + " is not a UDT!");
 
-	return get<UDTInfo>(*info);
+	return get_if<UDTInfo>(&*info);
 }
 
-EnumInfo& Environment::get_enum_info(string name)
+EnumInfo* Environment::get_enum_info(string name)
 {
 	auto info = get_info(name);
 	ASSERT(holds_alternative<EnumInfo>(*info), name + " is not an Enum!");
 
-	return get<EnumInfo>(*info);
+	return get_if<EnumInfo>(&*info);
 }
 
-VectorObject& Environment::get_mutable_vector_variable(string name)
+VectorObject* Environment::get_mutable_vector_variable(string name)
 {
 	auto info = get_variable_info(name);
 
-	ASSERT(info.is_mutable, name + " is  not mutable!");
-	ASSERT(holds_alternative<VectorType>(*info.type), name + " does not have a Vector Type!");
-	ASSERT(holds_alternative<VectorObject>(*info.value), name + " does not have a Vector Value!");
+	ASSERT(info->is_mutable, name + " is  not mutable!");
+	ASSERT(holds_alternative<VectorType>(*info->type), name + " does not have a Vector Type!");
+	ASSERT(holds_alternative<VectorObject>(*info->value), name + " does not have a Vector Value!");
 
-	return get<VectorObject>(*info.value);
+	return get_if<VectorObject>(&*info->value);
 }
 
-UDTObject& Environment::get_mutable_UDT_variable(string name)
+UDTObject* Environment::get_mutable_UDT_variable(string name)
 {
 	auto info = get_variable_info(name);
 
-	ASSERT(info.is_mutable, name + " is  not mutable!");
-	ASSERT(holds_alternative<UDTType>(*info.type), name + " is not a UDT Type!");
-	ASSERT(holds_alternative<UDTObject>(*info.value), name + " is not a UDT Value!");
+	ASSERT(info->is_mutable, name + " is  not mutable!");
+	ASSERT(holds_alternative<UDTType>(*info->type), name + " is not a UDT Type!");
+	ASSERT(holds_alternative<UDTObject>(*info->value), name + " is not a UDT Value!");
 
-	return get<UDTObject>(*info.value);
+	return get_if<UDTObject>(&*info->value);
 }
 
 // Setters
@@ -128,21 +128,21 @@ UDTObject& Environment::get_mutable_UDT_variable(string name)
 void Environment::set_variable(string name, ObjectVariant_ptr value)
 {
 	auto variable_info = get_variable_info(name);
-	ASSERT(variable_info.is_mutable, name + " is not mutable!");
+	ASSERT(variable_info->is_mutable, name + " is not mutable!");
 
-	ASSERT(!value, "Cannot set variable = nullptr");
+	ASSERT(value != nullptr, "Cannot set variable = nullptr");
 	ASSERT(value->index() != 0, "Cannot set variable = monostate");
 
-	variable_info.value = move(value);
+	variable_info->value = value;
 }
 
 void Environment::set_element(string name, int index, ObjectVariant_ptr value)
 {
-	ASSERT(!value, "Cannot set element = nullptr");
+	ASSERT(value != nullptr, "Cannot set element = nullptr");
 	ASSERT(value->index() != 0, "Cannot set element = monostate");
 
 	auto vector_object = get_mutable_vector_variable(name);
-	vector_object.values[index] = value;
+	vector_object->values[index] = move(value);
 }
 
 // Create

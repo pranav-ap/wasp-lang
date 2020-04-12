@@ -37,14 +37,14 @@ public:
 
 	InfoVariant_ptr get_info(std::string name);
 
-	VariableInfo& get_variable_info(std::string name);
-	UDTInfo& get_UDT_info(std::string name);
-	EnumInfo& get_enum_info(std::string name);
+	VariableInfo* get_variable_info(std::string name);
+	UDTInfo* get_UDT_info(std::string name);
+	EnumInfo* get_enum_info(std::string name);
 
 	// Variable Getters
 
-	VectorObject& get_mutable_vector_variable(std::string name);
-	UDTObject& get_mutable_UDT_variable(std::string name);
+	VectorObject* get_mutable_vector_variable(std::string name);
+	UDTObject* get_mutable_UDT_variable(std::string name);
 
 	// Setters
 

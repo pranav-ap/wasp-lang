@@ -114,22 +114,22 @@ ObjectVariant_ptr Interpreter::visit(Loop_ptr loop)
 ObjectVariant_ptr Interpreter::visit(ForEachLoop_ptr statement)
 {
 	auto info = env->get_variable_info(statement->iterable_name);
-	THROW_ASSERT(holds_alternative<VectorObject>(*info.value), "Foreach can only iterate over Vector Objects");
-	auto vector_object = get<VectorObject>(*info.value);
+	THROW_ASSERT(holds_alternative<VectorObject>(*info->value), "Foreach can only iterate over Vector Objects");
+	auto vector_object = get_if<VectorObject>(&*info->value);
 
 	env->enter_loop_scope();
 	env->create_variable(
 		statement->item_name,
 		false,
 		true,
-		info.type,
+		info->type,
 		VOID
 	);
 
-	THROW_ASSERT(holds_alternative<VectorType>(*info.type), "Not a vector type");
-	auto vector_type = get<VectorType>(*info.type);
+	THROW_ASSERT(holds_alternative<VectorType>(*info->type), "Not a vector type");
+	auto vector_type = get<VectorType>(*info->type);
 
-	for (auto const& element : vector_object.values)
+	for (auto const& element : vector_object->values)
 	{
 		THROW_ASSERT(are_same_type(element, vector_type.type), "Element has incorrect type");
 		env->set_variable(statement->item_name, element);
@@ -296,7 +296,7 @@ ObjectVariant_ptr Interpreter::visit(UDTLiteral_ptr udt_literal)
 ObjectVariant_ptr Interpreter::visit(Identifier_ptr expression)
 {
 	auto info = env->get_variable_info(expression->name);
-	return info.value;
+	return move(info->value);
 }
 
 ObjectVariant_ptr Interpreter::visit(Unary_ptr unary_expression)
@@ -339,13 +339,13 @@ ObjectVariant_ptr Interpreter::visit(VectorMemberAccess_ptr access_expression)
 	double index = get<double>(*index_variant);
 
 	THROW_ASSERT(index == floor(index), "Index has to be a whole number");
-	return vector_object.get_element(index);
+	return vector_object->get_element(index);
 }
 
 ObjectVariant_ptr Interpreter::visit(UDTMemberAccess_ptr expression)
 {
 	auto UDT_object = env->get_mutable_UDT_variable(expression->UDT_name);
-	return UDT_object.get_value(expression->member_name);
+	return UDT_object->get_value(expression->member_name);
 }
 
 ObjectVariant_ptr Interpreter::visit(EnumMemberAccess_ptr expression)
@@ -354,7 +354,7 @@ ObjectVariant_ptr Interpreter::visit(EnumMemberAccess_ptr expression)
 	auto info = env->get_enum_info(enum_name);
 
 	ASSERT(
-		info.members.contains(expression->member_name),
+		info->members.contains(expression->member_name),
 		expression->member_name + " is not a member of enum " + enum_name
 	);
 
