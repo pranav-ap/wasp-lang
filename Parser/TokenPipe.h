@@ -25,8 +25,8 @@ public:
 
 	// Token Functions
 
-	Token_ptr consume_current_token() const;
-	Token_ptr consume_significant_token();
+	Token_ptr get_current_token() const;
+	Token_ptr get_significant_token();
 
 	Token_ptr consume_optional_token(WTokenType token_type);
 	Token_ptr consume_required_token(WTokenType token_type);

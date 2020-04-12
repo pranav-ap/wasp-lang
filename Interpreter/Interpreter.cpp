@@ -61,14 +61,8 @@ ObjectVariant_ptr Interpreter::visit(VariableDeclaration_ptr declaration)
 
 ObjectVariant_ptr Interpreter::visit(Assignment_ptr assignment)
 {
-	auto name = assignment->name;
-	auto info = env->get_variable(name);
-
-	THROW_ASSERT(info.is_mutable, name + " is not mutable");
-
 	auto result = assignment->expression->interpret(*this);
-	info.value = result;
-
+	env->set_variable(assignment->name, move(result));
 	return VOID;
 }
 
@@ -119,7 +113,7 @@ ObjectVariant_ptr Interpreter::visit(Loop_ptr loop)
 
 ObjectVariant_ptr Interpreter::visit(ForEachLoop_ptr statement)
 {
-	auto info = env->get_variable(statement->iterable_name);
+	auto info = env->get_variable_info(statement->iterable_name);
 	THROW_ASSERT(holds_alternative<VectorObject>(*info.value), "Foreach can only iterate over Vector Objects");
 	auto vector_object = get<VectorObject>(*info.value);
 
@@ -227,10 +221,14 @@ ObjectVariant_ptr Interpreter::visit(FunctionDefinition_ptr def)
 
 ObjectVariant_ptr Interpreter::visit(EnumDefinition_ptr def)
 {
+	std::set<std::string> members_set(def->members.begin(), def->members.end());
+
+	ASSERT(members_set.size() == def->members.size(), "Duplicate enum members are not allowed");
+
 	env->create_enum(
 		def->name,
 		def->is_public,
-		def->members
+		members_set
 	);
 
 	return VOID;
@@ -271,8 +269,7 @@ ObjectVariant_ptr Interpreter::visit(BooleanLiteral_ptr bool_literal)
 
 ObjectVariant_ptr Interpreter::visit(VectorLiteral_ptr vector_literal)
 {
-	auto vector_variant = MAKE_OBJECT_VARIANT(VectorObject());
-	auto vector_object = get<VectorObject>(*vector_variant);
+	auto vector_object = VectorObject();
 
 	for (const auto expression : vector_literal->expressions)
 	{
@@ -280,29 +277,26 @@ ObjectVariant_ptr Interpreter::visit(VectorLiteral_ptr vector_literal)
 		vector_object.add(result);
 	}
 
-	return move(vector_variant);
+	return MAKE_OBJECT_VARIANT(vector_object);
 }
 
 ObjectVariant_ptr Interpreter::visit(UDTLiteral_ptr udt_literal)
 {
-	auto UDT_variant = MAKE_OBJECT_VARIANT(UDTObject());
-	auto UDT_object = get<UDTObject>(*UDT_variant);
+	auto UDT_object = UDTObject();
 
 	for (auto const& [key, value_expr] : udt_literal->pairs)
 	{
 		auto value_object = value_expr->interpret(*this);
-		UDT_object.add(key, value_object);
+		UDT_object.create_and_set_value(key, value_object);
 	}
 
-	return move(UDT_variant);
+	return MAKE_OBJECT_VARIANT(UDT_object);
 }
 
 ObjectVariant_ptr Interpreter::visit(Identifier_ptr expression)
 {
-	auto name = expression->name;
-	auto info = env->get_variable(name);
-
-	return move(info.value);
+	auto info = env->get_variable_info(expression->name);
+	return info.value;
 }
 
 ObjectVariant_ptr Interpreter::visit(Unary_ptr unary_expression)
@@ -337,36 +331,32 @@ ObjectVariant_ptr Interpreter::visit(Binary_ptr binary_expression)
 ObjectVariant_ptr Interpreter::visit(VectorMemberAccess_ptr access_expression)
 {
 	auto name = access_expression->name;
-	auto info = env->get_variable(name);
-
-	THROW_ASSERT(holds_alternative<VectorObject>(*info.value), name + " is not a vector");
-	auto vector_object = get<VectorObject>(*info.value);
-
-	// Get Index
+	auto vector_object = env->get_mutable_vector_variable(name);
 
 	auto index_variant = access_expression->expression->interpret(*this);
 
 	THROW_ASSERT(holds_alternative<double>(*index_variant), "Vector elements must be accessed by a numeric index");
 	double index = get<double>(*index_variant);
 
+	THROW_ASSERT(index == floor(index), "Index has to be a whole number");
 	return vector_object.get_element(index);
 }
 
 ObjectVariant_ptr Interpreter::visit(UDTMemberAccess_ptr expression)
 {
-	auto UDT_name = expression->UDT_name;
-	auto info = env->get_variable(UDT_name);
-
-	THROW_ASSERT(holds_alternative<UDTObject>(*info.value), UDT_name + " value is not a UDT");
-	auto UDT_object = get<UDTObject>(*info.value);
-
-	return move(UDT_object.pairs[expression->member_name]);
+	auto UDT_object = env->get_mutable_UDT_variable(expression->UDT_name);
+	return UDT_object.get_value(expression->member_name);
 }
 
 ObjectVariant_ptr Interpreter::visit(EnumMemberAccess_ptr expression)
 {
 	auto enum_name = expression->enum_name;
-	auto info = env->get_enum(enum_name);
+	auto info = env->get_enum_info(enum_name);
+
+	ASSERT(
+		info.members.contains(expression->member_name),
+		expression->member_name + " is not a member of enum " + enum_name
+	);
 
 	return MAKE_OBJECT_VARIANT(EnumMemberObject(enum_name, expression->member_name));
 }
@@ -395,7 +385,6 @@ ObjectVariant_ptr Interpreter::visit(FunctionCall_ptr call_expression)
 ObjectVariant_ptr Interpreter::visit(Range_ptr expression)
 {
 	return VOID;
-	//THROW("Range must be used along with vector slicing or a FOR loop");
 }
 
 // Perform Operation

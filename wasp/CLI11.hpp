@@ -773,8 +773,8 @@ namespace CLI {
 				ExitCodes::ExtrasError) {}
 		ExtrasError(const std::string& name, std::vector<std::string> args)
 			: ExtrasError(name,
-			(args.size() > 1 ? "The following arguments were not expected: "
-				: "The following argument was not expected: ") +
+				(args.size() > 1 ? "The following arguments were not expected: "
+					: "The following argument was not expected: ") +
 				detail::rjoin(args, " "),
 				ExitCodes::ExtrasError) {}
 	};
@@ -1032,7 +1032,7 @@ namespace CLI {
 
 		/// Convert an object to a string (streaming must be supported for that type)
 		template <typename T,
-			enable_if_t<!std::is_constructible<std::string, T>::value && is_ostreamable<T>::value, detail::enabler> =
+			enable_if_t<!std::is_constructible<std::string, T>::value&& is_ostreamable<T>::value, detail::enabler> =
 			detail::accept>
 			std::string to_string(T&& value) {
 			std::stringstream stream;
@@ -1051,7 +1051,7 @@ namespace CLI {
 
 		/// convert a vector to a string
 		template <typename T,
-			enable_if_t<!std::is_constructible<std::string, T>::value && !is_ostreamable<T>::value &&
+			enable_if_t<!std::is_constructible<std::string, T>::value && !is_ostreamable<T>::value&&
 			is_vector<typename std::remove_reference<typename std::remove_const<T>::type>::type>::value,
 			detail::enabler> = detail::accept>
 			std::string to_string(T&& variable) {
@@ -1160,7 +1160,7 @@ namespace CLI {
 		/// Set of overloads to classify an object according to type
 		template <typename T>
 		struct classify_object<T,
-			typename std::enable_if<std::is_integral<T>::value && std::is_signed<T>::value &&
+			typename std::enable_if<std::is_integral<T>::value&& std::is_signed<T>::value &&
 			!is_bool<T>::value && !std::is_enum<T>::value>::type> {
 			static constexpr object_category value{ object_category::integral_value };
 		};
@@ -1169,7 +1169,7 @@ namespace CLI {
 		template <typename T>
 		struct classify_object<
 			T,
-			typename std::enable_if<std::is_integral<T>::value && std::is_unsigned<T>::value && !is_bool<T>::value>::type> {
+			typename std::enable_if<std::is_integral<T>::value&& std::is_unsigned<T>::value && !is_bool<T>::value>::type> {
 			static constexpr object_category value{ object_category::unsigned_integral };
 		};
 
@@ -1187,7 +1187,7 @@ namespace CLI {
 		template <typename T>
 		struct classify_object<
 			T,
-			typename std::enable_if<!std::is_floating_point<T>::value && !std::is_integral<T>::value &&
+			typename std::enable_if<!std::is_floating_point<T>::value && !std::is_integral<T>::value&&
 			std::is_assignable<T&, std::string>::value && !is_vector<T>::value>::type> {
 			static constexpr object_category value{ object_category::string_assignable };
 		};
@@ -1197,7 +1197,7 @@ namespace CLI {
 		struct classify_object<
 			T,
 			typename std::enable_if<!std::is_floating_point<T>::value && !std::is_integral<T>::value &&
-			!std::is_assignable<T&, std::string>::value &&
+			!std::is_assignable<T&, std::string>::value&&
 			std::is_constructible<T, std::string>::value && !is_vector<T>::value>::type> {
 			static constexpr object_category value{ object_category::string_constructible };
 		};
@@ -1222,7 +1222,7 @@ namespace CLI {
 		/// Assignable from double or int
 		template <typename T>
 		struct classify_object<T,
-			typename std::enable_if<uncommon_type<T>::value && type_count<T>::value == 1 &&
+			typename std::enable_if<uncommon_type<T>::value&& type_count<T>::value == 1 &&
 			is_direct_constructible<T, double>::value &&
 			is_direct_constructible<T, int>::value>::type> {
 			static constexpr object_category value{ object_category::number_constructible };
@@ -1231,7 +1231,7 @@ namespace CLI {
 		/// Assignable from int
 		template <typename T>
 		struct classify_object<T,
-			typename std::enable_if<uncommon_type<T>::value && type_count<T>::value == 1 &&
+			typename std::enable_if<uncommon_type<T>::value&& type_count<T>::value == 1 &&
 			!is_direct_constructible<T, double>::value &&
 			is_direct_constructible<T, int>::value>::type> {
 			static constexpr object_category value{ object_category::integer_constructible };
@@ -1240,7 +1240,7 @@ namespace CLI {
 		/// Assignable from double
 		template <typename T>
 		struct classify_object<T,
-			typename std::enable_if<uncommon_type<T>::value && type_count<T>::value == 1 &&
+			typename std::enable_if<uncommon_type<T>::value&& type_count<T>::value == 1 &&
 			is_direct_constructible<T, double>::value &&
 			!is_direct_constructible<T, int>::value>::type> {
 			static constexpr object_category value{ object_category::double_constructible };
@@ -1573,7 +1573,7 @@ namespace CLI {
 		/// Assign a value through lexical cast operations
 		template <typename T,
 			typename XC,
-			enable_if_t<std::is_same<T, XC>::value && classify_object<T>::value != object_category::string_assignable &&
+			enable_if_t<std::is_same<T, XC>::value&& classify_object<T>::value != object_category::string_assignable &&
 			classify_object<T>::value != object_category::string_constructible,
 			detail::enabler> = detail::accept>
 			bool lexical_assign(const std::string& input, T& output) {
@@ -1588,7 +1588,7 @@ namespace CLI {
 		template <
 			typename T,
 			typename XC,
-			enable_if_t<!std::is_same<T, XC>::value && std::is_assignable<T&, XC&>::value, detail::enabler> = detail::accept>
+			enable_if_t<!std::is_same<T, XC>::value&& std::is_assignable<T&, XC&>::value, detail::enabler> = detail::accept>
 			bool lexical_assign(const std::string& input, T& output) {
 			XC val{};
 			bool parse_result = (!input.empty()) ? lexical_cast<XC>(input, val) : true;
@@ -1601,7 +1601,7 @@ namespace CLI {
 		/// Assign a value from a lexical cast through constructing a value and move assigning it
 		template <typename T,
 			typename XC,
-			enable_if_t<!std::is_same<T, XC>::value && !std::is_assignable<T&, XC&>::value &&
+			enable_if_t<!std::is_same<T, XC>::value && !std::is_assignable<T&, XC&>::value&&
 			std::is_move_assignable<T>::value,
 			detail::enabler> = detail::accept>
 			bool lexical_assign(const std::string& input, T& output) {
@@ -1703,7 +1703,7 @@ namespace CLI {
 		/// Lexical conversion if there is only one element but the conversion type is a vector
 		template <typename T,
 			typename XC,
-			enable_if_t<!is_tuple_like<T>::value && !is_vector<T>::value && is_vector<XC>::value, detail::enabler> =
+			enable_if_t<!is_tuple_like<T>::value && !is_vector<T>::value&& is_vector<XC>::value, detail::enabler> =
 			detail::accept>
 			bool lexical_conversion(const std::vector<std::string>& strings, T& output) {
 			if (strings.size() > 1 || (!strings.empty() && !(strings.front().empty()))) {
@@ -1725,7 +1725,7 @@ namespace CLI {
 		/// Tuple conversion operation
 		template <class T, class XC, std::size_t I>
 		inline typename std::enable_if <
-			I<type_count<T>::value, bool>::type tuple_conversion(const std::vector<std::string> & strings, T & output) {
+			I<type_count<T>::value, bool>::type tuple_conversion(const std::vector<std::string>& strings, T& output) {
 			bool retval = true;
 			if (strings.size() > I) {
 				retval = retval && lexical_assign<typename std::tuple_element<I, T>::type,
@@ -1784,7 +1784,7 @@ namespace CLI {
 		/// "-1" an if numbers are passed by some fashion they are captured as well so the function just checks for the most
 		/// common true and false strings then uses stoll to convert the rest for summing
 		template <typename T,
-			enable_if_t<std::is_integral<T>::value && std::is_unsigned<T>::value, detail::enabler> = detail::accept>
+			enable_if_t<std::is_integral<T>::value&& std::is_unsigned<T>::value, detail::enabler> = detail::accept>
 			void sum_flag_vector(const std::vector<std::string>& flags, T& output) {
 			int64_t count{ 0 };
 			for (auto& flag : flags) {
@@ -1799,7 +1799,7 @@ namespace CLI {
 		/// "-1" an if numbers are passed by some fashion they are captured as well so the function just checks for the most
 		/// common true and false strings then uses stoll to convert the rest for summing
 		template <typename T,
-			enable_if_t<std::is_integral<T>::value && std::is_signed<T>::value, detail::enabler> = detail::accept>
+			enable_if_t<std::is_integral<T>::value&& std::is_signed<T>::value, detail::enabler> = detail::accept>
 			void sum_flag_vector(const std::vector<std::string>& flags, T& output) {
 			int64_t count{ 0 };
 			for (auto& flag : flags) {
@@ -2194,8 +2194,8 @@ namespace CLI {
 			newval._merge_description(*this, other, " AND ");
 
 			// Give references (will make a copy in lambda function)
-			const std::function<std::string(std::string & filename)>& f1 = func_;
-			const std::function<std::string(std::string & filename)>& f2 = other.func_;
+			const std::function<std::string(std::string& filename)>& f1 = func_;
+			const std::function<std::string(std::string& filename)>& f2 = other.func_;
 
 			newval.func_ = [f1, f2](std::string& input) {
 				std::string s1 = f1(input);
@@ -2244,7 +2244,7 @@ namespace CLI {
 				return (!str.empty()) ? std::string("NOT ") + str : std::string{};
 			};
 			// Give references (will make a copy in lambda function)
-			const std::function<std::string(std::string & res)>& f1 = func_;
+			const std::function<std::string(std::string& res)>& f1 = func_;
 
 			newval.func_ = [f1, dfunc1](std::string& test) -> std::string {
 				std::string s1 = f1(test);
@@ -4498,7 +4498,7 @@ namespace CLI {
 					try {
 						err_msg = vali(result);
 					}
-					catch (const ValidationError & err) {
+					catch (const ValidationError& err) {
 						err_msg = err.what();
 					}
 					if (!err_msg.empty())
@@ -4658,7 +4658,7 @@ namespace CLI {
 		std::shared_ptr<FormatterBase> formatter_{ new Formatter() };
 
 		/// The error message printing function INHERITABLE
-		std::function<std::string(const App*, const Error & e)> failure_message_{ FailureMessage::simple };
+		std::function<std::string(const App*, const Error& e)> failure_message_{ FailureMessage::simple };
 
 		///@}
 		/// @name Parsing
@@ -5159,7 +5159,7 @@ namespace CLI {
 
 		/// Add option with description but with no variable assignment or callback
 		template <typename T,
-			enable_if_t<std::is_const<T>::value && std::is_constructible<std::string, T>::value, detail::enabler> =
+			enable_if_t<std::is_const<T>::value&& std::is_constructible<std::string, T>::value, detail::enabler> =
 			detail::accept>
 			Option* add_option(std::string option_name, T& option_description) {
 			return add_option(option_name, CLI::callback_t(), option_description, false);
@@ -5235,7 +5235,7 @@ namespace CLI {
 		/// takes a constant string,  if a variable string is passed that variable will be assigned the results from the
 		/// flag
 		template <typename T,
-			enable_if_t<std::is_const<T>::value && std::is_constructible<std::string, T>::value, detail::enabler> =
+			enable_if_t<std::is_const<T>::value&& std::is_constructible<std::string, T>::value, detail::enabler> =
 			detail::accept>
 			Option* add_flag(std::string flag_name, T& flag_description) {
 			return _add_flag_internal(flag_name, CLI::callback_t(), flag_description);
@@ -5813,7 +5813,7 @@ namespace CLI {
 		}
 
 		/// Provide a function to print a help message. The function gets access to the App pointer and error.
-		void failure_message(std::function<std::string(const App*, const Error & e)> function) {
+		void failure_message(std::function<std::string(const App*, const Error& e)> function) {
 			failure_message_ = function;
 		}
 

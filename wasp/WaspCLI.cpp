@@ -86,35 +86,35 @@ void WaspCLI::open_repl()
 
 	// LOOP
 
-	cout << "Welcome to the Wasp REPL!" << endl;
+	cout << "\n Welcome to the Wasp REPL! \n" << endl;
 
 	while (true)
 	{
 		// READ
 
-		cout << "\n >> ";
+		cout << ">> ";
 
 		std::string raw_source;
 		std::string line;
 
-		while (true) {
+		while (true)
+		{
 			std::getline(std::cin, line);
 
 			if (line.empty()) {
-				cout << '\r';
 				break;
 			}
-			// run --file "./../scraps.wasp"
+
 			raw_source.append(line);
 			raw_source.append("\n");
 		}
 
-		// EVAL
-
-		if (raw_source == ".exit")
+		if (line == ".exit")
 		{
 			return;
 		}
+
+		// EVAL
 
 		Lexer lexer(raw_source);
 		vector<Token_ptr> tokens = lexer.execute();

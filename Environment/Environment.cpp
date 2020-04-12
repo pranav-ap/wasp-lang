@@ -4,10 +4,12 @@
 #include "Environment.h"
 #include "Info.h"
 #include "ObjectSystem.h"
+#include "Types.h"
 #include "CommonAssertion.h"
 
 #include <memory>
 #include <string>
+#include <set>
 #include <list>
 #include <utility>
 #include <variant>
@@ -18,6 +20,7 @@ using std::string;
 using std::pair;
 using std::vector;
 using std::map;
+using std::set;
 using std::optional;
 using std::get;
 using std::holds_alternative;
@@ -54,10 +57,8 @@ void Environment::enter_function_scope()
 
 void Environment::leave_scope()
 {
-	if (scopes.size() != 1)
-	{
-		scopes.pop_back();
-	}
+	ASSERT(scopes.size() == 1, "You cannot leave the Global Scope");
+	scopes.pop_back();
 }
 
 // Getters
@@ -68,7 +69,7 @@ InfoVariant_ptr Environment::get_info(string name)
 	{
 		if (scope->store.contains(name))
 		{
-			ASSERT(scope->store[name]->index() != 0, "Info must not be monostate");
+			ASSERT(scope->store[name]->index() != 0, "Info is a monostate");
 			return scope->store[name];
 		}
 	}
@@ -76,7 +77,7 @@ InfoVariant_ptr Environment::get_info(string name)
 	FATAL(name + " does not exist!");
 }
 
-VariableInfo Environment::get_variable(string name)
+VariableInfo& Environment::get_variable_info(string name)
 {
 	auto info = get_info(name);
 	ASSERT(holds_alternative<VariableInfo>(*info), name + " is not a Variable!");
@@ -84,7 +85,7 @@ VariableInfo Environment::get_variable(string name)
 	return get<VariableInfo>(*info);
 }
 
-UDTInfo Environment::get_UDT(string name)
+UDTInfo& Environment::get_UDT_info(string name)
 {
 	auto info = get_info(name);
 	ASSERT(holds_alternative<UDTInfo>(*info), name + " is not a UDT!");
@@ -92,7 +93,7 @@ UDTInfo Environment::get_UDT(string name)
 	return get<UDTInfo>(*info);
 }
 
-EnumInfo Environment::get_enum(string name)
+EnumInfo& Environment::get_enum_info(string name)
 {
 	auto info = get_info(name);
 	ASSERT(holds_alternative<EnumInfo>(*info), name + " is not an Enum!");
@@ -100,19 +101,39 @@ EnumInfo Environment::get_enum(string name)
 	return get<EnumInfo>(*info);
 }
 
+VectorObject& Environment::get_mutable_vector_variable(string name)
+{
+	auto info = get_variable_info(name);
+
+	ASSERT(info.is_mutable, name + " is  not mutable!");
+	ASSERT(holds_alternative<VectorType>(*info.type), name + " does not have a Vector Type!");
+	ASSERT(holds_alternative<VectorObject>(*info.value), name + " does not have a Vector Value!");
+
+	return get<VectorObject>(*info.value);
+}
+
+UDTObject& Environment::get_mutable_UDT_variable(string name)
+{
+	auto info = get_variable_info(name);
+
+	ASSERT(info.is_mutable, name + " is  not mutable!");
+	ASSERT(holds_alternative<UDTType>(*info.type), name + " is not a UDT Type!");
+	ASSERT(holds_alternative<UDTObject>(*info.value), name + " is not a UDT Value!");
+
+	return get<UDTObject>(*info.value);
+}
+
 // Setters
 
 void Environment::set_variable(string name, ObjectVariant_ptr value)
 {
+	auto variable_info = get_variable_info(name);
+	ASSERT(variable_info.is_mutable, name + " is not mutable!");
+
 	ASSERT(!value, "Cannot set variable = nullptr");
 	ASSERT(value->index() != 0, "Cannot set variable = monostate");
 
-	auto info = get_info(name);
-	ASSERT(holds_alternative<VariableInfo>(*info), name + " is not a Variable!");
-	auto variable_info = get<VariableInfo>(*info);
-
-	ASSERT(variable_info.is_mutable, "Variable is not mutable");
-	variable_info.value = value;
+	variable_info.value = move(value);
 }
 
 void Environment::set_element(string name, int index, ObjectVariant_ptr value)
@@ -120,13 +141,7 @@ void Environment::set_element(string name, int index, ObjectVariant_ptr value)
 	ASSERT(!value, "Cannot set element = nullptr");
 	ASSERT(value->index() != 0, "Cannot set element = monostate");
 
-	auto info = get_info(name);
-	ASSERT(holds_alternative<VariableInfo>(*info), name + " is not a Variable!");
-	auto variable_info = get<VariableInfo>(*info);
-
-	ASSERT(variable_info.is_mutable, "Vector is not mutable");
-	ASSERT(holds_alternative<VectorObject>(*variable_info.value), "Variable is not a Vector");
-	auto vector_object = get<VectorObject>(*variable_info.value);
+	auto vector_object = get_mutable_vector_variable(name);
 	vector_object.values[index] = value;
 }
 
@@ -142,12 +157,10 @@ void Environment::create_variable(
 	auto scope = scopes.front();
 
 	auto result = scope->store.insert(
-		pair<string, InfoVariant_ptr>(
+		{
 			name,
-			make_shared<InfoVariant>(
-				VariableInfo(is_public, is_mutable, type, value)
-				)
-			)
+			make_shared<InfoVariant>(VariableInfo(is_public, is_mutable, type, value))
+		}
 	);
 
 	ASSERT(result.second, name + " already exists in scope!");
@@ -163,12 +176,10 @@ void Environment::create_function(
 	auto scope = scopes.front();
 
 	auto result = scope->store.insert(
-		pair<string, InfoVariant_ptr>(
+		{
 			name,
-			make_shared<InfoVariant>(
-				FunctionInfo(is_public, arguments, return_type, body)
-				)
-			)
+			make_shared<InfoVariant>(FunctionInfo(is_public, arguments, return_type, body))
+		}
 	);
 
 	ASSERT(result.second, name + " already exists in scope!");
@@ -182,12 +193,10 @@ void Environment::create_UDT(
 	auto scope = scopes.front();
 
 	auto result = scope->store.insert(
-		pair<string, InfoVariant_ptr>(
+		{
 			name,
-			make_shared<InfoVariant>(
-				UDTInfo(is_public, member_types)
-				)
-			)
+			make_shared<InfoVariant>(UDTInfo(is_public, member_types))
+		}
 	);
 
 	ASSERT(result.second, name + " already exists in scope!");
@@ -196,17 +205,15 @@ void Environment::create_UDT(
 void Environment::create_enum(
 	string name,
 	bool is_public,
-	vector<string> member_names)
+	set<string> member_names)
 {
 	auto scope = scopes.front();
 
 	auto result = scope->store.insert(
-		pair<string, InfoVariant_ptr>(
+		{
 			name,
-			make_shared<InfoVariant>(
-				EnumInfo(is_public, member_names)
-				)
-			)
+			make_shared<InfoVariant>(EnumInfo(name, is_public, member_names))
+		}
 	);
 
 	ASSERT(result.second, name + " already exists in scope!");
@@ -219,10 +226,10 @@ void Environment::import_builtin(
 	auto scope = scopes.front();
 
 	auto result = scope->store.insert(
-		pair<string, InfoVariant_ptr>(
+		{
 			name,
 			make_shared<InfoVariant>(InBuiltFunctionInfo(func))
-			)
+		}
 	);
 
 	ASSERT(result.second, name + " already exists in scope!");

@@ -1,6 +1,4 @@
 import { echo } from io
-import { size } from core
 
-echo(size("hello"))
-
-
+let a : num = 5
+echo(a)

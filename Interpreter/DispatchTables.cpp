@@ -7,7 +7,6 @@
 
 using std::string;
 
-
 InBuiltFunction_VisitorType get_inbuilt_function_visitor(string module_name, string function_name)
 {
 	ASSERT(

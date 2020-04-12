@@ -12,6 +12,8 @@
 #include <memory>
 #include <utility>
 
+#define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr")
+
 using std::string;
 using std::vector;
 using std::stack;
@@ -51,9 +53,7 @@ Module Parser::execute()
 
 Statement_ptr Parser::parse_statement(bool is_public)
 {
-	token_pipe->ignore(WTokenType::EOL);
-
-	auto token = token_pipe->consume_current_token();
+	auto token = token_pipe->get_significant_token();
 
 	if (token == nullptr)
 		return nullptr;
@@ -86,7 +86,8 @@ Statement_ptr Parser::parse_statement(bool is_public)
 
 Statement_ptr Parser::parse_public_statement()
 {
-	auto token = token_pipe->consume_significant_token();
+	auto token = token_pipe->get_significant_token();
+	NULL_CHECK(token);
 
 	ADVANCE_PTR;
 
@@ -159,7 +160,7 @@ Statement_ptr Parser::parse_expression_statement()
 
 Statement_ptr Parser::consume_assignment_or_expression_statement(Token_ptr identifier)
 {
-	auto current_token = token_pipe->consume_current_token();
+	auto current_token = token_pipe->get_current_token();
 
 	WTokenType current_token_type = current_token ? current_token->type : WTokenType::UNKNOWN;
 
@@ -391,14 +392,10 @@ Statement_ptr Parser::parse_enum_statement(bool is_public)
 	);
 
 	vector<string> members;
-	vector<string>::iterator it;
 
 	while (true)
 	{
 		auto identifier = token_pipe->consume_required_token(WTokenType::Identifier);
-
-		it = std::find(members.begin(), members.end(), identifier->value);
-		ASSERT(it != members.end(), "Duplicate Enum members are present");
 		members.push_back(identifier->value);
 
 		if (token_pipe->next_significant_token_is(WTokenType::CLOSE_CURLY_BRACE))
@@ -437,7 +434,8 @@ TypeVariant_ptr Parser::parse_vector_type()
 
 TypeVariant_ptr Parser::consume_datatype_word()
 {
-	auto token = token_pipe->consume_significant_token();
+	auto token = token_pipe->get_significant_token();
+	NULL_CHECK(token);
 
 	switch (token->type)
 	{

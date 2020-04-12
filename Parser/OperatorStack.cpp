@@ -38,7 +38,7 @@ void OperatorStack::push_operator_into_ast(Token_ptr operator_token, ExpressionS
 void OperatorStack::push_unary_operator_to_ast(Token_ptr operator_token, ExpressionStack& ast)
 {
 	ASSERT(
-		ast.size() != 0,
+		ast.size() > 0,
 		operator_token->value + " requries one operand. But the AST is empty."
 	);
 
@@ -56,7 +56,7 @@ void OperatorStack::push_unary_operator_to_ast(Token_ptr operator_token, Express
 void OperatorStack::push_binary_operator_to_ast(Token_ptr operator_token, ExpressionStack& ast)
 {
 	ASSERT(
-		ast.size() < 2,
+		ast.size() >= 2,
 		operator_token->value + " requires two operands"
 	);
 

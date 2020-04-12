@@ -8,6 +8,8 @@
 #include <memory>
 #include <map>
 
+#define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr")
+
 using std::vector;
 using std::string;
 using std::make_shared;
@@ -19,7 +21,7 @@ Expression_ptr ExpressionParser::parse_expression()
 {
 	while (true)
 	{
-		Token_ptr current_token = token_pipe->consume_current_token();
+		Token_ptr current_token = token_pipe->get_current_token();
 
 		if (current_token == nullptr)
 			break;
@@ -139,7 +141,6 @@ Expression_ptr ExpressionParser::finish_parsing()
 {
 	operator_stack->drain_into_ast(ast);
 
-	ASSERT(ast.size() > 0, "Malformed Expression. AST size > 1.");
 	ASSERT(ast.size() != 0, "Malformed Expression. AST is empty.");
 
 	auto result = move(ast.top());
@@ -150,7 +151,8 @@ Expression_ptr ExpressionParser::finish_parsing()
 
 string ExpressionParser::consume_valid_UDT_key()
 {
-	auto token = token_pipe->consume_significant_token();
+	auto token = token_pipe->get_significant_token();
+	NULL_CHECK(token);
 
 	switch (token->type)
 	{

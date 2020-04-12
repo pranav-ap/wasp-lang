@@ -19,8 +19,6 @@ template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
 
 struct UDTObject;
 struct UDTKeyValuePairObject;
-
-struct EnumObject;
 struct EnumMemberObject;
 
 struct VectorObject;
@@ -41,7 +39,7 @@ using ObjectVariant = OBJECTSYSTEM_API std::variant<
 	// Composite Objects
 	VectorObject, OptionalObject,
 	UDTObject, UDTKeyValuePairObject,
-	EnumObject, EnumMemberObject,
+	EnumMemberObject,
 	// Action Objects
 	ReturnObject, ErrorObject,
 	BreakObject, ContinueObject,
@@ -72,7 +70,8 @@ struct OBJECTSYSTEM_API VectorObject : public CompositeObject
 
 	VectorObject() {};
 	ObjectVariant_ptr add(ObjectVariant_ptr value);
-	ObjectVariant_ptr get_element(double index);
+	ObjectVariant_ptr get_element(int index);
+	ObjectVariant_ptr set_element(int index, ObjectVariant_ptr value);
 };
 
 struct OBJECTSYSTEM_API UDTKeyValuePairObject : public CompositeObject
@@ -89,17 +88,12 @@ struct OBJECTSYSTEM_API UDTObject : public CompositeObject
 	std::map<std::string, ObjectVariant_ptr> pairs;
 
 	UDTObject() {};
-	ObjectVariant_ptr add(std::string key, ObjectVariant_ptr value);
+
+	ObjectVariant_ptr create_and_set_value(std::string key, ObjectVariant_ptr value);
+	ObjectVariant_ptr set_value(std::string key, ObjectVariant_ptr value);
+
 	ObjectVariant_ptr get_pair(std::string key);
 	ObjectVariant_ptr get_value(std::string key);
-};
-
-struct OBJECTSYSTEM_API EnumObject : public CompositeObject
-{
-	std::vector<std::string> member_names;
-
-	EnumObject(std::vector<std::string> member_names)
-		: member_names(member_names) {};
 };
 
 struct OBJECTSYSTEM_API EnumMemberObject : public CompositeObject
@@ -149,3 +143,6 @@ struct OBJECTSYSTEM_API ErrorObject : public ActionObject
 	ErrorObject() : message("") {};
 	ErrorObject(std::string message) : message(message) {};
 };
+
+using VectorObject_ptr = OBJECTSYSTEM_API std::shared_ptr<VectorObject>;
+using UDTObject_ptr = OBJECTSYSTEM_API std::shared_ptr<UDTObject>;

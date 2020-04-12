@@ -10,6 +10,9 @@
 #include "Scope.h"
 #include "Info.h"
 #include <list>
+#include <vector>
+#include <set>
+#include <string>
 #include <functional>
 
 class ENVIRONMENT_API Environment
@@ -30,13 +33,18 @@ public:
 
 	void leave_scope();
 
-	// Getters
+	// Info Getters
 
 	InfoVariant_ptr get_info(std::string name);
 
-	VariableInfo get_variable(std::string name);
-	UDTInfo get_UDT(std::string name);
-	EnumInfo get_enum(std::string name);
+	VariableInfo& get_variable_info(std::string name);
+	UDTInfo& get_UDT_info(std::string name);
+	EnumInfo& get_enum_info(std::string name);
+
+	// Variable Getters
+
+	VectorObject& get_mutable_vector_variable(std::string name);
+	UDTObject& get_mutable_UDT_variable(std::string name);
 
 	// Setters
 
@@ -70,7 +78,7 @@ public:
 	void create_enum(
 		std::string name,
 		bool is_public,
-		std::vector<std::string> member_names
+		std::set<std::string> member_names
 	);
 
 	void import_builtin(

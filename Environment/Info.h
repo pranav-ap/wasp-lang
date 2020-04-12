@@ -4,6 +4,7 @@
 #include "Statement.h"
 #include "Types.h"
 #include <map>
+#include <set>
 #include <vector>
 #include <memory>
 #include <functional>
@@ -52,8 +53,10 @@ struct UDTInfo : public Info
 
 struct EnumInfo : public Info
 {
-	std::vector<std::string> members;
-	EnumInfo(bool is_public, std::vector<std::string> members)
+	std::string enum_name;
+	std::set<std::string> members;
+
+	EnumInfo(std::string enum_name, bool is_public, std::set<std::string> members)
 		: Info(is_public), members(members) {};
 };
 
@@ -76,3 +79,9 @@ struct InBuiltFunctionInfo : public Info
 };
 
 using InfoVariant_ptr = std::shared_ptr<InfoVariant>;
+
+using VariableInfo_ptr = std::shared_ptr<VariableInfo>;
+using UDTInfo_ptr = std::shared_ptr<UDTInfo>;
+using EnumInfo_ptr = std::shared_ptr<EnumInfo>;
+using FunctionInfo_ptr = std::shared_ptr<FunctionInfo>;
+using InBuiltFunctionInfo_ptr = std::shared_ptr<InBuiltFunctionInfo>;
