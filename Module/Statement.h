@@ -6,156 +6,216 @@
 #define MODULE_API __declspec(dllimport)
 #endif
 
+#include "Types.h"
+#include "Expression.h"
+
 #include <string>
 #include <vector>
 #include <map>
 #include <memory>
 #include <optional>
+#include <variant>
 
-#include "Types.h"
-#include "Expression.h"
+struct Assignment;
+struct MultipleAssignment;
+struct ConditionalBranch;
+struct IfLetBranch;
+struct InfiniteLoop;
+struct ForEachLoop;
+struct Break;
+struct Continue;
+struct VariableDefinition;
+struct UDTDefinition;
+struct FunctionDefinition;
+struct EnumDefinition;
+struct ImportCustom;
+struct ImportInBuilt;
+struct ExpressionStatement;
+struct Return;
 
-class StatementVisitor;
-
-struct MODULE_API Statement
-{
-	virtual ObjectVariant_ptr interpret(StatementVisitor& visitor) = 0;
-};
+using Statement = MODULE_API std::variant<
+	std::monostate,
+	Assignment, MultipleAssignment,
+	ConditionalBranch, IfLetBranch,
+	InfiniteLoop, ForEachLoop,
+	Break, Continue,
+	VariableDefinition, UDTDefinition, FunctionDefinition, EnumDefinition,
+	ImportCustom, ImportInBuilt,
+	ExpressionStatement,
+	Return
+>;
 
 using Statement_ptr = MODULE_API std::shared_ptr<Statement>;
 using Block = MODULE_API std::vector<Statement_ptr>;
-using Block_ptr = MODULE_API std::shared_ptr<Block>;
 
-struct MODULE_API VariableDeclaration : public Statement, public std::enable_shared_from_this<VariableDeclaration>
+struct MODULE_API StatementBase
 {
-	bool is_public;
-	bool is_mutable;
-	std::string name;
-	TypeVariant_ptr type;
-	Expression_ptr expression;
-
-	VariableDeclaration(bool is_public, bool is_mutable, std::string name, TypeVariant_ptr type, Expression_ptr expression) : is_public(is_public), is_mutable(is_mutable), name(name), type(std::move(type)), expression(std::move(expression)) {};
-	ObjectVariant_ptr interpret(StatementVisitor& visitor);
 };
 
-struct MODULE_API Assignment : public Statement, public std::enable_shared_from_this<Assignment>
+// Assignments
+
+struct MODULE_API Assignment : public StatementBase
 {
 	std::string name;
 	Expression_ptr expression;
 
-	Assignment(std::string name, Expression_ptr expression) : name(name), expression(std::move(expression)) {};
-	ObjectVariant_ptr interpret(StatementVisitor& visitor);
+	Assignment(std::string name, Expression_ptr expression)
+		: name(name), expression(std::move(expression)) {};
 };
 
-struct MODULE_API Branch : public Statement, public std::enable_shared_from_this<Branch>
+struct MODULE_API MultipleAssignment : public StatementBase
+{
+	std::vector<std::string> names;
+	std::vector<Expression_ptr> expressions;
+
+	MultipleAssignment(std::vector<std::string> names, std::vector<Expression_ptr> expressions)
+		: names(names), expressions(expressions) {};
+};
+
+// Branching
+
+struct MODULE_API Branch : public StatementBase
+{
+	Block consequence;
+	Block alternative;
+
+	Branch(Block consequence, Block alternative)
+		: consequence(consequence), alternative(alternative) {};
+};
+
+struct MODULE_API ConditionalBranch : public Branch
 {
 	Expression_ptr condition;
-	Block_ptr consequence;
-	Block_ptr alternative;
 
-	Branch(Expression_ptr condition, Block_ptr consequence, Block_ptr alternative) : condition(std::move(condition)), consequence(std::move(consequence)), alternative(std::move(alternative)) {};
-	ObjectVariant_ptr interpret(StatementVisitor& visitor);
+	ConditionalBranch(Expression_ptr condition, Block consequence, Block alternative)
+		: Branch(consequence, alternative), condition(std::move(condition)) {};
 };
 
-struct MODULE_API Loop : public Statement, public std::enable_shared_from_this<Loop>
+struct MODULE_API IfLetBranch : public Branch
 {
-	Block_ptr block;
-	Loop(Block_ptr block) : block(block) {};
-	ObjectVariant_ptr interpret(StatementVisitor& visitor);
+	std::string variable_name;
+	Expression_ptr expression;
+
+	IfLetBranch(std::string variable_name, Expression_ptr expression, Block consequence, Block alternative)
+		: Branch(consequence, alternative), variable_name(variable_name), expression(std::move(expression)) {};
 };
 
-struct MODULE_API ForEachLoop : public Statement, public std::enable_shared_from_this<ForEachLoop>
+// Looping
+
+struct MODULE_API Loop : public StatementBase
+{
+	Block block;
+	Loop(Block block) : block(block) {};
+};
+
+struct MODULE_API InfiniteLoop : public Loop
+{
+	InfiniteLoop(Block block) : Loop(block) {};
+};
+
+struct MODULE_API ForEachLoop : public Loop
 {
 	std::string item_name;
-	std::string iterable_name;
-	Block_ptr block;
+	Expression_ptr iterable;
 
-	ForEachLoop(std::string item_name, std::string iterable_name, Block_ptr block)
-		: item_name(item_name), iterable_name(iterable_name), block(block) {};
-	ObjectVariant_ptr interpret(StatementVisitor& visitor);
+	ForEachLoop(std::string item_name, Expression_ptr iterable, Block block)
+		: Loop(block), item_name(item_name), iterable(iterable) {};
 };
 
-struct MODULE_API Break : public Statement, public std::enable_shared_from_this<Break>
+struct MODULE_API Break : public StatementBase
 {
-	ObjectVariant_ptr interpret(StatementVisitor& visitor);
 };
 
-struct MODULE_API Continue : public Statement, public std::enable_shared_from_this<Continue>
+struct MODULE_API Continue : public StatementBase
 {
-	ObjectVariant_ptr interpret(StatementVisitor& visitor);
 };
 
-struct MODULE_API UDTDefinition : public Statement, public std::enable_shared_from_this<UDTDefinition>
+// Definitions
+
+struct MODULE_API Definition : public StatementBase
 {
 	bool is_public;
 	std::string name;
-	std::map<std::string, TypeVariant_ptr> member_types;
 
-	UDTDefinition(bool is_public, std::string name, std::map<std::string, TypeVariant_ptr> member_types) : is_public(is_public), name(name), member_types(member_types) {};
-	ObjectVariant_ptr interpret(StatementVisitor& visitor);
+	Definition(bool is_public, std::string name)
+		: is_public(is_public), name(name) {};
 };
 
-struct MODULE_API FunctionDefinition : public Statement, public std::enable_shared_from_this<FunctionDefinition>
+struct MODULE_API VariableDefinition : public Definition
 {
-	bool is_public;
-	std::string name;
-	std::vector<std::pair<std::string, TypeVariant_ptr>> arguments;
-	std::optional<TypeVariant_ptr> return_type;
-	Block_ptr body;
+	bool is_mutable;
+	Type_ptr type;
+	Expression_ptr expression;
 
-	FunctionDefinition(bool is_public, std::string name, std::vector<std::pair<std::string, TypeVariant_ptr>> arguments, std::optional<TypeVariant_ptr> return_type, Block_ptr body) : is_public(is_public), name(name), arguments(arguments), return_type(return_type), body(body) {};
-	ObjectVariant_ptr interpret(StatementVisitor& visitor);
+	VariableDefinition(bool is_public, bool is_mutable, std::string name, Type_ptr type, Expression_ptr expression)
+		: Definition(is_public, name), is_mutable(is_mutable), type(std::move(type)), expression(std::move(expression)) {};
 };
 
-struct MODULE_API EnumDefinition : public Statement, public std::enable_shared_from_this<EnumDefinition>
+struct MODULE_API UDTDefinition : public Definition
 {
-	bool is_public;
-	std::string name;
+	std::map<std::string, Type_ptr> member_types;
+
+	UDTDefinition(bool is_public, std::string name, std::map<std::string, Type_ptr> member_types)
+		: Definition(is_public, name), member_types(member_types) {};
+};
+
+struct MODULE_API FunctionDefinition : public Definition
+{
+	std::vector<std::pair<std::string, Type_ptr>> arguments;
+	std::optional<Type_ptr> return_type;
+	Block body;
+
+	FunctionDefinition(bool is_public, std::string name, std::vector<std::pair<std::string, Type_ptr>> arguments, std::optional<Type_ptr> return_type, Block body)
+		: Definition(is_public, name), arguments(arguments), return_type(return_type), body(body) {};
+};
+
+struct MODULE_API EnumDefinition : public Definition
+{
 	std::vector<std::string> members;
 
 	EnumDefinition(bool is_public, std::string name, std::vector<std::string> members)
-		: is_public(is_public), name(name), members(members) {};
-
-	ObjectVariant_ptr interpret(StatementVisitor& visitor);
+		: Definition(is_public, name), members(members) {};
 };
 
-struct MODULE_API Return : public Statement, public std::enable_shared_from_this<Return>
+// Import
+
+struct MODULE_API Import : public StatementBase
+{
+	std::vector<std::string> goods;
+
+	Import(std::vector<std::string> goods) : goods(goods) {};
+};
+
+struct MODULE_API ImportCustom : public Import
+{
+	std::string path;
+
+	ImportCustom(std::string path, std::vector<std::string> goods)
+		: Import(goods), path(path) {};
+};
+
+struct MODULE_API ImportInBuilt : public Import
+{
+	std::string module_name;
+
+	ImportInBuilt(std::string module_name, std::vector<std::string> goods)
+		: Import(goods), module_name(module_name) {};
+};
+
+// Other
+
+struct MODULE_API Return : public StatementBase
 {
 	std::optional<Expression_ptr> expression;
 
 	Return() : expression(std::nullopt) {};
-	Return(Expression_ptr expression) : expression(std::make_optional(std::move(expression))) {};
-	ObjectVariant_ptr interpret(StatementVisitor& visitor);
+	Return(Expression_ptr expression)
+		: expression(std::make_optional(std::move(expression))) {};
 };
 
-struct MODULE_API ExpressionStatement : public Statement, public std::enable_shared_from_this<ExpressionStatement>
+struct MODULE_API ExpressionStatement : public StatementBase
 {
 	Expression_ptr expression;
-	ExpressionStatement(Expression_ptr expression) : expression(std::move(expression)) {};
-	ObjectVariant_ptr interpret(StatementVisitor& visitor);
+	ExpressionStatement(Expression_ptr expression)
+		: expression(std::move(expression)) {};
 };
-
-struct MODULE_API Import : public Statement, public std::enable_shared_from_this<Import>
-{
-	std::vector<std::string> goods;
-	std::string path;
-	bool is_inbuilt;
-
-	Import(std::string path, std::vector<std::string> goods, bool is_inbuilt)
-		: goods(goods), path(path), is_inbuilt(is_inbuilt) {};
-	ObjectVariant_ptr interpret(StatementVisitor& visitor);
-};
-
-using VariableDeclaration_ptr = MODULE_API std::shared_ptr<VariableDeclaration>;
-using Assignment_ptr = MODULE_API std::shared_ptr<Assignment>;
-using Branch_ptr = MODULE_API std::shared_ptr<Branch>;
-using Loop_ptr = MODULE_API std::shared_ptr<Loop>;
-using ForEachLoop_ptr = MODULE_API std::shared_ptr<ForEachLoop>;
-using Break_ptr = MODULE_API std::shared_ptr<Break>;
-using Continue_ptr = MODULE_API std::shared_ptr<Continue>;
-using UDTDefinition_ptr = MODULE_API std::shared_ptr<UDTDefinition>;
-using FunctionDefinition_ptr = MODULE_API std::shared_ptr<FunctionDefinition>;
-using Return_ptr = MODULE_API std::shared_ptr<Return>;
-using ExpressionStatement_ptr = MODULE_API std::shared_ptr<ExpressionStatement>;
-using Import_ptr = MODULE_API std::shared_ptr<Import>;
-using EnumDefinition_ptr = MODULE_API std::shared_ptr<EnumDefinition>;

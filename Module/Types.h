@@ -10,45 +10,40 @@
 #include <string>
 #include <memory>
 #include <variant>
+#include <vector>
 
 struct NumberType;
 struct StringType;
 struct BooleanType;
-struct VectorType;
+struct ListType;
+struct TupleType;
 struct UDTType;
+struct MapType;
 struct OptionalType;
+struct VariantType;
 
-// Variant Definition
-
-using TypeVariant = MODULE_API std::variant<
+using Type = MODULE_API std::variant<
 	std::monostate,
 	NumberType, StringType, BooleanType,
-	VectorType, UDTType,
-	OptionalType
+	ListType, TupleType,
+	UDTType, MapType,
+	OptionalType, VariantType
 >;
 
-using TypeVariant_ptr = MODULE_API std::shared_ptr<TypeVariant>;
+using Type_ptr = MODULE_API std::shared_ptr<Type>;
 
 // Type Base
 
-struct MODULE_API Type
+struct MODULE_API BaseType
 {
 };
 
-using Type_ptr = std::shared_ptr<Type>;
-
-struct MODULE_API ScalarType : public Type
+struct MODULE_API ScalarType : public BaseType
 {
 };
 
-struct MODULE_API CompositeType : public Type
+struct MODULE_API CompositeType : public BaseType
 {
-};
-
-struct MODULE_API OptionalType : public Type
-{
-	TypeVariant_ptr optional_type;
-	OptionalType(TypeVariant_ptr optional_type) : optional_type(std::move(optional_type)) {};
 };
 
 // Scalar Types
@@ -67,14 +62,44 @@ struct MODULE_API BooleanType : public ScalarType
 
 // Composite Types
 
-struct MODULE_API VectorType : public CompositeType
+struct MODULE_API ListType : public CompositeType
 {
-	TypeVariant_ptr type;
-	VectorType(TypeVariant_ptr type) : type(std::move(type)) {};
+	Type_ptr element_type;
+	ListType(Type_ptr element_type)
+		: element_type(std::move(element_type)) {};
+};
+
+struct MODULE_API TupleType : public CompositeType
+{
+	std::vector<Type_ptr> element_types;
+	TupleType(std::vector<Type_ptr> element_types)
+		: element_types(element_types) {};
+};
+
+struct MODULE_API MapType : public CompositeType
+{
+	Type_ptr key_type;
+	Type_ptr value_type;
+
+	MapType(Type_ptr from_type, Type_ptr to_type)
+		: key_type(std::move(from_type)),
+		value_type(std::move(to_type)) {};
 };
 
 struct MODULE_API UDTType : public CompositeType
 {
 	std::string name;
 	UDTType(std::string name) : name(name) {};
+};
+
+struct MODULE_API OptionalType : public CompositeType
+{
+	Type_ptr type;
+	OptionalType(Type_ptr type) : type(std::move(type)) {};
+};
+
+struct MODULE_API VariantType : public CompositeType
+{
+	std::vector<Type_ptr> types;
+	VariantType(std::vector<Type_ptr> types) : types(types) {};
 };

@@ -8,7 +8,8 @@
 #include <memory>
 #include <map>
 
-#define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr")
+#define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr");
+#define MAKE_EXPRESSION(x) std::make_shared<Expression>(x)
 
 using std::vector;
 using std::string;
@@ -37,25 +38,25 @@ Expression_ptr ExpressionParser::parse_expression()
 		}
 		case WTokenType::NumberLiteral:
 		{
-			ast.push(make_shared<NumberLiteral>(stod(current_token->value)));
+			ast.push(MAKE_EXPRESSION(stod(current_token->value)));
 			ADVANCE_PTR;
 			break;
 		}
 		case WTokenType::StringLiteral:
 		{
-			ast.push(make_shared<StringLiteral>(current_token->value));
+			ast.push(MAKE_EXPRESSION(current_token->value));
 			ADVANCE_PTR;
 			break;
 		}
 		case WTokenType::TRUE_KEYWORD:
 		{
-			ast.push(make_shared<BooleanLiteral>(true));
+			ast.push(MAKE_EXPRESSION(true));
 			ADVANCE_PTR;
 			break;
 		}
 		case WTokenType::FALSE_KEYWORD:
 		{
-			ast.push(make_shared<BooleanLiteral>(false));
+			ast.push(MAKE_EXPRESSION(false));
 			ADVANCE_PTR;
 			break;
 		}
@@ -66,9 +67,13 @@ Expression_ptr ExpressionParser::parse_expression()
 			auto member_access_expression = consume_member_access(current_token);
 
 			if (member_access_expression)
+			{
 				ast.push(member_access_expression);
+			}
 			else
-				ast.push(make_shared<Identifier>(current_token->value));
+			{
+				ast.push(MAKE_EXPRESSION(current_token->value));
+			}
 
 			break;
 		}
@@ -82,8 +87,8 @@ Expression_ptr ExpressionParser::parse_expression()
 		case WTokenType::OPEN_CURLY_BRACE:
 		{
 			ADVANCE_PTR;
-			auto UDT_literal = parse_UDT_literal();
-			ast.push(move(UDT_literal));
+			auto literal = parse_dictionary_literal();
+			ast.push(move(literal));
 			break;
 		}
 		case WTokenType::OPEN_PARENTHESIS:
@@ -101,6 +106,13 @@ Expression_ptr ExpressionParser::parse_expression()
 			operator_stack->drain_into_ast_until_open_parenthesis(ast);
 			ADVANCE_PTR;
 			return finish_parsing();
+		}
+		case WTokenType::FunctionIdentifier:
+		{
+			ADVANCE_PTR;
+			auto arguments = parse_function_call_arguments();
+			ast.push(MAKE_EXPRESSION(FunctionCall(current_token->value, arguments)));
+			break;
 		}
 		case WTokenType::BANG:
 		case WTokenType::UNARY_MINUS:
@@ -124,46 +136,10 @@ Expression_ptr ExpressionParser::parse_expression()
 			ADVANCE_PTR;
 			break;
 		}
-		case WTokenType::FunctionIdentifier:
-		{
-			ADVANCE_PTR;
-			auto arguments = parse_function_call_arguments();
-			ast.push(make_shared<FunctionCall>(current_token->value, arguments));
-			break;
-		}
 		}
 	}
 
 	return finish_parsing();
-}
-
-Expression_ptr ExpressionParser::finish_parsing()
-{
-	operator_stack->drain_into_ast(ast);
-
-	ASSERT(ast.size() != 0, "Malformed Expression. AST is empty.");
-
-	auto result = move(ast.top());
-	ast.pop();
-
-	return move(result);
-}
-
-string ExpressionParser::consume_valid_UDT_key()
-{
-	auto token = token_pipe->get_significant_token();
-	NULL_CHECK(token);
-
-	switch (token->type)
-	{
-	case WTokenType::Identifier:
-	{
-		ADVANCE_PTR;
-		return token->value;
-	}
-	}
-
-	FATAL("Expected a UDT key Identifier");
 }
 
 // Literal Parsers
@@ -173,7 +149,7 @@ Expression_ptr ExpressionParser::parse_vector_literal()
 	vector<Expression_ptr> elements;
 
 	if (token_pipe->next_significant_token_is(WTokenType::CLOSE_BRACKET))
-		return make_shared<VectorLiteral>(elements);
+		return MAKE_EXPRESSION(VectorLiteral(elements));
 
 	while (true)
 	{
@@ -181,7 +157,7 @@ Expression_ptr ExpressionParser::parse_vector_literal()
 		elements.push_back(move(element));
 
 		if (token_pipe->next_significant_token_is(WTokenType::CLOSE_BRACKET))
-			return make_shared<VectorLiteral>(elements);
+			return MAKE_EXPRESSION(VectorLiteral(elements));
 
 		ASSERT(
 			token_pipe->next_significant_token_is(WTokenType::COMMA),
@@ -190,16 +166,16 @@ Expression_ptr ExpressionParser::parse_vector_literal()
 	}
 }
 
-Expression_ptr ExpressionParser::parse_UDT_literal()
+Expression_ptr ExpressionParser::parse_dictionary_literal()
 {
-	map<string, Expression_ptr> pairs;
+	map<Token_ptr, Expression_ptr> pairs;
 
 	if (token_pipe->next_significant_token_is(WTokenType::CLOSE_CURLY_BRACE))
-		return make_shared<UDTLiteral>(pairs);
+		return MAKE_EXPRESSION(DictionaryLiteral(pairs));
 
 	while (true)
 	{
-		auto key = consume_valid_UDT_key();
+		auto key = consume_valid_dictionary_key();
 
 		ASSERT(
 			token_pipe->next_significant_token_is(WTokenType::COLON),
@@ -210,7 +186,7 @@ Expression_ptr ExpressionParser::parse_UDT_literal()
 		pairs.insert_or_assign(key, value);
 
 		if (token_pipe->next_significant_token_is(WTokenType::CLOSE_CURLY_BRACE))
-			return make_shared<UDTLiteral>(pairs);
+			return MAKE_EXPRESSION(DictionaryLiteral(pairs));
 
 		ASSERT(
 			token_pipe->next_significant_token_is(WTokenType::COMMA),
@@ -230,17 +206,18 @@ Expression_ptr ExpressionParser::consume_member_access(Token_ptr identifier)
 			"Expected a CLOSE_BRACKET"
 		);
 
-		return make_shared<VectorMemberAccess>(identifier->value, move(expression));
+		return MAKE_EXPRESSION(MemberAccess(identifier->value, move(expression)));
 	}
-	else if (token_pipe->next_significant_token_is(WTokenType::DOT))
+	else if (
+		token_pipe->next_significant_token_is(WTokenType::DOT) ||
+		token_pipe->next_significant_token_is(WTokenType::COLON_COLON)
+		)
 	{
-		auto member_identifier = token_pipe->consume_optional_token(WTokenType::Identifier);
-		return make_shared<UDTMemberAccess>(identifier->value, member_identifier->value);
-	}
-	else if (token_pipe->next_significant_token_is(WTokenType::COLON_COLON))
-	{
-		auto member_identifier = token_pipe->consume_optional_token(WTokenType::Identifier);
-		return make_shared<EnumMemberAccess>(identifier->value, member_identifier->value);
+		auto member_identifier = token_pipe->consume_required_token(WTokenType::Identifier);
+		return MAKE_EXPRESSION(MemberAccess(
+			identifier->value,
+			MAKE_EXPRESSION(Identifier(member_identifier->value))
+		));
 	}
 
 	return nullptr;
@@ -279,4 +256,39 @@ ExpressionVector ExpressionParser::parse_function_call_arguments()
 		inside_function_call.pop();
 		return expressions;
 	}
+}
+
+// Utils
+
+Expression_ptr ExpressionParser::finish_parsing()
+{
+	operator_stack->drain_into_ast(ast);
+
+	ASSERT(ast.size() != 0, "Malformed Expression. AST is empty.");
+
+	auto result = move(ast.top());
+	ast.pop();
+
+	return move(result);
+}
+
+Token_ptr ExpressionParser::consume_valid_dictionary_key()
+{
+	auto token = token_pipe->get_significant_token();
+	NULL_CHECK(token);
+
+	switch (token->type)
+	{
+	case WTokenType::Identifier:
+	case WTokenType::StringLiteral:
+	case WTokenType::NumberLiteral:
+	case WTokenType::TRUE_KEYWORD:
+	case WTokenType::FALSE_KEYWORD:
+	{
+		ADVANCE_PTR;
+		return move(token);
+	}
+	}
+
+	FATAL("Expected a valid map key");
 }

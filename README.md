@@ -1,28 +1,31 @@
 # Wasp Language Specification
 
-## Fundamental Datatypes
+## Datatypes
 
-- Scalar - str, bool, num
-- Composite - vector, map, UDT, enum
-- Optional - opt
+- Scalar
+    - string
+    - bool
+    - number
+- Composite
+    - vector
+    - map
+    - UDT
+    - enum
+    - variant
+- Generic 
 
-## Variables
 
-- all variables need to be initialized on declaration
+## Declaring variables  
+ 
+let x : str = "hello"
+let x : bool = true
+let x : num = 5
 
-```js
-let a : num = 5
-a
+let x : num | str = 5
 
-let a : [num] = [5]
-a[3]
-
-let a : opt [opt num] = [5]
-a[3]
-
-let a : { str -> str } = { "name": "john" }
-a["name"]
-```
+let x : [num] = [1, 2, 3]
+let x : { str -> str } = { "a" : "b" ,  "c" : "d" }
+let x : Person = { a : "b" ,  c : "d" }
 
 ## UDT type
 
@@ -46,17 +49,6 @@ foo.name
 type length = num
 ```
 
-## Variant
-
-```js
-let a : <str, int, bool> = 0
-
-let a : [str, <int, bool>] = ["hello", 0]
-```
-
-# Comments
-
-Comments begin with `//`.
 
 # Conditional
 
@@ -124,7 +116,7 @@ NAME::ID1
 
 ```
 
-# Built in core library
+# Builtins 
 
 ```js
 echo(string)

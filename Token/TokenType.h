@@ -38,6 +38,7 @@ enum class TOKEN_API WTokenType
 	COLON,
 	COLON_COLON,
 	ARROW,
+	BAR,
 
 	PLUS,
 	UNARY_PLUS,
@@ -91,11 +92,11 @@ enum class TOKEN_API WTokenType
 	FN,
 	RETURN,
 
+	TYPE,
 	NUM,
 	STR,
 	BOOL,
 	ENUM,
-	TYPE,
 	OPT,
 
 	SOME,

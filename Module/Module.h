@@ -12,6 +12,5 @@
 struct MODULE_API Module
 {
 	Block nodes;
-
 	void add(Statement_ptr node);
 };

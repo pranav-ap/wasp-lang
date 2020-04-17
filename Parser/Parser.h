@@ -19,8 +19,6 @@
 #include "Module.h"
 #include "ExpressionParser.h"
 
-#define CASE(token_type, call) case token_type: { return call; }
-
 class PARSER_API Parser
 {
 	TokenPipe_ptr token_pipe;
@@ -48,9 +46,11 @@ class PARSER_API Parser
 
 	// Type parsers
 
-	TypeVariant_ptr parse_type();
-	TypeVariant_ptr parse_vector_type();
-	TypeVariant_ptr consume_datatype_word();
+	Type_ptr parse_type();
+	Type_ptr parse_list_type();
+	Type_ptr parse_map_type();
+	Type_ptr parse_tuple_type();
+	Type_ptr consume_datatype_word();
 
 	// Definition Parsers
 
@@ -60,7 +60,7 @@ class PARSER_API Parser
 
 	// Utils
 
-	Block_ptr parse_block();
+	Block parse_block();
 	void convert_shortcut_token(Token_ptr token);
 
 public:

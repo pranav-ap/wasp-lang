@@ -11,8 +11,13 @@
 #include <map>
 #include <memory>
 #include <utility>
+#include <variant>
 
 #define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr")
+#define CASE(token_type, call) case token_type: { return call; }
+#define MAKE_STATEMENT(x) std::make_shared<Statement>(x)
+#define MAKE_EXPRESSION(x) std::make_shared<Expression>(x)
+#define MAKE_TYPE(x) std::make_shared<Type>(x)
 
 using std::string;
 using std::vector;
@@ -25,6 +30,7 @@ using std::make_pair;
 using std::optional;
 using std::make_optional;
 using std::move;
+using std::holds_alternative;
 
 // API
 
@@ -113,20 +119,20 @@ Statement_ptr Parser::parse_return_statement()
 
 	if (expression)
 	{
-		return make_shared<Return>(move(expression));
+		return MAKE_STATEMENT(Return(move(expression)));
 	}
 
-	return make_shared<Return>();
+	return MAKE_STATEMENT(Return());
 }
 
 Statement_ptr Parser::parse_break_statement()
 {
-	return make_shared<Break>();
+	return MAKE_STATEMENT(Break());
 }
 
 Statement_ptr Parser::parse_continue_statement()
 {
-	return make_shared<Continue>();
+	return MAKE_STATEMENT(Continue());
 }
 
 Statement_ptr Parser::parse_variable_declaration(bool is_public, bool is_mutable)
@@ -147,7 +153,7 @@ Statement_ptr Parser::parse_variable_declaration(bool is_public, bool is_mutable
 
 	Expression_ptr expression = expr_parser->parse_expression();
 
-	return make_shared<VariableDeclaration>(is_public, is_mutable, identifier->value, move(type), move(expression));
+	return MAKE_STATEMENT(VariableDefinition(is_public, is_mutable, identifier->value, move(type), move(expression)));
 }
 
 // Expression Parsers
@@ -155,7 +161,7 @@ Statement_ptr Parser::parse_variable_declaration(bool is_public, bool is_mutable
 Statement_ptr Parser::parse_expression_statement()
 {
 	auto expression = expr_parser->parse_expression();
-	return make_shared<ExpressionStatement>(move(expression));
+	return MAKE_STATEMENT(ExpressionStatement(move(expression)));
 }
 
 Statement_ptr Parser::consume_assignment_or_expression_statement(Token_ptr identifier)
@@ -171,7 +177,7 @@ Statement_ptr Parser::consume_assignment_or_expression_statement(Token_ptr ident
 		ADVANCE_PTR;
 
 		auto expression = expr_parser->parse_expression();
-		return make_shared<Assignment>(identifier->value, move(expression));
+		return MAKE_STATEMENT(Assignment(identifier->value, move(expression)));
 	}
 	case WTokenType::PLUS_EQUAL:
 	case WTokenType::MINUS_EQUAL:
@@ -185,10 +191,10 @@ Statement_ptr Parser::consume_assignment_or_expression_statement(Token_ptr ident
 		auto expression = expr_parser->parse_expression();
 		convert_shortcut_token(current_token);
 
-		auto identifier_expression = make_shared<Identifier>(identifier->value);
-		auto rhs = make_shared<Binary>(identifier_expression, current_token, move(expression));
+		auto identifier_expression = MAKE_EXPRESSION(Identifier(identifier->value));
+		auto rhs = MAKE_EXPRESSION(Binary(identifier_expression, current_token, move(expression)));
 
-		return make_shared<Assignment>(identifier->value, move(rhs));
+		return MAKE_STATEMENT(Assignment(identifier->value, move(rhs)));
 	}
 	default:
 	{
@@ -231,23 +237,23 @@ Statement_ptr Parser::parse_import_statement()
 
 	if (current_token)
 	{
-		return make_shared<Import>(current_token->value, goods, true);
+		return MAKE_STATEMENT(ImportInBuilt(current_token->value, goods));
 	}
 
 	auto path_token = token_pipe->consume_required_token(WTokenType::StringLiteral);
-	return make_shared<Import>(path_token->value, goods, false);
+	return MAKE_STATEMENT(ImportCustom(path_token->value, goods));
 }
 
 // Block Statements Parsers
 
-Block_ptr Parser::parse_block()
+Block Parser::parse_block()
 {
 	ASSERT(
 		token_pipe->next_significant_token_is(WTokenType::OPEN_CURLY_BRACE),
 		"Expected a OPEN_CURLY_BRACE"
 	);
 
-	Block_ptr statements = make_shared<Block>();
+	Block statements;
 
 	while (true)
 	{
@@ -255,14 +261,14 @@ Block_ptr Parser::parse_block()
 			return statements;
 
 		auto statement = parse_statement(false);
-		statements->push_back(move(statement));
+		statements.push_back(move(statement));
 	}
 }
 
 Statement_ptr Parser::parse_loop_statement()
 {
 	auto block = parse_block();
-	return make_shared<Loop>(block);
+	return MAKE_STATEMENT(Loop(block));
 }
 
 Statement_ptr Parser::parse_foreach_loop_statement()
@@ -274,10 +280,12 @@ Statement_ptr Parser::parse_foreach_loop_statement()
 		"Expected the IN keyword"
 	);
 
-	auto iterable_identifier = token_pipe->consume_required_token(WTokenType::Identifier);
+	auto iterable_expression = expr_parser->parse_expression();
+	NULL_CHECK(iterable_expression);
+
 	auto block = parse_block();
 
-	return make_shared<ForEachLoop>(identifier->value, iterable_identifier->value, block);
+	return MAKE_STATEMENT(ForEachLoop(identifier->value, iterable_expression, block));
 }
 
 Statement_ptr Parser::parse_branching_statement()
@@ -285,15 +293,14 @@ Statement_ptr Parser::parse_branching_statement()
 	auto condition = expr_parser->parse_expression();
 	auto consequence = parse_block();
 
-	// empty alternative
-	auto alternative = make_shared<vector<Statement_ptr>>();
+	Block alternative;
 
 	if (token_pipe->next_significant_token_is(WTokenType::ELSE))
 	{
 		if (token_pipe->next_significant_token_is(WTokenType::IF))
 		{
 			auto alternative_stat = parse_branching_statement();
-			alternative->push_back(move(alternative_stat));
+			alternative.push_back(move(alternative_stat));
 		}
 		else
 		{
@@ -301,7 +308,7 @@ Statement_ptr Parser::parse_branching_statement()
 		}
 	}
 
-	return make_shared<Branch>(move(condition), consequence, alternative);
+	return MAKE_STATEMENT(ConditionalBranch(condition, consequence, alternative));
 }
 
 // Definition Parsers
@@ -312,10 +319,10 @@ Statement_ptr Parser::parse_UDT_declaration(bool is_public)
 
 	if (token_pipe->next_significant_token_is(WTokenType::OPEN_CURLY_BRACE))
 	{
-		map<string, TypeVariant_ptr> member_types;
+		map<string, Type_ptr> member_types;
 
 		if (token_pipe->next_significant_token_is(WTokenType::CLOSE_CURLY_BRACE))
-			return make_shared<UDTDefinition>(is_public, name->value, member_types);
+			return MAKE_STATEMENT(UDTDefinition(is_public, name->value, member_types));
 
 		while (true)
 		{
@@ -330,7 +337,7 @@ Statement_ptr Parser::parse_UDT_declaration(bool is_public)
 			member_types.insert_or_assign(identifier->value, type);
 
 			if (token_pipe->next_significant_token_is(WTokenType::CLOSE_CURLY_BRACE))
-				return make_shared<UDTDefinition>(is_public, name->value, member_types);
+				return MAKE_STATEMENT(UDTDefinition(is_public, name->value, member_types));
 
 			ASSERT(
 				token_pipe->next_significant_token_is(WTokenType::COMMA),
@@ -351,7 +358,7 @@ Statement_ptr Parser::parse_function_definition(bool is_public)
 		"Expected a OPEN_PARENTHESIS"
 	);
 
-	vector<pair<string, TypeVariant_ptr>> arguments;
+	vector<pair<string, Type_ptr>> arguments;
 
 	while (true)
 	{
@@ -369,7 +376,7 @@ Statement_ptr Parser::parse_function_definition(bool is_public)
 		arguments.push_back(pair(identifier->value, type));
 	}
 
-	optional<TypeVariant_ptr> optional_return_type = std::nullopt;
+	optional<Type_ptr> optional_return_type = std::nullopt;
 
 	if (token_pipe->consume_optional_token(WTokenType::ARROW))
 	{
@@ -379,7 +386,7 @@ Statement_ptr Parser::parse_function_definition(bool is_public)
 
 	auto block = parse_block();
 
-	return make_shared<FunctionDefinition>(is_public, identifier->value, arguments, move(optional_return_type), block);
+	return MAKE_STATEMENT(FunctionDefinition(is_public, identifier->value, arguments, move(optional_return_type), block));
 }
 
 Statement_ptr Parser::parse_enum_statement(bool is_public)
@@ -407,20 +414,30 @@ Statement_ptr Parser::parse_enum_statement(bool is_public)
 		);
 	}
 
-	return make_shared<EnumDefinition>(is_public, identifier->value, members);
+	return MAKE_STATEMENT(EnumDefinition(is_public, identifier->value, members));
 }
 
 // Type Parsers
 
-TypeVariant_ptr Parser::parse_type()
+Type_ptr Parser::parse_type()
 {
 	if (token_pipe->next_significant_token_is(WTokenType::OPEN_BRACKET))
-		return parse_vector_type();
+	{
+		return parse_list_type();
+	}
+	else if (token_pipe->next_significant_token_is(WTokenType::OPEN_CURLY_BRACE))
+	{
+		return parse_map_type();
+	}
+	else if (token_pipe->next_significant_token_is(WTokenType::OPEN_PARENTHESIS))
+	{
+		return parse_tuple_type();
+	}
 
 	return consume_datatype_word();
 }
 
-TypeVariant_ptr Parser::parse_vector_type()
+Type_ptr Parser::parse_list_type()
 {
 	auto type = parse_type();
 
@@ -429,10 +446,52 @@ TypeVariant_ptr Parser::parse_vector_type()
 		"Expected a CLOSE_BRACKET"
 	);
 
-	return make_shared<TypeVariant>(VectorType(move(type)));
+	return MAKE_TYPE(ListType(move(type)));
 }
 
-TypeVariant_ptr Parser::consume_datatype_word()
+Type_ptr Parser::parse_tuple_type()
+{
+	vector<Type_ptr> types;
+
+	while (true)
+	{
+		auto type = parse_type();
+		types.push_back(type);
+
+		if (token_pipe->next_significant_token_is(WTokenType::COMMA))
+		{
+			continue;
+		}
+
+		ASSERT(
+			token_pipe->next_significant_token_is(WTokenType::CLOSE_PARENTHESIS),
+			"Expected a CLOSE_PARENTHESIS"
+		);
+	}
+
+	return MAKE_TYPE(TupleType(types));
+}
+
+Type_ptr Parser::parse_map_type()
+{
+	auto key_type = parse_type();
+
+	ASSERT(
+		token_pipe->next_significant_token_is(WTokenType::ARROW),
+		"Expected a ARROW"
+	);
+
+	auto value_type = parse_type();
+
+	ASSERT(
+		token_pipe->next_significant_token_is(WTokenType::CLOSE_CURLY_BRACE),
+		"Expected a CLOSE_CURLY_BRACE"
+	);
+
+	return MAKE_TYPE(MapType(move(key_type), move(value_type)));
+}
+
+Type_ptr Parser::consume_datatype_word()
 {
 	auto token = token_pipe->get_significant_token();
 	NULL_CHECK(token);
@@ -442,22 +501,22 @@ TypeVariant_ptr Parser::consume_datatype_word()
 	case WTokenType::NUM:
 	{
 		ADVANCE_PTR;
-		return make_shared<TypeVariant>(NumberType());
+		return MAKE_TYPE(NumberType());
 	}
 	case WTokenType::STR:
 	{
 		ADVANCE_PTR;
-		return make_shared<TypeVariant>(StringType());
+		return MAKE_TYPE(StringType());
 	}
 	case WTokenType::BOOL:
 	{
 		ADVANCE_PTR;
-		return make_shared<TypeVariant>(BooleanType());
+		return MAKE_TYPE(BooleanType());
 	}
 	case WTokenType::Identifier:
 	{
 		ADVANCE_PTR;
-		return make_shared<TypeVariant>(UDTType(token->value));
+		return MAKE_TYPE(UDTType(token->value));
 	}
 	default:
 	{

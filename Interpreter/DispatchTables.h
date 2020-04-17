@@ -7,7 +7,7 @@
 #include <map>
 #include <functional>
 
-using InBuiltFunction_VisitorType = std::function<ObjectVariant_ptr(std::vector<ObjectVariant_ptr>)>;
+using InBuiltFunction_VisitorType = std::function<Object_ptr(std::vector<Object_ptr>)>;
 
 using InBuiltFunction_DispatchTableType = std::map<
 	std::string,
@@ -33,7 +33,7 @@ const InBuiltFunction_DispatchTableType core_dispatch_table = {
 // MODULE NAME -> TABLE
 
 const InBuiltModule_DispatchTableType module_dispatch_table = {
-	{"io", io_dispatch_table },
+	{ "io", io_dispatch_table },
 	{ "core", core_dispatch_table }
 };
 

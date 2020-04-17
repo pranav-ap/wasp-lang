@@ -10,63 +10,74 @@
 #include "Module.h"
 #include "ObjectSystem.h"
 #include "Expression.h"
-#include "ExpressionVisitor.h"
 #include "Statement.h"
-#include "StatementVisitor.h"
 
-class INTERPRETER_API Interpreter : public StatementVisitor, public ExpressionVisitor
+class INTERPRETER_API Interpreter
 {
 	Environment_ptr env;
 
-	// Statement Visitors
+	Object_ptr interpret(Statement_ptr statement);
+	Object_ptr interpret(Expression_ptr expression);
 
-	ObjectVariant_ptr visit(VariableDeclaration_ptr statement);
-	ObjectVariant_ptr visit(Assignment_ptr statement);
-	ObjectVariant_ptr visit(Branch_ptr statement);
-	ObjectVariant_ptr visit(Loop_ptr statement);
-	ObjectVariant_ptr visit(ForEachLoop_ptr statement);
-	ObjectVariant_ptr visit(Break_ptr statement);
-	ObjectVariant_ptr visit(Continue_ptr statement);
-	ObjectVariant_ptr visit(ExpressionStatement_ptr statement);
-	ObjectVariant_ptr visit(UDTDefinition_ptr statement);
-	ObjectVariant_ptr visit(FunctionDefinition_ptr statement);
-	ObjectVariant_ptr visit(Return_ptr statement);
-	ObjectVariant_ptr visit(Import_ptr statement);
-	ObjectVariant_ptr visit(EnumDefinition_ptr statement);
+	// Statement Interpreters
 
-	// Expression Visitors
+	Object_ptr interpret(Assignment statement);
+	Object_ptr interpret(MultipleAssignment statement);
 
-	ObjectVariant_ptr visit(StringLiteral_ptr string_literal);
-	ObjectVariant_ptr visit(NumberLiteral_ptr number_literal);
-	ObjectVariant_ptr visit(BooleanLiteral_ptr bool_literal);
-	ObjectVariant_ptr visit(VectorLiteral_ptr expression);
-	ObjectVariant_ptr visit(UDTLiteral_ptr expression);
-	ObjectVariant_ptr visit(Identifier_ptr expression);
-	ObjectVariant_ptr visit(Unary_ptr expression);
-	ObjectVariant_ptr visit(Binary_ptr expression);
-	ObjectVariant_ptr visit(VectorMemberAccess_ptr expression);
-	ObjectVariant_ptr visit(UDTMemberAccess_ptr expression);
-	ObjectVariant_ptr visit(EnumMemberAccess_ptr expression);
-	ObjectVariant_ptr visit(FunctionCall_ptr expression);
-	ObjectVariant_ptr visit(Range_ptr expression);
+	Object_ptr interpret(ConditionalBranch statement);
+	Object_ptr interpret(IfLetBranch statement);
+
+	Object_ptr interpret(InfiniteLoop statement);
+	Object_ptr interpret(ForEachLoop statement);
+
+	Object_ptr interpret(Break statement);
+	Object_ptr interpret(Continue statement);
+
+	Object_ptr interpret(VariableDefinition statement);
+	Object_ptr interpret(UDTDefinition statement);
+	Object_ptr interpret(FunctionDefinition statement);
+	Object_ptr interpret(EnumDefinition statement);
+
+	Object_ptr interpret(ExpressionStatement statement);
+	Object_ptr interpret(Return statement);
+
+	Object_ptr interpret(ImportCustom statement);
+	Object_ptr interpret(ImportInBuilt statement);
+
+	// Expression Interpreters
+
+	Object_ptr interpret(std::string string_literal);
+	Object_ptr interpret(double number_literal);
+	Object_ptr interpret(bool bool_literal);
+	Object_ptr interpret(VectorLiteral expression);
+	Object_ptr interpret(DictionaryLiteral expression);
+	Object_ptr interpret(Identifier expression);
+	Object_ptr interpret(Unary expression);
+	Object_ptr interpret(Binary expression);
+	Object_ptr interpret(MemberAccess expression);
+	Object_ptr interpret(FunctionCall expression);
 
 	// Perform Operation
 
-	ObjectVariant_ptr perform_operation(WTokenType token_type, double operand);
-	ObjectVariant_ptr perform_operation(WTokenType token_type, bool operand);
+	Object_ptr perform_operation(WTokenType token_type, double operand);
+	Object_ptr perform_operation(WTokenType token_type, bool operand);
 
-	ObjectVariant_ptr perform_operation(WTokenType token_type, double left, double right);
-	ObjectVariant_ptr perform_operation(WTokenType token_type, bool left, bool right);
-	ObjectVariant_ptr perform_operation(WTokenType token_type, std::string left, std::string right);
-	ObjectVariant_ptr perform_operation(WTokenType token_type, std::string left, double right);
+	Object_ptr perform_operation(WTokenType token_type, double left, double right);
+	Object_ptr perform_operation(WTokenType token_type, bool left, bool right);
+	Object_ptr perform_operation(WTokenType token_type, std::string left, std::string right);
+	Object_ptr perform_operation(WTokenType token_type, std::string left, double right);
 
 	// Utils
 
-	ObjectVariant_ptr evaluate_block(Block_ptr block);
-	ObjectVariant_ptr evaluate_function_call(FunctionCall_ptr call_expression, FunctionInfo info);
-	ObjectVariant_ptr evaluate_function_call(FunctionCall_ptr call_expression, InBuiltFunctionInfo info);
+	Object_ptr evaluate_block(Block block);
 
-	bool are_same_type(ObjectVariant_ptr obj, TypeVariant_ptr type);
+	Object_ptr loop_over_vector(std::string item_name, ListObject& vector_object, Type_ptr type, Block block);
+	Object_ptr loop_over_map(std::string pair_name, DictionaryObject& map_object, Type_ptr key_type, Type_ptr value_type, Block block);
+
+	Object_ptr evaluate_function_call(FunctionCall call_expression, FunctionInfo info);
+	Object_ptr evaluate_function_call(FunctionCall call_expression, InBuiltFunctionInfo info);
+
+	bool are_same_type(Object_ptr obj, Type_ptr type);
 
 public:
 	Interpreter(Environment_ptr env) : env(env) {};

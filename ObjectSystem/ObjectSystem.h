@@ -8,92 +8,101 @@
 
 #include <optional>
 #include <string>
+#include <deque>
 #include <vector>
 #include <map>
 #include <utility>
 #include <memory>
 #include <variant>
 
-template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
-template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
-
-struct UDTObject;
-struct UDTKeyValuePairObject;
+struct ListObject;
 struct EnumMemberObject;
-
-struct VectorObject;
-struct OptionalObject;
-
+struct DictionaryObject;
+struct TupleObject;
+struct VariantObject;
 struct ReturnObject;
 struct ErrorObject;
 struct BreakObject;
 struct ContinueObject;
 struct BuiltInsObject;
 
-// Variant Definition
-
-using ObjectVariant = OBJECTSYSTEM_API std::variant<
+using Object = OBJECTSYSTEM_API std::variant<
 	std::monostate,
 	// Scalar Objects
 	double, std::string, bool,
 	// Composite Objects
-	VectorObject, OptionalObject,
-	UDTObject, UDTKeyValuePairObject,
-	EnumMemberObject,
+	ListObject, EnumMemberObject,
+	DictionaryObject, TupleObject,
+	VariantObject,
 	// Action Objects
 	ReturnObject, ErrorObject,
 	BreakObject, ContinueObject,
 	BuiltInsObject
 >;
 
-using ObjectVariant_ptr = OBJECTSYSTEM_API std::shared_ptr<ObjectVariant>;
+using Object_ptr = OBJECTSYSTEM_API std::shared_ptr<Object>;
 
 // Defining Objects
 
-struct OBJECTSYSTEM_API Object
+struct OBJECTSYSTEM_API BaseObject
 {
 };
 
-struct OBJECTSYSTEM_API CompositeObject : public Object
+struct OBJECTSYSTEM_API CompositeObject : public BaseObject
 {
 };
 
-struct OBJECTSYSTEM_API ActionObject : public Object
+struct OBJECTSYSTEM_API ActionObject : public BaseObject
 {
 };
 
 // Composite Objects
 
-struct OBJECTSYSTEM_API VectorObject : public CompositeObject
+struct OBJECTSYSTEM_API ListObject : public CompositeObject
 {
-	std::vector<ObjectVariant_ptr> values;
+	std::deque<Object_ptr> values;
 
-	VectorObject() {};
-	ObjectVariant_ptr add(ObjectVariant_ptr value);
-	ObjectVariant_ptr get_element(int index);
-	ObjectVariant_ptr set_element(int index, ObjectVariant_ptr value);
+	ListObject() {};
+
+	Object_ptr append(Object_ptr value);
+	Object_ptr prepend(Object_ptr value);
+
+	Object_ptr pop_back();
+	Object_ptr pop_front();
+
+	Object_ptr get(int index);
+	Object_ptr set(int index, Object_ptr value);
+
+	void clear();
+	bool is_empty();
+	int get_length();
 };
 
-struct OBJECTSYSTEM_API UDTKeyValuePairObject : public CompositeObject
+struct OBJECTSYSTEM_API TupleObject : public CompositeObject
 {
-	std::string key;
-	ObjectVariant_ptr value;
+	std::vector<Object_ptr> values;
 
-	UDTKeyValuePairObject(std::string key, ObjectVariant_ptr value)
-		: key(key), value(value) {};
+	TupleObject(std::vector<Object_ptr> values) : values(values) {};
+
+	Object_ptr get(int index);
+	Object_ptr set(int index, Object_ptr value);
+	Object_ptr set(std::vector<Object_ptr> values);
+
+	int get_length();
 };
 
-struct OBJECTSYSTEM_API UDTObject : public CompositeObject
+struct OBJECTSYSTEM_API DictionaryObject : public CompositeObject
 {
-	std::map<std::string, ObjectVariant_ptr> pairs;
+	std::map<Object_ptr, Object_ptr> pairs;
 
-	UDTObject() {};
+	DictionaryObject() {};
 
-	ObjectVariant_ptr create_and_set_value(std::string key, ObjectVariant_ptr value);
-	ObjectVariant_ptr set_value(std::string key, ObjectVariant_ptr value);
+	Object_ptr insert(Object_ptr key, Object_ptr value);
+	Object_ptr get_pair(Object_ptr key);
+	Object_ptr get(Object_ptr key);
+	Object_ptr set(Object_ptr key, Object_ptr value);
 
-	ObjectVariant_ptr get_pair(std::string key);
-	ObjectVariant_ptr get_value(std::string key);
+	int get_size();
 };
 
 struct OBJECTSYSTEM_API EnumMemberObject : public CompositeObject
@@ -105,25 +114,16 @@ struct OBJECTSYSTEM_API EnumMemberObject : public CompositeObject
 		: enum_name(enum_name), member_name(member_name) {};
 };
 
-struct OBJECTSYSTEM_API OptionalObject : public CompositeObject
+struct OBJECTSYSTEM_API VariantObject : public CompositeObject
 {
-	std::optional<ObjectVariant_ptr> value;
+	Object_ptr value;
 
-	OptionalObject() : value(std::nullopt) {};
-	OptionalObject(std::optional<ObjectVariant_ptr> value)
-		: value(std::optional<ObjectVariant_ptr>(std::move(value))) {};
+	VariantObject(Object_ptr value)
+		: value(std::move(value)) {};
+	bool has_value();
 };
 
 // Action Objects
-
-struct OBJECTSYSTEM_API ReturnObject : public ActionObject
-{
-	std::optional<ObjectVariant_ptr> value;
-
-	ReturnObject() : value(std::nullopt) {};
-	ReturnObject(std::optional<ObjectVariant_ptr> value)
-		: value(std::optional<ObjectVariant_ptr>(std::move(value))) {};
-};
 
 struct OBJECTSYSTEM_API BreakObject : public ActionObject
 {
@@ -137,12 +137,22 @@ struct OBJECTSYSTEM_API BuiltInsObject : public ActionObject
 {
 };
 
+struct OBJECTSYSTEM_API ReturnObject : public ActionObject
+{
+	std::optional<Object_ptr> value;
+
+	ReturnObject()
+		: value(std::nullopt) {};
+	ReturnObject(Object_ptr value)
+		: value(std::optional(std::move(value))) {};
+};
+
 struct OBJECTSYSTEM_API ErrorObject : public ActionObject
 {
 	std::string message;
-	ErrorObject() : message("") {};
-	ErrorObject(std::string message) : message(message) {};
-};
 
-using VectorObject_ptr = OBJECTSYSTEM_API std::shared_ptr<VectorObject>;
-using UDTObject_ptr = OBJECTSYSTEM_API std::shared_ptr<UDTObject>;
+	ErrorObject()
+		: message("") {};
+	ErrorObject(std::string message)
+		: message(message) {};
+};

@@ -23,16 +23,6 @@ public:
 
 	Environment();
 
-	// Enter and leave
-
-	void enter_global_scope();
-	void enter_module_scope();
-	void enter_branch_scope();
-	void enter_loop_scope();
-	void enter_function_scope();
-
-	void leave_scope();
-
 	// Info Getters
 
 	InfoVariant_ptr get_info(std::string name);
@@ -43,13 +33,10 @@ public:
 
 	// Variable Getters
 
-	VectorObject* get_mutable_vector_variable(std::string name);
-	UDTObject* get_mutable_UDT_variable(std::string name);
-
-	// Setters
-
-	void set_variable(std::string name, ObjectVariant_ptr value);
-	void set_element(std::string name, int index, ObjectVariant_ptr value);
+	ListObject* get_mutable_vector_variable(std::string name);
+	TupleObject* get_mutable_tuple_variable(std::string name);
+	DictionaryObject* get_mutable_UDT_variable(std::string name);
+	DictionaryObject* get_mutable_map_variable(std::string name);
 
 	// Creators
 
@@ -57,22 +44,22 @@ public:
 		std::string name,
 		bool is_public,
 		bool is_mutable,
-		TypeVariant_ptr type,
-		ObjectVariant_ptr result
+		Type_ptr type,
+		Object_ptr result
 	);
 
 	void create_function(
 		std::string name,
 		bool is_public,
-		std::vector<std::pair<std::string, TypeVariant_ptr>> arguments,
-		std::optional<TypeVariant_ptr> return_type,
-		Block_ptr body
+		std::vector<std::pair<std::string, Type_ptr>> arguments,
+		std::optional<Type_ptr> return_type,
+		Block body
 	);
 
 	void create_UDT(
 		std::string name,
 		bool is_public,
-		std::map<std::string, TypeVariant_ptr> member_types
+		std::map<std::string, Type_ptr> member_types
 	);
 
 	void create_enum(
@@ -83,8 +70,18 @@ public:
 
 	void import_builtin(
 		std::string name,
-		std::function<ObjectVariant_ptr(std::vector<ObjectVariant_ptr>)> func
+		std::function<Object_ptr(std::vector<Object_ptr>)> func
 	);
+
+	// Enter and leave
+
+	void enter_global_scope();
+	void enter_module_scope();
+	void enter_branch_scope();
+	void enter_loop_scope();
+	void enter_function_scope();
+
+	void leave_scope();
 
 	// Utils
 

@@ -6,142 +6,97 @@
 #define MODULE_API __declspec(dllimport)
 #endif
 
+#include "Token.h"
+#include "ObjectSystem.h"
+
 #include <string>
 #include <vector>
 #include <stack>
 #include <memory>
+#include <variant>
 
-#include "Token.h"
-#include "ObjectSystem.h"
+struct VectorLiteral;
+struct DictionaryLiteral;
+struct MemberAccess;
+struct Identifier;
+struct FunctionCall;
+struct Unary;
+struct Binary;
 
-class ExpressionVisitor;
-
-struct MODULE_API Expression
-{
-	virtual ObjectVariant_ptr interpret(ExpressionVisitor& visitor) = 0;
-};
+using Expression = MODULE_API std::variant<
+	std::monostate,
+	double, std::string, bool,
+	VectorLiteral, DictionaryLiteral,
+	MemberAccess,
+	Identifier, FunctionCall,
+	Unary, Binary
+>;
 
 using Expression_ptr = MODULE_API std::shared_ptr<Expression>;
 using ExpressionVector = MODULE_API std::vector<Expression_ptr>;
 using ExpressionStack = MODULE_API std::stack<Expression_ptr>;
 
-struct MODULE_API StringLiteral : public Expression, public std::enable_shared_from_this<StringLiteral>
+struct MODULE_API ExpressionBase
 {
-	std::string value;
-	StringLiteral(std::string value) : value(value) {};
-	ObjectVariant_ptr interpret(ExpressionVisitor& visitor);
 };
 
-struct MODULE_API NumberLiteral : public Expression, public std::enable_shared_from_this<NumberLiteral>
+struct MODULE_API Identifier : public ExpressionBase
 {
-	double value;
-	NumberLiteral(double value) : value(value) {};
-	ObjectVariant_ptr interpret(ExpressionVisitor& visitor);
+	std::string name;
+	Identifier(std::string name) : name(name) {};
 };
 
-struct MODULE_API BooleanLiteral : public Expression, public std::enable_shared_from_this<BooleanLiteral>
+struct MODULE_API VectorLiteral : public ExpressionBase
 {
-	bool value;
-	BooleanLiteral(bool value) : value(value) {};
-	ObjectVariant_ptr interpret(ExpressionVisitor& visitor);
+	ExpressionVector expressions;
+	VectorLiteral() {};
+	VectorLiteral(std::vector<Expression_ptr> expressions)
+		: expressions(expressions) {};
 };
 
-struct MODULE_API VectorLiteral : public Expression, public std::enable_shared_from_this<VectorLiteral>
+struct MODULE_API DictionaryLiteral : public ExpressionBase
 {
-	std::vector<Expression_ptr> expressions;
-	VectorLiteral(std::vector<Expression_ptr> expressions) : expressions(expressions) {};
-	ObjectVariant_ptr interpret(ExpressionVisitor& visitor);
+	std::map<Token_ptr, Expression_ptr> pairs;
+	DictionaryLiteral() {};
+	DictionaryLiteral(std::map<Token_ptr, Expression_ptr> pairs)
+		: pairs(pairs) {};
 };
 
-struct MODULE_API UDTLiteral : public Expression, public std::enable_shared_from_this<UDTLiteral>
-{
-	std::map<std::string, Expression_ptr> pairs;
-	UDTLiteral(std::map<std::string, Expression_ptr> pairs) : pairs(pairs) {};
-	ObjectVariant_ptr interpret(ExpressionVisitor& visitor);
-};
-
-struct MODULE_API VectorMemberAccess : public Expression, public std::enable_shared_from_this<VectorMemberAccess>
+struct MODULE_API MemberAccess : public ExpressionBase
 {
 	std::string name;
 	Expression_ptr expression;
 
-	VectorMemberAccess(std::string name, Expression_ptr expression) : name(name), expression(std::move(expression)) {};
-	ObjectVariant_ptr interpret(ExpressionVisitor& visitor);
+	MemberAccess(std::string name, Expression_ptr expression)
+		: name(name), expression(std::move(expression)) {};
 };
 
-struct MODULE_API UDTMemberAccess : public Expression, public std::enable_shared_from_this<UDTMemberAccess>
-{
-	std::string UDT_name;
-	std::string member_name;
-
-	UDTMemberAccess(std::string UDT_name, std::string member_name) : UDT_name(UDT_name), member_name(member_name) {};
-	ObjectVariant_ptr interpret(ExpressionVisitor& visitor);
-};
-
-struct MODULE_API EnumMemberAccess : public Expression, public std::enable_shared_from_this<EnumMemberAccess>
-{
-	std::string enum_name;
-	std::string member_name;
-
-	EnumMemberAccess(std::string enum_name, std::string member_name) : enum_name(enum_name), member_name(member_name) {};
-	ObjectVariant_ptr interpret(ExpressionVisitor& visitor);
-};
-
-struct MODULE_API Identifier : public Expression, public std::enable_shared_from_this<Identifier>
+struct MODULE_API FunctionCall : public ExpressionBase
 {
 	std::string name;
-	Identifier(std::string name) : name(name) {};
-	ObjectVariant_ptr interpret(ExpressionVisitor& visitor);
+	ExpressionVector arguments;
+
+	FunctionCall(std::string name)
+		: name(name) {};
+	FunctionCall(std::string name, std::vector<Expression_ptr> arguments)
+		: name(name), arguments(arguments) {};
 };
 
-struct MODULE_API FunctionCall : public Expression, public std::enable_shared_from_this<FunctionCall>
-{
-	std::string name;
-	std::vector<Expression_ptr> arguments;
-
-	FunctionCall(std::string name, std::vector<Expression_ptr> arguments) : name(name), arguments(arguments) {};
-	ObjectVariant_ptr interpret(ExpressionVisitor& visitor);
-};
-
-struct MODULE_API Range : public Expression, public std::enable_shared_from_this<Range>
-{
-	Expression_ptr left;
-	Expression_ptr right;
-	bool is_inclusive;
-
-	Range(Expression_ptr left, Expression_ptr right, bool is_inclusive) : left(std::move(left)), right(std::move(right)), is_inclusive(is_inclusive) {};
-	ObjectVariant_ptr interpret(ExpressionVisitor& visitor);
-};
-
-struct MODULE_API Unary : public Expression, public std::enable_shared_from_this<Unary>
+struct MODULE_API Unary : public ExpressionBase
 {
 	Token_ptr op;
 	Expression_ptr operand;
 
-	Unary(Token_ptr op, Expression_ptr operand) : op(std::move(op)), operand(std::move(operand)) {};
-	ObjectVariant_ptr interpret(ExpressionVisitor& visitor);
+	Unary(Token_ptr op, Expression_ptr operand)
+		: op(std::move(op)), operand(std::move(operand)) {};
 };
 
-struct MODULE_API Binary : public Expression, public std::enable_shared_from_this<Binary>
+struct MODULE_API Binary : public ExpressionBase
 {
 	Expression_ptr left;
 	Token_ptr op;
 	Expression_ptr right;
 
-	Binary(Expression_ptr left, Token_ptr op, Expression_ptr right) : left(std::move(left)), op(std::move(op)), right(std::move(right)) {};
-	ObjectVariant_ptr interpret(ExpressionVisitor& visitor);
+	Binary(Expression_ptr left, Token_ptr op, Expression_ptr right)
+		: left(std::move(left)), op(std::move(op)), right(std::move(right)) {};
 };
-
-using StringLiteral_ptr = MODULE_API std::shared_ptr<StringLiteral>;
-using NumberLiteral_ptr = MODULE_API std::shared_ptr<NumberLiteral>;
-using BooleanLiteral_ptr = MODULE_API std::shared_ptr<BooleanLiteral>;
-using VectorLiteral_ptr = MODULE_API std::shared_ptr<VectorLiteral>;
-using UDTLiteral_ptr = MODULE_API std::shared_ptr<UDTLiteral>;
-using VectorMemberAccess_ptr = MODULE_API std::shared_ptr<VectorMemberAccess>;
-using UDTMemberAccess_ptr = MODULE_API std::shared_ptr<UDTMemberAccess>;
-using EnumMemberAccess_ptr = MODULE_API std::shared_ptr<EnumMemberAccess>;
-using Identifier_ptr = MODULE_API std::shared_ptr<Identifier>;
-using FunctionCall_ptr = MODULE_API std::shared_ptr<FunctionCall>;
-using Range_ptr = MODULE_API std::shared_ptr<Range>;
-using Unary_ptr = MODULE_API std::shared_ptr<Unary>;
-using Binary_ptr = MODULE_API std::shared_ptr<Binary>;

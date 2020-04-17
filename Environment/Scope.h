@@ -9,6 +9,8 @@ struct Scope
 	std::map<std::string, InfoVariant_ptr> store;
 };
 
+using Scope_ptr = std::shared_ptr<Scope>;
+
 struct GlobalScope : public Scope
 {
 };
@@ -32,5 +34,3 @@ struct BranchScope : public BlockScope
 struct LoopScope : public BlockScope
 {
 };
-
-using Scope_ptr = std::shared_ptr<Scope>;

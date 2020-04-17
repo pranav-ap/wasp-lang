@@ -12,6 +12,8 @@ using std::pair;
 using std::make_pair;
 using std::move;
 
+#define MAKE_EXPRESSION(x) std::make_shared<Expression>(x)
+
 void OperatorStack::push_operator_into_ast(Token_ptr operator_token, ExpressionStack& ast)
 {
 	int parity = get_parity(operator_token->type);
@@ -46,10 +48,10 @@ void OperatorStack::push_unary_operator_to_ast(Token_ptr operator_token, Express
 	ast.pop();
 
 	ast.push(
-		make_shared<Unary>(
+		MAKE_EXPRESSION(Unary(
 			move(operator_token),
 			move(expression)
-			)
+		))
 	);
 }
 
@@ -67,11 +69,11 @@ void OperatorStack::push_binary_operator_to_ast(Token_ptr operator_token, Expres
 	ast.pop();
 
 	ast.push(
-		make_shared<Binary>(
+		MAKE_EXPRESSION(Binary(
 			move(lhs),
 			move(operator_token),
 			move(rhs)
-			)
+		))
 	);
 }
 

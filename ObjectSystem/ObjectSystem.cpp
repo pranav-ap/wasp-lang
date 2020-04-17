@@ -5,35 +5,77 @@
 #include "CommonAssertion.h"
 
 #include <string>
+#include <vector>
 #include <exception>
+#include <variant>
 
-#define MAKE_OBJECT_VARIANT(x) std::make_shared<ObjectVariant>(x)
-#define VOID std::make_shared<ObjectVariant>(ReturnObject())
+#define MAKE_OBJECT_VARIANT(x) std::make_shared<Object>(x)
+#define VOID std::make_shared<Object>(ReturnObject())
+#define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr")
 
 #define THROW(message)													\
 		spdlog::error(message);											\
-		return std::make_shared<ObjectVariant>(ErrorObject(message));
+		return std::make_shared<Object>(ErrorObject(message));
 
 #define THROW_ASSERT(condition, message)								\
 	if (!condition) {													\
 		spdlog::error(message);											\
-		return std::make_shared<ObjectVariant>(ErrorObject(message));	\
+		return std::make_shared<Object>(ErrorObject(message));	\
 	}
 
-using std::string;
+template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
 
-ObjectVariant_ptr VectorObject::add(ObjectVariant_ptr value)
+using std::string;
+using std::vector;
+
+Object_ptr ListObject::append(Object_ptr value)
 {
+	NULL_CHECK(value);
 	THROW_ASSERT(value->index() != 0, "Cannot add monostate to VectorObject");
 	values.push_back(value);
 	return VOID;
 }
 
-ObjectVariant_ptr VectorObject::get_element(int index)
+Object_ptr ListObject::prepend(Object_ptr value)
+{
+	NULL_CHECK(value);
+	THROW_ASSERT(value->index() != 0, "Cannot add monostate to VectorObject");
+	values.push_front(value);
+	return VOID;
+}
+
+Object_ptr ListObject::pop_back()
+{
+	if (!values.empty())
+	{
+		auto value = values.back();
+		values.pop_back();
+		return value;
+	}
+
+	THROW("Vector is empty");
+}
+
+Object_ptr ListObject::pop_front()
+{
+	if (!values.empty())
+	{
+		auto value = values.front();
+		values.pop_front();
+		return value;
+	}
+
+	THROW("Vector is empty");
+}
+
+Object_ptr ListObject::get(int index)
 {
 	try
 	{
-		return values.at(index);
+		auto value = values.at(index);
+		NULL_CHECK(value);
+		return value;
 	}
 	catch (std::out_of_range&)
 	{
@@ -41,8 +83,9 @@ ObjectVariant_ptr VectorObject::get_element(int index)
 	}
 }
 
-ObjectVariant_ptr VectorObject::set_element(int index, ObjectVariant_ptr value)
+Object_ptr ListObject::set(int index, Object_ptr value)
 {
+	NULL_CHECK(value);
 	THROW_ASSERT(value->index() != 0, "Cannot add monostate to VectorObject");
 
 	try
@@ -56,44 +99,128 @@ ObjectVariant_ptr VectorObject::set_element(int index, ObjectVariant_ptr value)
 	}
 }
 
-ObjectVariant_ptr UDTObject::create_and_set_value(string key, ObjectVariant_ptr value)
+void ListObject::clear()
 {
-	THROW_ASSERT(value->index() != 0, "Cannot assign monostate to a key in UDTObject");
+	values.clear();
+}
+
+bool ListObject::is_empty()
+{
+	return values.empty();
+}
+
+int ListObject::get_length()
+{
+	return values.size();
+}
+
+Object_ptr DictionaryObject::insert(Object_ptr key, Object_ptr value)
+{
+	NULL_CHECK(key);
+	NULL_CHECK(value);
+	THROW_ASSERT(value->index() != 0, "Cannot assign monostate to a key in DictionaryObject");
 
 	const auto [_, success] = pairs.insert({ key, value });
-	ASSERT(success, "Unable to assign value to key " + key + " in UDT");
+	ASSERT(success, "Unable to assign value to key in Map");
 
 	return VOID;
 }
 
-ObjectVariant_ptr UDTObject::get_pair(std::string key)
+Object_ptr DictionaryObject::set(Object_ptr key, Object_ptr value)
 {
+	NULL_CHECK(key);
+	NULL_CHECK(value);
+	THROW_ASSERT(value->index() != 0, "Cannot assign monostate to a key in DictionaryObject");
+	pairs.insert_or_assign(key, value);
+	return VOID;
+}
+
+int DictionaryObject::get_size()
+{
+	return pairs.size();
+}
+
+Object_ptr DictionaryObject::get_pair(Object_ptr key)
+{
+	NULL_CHECK(key);
+
 	try
 	{
 		auto value = pairs.at(key);
-		return MAKE_OBJECT_VARIANT(UDTKeyValuePairObject(key, move(value)));
+		NULL_CHECK(value);
+
+		Object_ptr key_object = std::visit(overloaded{
+			[](double num) { return MAKE_OBJECT_VARIANT(num); },
+			[](std::string& text) { return MAKE_OBJECT_VARIANT(text); },
+			[](bool boolean) { return MAKE_OBJECT_VARIANT(boolean); },
+
+			[&](auto) { THROW("Cannot iterate over this datatype"); }
+			}, *key);
+
+		return MAKE_OBJECT_VARIANT(TupleObject({ key_object, value }));
 	}
 	catch (std::out_of_range&)
 	{
-		THROW("Key " + key + " is not available");
+		THROW("Key is not available");
 	}
 }
 
-ObjectVariant_ptr UDTObject::get_value(std::string key)
+Object_ptr DictionaryObject::get(Object_ptr key)
+{
+	NULL_CHECK(key);
+
+	try
+	{
+		auto value = pairs.at(key);
+		NULL_CHECK(value);
+		return value;
+	}
+	catch (std::out_of_range&)
+	{
+		THROW("Key is not available");
+	}
+}
+
+Object_ptr TupleObject::get(int index)
 {
 	try
 	{
-		return pairs.at(key);
+		auto value = values.at(index);
+		NULL_CHECK(value);
+		return value;
 	}
 	catch (std::out_of_range&)
 	{
-		THROW("Key " + key + " is not available");
+		THROW("Index is out of range");
 	}
 }
 
-ObjectVariant_ptr UDTObject::set_value(std::string key, ObjectVariant_ptr value)
+Object_ptr TupleObject::set(int index, Object_ptr value)
 {
-	THROW_ASSERT(value->index() != 0, "Cannot assign monostate to a key in UDTObject");
-	pairs.insert_or_assign(key, value);
+	NULL_CHECK(value);
+
+	try
+	{
+		values.at(index) = move(value);
+	}
+	catch (std::out_of_range&)
+	{
+		THROW("Index is out of range");
+	}
+}
+
+Object_ptr TupleObject::set(std::vector<Object_ptr> values)
+{
+	this->values = values;
 	return VOID;
+}
+
+int TupleObject::get_length()
+{
+	return values.size();
+}
+
+bool VariantObject::has_value()
+{
+	return value->index() != 0;
 }

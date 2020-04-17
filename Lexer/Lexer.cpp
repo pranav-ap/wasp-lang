@@ -316,6 +316,8 @@ Token_ptr Lexer::consume_single_char_punctuation(char ch)
 		return MAKE_TOKEN(WTokenType::CLOSE_BRACKET, "]", LINE_NUM, COL_NUM);
 	case ',':
 		return MAKE_TOKEN(WTokenType::COMMA, ",", LINE_NUM, COL_NUM);
+	case '|':
+		return MAKE_TOKEN(WTokenType::BAR, ",", LINE_NUM, COL_NUM);
 	case '.':
 		return MAKE_TOKEN(WTokenType::DOT, ".", LINE_NUM, COL_NUM);
 	}

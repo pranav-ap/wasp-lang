@@ -14,25 +14,25 @@ using std::cin;
 using std::endl;
 using std::string;
 
-#define MAKE_OBJECT_VARIANT(x) std::make_shared<ObjectVariant>(x)
-#define VOID std::make_shared<ObjectVariant>(ReturnObject())
-#define THROW(message) return std::make_shared<ObjectVariant>(ErrorObject(message))
+#define MAKE_OBJECT_VARIANT(x) std::make_shared<Object>(x)
+#define VOID std::make_shared<Object>(ReturnObject())
+#define THROW(message) return std::make_shared<Object>(ErrorObject(message))
 
 #define THROW_ASSERT(condition, message)								\
 	if (!condition) {													\
 		spdlog::error(message);											\
-		return std::make_shared<ObjectVariant>(ErrorObject(message));	\
+		return std::make_shared<Object>(ErrorObject(message));	\
 	}
 
 // ECHO
 
-ObjectVariant_ptr io::echo_visit(std::vector<ObjectVariant_ptr> arguments)
+Object_ptr io::echo_visit(std::vector<Object_ptr> arguments)
 {
 	THROW_ASSERT(arguments.size() == 1, "echo(..) takes a string or number as argument");
 
 	return std::visit(overloaded{
-		[](std::string text) { cout << text; return VOID; },
-		[](double number) { cout << number; return VOID; },
+		[](std::string text) { cout << text << endl; return VOID; },
+		[](double number) { cout << number << endl; return VOID; },
 
 		[](auto) { THROW("echo(..) takes a string or number as argument"); }
 		}, *arguments[0]);
@@ -40,7 +40,7 @@ ObjectVariant_ptr io::echo_visit(std::vector<ObjectVariant_ptr> arguments)
 
 // ASK
 
-ObjectVariant_ptr io::ask_visit(std::vector<ObjectVariant_ptr> arguments)
+Object_ptr io::ask_visit(std::vector<Object_ptr> arguments)
 {
 	THROW_ASSERT(arguments.size() == 1, "ask(..) takes one string or number as argument");
 
@@ -52,7 +52,7 @@ ObjectVariant_ptr io::ask_visit(std::vector<ObjectVariant_ptr> arguments)
 		}, *arguments[0]);
 }
 
-ObjectVariant_ptr core::size_visit(std::vector<ObjectVariant_ptr> arguments)
+Object_ptr core::size_visit(std::vector<Object_ptr> arguments)
 {
 	THROW_ASSERT(arguments.size() == 1, "size(..) takes a string or vector as argument");
 

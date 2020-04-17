@@ -22,12 +22,12 @@ class ExpressionParser
 	// Literal parsers
 
 	Expression_ptr parse_vector_literal();
-	Expression_ptr parse_UDT_literal();
+	Expression_ptr parse_dictionary_literal();
 
 	// Utils
 
 	Expression_ptr finish_parsing();
-	std::string consume_valid_UDT_key();
+	Token_ptr consume_valid_dictionary_key();
 
 public:
 	ExpressionParser(TokenPipe_ptr token_pipe)
