@@ -4,6 +4,7 @@
 #include "spdlog.h"
 #include "CommonAssertion.h"
 
+#include <cmath>
 #include <string>
 #include <vector>
 #include <exception>
@@ -28,6 +29,7 @@ template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
 
 using std::string;
 using std::vector;
+using std::get;
 
 Object_ptr ListObject::append(Object_ptr value)
 {
@@ -69,11 +71,16 @@ Object_ptr ListObject::pop_front()
 	THROW("Vector is empty");
 }
 
-Object_ptr ListObject::get(int index)
+Object_ptr ListObject::get(Object_ptr index_object)
 {
 	try
 	{
-		auto value = values.at(index);
+		auto index = std::get<double>(*index_object);
+
+		double intpart;
+		ASSERT(modf(index, &intpart) == 0.0, "Index must be an integer");
+
+		auto value = values.at(intpart);
 		NULL_CHECK(value);
 		return value;
 	}
@@ -81,21 +88,34 @@ Object_ptr ListObject::get(int index)
 	{
 		THROW("Index is out of range");
 	}
+	catch (std::bad_variant_access&)
+	{
+		THROW("Index must be an integer");
+	}
 }
 
-Object_ptr ListObject::set(int index, Object_ptr value)
+Object_ptr ListObject::set(Object_ptr index_object, Object_ptr value)
 {
 	NULL_CHECK(value);
 	THROW_ASSERT(value->index() != 0, "Cannot add monostate to VectorObject");
 
 	try
 	{
-		values.at(index) = move(value);
+		auto index = std::get<double>(*index_object);
+
+		double intpart;
+		ASSERT(modf(index, &intpart) == 0.0, "Index must be an integer");
+
+		values.at(intpart) = move(value);
 		return VOID;
 	}
 	catch (std::out_of_range&)
 	{
 		THROW("Index is out of range");
+	}
+	catch (std::bad_variant_access&)
+	{
+		THROW("Index must be an integer");
 	}
 }
 
@@ -181,11 +201,16 @@ Object_ptr DictionaryObject::get(Object_ptr key)
 	}
 }
 
-Object_ptr TupleObject::get(int index)
+Object_ptr TupleObject::get(Object_ptr index_object)
 {
 	try
 	{
-		auto value = values.at(index);
+		auto index = std::get<double>(*index_object);
+
+		double intpart;
+		ASSERT(modf(index, &intpart) == 0.0, "Index must be an integer");
+
+		auto value = values.at(intpart);
 		NULL_CHECK(value);
 		return value;
 	}
@@ -193,19 +218,32 @@ Object_ptr TupleObject::get(int index)
 	{
 		THROW("Index is out of range");
 	}
+	catch (std::bad_variant_access&)
+	{
+		THROW("Index must be an integer");
+	}
 }
 
-Object_ptr TupleObject::set(int index, Object_ptr value)
+Object_ptr TupleObject::set(Object_ptr index_object, Object_ptr value)
 {
 	NULL_CHECK(value);
 
 	try
 	{
-		values.at(index) = move(value);
+		auto index = std::get<double>(*index_object);
+
+		double intpart;
+		ASSERT(modf(index, &intpart) == 0.0, "Index must be an integer");
+
+		values.at(intpart) = move(value);
 	}
 	catch (std::out_of_range&)
 	{
 		THROW("Index is out of range");
+	}
+	catch (std::bad_variant_access&)
+	{
+		THROW("Index must be an integer");
 	}
 }
 

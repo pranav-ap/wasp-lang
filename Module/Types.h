@@ -18,6 +18,7 @@ struct BooleanType;
 struct ListType;
 struct TupleType;
 struct UDTType;
+struct EnumType;
 struct MapType;
 struct OptionalType;
 struct VariantType;
@@ -27,6 +28,7 @@ using Type = MODULE_API std::variant<
 	NumberType, StringType, BooleanType,
 	ListType, TupleType,
 	UDTType, MapType,
+	EnumType,
 	OptionalType, VariantType
 >;
 
@@ -90,6 +92,13 @@ struct MODULE_API UDTType : public CompositeType
 {
 	std::string name;
 	UDTType(std::string name) : name(name) {};
+};
+
+struct MODULE_API EnumType : public CompositeType
+{
+	std::string enum_name;
+	EnumType(std::string enum_name)
+		: enum_name(enum_name) {};
 };
 
 struct MODULE_API OptionalType : public CompositeType

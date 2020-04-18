@@ -14,9 +14,9 @@
 #include <map>
 #include <optional>
 #include <variant>
+#include <algorithm>
 
 #define MAKE_OBJECT_VARIANT(x) std::make_shared<Object>(x)
-#define MAKE_KEY_VARIANT(x) std::make_shared<KeyObject>(x)
 #define MAKE_TYPE(x) std::make_shared<Type>(x)
 #define VOID std::make_shared<Object>(ReturnObject())
 #define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr")
@@ -313,7 +313,7 @@ Object_ptr Interpreter::interpret(DictionaryLiteral dict_literal)
 	for (auto const& [key, value_expr] : dict_literal.pairs)
 	{
 		auto value_object = interpret(value_expr);
-		dict_object.insert(MAKE_KEY_VARIANT(key->value), value_object);
+		dict_object.insert(MAKE_OBJECT_VARIANT(key->value), value_object);
 	}
 
 	return MAKE_OBJECT_VARIANT(dict_object);
@@ -356,29 +356,43 @@ Object_ptr Interpreter::interpret(Binary binary_expression)
 
 Object_ptr Interpreter::interpret(MemberAccess access_expression)
 {
+	auto accessor = interpret(access_expression.expression);
+
 	auto name = access_expression.name;
-	auto variable_object = env->get_variable_info(name);
+	auto info = env->get_variable_info(name);
 
-	auto index_variant = interpret(access_expression.expression);
+	return std::visit(overloaded{
+		[&](ListType& type, ListObject& value)
+		{
+			return value.get(accessor);
+		},
+		[&](TupleType& type, TupleObject& value)
+		{
+			return value.get(accessor);
+		},
+		[&](UDTType& type, DictionaryObject& value)
+		{
+			return value.get(accessor);
+		},
+		[&](MapType& type, DictionaryObject& value)
+		{
+			return value.get(accessor);
+		},
+		[&](EnumType& type, EnumMemberObject& value)
+		{
+			auto enum_info = env->get_enum_info(value.enum_name);
 
-	THROW_ASSERT(holds_alternative<double>(*index_variant), "Vector elements must be accessed by a numeric index");
-	double index = get<double>(*index_variant);
+			auto x = enum_info->members;
+			auto itr = std::find(x.begin(), x.end(), value.member_name);
 
-	THROW_ASSERT(index == floor(index), "Index has to be a whole number");
-	return vector_object->get(index);
+			if (itr != x.cend())
+			{
+				return MAKE_OBJECT_VARIANT(std::distance(x.begin(), itr));
+			}
+		},
 
-	auto UDT_object = env->get_mutable_UDT_variable(expression->UDT_name);
-	return UDT_object->get_value(expression->member_name);
-
-	auto enum_name = expression->enum_name;
-	auto info = env->get_enum_info(enum_name);
-
-	ASSERT(
-		info->members.contains(expression->member_name),
-		expression->member_name + " is not a member of enum " + enum_name
-	);
-
-	return MAKE_OBJECT_VARIANT(EnumMemberObject(enum_name, expression->member_name));
+		[](auto, auto) { THROW("Unable to perform member access"); }
+		}, *info->type, *info->value);
 }
 
 Object_ptr Interpreter::interpret(FunctionCall call_expression)

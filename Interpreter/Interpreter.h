@@ -49,11 +49,14 @@ class INTERPRETER_API Interpreter
 	Object_ptr interpret(std::string string_literal);
 	Object_ptr interpret(double number_literal);
 	Object_ptr interpret(bool bool_literal);
+
 	Object_ptr interpret(VectorLiteral expression);
 	Object_ptr interpret(DictionaryLiteral expression);
-	Object_ptr interpret(Identifier expression);
+
 	Object_ptr interpret(Unary expression);
 	Object_ptr interpret(Binary expression);
+
+	Object_ptr interpret(Identifier expression);
 	Object_ptr interpret(MemberAccess expression);
 	Object_ptr interpret(FunctionCall expression);
 

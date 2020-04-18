@@ -70,8 +70,8 @@ struct OBJECTSYSTEM_API ListObject : public CompositeObject
 	Object_ptr pop_back();
 	Object_ptr pop_front();
 
-	Object_ptr get(int index);
-	Object_ptr set(int index, Object_ptr value);
+	Object_ptr get(Object_ptr index);
+	Object_ptr set(Object_ptr index, Object_ptr value);
 
 	void clear();
 	bool is_empty();
@@ -84,8 +84,8 @@ struct OBJECTSYSTEM_API TupleObject : public CompositeObject
 
 	TupleObject(std::vector<Object_ptr> values) : values(values) {};
 
-	Object_ptr get(int index);
-	Object_ptr set(int index, Object_ptr value);
+	Object_ptr get(Object_ptr index);
+	Object_ptr set(Object_ptr index, Object_ptr value);
 	Object_ptr set(std::vector<Object_ptr> values);
 
 	int get_length();
