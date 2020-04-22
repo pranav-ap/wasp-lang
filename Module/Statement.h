@@ -115,10 +115,11 @@ struct MODULE_API InfiniteLoop : public Loop
 
 struct MODULE_API ForEachLoop : public Loop
 {
+	Type_ptr item_type;
 	std::string item_name;
 	Expression_ptr iterable;
 
-	ForEachLoop(std::string item_name, Expression_ptr iterable, Block block)
+	ForEachLoop(Type_ptr item_type, std::string item_name, Expression_ptr iterable, Block block)
 		: Loop(block), item_name(item_name), iterable(iterable) {};
 };
 

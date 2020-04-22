@@ -23,11 +23,10 @@ using InBuiltModule_DispatchTableType = std::map<
 
 const InBuiltFunction_DispatchTableType io_dispatch_table = {
 	{ "echo", io::echo_visit },
-	{ "ask", io::ask_visit }
+	{ "ask", io::ask }
 };
 
 const InBuiltFunction_DispatchTableType core_dispatch_table = {
-	{ "size", core::size_visit },
 };
 
 // MODULE NAME -> TABLE

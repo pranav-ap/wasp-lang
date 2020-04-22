@@ -7,13 +7,14 @@
     - bool
     - number
 - Composite
-    - vector
+    - list
+    - tensor
     - map
     - UDT
     - enum
     - variant
 - Generic 
-
+- any
 
 ## Declaring variables  
  
@@ -30,14 +31,14 @@ let x : Person = { a : "b" ,  c : "d" }
 ## UDT type
 
 ```js
-type hello {
-	foo: bool,
-    bar: str
+type Person {
+    name: str,
+	foo: bool
 }
 
-let foo : hello = {
-  bar : true,
-  name : "jim"
+let p : Person = {
+  name : "jim",
+  foo : true
 }
 
 foo.name
@@ -48,7 +49,6 @@ foo.name
 ```js
 type length = num
 ```
-
 
 # Conditional
 
@@ -67,7 +67,10 @@ if expr {
 ```js
 loop { }
 
-for x in vector / map { }
+for x : num  in [1, 2, 3]
+{
+    echo(x)
+}
 
 break
 continue
@@ -83,8 +86,7 @@ fn add (a: num, b: num) -> num {
 
 # Module system
 
-- Everything is private by default.
-- use the `pub` keyword
+- Everything is private by default
 
 ```js
 import { foo, bar } from "path/to/filename"
@@ -120,5 +122,5 @@ NAME::ID1
 
 ```js
 echo(string)
-ask(string, variable)
+ask()
 ```

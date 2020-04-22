@@ -57,6 +57,8 @@ class INTERPRETER_API Interpreter
 	Object_ptr interpret(Binary expression);
 
 	Object_ptr interpret(Identifier expression);
+	Object_ptr interpret(EnumMember expression);
+
 	Object_ptr interpret(MemberAccess expression);
 	Object_ptr interpret(FunctionCall expression);
 
@@ -74,8 +76,8 @@ class INTERPRETER_API Interpreter
 
 	Object_ptr evaluate_block(Block block);
 
-	Object_ptr loop_over_vector(std::string item_name, ListObject& vector_object, Type_ptr type, Block block);
-	Object_ptr loop_over_map(std::string pair_name, DictionaryObject& map_object, Type_ptr key_type, Type_ptr value_type, Block block);
+	Object_ptr loop_over_iterable(std::string item_name, Block block, ListObject& vector_object);
+	Object_ptr loop_over_iterable(std::string pair_name, Block block, DictionaryObject& map_object);
 
 	Object_ptr evaluate_function_call(FunctionCall call_expression, FunctionInfo info);
 	Object_ptr evaluate_function_call(FunctionCall call_expression, InBuiltFunctionInfo info);

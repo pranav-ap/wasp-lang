@@ -22,6 +22,7 @@ struct EnumType;
 struct MapType;
 struct OptionalType;
 struct VariantType;
+struct AnyType;
 
 using Type = MODULE_API std::variant<
 	std::monostate,
@@ -29,7 +30,8 @@ using Type = MODULE_API std::variant<
 	ListType, TupleType,
 	UDTType, MapType,
 	EnumType,
-	OptionalType, VariantType
+	OptionalType, VariantType,
+	AnyType
 >;
 
 using Type_ptr = MODULE_API std::shared_ptr<Type>;
@@ -45,6 +47,10 @@ struct MODULE_API ScalarType : public BaseType
 };
 
 struct MODULE_API CompositeType : public BaseType
+{
+};
+
+struct MODULE_API AnyType : public BaseType
 {
 };
 

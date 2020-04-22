@@ -24,6 +24,7 @@ using std::vector;
 using std::map;
 using std::set;
 using std::optional;
+using std::get;
 using std::get_if;
 using std::holds_alternative;
 
@@ -107,7 +108,7 @@ EnumInfo* Environment::get_enum_info(string name)
 
 // Variable Getters
 
-ListObject* Environment::get_mutable_vector_variable(string name)
+ListObject* Environment::get_mutable_list_variable(string name)
 {
 	auto info = get_variable_info(name);
 
@@ -149,6 +150,28 @@ DictionaryObject* Environment::get_mutable_map_variable(string name)
 	ASSERT(holds_alternative<DictionaryObject>(*info->value), name + " is not a UDT Value!");
 
 	return get_if<DictionaryObject>(&*info->value);
+}
+
+// Setters
+
+void Environment::set_variable(string name, Object_ptr value)
+{
+	NULL_CHECK(value);
+	ASSERT(value->index() != 0, "Cannot set variable = monostate");
+
+	auto variable_info = get_variable_info(name);
+
+	ASSERT(variable_info->is_mutable, "Variable is not mutable");
+	variable_info->value = move(value);
+}
+
+void Environment::set_element(string name, int index, Object_ptr value)
+{
+	NULL_CHECK(value);
+	ASSERT(value->index() != 0, "Cannot set element = monostate");
+
+	auto vector_object = get_mutable_list_variable(name);
+	vector_object->values[index] = value;
 }
 
 // Create

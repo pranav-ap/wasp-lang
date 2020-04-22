@@ -33,10 +33,15 @@ public:
 
 	// Variable Getters
 
-	ListObject* get_mutable_vector_variable(std::string name);
+	ListObject* get_mutable_list_variable(std::string name);
 	TupleObject* get_mutable_tuple_variable(std::string name);
 	DictionaryObject* get_mutable_UDT_variable(std::string name);
 	DictionaryObject* get_mutable_map_variable(std::string name);
+
+	// Setters
+
+	void set_variable(std::string name, Object_ptr value);
+	void set_element(std::string name, int index, Object_ptr value);
 
 	// Creators
 
@@ -83,7 +88,7 @@ public:
 
 	void leave_scope();
 
-	// Utils
+	// is inside ?
 
 	bool is_inside_module_scope();
 	bool is_inside_branch_scope();

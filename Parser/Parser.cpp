@@ -76,7 +76,7 @@ Statement_ptr Parser::parse_statement(bool is_public)
 		CASE(WTokenType::RETURN, parse_return_statement());
 		CASE(WTokenType::PUB, parse_public_statement());
 		CASE(WTokenType::IF, parse_branching_statement());
-		CASE(WTokenType::LOOP, parse_loop_statement());
+		CASE(WTokenType::LOOP, parse_infinite_loop_statement());
 		CASE(WTokenType::FOREACH, parse_foreach_loop_statement());
 		CASE(WTokenType::TYPE, parse_UDT_declaration(is_public));
 		CASE(WTokenType::FN, parse_function_definition(is_public));
@@ -175,9 +175,7 @@ Statement_ptr Parser::consume_assignment_or_expression_statement(Token_ptr ident
 	case WTokenType::EQUAL:
 	{
 		ADVANCE_PTR;
-
-		auto expression = expr_parser->parse_expression();
-		return MAKE_STATEMENT(Assignment(identifier->value, move(expression)));
+		return consume_assignment(identifier);
 	}
 	case WTokenType::PLUS_EQUAL:
 	case WTokenType::MINUS_EQUAL:
@@ -187,14 +185,12 @@ Statement_ptr Parser::consume_assignment_or_expression_statement(Token_ptr ident
 	case WTokenType::POWER_EQUAL:
 	{
 		ADVANCE_PTR;
-
-		auto expression = expr_parser->parse_expression();
-		convert_shortcut_token(current_token);
-
-		auto identifier_expression = MAKE_EXPRESSION(Identifier(identifier->value));
-		auto rhs = MAKE_EXPRESSION(Binary(identifier_expression, current_token, move(expression)));
-
-		return MAKE_STATEMENT(Assignment(identifier->value, move(rhs)));
+		return consume_shortcut_assignment(identifier, current_token);
+	}
+	case WTokenType::COMMA:
+	{
+		ADVANCE_PTR;
+		return consume_multiple_assignment(identifier);
 	}
 	default:
 	{
@@ -202,6 +198,55 @@ Statement_ptr Parser::consume_assignment_or_expression_statement(Token_ptr ident
 		return parse_expression_statement();
 	}
 	}
+}
+
+Statement_ptr Parser::consume_assignment(Token_ptr identifier)
+{
+	auto expression = expr_parser->parse_expression();
+	return MAKE_STATEMENT(Assignment(identifier->value, move(expression)));
+}
+
+Statement_ptr Parser::consume_shortcut_assignment(Token_ptr identifier, Token_ptr shortcut_operator)
+{
+	auto expression = expr_parser->parse_expression();
+	convert_shortcut_token(shortcut_operator);
+
+	auto identifier_expression = MAKE_EXPRESSION(Identifier(identifier->value));
+	auto rhs = MAKE_EXPRESSION(Binary(identifier_expression, shortcut_operator, move(expression)));
+
+	return MAKE_STATEMENT(Assignment(identifier->value, move(rhs)));
+}
+
+Statement_ptr Parser::consume_multiple_assignment(Token_ptr identifier)
+{
+	vector<string> identifiers;
+
+	while (true)
+	{
+		identifier = token_pipe->consume_required_token(WTokenType::Identifier);
+		identifiers.push_back(identifier->value);
+
+		if (!token_pipe->consume_optional_token(WTokenType::COMMA))
+			break;
+	}
+
+	ASSERT(
+		token_pipe->next_significant_token_is(WTokenType::EQUAL),
+		"Expected a EQUAL sign"
+	);
+
+	ExpressionVector expressions;
+
+	while (true)
+	{
+		auto expression = expr_parser->parse_expression();
+		expressions.push_back(move(expression));
+
+		if (!token_pipe->consume_optional_token(WTokenType::COMMA))
+			break;
+	}
+
+	return MAKE_STATEMENT(MultipleAssignment(identifiers, expressions));
 }
 
 Statement_ptr Parser::parse_import_statement()
@@ -265,15 +310,22 @@ Block Parser::parse_block()
 	}
 }
 
-Statement_ptr Parser::parse_loop_statement()
+Statement_ptr Parser::parse_infinite_loop_statement()
 {
 	auto block = parse_block();
-	return MAKE_STATEMENT(Loop(block));
+	return MAKE_STATEMENT(InfiniteLoop(block));
 }
 
 Statement_ptr Parser::parse_foreach_loop_statement()
 {
 	auto identifier = token_pipe->consume_required_token(WTokenType::Identifier);
+
+	Type_ptr item_type = MAKE_TYPE(AnyType());
+
+	if (token_pipe->consume_optional_token(WTokenType::COLON))
+	{
+		item_type = parse_type();
+	}
 
 	ASSERT(
 		token_pipe->next_significant_token_is(WTokenType::IN_KEYWORD),
@@ -285,7 +337,7 @@ Statement_ptr Parser::parse_foreach_loop_statement()
 
 	auto block = parse_block();
 
-	return MAKE_STATEMENT(ForEachLoop(identifier->value, iterable_expression, block));
+	return MAKE_STATEMENT(ForEachLoop(item_type, identifier->value, iterable_expression, block));
 }
 
 Statement_ptr Parser::parse_branching_statement()

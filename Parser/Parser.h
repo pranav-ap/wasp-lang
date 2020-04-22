@@ -34,14 +34,18 @@ class PARSER_API Parser
 	Statement_ptr parse_continue_statement();
 
 	Statement_ptr parse_variable_declaration(bool is_public, bool is_mutable);
+
 	Statement_ptr consume_assignment_or_expression_statement(Token_ptr identifier);
+	Statement_ptr consume_assignment(Token_ptr identifier);
+	Statement_ptr consume_shortcut_assignment(Token_ptr identifier, Token_ptr shortcut_operator);
+	Statement_ptr consume_multiple_assignment(Token_ptr identifier);
 
 	Statement_ptr parse_import_statement();
 
 	// Block statement parsing
 
 	Statement_ptr parse_branching_statement();
-	Statement_ptr parse_loop_statement();
+	Statement_ptr parse_infinite_loop_statement();
 	Statement_ptr parse_foreach_loop_statement();
 
 	// Type parsers

@@ -14,7 +14,6 @@
 #include <map>
 #include <optional>
 #include <variant>
-#include <algorithm>
 
 #define MAKE_OBJECT_VARIANT(x) std::make_shared<Object>(x)
 #define MAKE_TYPE(x) std::make_shared<Type>(x)
@@ -32,7 +31,6 @@ template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
 
 using std::string;
-using std::to_string;
 using std::map;
 using std::vector;
 using std::optional;
@@ -84,6 +82,7 @@ Object_ptr Interpreter::interpret(Expression_ptr expression)
 			[&](VectorLiteral exp) { return interpret(exp); },
 			[&](DictionaryLiteral exp) { return interpret(exp); },
 			[&](Identifier exp) { return interpret(exp); },
+			[&](EnumMember exp) { return interpret(exp); },
 			[&](Unary exp) { return interpret(exp); },
 			[&](Binary exp) { return interpret(exp); },
 			[&](MemberAccess exp) { return interpret(exp); },
@@ -93,7 +92,7 @@ Object_ptr Interpreter::interpret(Expression_ptr expression)
 		}, *expression);
 }
 
-// Statement Visitors
+// Statement Evaluation
 
 Object_ptr Interpreter::interpret(VariableDefinition declaration)
 {
@@ -112,11 +111,29 @@ Object_ptr Interpreter::interpret(VariableDefinition declaration)
 
 Object_ptr Interpreter::interpret(Assignment assignment)
 {
-	auto result = interpret(assignment);
+	auto result = interpret(assignment.expression);
 
-	auto info = env->get_variable_info(assignment.name);
-	ASSERT(info->is_mutable, assignment.name + " is not mutable");
-	info->value = move(result);
+	env->set_variable(assignment.name, result);
+
+	return VOID;
+}
+
+Object_ptr Interpreter::interpret(MultipleAssignment statement)
+{
+	ASSERT(
+		statement.names.size() == statement.expressions.size(),
+		"Mismatch in number of identifiers and RHS expressions"
+	);
+
+	int index = 0;
+	for (auto name : statement.names)
+	{
+		auto expression = statement.expressions[index];
+		index++;
+
+		auto result = interpret(expression);
+		env->set_variable(name, move(result));
+	}
 
 	return VOID;
 }
@@ -134,6 +151,11 @@ Object_ptr Interpreter::interpret(ConditionalBranch branch)
 	env->leave_scope();
 
 	return move(block_result);
+}
+
+Object_ptr Interpreter::interpret(IfLetBranch statement)
+{
+	return Object_ptr();
 }
 
 Object_ptr Interpreter::interpret(InfiniteLoop loop)
@@ -165,27 +187,36 @@ Object_ptr Interpreter::interpret(InfiniteLoop loop)
 
 Object_ptr Interpreter::interpret(ForEachLoop statement)
 {
-	env->enter_loop_scope();
-	env->create_variable(
-		statement.item_name,
-		false,
-		true,
-		MAKE_TYPE(NumberType()),
-		VOID
-	);
-
 	auto iterable = interpret(statement.iterable);
 
 	if (holds_alternative<string>(*iterable))
 	{
-		auto identifier_name = get<string>(*iterable);
-		auto info = env->get_variable_info(identifier_name);
-		iterable = info->value;
-		NULL_CHECK(iterable);
+		auto variable_name = get<string>(*iterable);
+		auto variable_info = env->get_variable_info(variable_name);
+		iterable = variable_info->value;
 	}
 
+	env->enter_loop_scope();
+
+	env->create_variable(
+		statement.item_name,
+		false,
+		true,
+		statement.item_type,
+		MAKE_OBJECT_VARIANT(NoneObject())
+	);
+
+	auto result = std::visit(overloaded{
+		[&](ListObject& value)
+		{ return loop_over_iterable(statement.item_name, statement.block, value); },
+		[&](DictionaryObject& value)
+		{ return loop_over_iterable(statement.item_name, statement.block, value); },
+
+		[](auto) { THROW("Unable to loop over this object"); }
+		}, *iterable);
+
 	env->leave_scope();
-	return VOID;
+	return result;
 }
 
 Object_ptr Interpreter::interpret(Break)
@@ -276,9 +307,9 @@ Object_ptr Interpreter::interpret(ImportInBuilt statement)
 	return VOID;
 }
 
-// Expression Visitors
+// Expression Evaluation
 
-Object_ptr Interpreter::interpret(std::string string_literal)
+Object_ptr Interpreter::interpret(string string_literal)
 {
 	return MAKE_OBJECT_VARIANT(string_literal);
 }
@@ -325,6 +356,20 @@ Object_ptr Interpreter::interpret(Identifier expression)
 	return move(info->value);
 }
 
+Object_ptr Interpreter::interpret(EnumMember expression)
+{
+	auto enum_info = env->get_enum_info(expression.enum_name);
+
+	if (enum_info->members.contains(expression.member_name))
+	{
+		return MAKE_OBJECT_VARIANT(
+			EnumMemberObject(expression.enum_name, expression.member_name)
+		);
+	}
+
+	THROW("Enum " + expression.enum_name + " does not contain " + expression.member_name);
+}
+
 Object_ptr Interpreter::interpret(Unary unary_expression)
 {
 	auto operand = interpret(unary_expression.operand);
@@ -362,34 +407,10 @@ Object_ptr Interpreter::interpret(MemberAccess access_expression)
 	auto info = env->get_variable_info(name);
 
 	return std::visit(overloaded{
-		[&](ListType& type, ListObject& value)
-		{
-			return value.get(accessor);
-		},
-		[&](TupleType& type, TupleObject& value)
-		{
-			return value.get(accessor);
-		},
-		[&](UDTType& type, DictionaryObject& value)
-		{
-			return value.get(accessor);
-		},
-		[&](MapType& type, DictionaryObject& value)
-		{
-			return value.get(accessor);
-		},
-		[&](EnumType& type, EnumMemberObject& value)
-		{
-			auto enum_info = env->get_enum_info(value.enum_name);
-
-			auto x = enum_info->members;
-			auto itr = std::find(x.begin(), x.end(), value.member_name);
-
-			if (itr != x.cend())
-			{
-				return MAKE_OBJECT_VARIANT(std::distance(x.begin(), itr));
-			}
-		},
+		[&](ListType& type, ListObject& value) { return value.get(accessor); },
+		[&](TupleType& type, TupleObject& value) { return value.get(accessor); },
+		[&](UDTType& type, DictionaryObject& value) { return value.get(accessor); },
+		[&](MapType& type, DictionaryObject& value) { return value.get(accessor); },
 
 		[](auto, auto) { THROW("Unable to perform member access"); }
 		}, *info->type, *info->value);
@@ -397,7 +418,7 @@ Object_ptr Interpreter::interpret(MemberAccess access_expression)
 
 Object_ptr Interpreter::interpret(FunctionCall call_expression)
 {
-	auto info_variant = env->get_info(call_expression.name);
+	auto info = env->get_info(call_expression.name);
 
 	return std::visit(overloaded{
 		[&](FunctionInfo info)
@@ -413,7 +434,7 @@ Object_ptr Interpreter::interpret(FunctionCall call_expression)
 		},
 
 		[](auto) { THROW("It is neither a function nor a builtin function!"); }
-		}, *info_variant);
+		}, *info);
 }
 
 // Perform Operation
@@ -571,34 +592,13 @@ Object_ptr Interpreter::perform_operation(WTokenType token_type, string left, do
 	THROW("Operation not supported");
 }
 
-// Utils
+// Loop
 
-Object_ptr Interpreter::evaluate_block(Block block)
-{
-	for (auto& statement : block)
-	{
-		auto result = interpret(statement);
-
-		if (
-			holds_alternative<ReturnObject>(*result) ||
-			holds_alternative<ErrorObject>(*result) ||
-			holds_alternative<ContinueObject>(*result) ||
-			holds_alternative<BreakObject>(*result)
-			) {
-			return result;
-		}
-	}
-
-	return VOID;
-}
-
-Object_ptr Interpreter::loop_over_vector(string item_name, ListObject& vector_object, Type_ptr type, Block block)
+Object_ptr Interpreter::loop_over_iterable(string item_name, Block block, ListObject& vector_object)
 {
 	for (auto const& element : vector_object.values)
 	{
-		THROW_ASSERT(are_same_type(element, type), "Element has incorrect type");
 		env->set_variable(item_name, element);
-
 		auto result = evaluate_block(block);
 
 		if (holds_alternative<ReturnObject>(*result) || holds_alternative<ErrorObject>(*result))
@@ -619,13 +619,24 @@ Object_ptr Interpreter::loop_over_vector(string item_name, ListObject& vector_ob
 	return VOID;
 }
 
-Object_ptr Interpreter::loop_over_map(std::string pair_name, DictionaryObject& map_object, Type_ptr key_type, Type_ptr value_type, Block block)
+Object_ptr Interpreter::loop_over_iterable(std::string item_name, Block block, DictionaryObject& map_object)
 {
 	for (auto const& [key, value] : map_object.pairs)
 	{
-		//THROW_ASSERT(are_same_type(key, key_type), "Key has incorrect type");
-		THROW_ASSERT(are_same_type(value, value_type), "Value has incorrect type");
-		env->set_variable(pair_name, MAKE_OBJECT_VARIANT(key, value));
+		NULL_CHECK(value);
+
+		Object_ptr key_object = std::visit(overloaded{
+			[](double num) { return MAKE_OBJECT_VARIANT(num); },
+			[](std::string& text) { return MAKE_OBJECT_VARIANT(text); },
+			[](bool boolean) { return MAKE_OBJECT_VARIANT(boolean); },
+
+			[&](auto) { THROW("Cannot iterate over this datatype"); }
+			}, *key);
+
+		env->set_variable(
+			item_name,
+			MAKE_OBJECT_VARIANT(TupleObject({ key_object, value }))
+		);
 
 		auto result = evaluate_block(block);
 
@@ -646,6 +657,8 @@ Object_ptr Interpreter::loop_over_map(std::string pair_name, DictionaryObject& m
 
 	return VOID;
 }
+
+// Evaluate function
 
 Object_ptr Interpreter::evaluate_function_call(FunctionCall call_expression, FunctionInfo info)
 {
@@ -653,7 +666,7 @@ Object_ptr Interpreter::evaluate_function_call(FunctionCall call_expression, Fun
 
 	THROW_ASSERT(
 		formal_arguments.size() == call_expression.arguments.size(),
-		"Number of arguments in the function call " + call_expression->name + " is incorrect."
+		"Number of arguments in the function call " + call_expression.name + " is incorrect."
 	);
 
 	int index = 0;
@@ -698,6 +711,27 @@ Object_ptr Interpreter::evaluate_function_call(FunctionCall call_expression, InB
 	return info.func(argument_objects);
 }
 
+// Utils
+
+Object_ptr Interpreter::evaluate_block(Block block)
+{
+	for (auto& statement : block)
+	{
+		auto result = interpret(statement);
+
+		if (
+			holds_alternative<ReturnObject>(*result) ||
+			holds_alternative<ErrorObject>(*result) ||
+			holds_alternative<ContinueObject>(*result) ||
+			holds_alternative<BreakObject>(*result)
+			) {
+			return result;
+		}
+	}
+
+	return VOID;
+}
+
 bool Interpreter::are_same_type(Object_ptr obj, Type_ptr type)
 {
 	return (
@@ -705,6 +739,6 @@ bool Interpreter::are_same_type(Object_ptr obj, Type_ptr type)
 		holds_alternative<string>(*obj) && holds_alternative<StringType>(*type) ||
 		holds_alternative<bool>(*obj) && holds_alternative<BooleanType>(*type) ||
 		holds_alternative<ListObject>(*obj) && holds_alternative<ListType>(*type) ||
-		holds_alternative<UDTObject>(*obj) && holds_alternative<UDTType>(*type)
+		holds_alternative<DictionaryObject>(*obj) && holds_alternative<UDTType>(*type)
 		);
 }

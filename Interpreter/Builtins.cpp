@@ -21,10 +21,11 @@ using std::string;
 #define THROW_ASSERT(condition, message)								\
 	if (!condition) {													\
 		spdlog::error(message);											\
-		return std::make_shared<Object>(ErrorObject(message));	\
+		return std::make_shared<Object>(ErrorObject(message));			\
 	}
 
-// ECHO
+template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
 
 Object_ptr io::echo_visit(std::vector<Object_ptr> arguments)
 {
@@ -38,28 +39,12 @@ Object_ptr io::echo_visit(std::vector<Object_ptr> arguments)
 		}, *arguments[0]);
 }
 
-// ASK
-
-Object_ptr io::ask_visit(std::vector<Object_ptr> arguments)
+Object_ptr io::ask(std::vector<Object_ptr> arguments)
 {
-	THROW_ASSERT(arguments.size() == 1, "ask(..) takes one string or number as argument");
+	THROW_ASSERT(arguments.size() == 0, "ask(..) takes no arguments");
 
-	return std::visit(overloaded{
-		[](std::string& text) { cin >> text; return VOID; },
-		[](double& number) { cin >> number; return VOID; },
+	string text;
+	cin >> text;
 
-		[](auto) { THROW("ask(..) takes one string or number as argument."); }
-		}, *arguments[0]);
-}
-
-Object_ptr core::size_visit(std::vector<Object_ptr> arguments)
-{
-	THROW_ASSERT(arguments.size() == 1, "size(..) takes a string or vector as argument");
-
-	return std::visit(overloaded{
-		[](std::string text) { return MAKE_OBJECT_VARIANT((double)text.length()); },
-		[](VectorObject& vec) { return MAKE_OBJECT_VARIANT((double)vec.values.size()); },
-
-		[](auto) { THROW("size(..) takes a string or vector as argument"); }
-		}, *arguments[0]);
+	return MAKE_OBJECT_VARIANT(text);
 }

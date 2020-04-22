@@ -18,6 +18,7 @@
 struct VectorLiteral;
 struct DictionaryLiteral;
 struct MemberAccess;
+struct EnumMember;
 struct Identifier;
 struct FunctionCall;
 struct Unary;
@@ -27,7 +28,7 @@ using Expression = MODULE_API std::variant<
 	std::monostate,
 	double, std::string, bool,
 	VectorLiteral, DictionaryLiteral,
-	MemberAccess,
+	MemberAccess, EnumMember,
 	Identifier, FunctionCall,
 	Unary, Binary
 >;
@@ -69,6 +70,15 @@ struct MODULE_API MemberAccess : public ExpressionBase
 
 	MemberAccess(std::string name, Expression_ptr expression)
 		: name(name), expression(std::move(expression)) {};
+};
+
+struct MODULE_API EnumMember : public ExpressionBase
+{
+	std::string enum_name;
+	std::string member_name;
+
+	EnumMember(std::string enum_name, std::string member_name)
+		: enum_name(enum_name), member_name(member_name) {};
 };
 
 struct MODULE_API FunctionCall : public ExpressionBase
