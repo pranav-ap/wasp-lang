@@ -6,7 +6,7 @@
 
 struct Scope
 {
-	std::map<std::string, InfoVariant_ptr> store;
+	std::map<std::string, Info_ptr> store;
 };
 
 using Scope_ptr = std::shared_ptr<Scope>;

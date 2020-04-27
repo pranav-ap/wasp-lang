@@ -7,6 +7,7 @@
 #endif
 
 #include "pch.h"
+#include "ObjectSystem.h"
 #include <string>
 #include <memory>
 #include <variant>
@@ -118,3 +119,5 @@ struct MODULE_API VariantType : public CompositeType
 	std::vector<Type_ptr> types;
 	VariantType(std::vector<Type_ptr> types) : types(types) {};
 };
+
+std::string MODULE_API get_type_string(Type_ptr type);

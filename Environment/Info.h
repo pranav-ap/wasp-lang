@@ -5,6 +5,7 @@
 #include "Types.h"
 #include <map>
 #include <set>
+#include <tuple>
 #include <vector>
 #include <memory>
 #include <functional>
@@ -24,7 +25,9 @@ using Info = std::variant<
 	EnumInfo
 >;
 
-using InfoVariant_ptr = std::shared_ptr<Info>;
+using Info_ptr = std::shared_ptr<Info>;
+using Arguments = std::vector<std::pair<std::string, Type_ptr>>;
+using ReturnType = std::optional<Type_ptr>;
 
 // Defining Info structs
 
@@ -62,12 +65,13 @@ struct EnumInfo : public BaseInfo
 
 struct FunctionInfo : public BaseInfo
 {
-	std::vector<std::pair<std::string, Type_ptr>> arguments;
-	std::optional<Type_ptr> return_type;
+	std::string name;
+	Arguments arguments;
+	ReturnType return_type;
 	Block body;
 
-	FunctionInfo(bool is_public, std::vector<std::pair<std::string, Type_ptr>> arguments, std::optional<Type_ptr> return_type, Block body)
-		: BaseInfo(is_public), arguments(arguments), return_type(return_type), body(body) {};
+	FunctionInfo(bool is_public, std::string name, Arguments arguments, ReturnType return_type, Block body)
+		: BaseInfo(is_public), name(name), arguments(arguments), return_type(return_type), body(body) {};
 };
 
 struct InBuiltFunctionInfo : public BaseInfo

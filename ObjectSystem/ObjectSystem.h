@@ -15,6 +15,9 @@
 #include <memory>
 #include <variant>
 
+struct NumberObject;
+struct StringObject;
+struct BooleanObject;
 struct ListObject;
 struct EnumMemberObject;
 struct DictionaryObject;
@@ -30,7 +33,7 @@ struct NoneObject;
 using Object = OBJECTSYSTEM_API std::variant<
 	std::monostate,
 	// Scalar Objects
-	double, std::string, bool,
+	NumberObject, StringObject, BooleanObject,
 	// Composite Objects
 	ListObject, EnumMemberObject,
 	DictionaryObject, TupleObject,
@@ -51,6 +54,10 @@ struct OBJECTSYSTEM_API BaseObject
 {
 };
 
+struct OBJECTSYSTEM_API ScalarObject : public BaseObject
+{
+};
+
 struct OBJECTSYSTEM_API CompositeObject : public BaseObject
 {
 };
@@ -61,6 +68,26 @@ struct OBJECTSYSTEM_API ActionObject : public BaseObject
 
 struct OBJECTSYSTEM_API NoneObject : public BaseObject
 {
+};
+
+// Scalar Objects
+
+struct OBJECTSYSTEM_API NumberObject : public ScalarObject
+{
+	double value;
+	NumberObject(double value) : value(value) {};
+};
+
+struct OBJECTSYSTEM_API StringObject : public ScalarObject
+{
+	std::string value;
+	StringObject(std::string value) : value(value) {};
+};
+
+struct OBJECTSYSTEM_API BooleanObject : public ScalarObject
+{
+	bool value;
+	BooleanObject(bool value) : value(value) {};
 };
 
 // Composite Objects

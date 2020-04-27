@@ -69,8 +69,8 @@ class INTERPRETER_API Interpreter
 
 	Object_ptr perform_operation(WTokenType token_type, double left, double right);
 	Object_ptr perform_operation(WTokenType token_type, bool left, bool right);
-	Object_ptr perform_operation(WTokenType token_type, std::string left, std::string right);
-	Object_ptr perform_operation(WTokenType token_type, std::string left, double right);
+	Object_ptr perform_operation(WTokenType token_type, std::string& left, std::string& right);
+	Object_ptr perform_operation(WTokenType token_type, std::string& left, double right);
 
 	// Utils
 
@@ -83,6 +83,7 @@ class INTERPRETER_API Interpreter
 	Object_ptr evaluate_function_call(FunctionCall call_expression, InBuiltFunctionInfo info);
 
 	bool are_same_type(Object_ptr obj, Type_ptr type);
+	Type_ptr get_object_type(Object_ptr object);
 
 public:
 	Interpreter(Environment_ptr env) : env(env) {};

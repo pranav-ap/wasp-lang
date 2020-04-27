@@ -66,7 +66,7 @@ void Environment::leave_scope()
 
 // Info Getters
 
-InfoVariant_ptr Environment::get_info(string name)
+Info_ptr Environment::get_info(string name)
 {
 	for (auto scope : scopes)
 	{
@@ -200,6 +200,7 @@ void Environment::create_variable(
 
 void Environment::create_function(
 	string name,
+	string signature,
 	bool is_public,
 	vector<pair<string, Type_ptr>> arguments,
 	optional<Type_ptr> return_type,
@@ -209,8 +210,8 @@ void Environment::create_function(
 
 	auto result = scope->store.insert(
 		{
-			name,
-			make_shared<Info>(FunctionInfo(is_public, arguments, return_type, body))
+			signature,
+			make_shared<Info>(FunctionInfo(is_public, name, arguments, return_type, body))
 		}
 	);
 

@@ -25,7 +25,7 @@ public:
 
 	// Info Getters
 
-	InfoVariant_ptr get_info(std::string name);
+	Info_ptr get_info(std::string name);
 
 	VariableInfo* get_variable_info(std::string name);
 	UDTInfo* get_UDT_info(std::string name);
@@ -55,6 +55,7 @@ public:
 
 	void create_function(
 		std::string name,
+		std::string signature,
 		bool is_public,
 		std::vector<std::pair<std::string, Type_ptr>> arguments,
 		std::optional<Type_ptr> return_type,

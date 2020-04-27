@@ -32,6 +32,7 @@ template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
 
 using std::string;
 using std::map;
+using std::pair;
 using std::vector;
 using std::optional;
 using std::make_shared;
@@ -241,7 +242,7 @@ Object_ptr Interpreter::interpret(Return statement)
 	{
 		if (statement.expression.has_value())
 		{
-			auto result = interpret(statement.expression.value());
+			auto result = interpret(statement.expression.value);
 			return MAKE_OBJECT_VARIANT(ReturnObject(result));
 		}
 
@@ -264,8 +265,16 @@ Object_ptr Interpreter::interpret(UDTDefinition def)
 
 Object_ptr Interpreter::interpret(FunctionDefinition def)
 {
+	string mangled_name = def.name;
+
+	for (auto [_, type] : def.arguments)
+	{
+		mangled_name.append("_" + get_type_string(type));
+	}
+
 	env->create_function(
 		def.name,
+		mangled_name,
 		def.is_public,
 		def.arguments,
 		def.return_type,
@@ -311,17 +320,17 @@ Object_ptr Interpreter::interpret(ImportInBuilt statement)
 
 Object_ptr Interpreter::interpret(string string_literal)
 {
-	return MAKE_OBJECT_VARIANT(string_literal);
+	return MAKE_OBJECT_VARIANT(StringObject(string_literal));
 }
 
 Object_ptr Interpreter::interpret(double number_literal)
 {
-	return MAKE_OBJECT_VARIANT(number_literal);
+	return MAKE_OBJECT_VARIANT(NumberObject(number_literal));
 }
 
 Object_ptr Interpreter::interpret(bool bool_literal)
 {
-	return MAKE_OBJECT_VARIANT(bool_literal);
+	return MAKE_OBJECT_VARIANT(BooleanObject(bool_literal));
 }
 
 Object_ptr Interpreter::interpret(VectorLiteral vector_literal)
@@ -418,6 +427,14 @@ Object_ptr Interpreter::interpret(MemberAccess access_expression)
 
 Object_ptr Interpreter::interpret(FunctionCall call_expression)
 {
+	vector<Object_ptr> formal_arguments;
+
+	for (auto const& argument : call_expression.arguments)
+	{
+		auto object = interpret(argument);
+		formal_arguments.push_back(object);
+	}
+
 	auto info = env->get_info(call_expression.name);
 
 	return std::visit(overloaded{
@@ -445,7 +462,7 @@ Object_ptr Interpreter::perform_operation(WTokenType token_type, double operand)
 	{
 	case WTokenType::UNARY_MINUS:
 	{
-		return MAKE_OBJECT_VARIANT(-operand);
+		return MAKE_OBJECT_VARIANT(NumberObject(-operand));
 	}
 	}
 
@@ -458,7 +475,7 @@ Object_ptr Interpreter::perform_operation(WTokenType token_type, bool operand)
 	{
 	case WTokenType::BANG:
 	{
-		return MAKE_OBJECT_VARIANT(!operand);
+		return MAKE_OBJECT_VARIANT(NumberObject(!operand));
 	}
 	}
 
@@ -471,19 +488,19 @@ Object_ptr Interpreter::perform_operation(WTokenType token_type, bool left, bool
 	{
 	case WTokenType::EQUAL_EQUAL:
 	{
-		return MAKE_OBJECT_VARIANT(left == right);
+		return MAKE_OBJECT_VARIANT(BooleanObject(left == right));
 	}
 	case WTokenType::BANG_EQUAL:
 	{
-		return MAKE_OBJECT_VARIANT(left != right);
+		return MAKE_OBJECT_VARIANT(BooleanObject(left != right));
 	}
 	case WTokenType::AND:
 	{
-		return MAKE_OBJECT_VARIANT(left && right);
+		return MAKE_OBJECT_VARIANT(BooleanObject(left && right));
 	}
 	case WTokenType::OR:
 	{
-		return MAKE_OBJECT_VARIANT(left || right);
+		return MAKE_OBJECT_VARIANT(BooleanObject(left || right));
 	}
 	}
 
@@ -496,79 +513,79 @@ Object_ptr Interpreter::perform_operation(WTokenType token_type, double left, do
 	{
 	case WTokenType::POWER:
 	{
-		return MAKE_OBJECT_VARIANT(std::pow(left, right));
+		return MAKE_OBJECT_VARIANT(NumberObject(std::pow(left, right)));
 	}
 	case WTokenType::DIVISION:
 	{
-		return MAKE_OBJECT_VARIANT(left / right);
+		return MAKE_OBJECT_VARIANT(NumberObject(left / right));
 	}
 	case WTokenType::REMINDER:
 	{
-		return MAKE_OBJECT_VARIANT(std::remainder(left, right));
+		return MAKE_OBJECT_VARIANT(NumberObject(std::remainder(left, right)));
 	}
 	case WTokenType::STAR:
 	{
-		return MAKE_OBJECT_VARIANT(left * right);
+		return MAKE_OBJECT_VARIANT(NumberObject(left * right));
 	}
 	case WTokenType::PLUS:
 	{
-		return MAKE_OBJECT_VARIANT(left + right);
+		return MAKE_OBJECT_VARIANT(NumberObject(left + right));
 	}
 	case WTokenType::MINUS:
 	{
-		return MAKE_OBJECT_VARIANT(left - right);
+		return MAKE_OBJECT_VARIANT(NumberObject(left - right));
 	}
 	case WTokenType::GREATER_THAN:
 	{
-		return MAKE_OBJECT_VARIANT(left > right);
+		return MAKE_OBJECT_VARIANT(BooleanObject(left > right));
 	}
 	case WTokenType::GREATER_THAN_EQUAL:
 	{
-		return MAKE_OBJECT_VARIANT(left >= right);
+		return MAKE_OBJECT_VARIANT(BooleanObject(left >= right));
 	}
 	case WTokenType::LESSER_THAN:
 	{
-		return MAKE_OBJECT_VARIANT(left < right);
+		return MAKE_OBJECT_VARIANT(BooleanObject(left < right));
 	}
 	case WTokenType::LESSER_THAN_EQUAL:
 	{
-		return MAKE_OBJECT_VARIANT(left <= right);
+		return MAKE_OBJECT_VARIANT(BooleanObject(left <= right));
 	}
 	case WTokenType::EQUAL_EQUAL:
 	{
-		return MAKE_OBJECT_VARIANT(left == right);
+		return MAKE_OBJECT_VARIANT(BooleanObject(left == right));
 	}
 	case WTokenType::BANG_EQUAL:
 	{
-		return MAKE_OBJECT_VARIANT(left != right);
+		return MAKE_OBJECT_VARIANT(BooleanObject(left != right));
 	}
 	}
 
 	THROW("Operation not supported");
 }
 
-Object_ptr Interpreter::perform_operation(WTokenType token_type, string left, string right)
+Object_ptr Interpreter::perform_operation(WTokenType token_type, string& left, string& right)
 {
 	switch (token_type)
 	{
 	case WTokenType::PLUS:
 	{
-		return MAKE_OBJECT_VARIANT(left + right);
+		return MAKE_OBJECT_VARIANT(StringObject(left + right));
 	}
 	case WTokenType::EQUAL_EQUAL:
 	{
-		return MAKE_OBJECT_VARIANT(left == right);
+		return MAKE_OBJECT_VARIANT(BooleanObject(left == right));
 	}
 	case WTokenType::BANG_EQUAL:
 	{
-		return MAKE_OBJECT_VARIANT(left != right);
+		return MAKE_OBJECT_VARIANT(BooleanObject(left != right));
 	}
 	}
 
 	THROW("Operation not supported");
 }
 
-Object_ptr Interpreter::perform_operation(WTokenType token_type, string left, double right)
+Object_ptr Interpreter::perform_operation(WTokenType token_type, string& left, double right)
 {
 	switch (token_type)
 	{
@@ -585,7 +602,7 @@ Object_ptr Interpreter::perform_operation(WTokenType token_type, string left, do
 			count++;
 		}
 
-		return MAKE_OBJECT_VARIANT(result);
+		return MAKE_OBJECT_VARIANT(StringObject(result));
 	}
 	}
 
@@ -594,9 +611,9 @@ Object_ptr Interpreter::perform_operation(WTokenType token_type, string left, do
 
 // Loop
 
-Object_ptr Interpreter::loop_over_iterable(string item_name, Block block, ListObject& vector_object)
+Object_ptr Interpreter::loop_over_iterable(string item_name, Block block, ListObject& list_object)
 {
-	for (auto const& element : vector_object.values)
+	for (auto const& element : list_object.values)
 	{
 		env->set_variable(item_name, element);
 		auto result = evaluate_block(block);
@@ -619,16 +636,16 @@ Object_ptr Interpreter::loop_over_iterable(string item_name, Block block, ListOb
 	return VOID;
 }
 
-Object_ptr Interpreter::loop_over_iterable(std::string item_name, Block block, DictionaryObject& map_object)
+Object_ptr Interpreter::loop_over_iterable(string item_name, Block block, DictionaryObject& dict_object)
 {
-	for (auto const& [key, value] : map_object.pairs)
+	for (auto const& [key, value] : dict_object.pairs)
 	{
 		NULL_CHECK(value);
 
 		Object_ptr key_object = std::visit(overloaded{
-			[](double num) { return MAKE_OBJECT_VARIANT(num); },
-			[](std::string& text) { return MAKE_OBJECT_VARIANT(text); },
-			[](bool boolean) { return MAKE_OBJECT_VARIANT(boolean); },
+			[](NumberObject num) { return MAKE_OBJECT_VARIANT(num); },
+			[](StringObject text) { return MAKE_OBJECT_VARIANT(text); },
+			[](BooleanObject boolean) { return MAKE_OBJECT_VARIANT(boolean); },
 
 			[&](auto) { THROW("Cannot iterate over this datatype"); }
 			}, *key);
@@ -663,11 +680,6 @@ Object_ptr Interpreter::loop_over_iterable(std::string item_name, Block block, D
 Object_ptr Interpreter::evaluate_function_call(FunctionCall call_expression, FunctionInfo info)
 {
 	auto formal_arguments = info.arguments;
-
-	THROW_ASSERT(
-		formal_arguments.size() == call_expression.arguments.size(),
-		"Number of arguments in the function call " + call_expression.name + " is incorrect."
-	);
 
 	int index = 0;
 
@@ -735,10 +747,28 @@ Object_ptr Interpreter::evaluate_block(Block block)
 bool Interpreter::are_same_type(Object_ptr obj, Type_ptr type)
 {
 	return (
-		holds_alternative<double>(*obj) && holds_alternative<NumberType>(*type) ||
-		holds_alternative<string>(*obj) && holds_alternative<StringType>(*type) ||
-		holds_alternative<bool>(*obj) && holds_alternative<BooleanType>(*type) ||
+		holds_alternative<NumberObject>(*obj) && holds_alternative<NumberType>(*type) ||
+		holds_alternative<StringObject>(*obj) && holds_alternative<StringType>(*type) ||
+		holds_alternative<BooleanObject>(*obj) && holds_alternative<BooleanType>(*type) ||
 		holds_alternative<ListObject>(*obj) && holds_alternative<ListType>(*type) ||
 		holds_alternative<DictionaryObject>(*obj) && holds_alternative<UDTType>(*type)
 		);
+}
+
+Type_ptr Interpreter::get_object_type(Object_ptr object)
+{
+	return std::visit(overloaded{
+			[&](NumberObject& obj) { return MAKE_TYPE(NumberType()); },
+			[&](StringObject& obj) { return MAKE_TYPE(StringType()); },
+			[&](BooleanObject& obj) { return MAKE_TYPE(BooleanType()); },
+
+			[&](ListObject& obj) { return MAKE_TYPE(ListType(MAKE_TYPE(AnyType()))); },
+			[&](TupleObject& obj) { return MAKE_TYPE(TupleType({ MAKE_TYPE(AnyType()) })); },
+			[&](VariantObject& obj) { return MAKE_TYPE(VariantType({ MAKE_TYPE(AnyType()) })); },
+
+			[&](EnumMemberObject& obj) { return MAKE_TYPE(EnumType(obj.enum_name)); },
+			[&](DictionaryObject& obj) { return MAKE_TYPE(NumberType()); },
+
+			[](auto) { return MAKE_TYPE(AnyType()); }
+		}, *object);
 }
