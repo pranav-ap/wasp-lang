@@ -106,6 +106,23 @@ EnumInfo* Environment::get_enum_info(string name)
 	return get_if<EnumInfo>(&*info);
 }
 
+InBuiltFunctionInfo* Environment::get_inbuilt_function_info_if_exists(std::string name)
+{
+	for (auto scope : scopes)
+	{
+		if (scope->store.contains(name))
+		{
+			auto info = scope->store[name];
+			NULL_CHECK(info);
+			ASSERT(info->index() != 0, "Info is a monostate");
+			ASSERT(holds_alternative<InBuiltFunctionInfo>(*info), "Info is not a InbuiltFunction");
+			return get_if<InBuiltFunctionInfo>(&*info);
+		}
+	}
+
+	return nullptr;
+}
+
 // Variable Getters
 
 ListObject* Environment::get_mutable_list_variable(string name)

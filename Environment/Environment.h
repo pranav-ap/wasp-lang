@@ -31,6 +31,8 @@ public:
 	UDTInfo* get_UDT_info(std::string name);
 	EnumInfo* get_enum_info(std::string name);
 
+	InBuiltFunctionInfo* get_inbuilt_function_info_if_exists(std::string name);
+
 	// Variable Getters
 
 	ListObject* get_mutable_list_variable(std::string name);

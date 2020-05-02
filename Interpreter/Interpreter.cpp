@@ -427,6 +427,11 @@ Object_ptr Interpreter::interpret(MemberAccess access_expression)
 
 Object_ptr Interpreter::interpret(FunctionCall call_expression)
 {
+	if (auto info = env->get_inbuilt_function_info_if_exists(call_expression.name))
+	{
+		return evaluate_function_call(call_expression, info);
+	}
+
 	vector<Object_ptr> formal_arguments;
 
 	for (auto const& argument : call_expression.arguments)
@@ -435,23 +440,17 @@ Object_ptr Interpreter::interpret(FunctionCall call_expression)
 		formal_arguments.push_back(object);
 	}
 
-	auto info = env->get_info(call_expression.name);
+	string signature;
 
-	return std::visit(overloaded{
-		[&](FunctionInfo info)
-		{
-			env->enter_function_scope();
-			auto result = evaluate_function_call(call_expression, info);
-			env->leave_scope();
-			return move(result);
-		},
-		[&](InBuiltFunctionInfo info)
-		{
-			return evaluate_function_call(call_expression, info);
-		},
+	auto info = env->get_info(signature);
 
-		[](auto) { THROW("It is neither a function nor a builtin function!"); }
-		}, *info);
+	ASSERT(
+		holds_alternative<FunctionInfo>(*info),
+		signature + " is not a Function signature"
+	);
+
+	auto function_info = get_if<FunctionInfo>(&*info);
+	return evaluate_function_call(call_expression, function_info, formal_arguments);
 }
 
 // Perform Operation
@@ -677,40 +676,45 @@ Object_ptr Interpreter::loop_over_iterable(string item_name, Block block, Dictio
 
 // Evaluate function
 
-Object_ptr Interpreter::evaluate_function_call(FunctionCall call_expression, FunctionInfo info)
+Object_ptr Interpreter::evaluate_function_call(FunctionCall call_expression, FunctionInfo* info, vector<Object_ptr> formal_arguments)
 {
-	auto formal_arguments = info.arguments;
-
 	int index = 0;
 
-	for (auto const& argument : call_expression.arguments)
+	for (auto const& argument : info->arguments)
 	{
-		auto formal_argument_name = formal_arguments[index].first;
-		auto formal_argument_type = formal_arguments[index].second;
+		auto argument_name = argument.first;
+		auto argument_type = argument.second;
 
-		auto object = interpret(argument);
+		auto object = formal_arguments[index];
 
 		THROW_ASSERT(
-			are_same_type(object, formal_argument_type),
-			"The type of argument " + formal_argument_name + " in the function call " +
+			are_same_type(object, argument_type),
+			"The type of argument " + argument_name + " in the function call " +
 			call_expression.name + " is incorrect"
 		);
 
 		env->create_variable(
-			formal_argument_name,
+			argument_name,
 			false,
 			true,
-			formal_argument_type,
+			argument_type,
 			move(object)
 		);
 
 		index++;
 	}
 
-	return evaluate_block(move(info.body));
+	auto result = evaluate_block(info->body);
+
+	if (holds_alternative<ReturnObject>(*result))
+	{
+		return result;
+	}
+
+	FATAL("Function must return a ReturnObject");
 }
 
-Object_ptr Interpreter::evaluate_function_call(FunctionCall call_expression, InBuiltFunctionInfo info)
+Object_ptr Interpreter::evaluate_function_call(FunctionCall call_expression, InBuiltFunctionInfo* info)
 {
 	vector<Object_ptr> argument_objects;
 
@@ -720,7 +724,7 @@ Object_ptr Interpreter::evaluate_function_call(FunctionCall call_expression, InB
 		argument_objects.push_back(move(result));
 	}
 
-	return info.func(argument_objects);
+	return info->func(argument_objects);
 }
 
 // Utils
@@ -746,13 +750,29 @@ Object_ptr Interpreter::evaluate_block(Block block)
 
 bool Interpreter::are_same_type(Object_ptr obj, Type_ptr type)
 {
-	return (
+	if (
 		holds_alternative<NumberObject>(*obj) && holds_alternative<NumberType>(*type) ||
 		holds_alternative<StringObject>(*obj) && holds_alternative<StringType>(*type) ||
 		holds_alternative<BooleanObject>(*obj) && holds_alternative<BooleanType>(*type) ||
 		holds_alternative<ListObject>(*obj) && holds_alternative<ListType>(*type) ||
-		holds_alternative<DictionaryObject>(*obj) && holds_alternative<UDTType>(*type)
-		);
+		holds_alternative<TupleObject>(*obj) && holds_alternative<TupleType>(*type) ||
+		holds_alternative<DictionaryObject>(*obj) && holds_alternative<MapType>(*type) ||
+		holds_alternative<DictionaryObject>(*obj) && holds_alternative<UDTType>(*type) ||
+		holds_alternative<EnumMemberObject>(*obj) && holds_alternative<EnumType>(*type) ||
+		holds_alternative<AnyType>(*type)
+		) {
+		return true;
+	}
+	else if (holds_alternative<OptionalType>(*type))
+	{
+		return true;
+	}
+	else if (holds_alternative<VariantType>(*type))
+	{
+		return true;
+	}
+
+	return false;
 }
 
 Type_ptr Interpreter::get_object_type(Object_ptr object)

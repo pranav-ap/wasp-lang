@@ -7,7 +7,6 @@
     - bool
     - number
 - Composite
-    - list
     - tensor
     - map
     - UDT
@@ -65,12 +64,16 @@ if expr {
 # Looping
 
 ```js
-loop { }
-
-for x : num  in [1, 2, 3]
-{
-    echo(x)
+loop {
+    let x = 4
 }
+
+while condition:
+    let x = 4
+
+
+for x : num  in [1, 2, 3]:
+    echo(x)
 
 break
 continue
@@ -92,16 +95,8 @@ fn add (a: num, b: num) -> num {
 import { foo, bar } from "path/to/filename"
 import { foo, bar } from std_lib
 
-pub fn add (a: num, b: num) -> num {
+pub fn add (a: num, b: num) : num {
 	return a + b
-}
-```
-
-# Pattern matching
-
-```rust
-match expr {
-   expr -> {}
 }
 ```
 
@@ -124,3 +119,10 @@ NAME::ID1
 echo(string)
 ask()
 ```
+
+if a > 4 then 
+    begin
+        echo("hello")
+    end
+else
+    echo("bye")

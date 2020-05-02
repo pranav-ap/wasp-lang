@@ -79,8 +79,8 @@ class INTERPRETER_API Interpreter
 	Object_ptr loop_over_iterable(std::string item_name, Block block, ListObject& vector_object);
 	Object_ptr loop_over_iterable(std::string pair_name, Block block, DictionaryObject& map_object);
 
-	Object_ptr evaluate_function_call(FunctionCall call_expression, FunctionInfo info);
-	Object_ptr evaluate_function_call(FunctionCall call_expression, InBuiltFunctionInfo info);
+	Object_ptr evaluate_function_call(FunctionCall call_expression, FunctionInfo* info, std::vector<Object_ptr> formal_arguments);
+	Object_ptr evaluate_function_call(FunctionCall call_expression, InBuiltFunctionInfo* info);
 
 	bool are_same_type(Object_ptr obj, Type_ptr type);
 	Type_ptr get_object_type(Object_ptr object);
