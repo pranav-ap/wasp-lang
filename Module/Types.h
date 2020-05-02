@@ -7,7 +7,6 @@
 #endif
 
 #include "pch.h"
-#include "ObjectSystem.h"
 #include <string>
 #include <memory>
 #include <variant>
@@ -19,8 +18,8 @@ struct BooleanType;
 struct ListType;
 struct TupleType;
 struct UDTType;
-struct EnumType;
 struct MapType;
+struct EnumType;
 struct OptionalType;
 struct VariantType;
 struct AnyType;
@@ -74,15 +73,13 @@ struct MODULE_API BooleanType : public ScalarType
 struct MODULE_API ListType : public CompositeType
 {
 	Type_ptr element_type;
-	ListType(Type_ptr element_type)
-		: element_type(std::move(element_type)) {};
+	ListType(Type_ptr element_type) : element_type(std::move(element_type)) {};
 };
 
 struct MODULE_API TupleType : public CompositeType
 {
 	std::vector<Type_ptr> element_types;
-	TupleType(std::vector<Type_ptr> element_types)
-		: element_types(element_types) {};
+	TupleType(std::vector<Type_ptr> element_types) : element_types(element_types) {};
 };
 
 struct MODULE_API MapType : public CompositeType
@@ -90,9 +87,8 @@ struct MODULE_API MapType : public CompositeType
 	Type_ptr key_type;
 	Type_ptr value_type;
 
-	MapType(Type_ptr from_type, Type_ptr to_type)
-		: key_type(std::move(from_type)),
-		value_type(std::move(to_type)) {};
+	MapType(Type_ptr key_type, Type_ptr value_type)
+		: key_type(std::move(key_type)), value_type(std::move(value_type)) {};
 };
 
 struct MODULE_API UDTType : public CompositeType
@@ -104,8 +100,7 @@ struct MODULE_API UDTType : public CompositeType
 struct MODULE_API EnumType : public CompositeType
 {
 	std::string enum_name;
-	EnumType(std::string enum_name)
-		: enum_name(enum_name) {};
+	EnumType(std::string enum_name) : enum_name(enum_name) {};
 };
 
 struct MODULE_API OptionalType : public CompositeType
@@ -119,5 +114,5 @@ struct MODULE_API VariantType : public CompositeType
 	std::vector<Type_ptr> types;
 	VariantType(std::vector<Type_ptr> types) : types(types) {};
 };
-
-std::string MODULE_API get_type_string(Type_ptr type);
+//
+//std::string MODULE_API get_type_string(Type_ptr type);

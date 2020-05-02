@@ -59,18 +59,20 @@ if expr {
 } else {
 
 }
+
+
+if a > 4 then 3 else 4
 ```
 
 # Looping
 
 ```js
-loop {
-    let x = 4
-}
-
 while condition:
     let x = 4
 
+while condition {
+    let x = 4
+}
 
 for x : num  in [1, 2, 3]:
     echo(x)
@@ -120,9 +122,3 @@ echo(string)
 ask()
 ```
 
-if a > 4 then 
-    begin
-        echo("hello")
-    end
-else
-    echo("bye")

@@ -1,9 +1,9 @@
+#pragma once
 #include "WaspCLI.h"
 #include "file_io.h"
 #include "Lexer.h"
-#include "Parser.h"
-#include "Interpreter.h"
 #include <string>
+#include <vector>
 
 using std::string;
 using std::vector;
@@ -43,16 +43,6 @@ WaspCLI::WaspCLI()
 		->ignore_case();
 
 	run_cmd->callback([&]() { run(); });
-
-	// REPL Command
-
-	CLI::App* repl_cmd = app.add_subcommand("repl", "Starts a REPL session");
-
-	repl_cmd
-		->add_flag("-t, --trace", provide_trace, "Provides interpreter traces")
-		->ignore_case();
-
-	repl_cmd->callback([&]() { open_repl(); });
 }
 
 CLI::App& WaspCLI::get_app()
@@ -66,62 +56,4 @@ void WaspCLI::run()
 
 	Lexer lexer(raw_source);
 	vector<Token_ptr> tokens = lexer.execute();
-
-	Parser parser(tokens);
-	Module mod = parser.execute();
-
-	auto env = std::make_shared<Environment>();
-	env->enter_module_scope();
-
-	Interpreter interpreter(move(env));
-	interpreter.execute(mod);
-}
-
-void WaspCLI::open_repl()
-{
-	auto env = std::make_shared<Environment>();
-	env->enter_module_scope();
-
-	Interpreter interpreter(move(env));
-
-	// LOOP
-
-	cout << "\n Welcome to the Wasp REPL! \n" << endl;
-
-	while (true)
-	{
-		// READ
-
-		cout << ">> ";
-
-		std::string raw_source;
-		std::string line;
-
-		while (true)
-		{
-			std::getline(std::cin, line);
-
-			if (line.empty()) {
-				break;
-			}
-
-			raw_source.append(line);
-			raw_source.append("\n");
-		}
-
-		if (line == ".exit")
-		{
-			return;
-		}
-
-		// EVAL
-
-		Lexer lexer(raw_source);
-		vector<Token_ptr> tokens = lexer.execute();
-
-		Parser parser(tokens);
-		Module mod = parser.execute();
-
-		interpreter.execute(mod);
-	}
 }

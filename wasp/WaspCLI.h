@@ -10,7 +10,6 @@ class WaspCLI
 	bool provide_trace;
 
 	void run();
-	void open_repl();
 
 public:
 

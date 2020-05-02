@@ -7,10 +7,10 @@
 #endif
 
 #include "Token.h"
-#include "ObjectSystem.h"
 
 #include <string>
 #include <vector>
+#include <map>
 #include <stack>
 #include <memory>
 #include <variant>
@@ -50,7 +50,6 @@ struct MODULE_API Identifier : public ExpressionBase
 struct MODULE_API VectorLiteral : public ExpressionBase
 {
 	ExpressionVector expressions;
-	VectorLiteral() {};
 	VectorLiteral(std::vector<Expression_ptr> expressions)
 		: expressions(expressions) {};
 };
@@ -58,7 +57,6 @@ struct MODULE_API VectorLiteral : public ExpressionBase
 struct MODULE_API DictionaryLiteral : public ExpressionBase
 {
 	std::map<Token_ptr, Expression_ptr> pairs;
-	DictionaryLiteral() {};
 	DictionaryLiteral(std::map<Token_ptr, Expression_ptr> pairs)
 		: pairs(pairs) {};
 };

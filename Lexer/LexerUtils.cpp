@@ -6,9 +6,9 @@
 
 bool Lexer::expect_current_char(char ch)
 {
-	if (ch == this->get_current_char())
+	if (ch == get_current_char())
 	{
-		this->pointer.advance();
+		pointer.advance();
 		return true;
 	}
 
@@ -17,29 +17,29 @@ bool Lexer::expect_current_char(char ch)
 
 char Lexer::get_char_at(int index) const
 {
-	if ((size_t)index >= this->raw_source.size() || index < 0)
+	if ((size_t)index >= raw_source.size() || index < 0)
 		return NULL;
 
-	return this->raw_source[index];
+	return raw_source[index];
 }
 
 char Lexer::get_current_char() const
 {
-	int index = this->pointer.get_index();
-	return this->get_char_at(index);
+	int index = pointer.get_index();
+	return get_char_at(index);
 }
 
 char Lexer::get_right_char() const
 {
-	int index = this->pointer.get_index();
-	return this->get_char_at(index + 1);
+	int index = pointer.get_index();
+	return get_char_at(index + 1);
 }
 
 bool Lexer::is_unary() const
 {
 	Token_ptr previous_token = nullptr;
 
-	for (auto t = this->tokens.rbegin(); t != this->tokens.rend(); t++)
+	for (auto t = tokens.rbegin(); t != tokens.rend(); t++)
 	{
 		auto token = *t;
 

@@ -19,8 +19,12 @@ struct TOKEN_API Token
 	int line_num;
 	int column_num;
 
-	Token(WTokenType type, std::string value) : type(type), value(value), line_num(0), column_num(0) {};
-	Token(WTokenType type, std::string value, int line_num, int column_num) : type(type), value(value), line_num(line_num), column_num(column_num) {};
+	Token(WTokenType type, std::string value)
+		: type(type), value(value), line_num(0), column_num(0) {};
+
+	Token(WTokenType type, std::string value, int line_num, int column_num)
+		: type(type), value(value), line_num(line_num), column_num(column_num) {};
+
 	bool operator==(const Token& token) const;
 };
 

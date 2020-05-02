@@ -1,7 +1,6 @@
 #pragma once
 #include "pch.h"
 #include "TokenType.h"
-
 #include <iostream>
 
 std::ostream& operator<<(std::ostream& os, const WTokenType type)
@@ -38,16 +37,16 @@ std::ostream& operator<<(std::ostream& os, const WTokenType type)
 
 	case WTokenType::OPEN_PARENTHESIS:
 	case WTokenType::CLOSE_PARENTHESIS:
-	case WTokenType::OPEN_BRACKET:
-	case WTokenType::CLOSE_BRACKET:
+	case WTokenType::OPEN_SQUARE_BRACKET:
+	case WTokenType::CLOSE_SQUARE_BRACKET:
 	case WTokenType::OPEN_CURLY_BRACE:
 	case WTokenType::CLOSE_CURLY_BRACE:
 	case WTokenType::BACKWARD_SLASH:
+	case WTokenType::ARROW:
 	case WTokenType::COMMA:
 	case WTokenType::DOT:
 	case WTokenType::COLON:
 	case WTokenType::COLON_COLON:
-	case WTokenType::ARROW:
 	case WTokenType::PLUS:
 	case WTokenType::UNARY_PLUS:
 	case WTokenType::PLUS_EQUAL:
@@ -83,8 +82,8 @@ std::ostream& operator<<(std::ostream& os, const WTokenType type)
 	case WTokenType::OR:
 	case WTokenType::LET:
 	case WTokenType::CONST_KEYWORD:
-	case WTokenType::LOOP:
-	case WTokenType::FOREACH:
+	case WTokenType::WHILE:
+	case WTokenType::FOR:
 	case WTokenType::BREAK:
 	case WTokenType::CONTINUE:
 	case WTokenType::FN:
@@ -112,6 +111,11 @@ std::ostream& operator<<(std::ostream& os, const WTokenType type)
 	case WTokenType::EOL:
 	{
 		os << "EOL";
+		break;
+	}
+	case WTokenType::INDENT:
+	{
+		os << "INDENT";
 		break;
 	}
 	case WTokenType::UNKNOWN:
