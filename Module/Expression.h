@@ -50,7 +50,7 @@ struct MODULE_API Identifier : public ExpressionBase
 struct MODULE_API VectorLiteral : public ExpressionBase
 {
 	ExpressionVector expressions;
-	VectorLiteral(std::vector<Expression_ptr> expressions)
+	VectorLiteral(ExpressionVector expressions)
 		: expressions(expressions) {};
 };
 
@@ -86,7 +86,7 @@ struct MODULE_API FunctionCall : public ExpressionBase
 
 	FunctionCall(std::string name)
 		: name(name) {};
-	FunctionCall(std::string name, std::vector<Expression_ptr> arguments)
+	FunctionCall(std::string name, ExpressionVector arguments)
 		: name(name), arguments(arguments) {};
 };
 

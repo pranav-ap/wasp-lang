@@ -6,7 +6,7 @@
 #define MODULE_API __declspec(dllimport)
 #endif
 
-#include "Types.h"
+#include "TypeSystem.h"
 #include "Expression.h"
 
 #include <string>
@@ -17,11 +17,9 @@
 #include <variant>
 
 struct Assignment;
-struct MultipleAssignment;
 struct ConditionalBranch;
-struct IfLetBranch;
-struct InfiniteLoop;
-struct ForEachLoop;
+struct WhileLoop;
+struct ForInLoop;
 struct Break;
 struct Continue;
 struct VariableDefinition;
@@ -35,69 +33,43 @@ struct Return;
 
 using Statement = MODULE_API std::variant<
 	std::monostate,
-	Assignment, MultipleAssignment,
-	ConditionalBranch, IfLetBranch,
-	InfiniteLoop, ForEachLoop,
+	Assignment,
+	ConditionalBranch,
+	WhileLoop, ForInLoop,
 	Break, Continue,
 	VariableDefinition, UDTDefinition, FunctionDefinition, EnumDefinition,
 	ImportCustom, ImportInBuilt,
-	ExpressionStatement,
-	Return
+	Return,
+	ExpressionStatement
 >;
 
 using Statement_ptr = MODULE_API std::shared_ptr<Statement>;
 using Block = MODULE_API std::vector<Statement_ptr>;
+using string_vector = MODULE_API std::vector<std::string>;
 
 struct MODULE_API StatementBase
 {
 };
 
-// Assignments
+// Assignment
 
 struct MODULE_API Assignment : public StatementBase
 {
-	std::string name;
-	Expression_ptr expression;
+	string_vector names;
+	ExpressionVector expressions;
 
-	Assignment(std::string name, Expression_ptr expression)
-		: name(name), expression(std::move(expression)) {};
-};
-
-struct MODULE_API MultipleAssignment : public StatementBase
-{
-	std::vector<std::string> names;
-	std::vector<Expression_ptr> expressions;
-
-	MultipleAssignment(std::vector<std::string> names, std::vector<Expression_ptr> expressions)
+	Assignment(string_vector names, ExpressionVector expressions)
 		: names(names), expressions(expressions) {};
 };
 
 // Branching
 
-struct MODULE_API Branch : public StatementBase
+struct MODULE_API ConditionalBranch : public StatementBase
 {
-	Block consequence;
-	Block alternative;
+	std::vector<std::pair<Expression_ptr, Block>> branches;
 
-	Branch(Block consequence, Block alternative)
-		: consequence(consequence), alternative(alternative) {};
-};
-
-struct MODULE_API ConditionalBranch : public Branch
-{
-	Expression_ptr condition;
-
-	ConditionalBranch(Expression_ptr condition, Block consequence, Block alternative)
-		: Branch(consequence, alternative), condition(std::move(condition)) {};
-};
-
-struct MODULE_API IfLetBranch : public Branch
-{
-	std::string variable_name;
-	Expression_ptr expression;
-
-	IfLetBranch(std::string variable_name, Expression_ptr expression, Block consequence, Block alternative)
-		: Branch(consequence, alternative), variable_name(variable_name), expression(std::move(expression)) {};
+	ConditionalBranch() {};
+	//void push(Expression_ptr condition, Block consequence);
 };
 
 // Looping
@@ -108,19 +80,21 @@ struct MODULE_API Loop : public StatementBase
 	Loop(Block block) : block(block) {};
 };
 
-struct MODULE_API InfiniteLoop : public Loop
+struct MODULE_API WhileLoop : public Loop
 {
-	InfiniteLoop(Block block) : Loop(block) {};
+	Expression_ptr condition;
+	WhileLoop(Block block, Expression_ptr condition)
+		: Loop(block), condition(condition) {};
 };
 
-struct MODULE_API ForEachLoop : public Loop
+struct MODULE_API ForInLoop : public Loop
 {
 	Type_ptr item_type;
 	std::string item_name;
 	Expression_ptr iterable;
 
-	ForEachLoop(Type_ptr item_type, std::string item_name, Expression_ptr iterable, Block block)
-		: Loop(block), item_name(item_name), iterable(iterable) {};
+	ForInLoop(Block block, Type_ptr item_type, std::string item_name, Expression_ptr iterable)
+		: Loop(block), item_type(item_type), item_name(item_name), iterable(iterable) {};
 };
 
 struct MODULE_API Break : public StatementBase
@@ -172,9 +146,9 @@ struct MODULE_API FunctionDefinition : public Definition
 
 struct MODULE_API EnumDefinition : public Definition
 {
-	std::vector<std::string> members;
+	string_vector members;
 
-	EnumDefinition(bool is_public, std::string name, std::vector<std::string> members)
+	EnumDefinition(bool is_public, std::string name, string_vector members)
 		: Definition(is_public, name), members(members) {};
 };
 
@@ -182,16 +156,16 @@ struct MODULE_API EnumDefinition : public Definition
 
 struct MODULE_API Import : public StatementBase
 {
-	std::vector<std::string> goods;
+	string_vector goods;
 
-	Import(std::vector<std::string> goods) : goods(goods) {};
+	Import(string_vector goods) : goods(goods) {};
 };
 
 struct MODULE_API ImportCustom : public Import
 {
 	std::string path;
 
-	ImportCustom(std::string path, std::vector<std::string> goods)
+	ImportCustom(std::string path, string_vector goods)
 		: Import(goods), path(path) {};
 };
 
@@ -199,7 +173,7 @@ struct MODULE_API ImportInBuilt : public Import
 {
 	std::string module_name;
 
-	ImportInBuilt(std::string module_name, std::vector<std::string> goods)
+	ImportInBuilt(std::string module_name, string_vector goods)
 		: Import(goods), module_name(module_name) {};
 };
 
