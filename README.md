@@ -14,23 +14,24 @@
         - UDT
         - enum
         - variant
-    - none
+    - None
     - Function
 
 
 ## Declaring variables  
 
-let x : any = "hello" 
+let x : any = "hello"
+
 let x : str = "hello"
 let x : bool = true
 let x : num = 5
 
-let x : num | str = 5
-
 let x : [num] = [1, 2, 3]
-let x : (num, str) = (1, 'hi')
+let x : (num, str) = (@ 1, 'hi')
+let x : (num) = (@ 1)
 let x : { str -> str } = { "a" : "b" ,  "c" : "d" }
 let x : Person = { a : "b" ,  c : "d" }
+let x : num | str = 5
 
 syntactic sugar - opt 
 
@@ -65,8 +66,6 @@ elif expr:
     pass
 else:
     pass
-
-3 if a > 4 else 4
 ```
 
 # Looping
@@ -92,15 +91,9 @@ fn add (a: num, b: num) : num {
 
 # Module system
 
-- Everything is private by default
-
 ```js
 import { foo, bar } from "path/to/filename"
 import { foo, bar } from std_lib
-
-pub fn add (a: num, b: num) : num {
-	return a + b
-}
 ```
 
 # Enums
@@ -118,7 +111,7 @@ enum NAME
 }
 
 NAME::ID1
-NAME::ID1::LASTNAME::ID3
+NAME::LASTNAME::ID3
 ```
 
 # Builtins 

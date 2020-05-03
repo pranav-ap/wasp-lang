@@ -91,7 +91,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>..\include;..\include\spdlog;..\Utils;..\Token;..\ObjectSystem;..\Module</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include;..\include\spdlog;..\Utils;..\Token;..\ObjectSystem;..\Module;..\TypeSystem;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -153,6 +153,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="ExpressionContext.h" />
     <ClInclude Include="ExpressionParser.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="OperatorStack.h" />
@@ -179,6 +180,9 @@
     </ProjectReference>
     <ProjectReference Include="..\Token\Token.vcxproj">
       <Project>{5637e073-6798-4882-a7e7-413e1f93f541}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\TypeSystem\TypeSystem.vcxproj">
+      <Project>{631f497a-18c4-4a9a-bf08-2f4142930e5f}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Utils\Utils.vcxproj">
       <Project>{fd212e30-089e-4160-84e4-201daa0064b7}</Project>

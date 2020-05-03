@@ -15,7 +15,8 @@
 #include <memory>
 #include <variant>
 
-struct VectorLiteral;
+struct ListLiteral;
+struct TupleLiteral;
 struct DictionaryLiteral;
 struct MemberAccess;
 struct EnumMember;
@@ -27,7 +28,8 @@ struct Binary;
 using Expression = MODULE_API std::variant<
 	std::monostate,
 	double, std::string, bool,
-	VectorLiteral, DictionaryLiteral,
+	ListLiteral, TupleLiteral,
+	DictionaryLiteral,
 	MemberAccess, EnumMember,
 	Identifier, FunctionCall,
 	Unary, Binary
@@ -47,10 +49,17 @@ struct MODULE_API Identifier : public ExpressionBase
 	Identifier(std::string name) : name(name) {};
 };
 
-struct MODULE_API VectorLiteral : public ExpressionBase
+struct MODULE_API ListLiteral : public ExpressionBase
 {
 	ExpressionVector expressions;
-	VectorLiteral(ExpressionVector expressions)
+	ListLiteral(ExpressionVector expressions)
+		: expressions(expressions) {};
+};
+
+struct MODULE_API TupleLiteral : public ExpressionBase
+{
+	ExpressionVector expressions;
+	TupleLiteral(ExpressionVector expressions)
 		: expressions(expressions) {};
 };
 

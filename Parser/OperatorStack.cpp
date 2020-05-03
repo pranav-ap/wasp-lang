@@ -180,8 +180,8 @@ int OperatorStack::get_precedence(WTokenType token_type)
 	{
 		return 11;
 	}
-	case WTokenType::OPEN_BRACKET:
-	case WTokenType::CLOSE_BRACKET:
+	case WTokenType::OPEN_SQUARE_BRACKET:
+	case WTokenType::CLOSE_SQUARE_BRACKET:
 	{
 		return 10;
 	}

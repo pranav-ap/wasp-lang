@@ -66,7 +66,6 @@ vector<Token_ptr> Lexer::execute()
 			switch (ch)
 			{
 			case '\\':
-			case '(':
 			case ')':
 			case '{':
 			case '}':
@@ -74,6 +73,7 @@ vector<Token_ptr> Lexer::execute()
 			case ']':
 			case ',':
 			case '|': CASE_BODY(consume_single_char_punctuation(ch));
+			case '(': CASE_BODY(consume_open_parenthesis());
 			case '"': CASE_BODY(consume_string_literal());
 			case '+': CASE_BODY(consume_plus());
 			case '-': CASE_BODY(consume_minus());
@@ -306,14 +306,22 @@ Token_ptr Lexer::consume_colon()
 	return MAKE_TOKEN(WTokenType::COLON, ":", LINE_NUM, COL_NUM);
 }
 
+Token_ptr Lexer::consume_open_parenthesis()
+{
+	if (expect_current_char('@'))
+	{
+		return MAKE_TOKEN(WTokenType::OPEN_TUPLE_PARENTHESIS, "(@", LINE_NUM, COL_NUM);
+	}
+
+	return MAKE_TOKEN(WTokenType::OPEN_PARENTHESIS, "(", LINE_NUM, COL_NUM);
+}
+
 Token_ptr Lexer::consume_single_char_punctuation(char ch)
 {
 	switch (ch)
 	{
 	case '\\':
 		return MAKE_TOKEN(WTokenType::BACKWARD_SLASH, "\\", LINE_NUM, COL_NUM);
-	case '(':
-		return MAKE_TOKEN(WTokenType::OPEN_PARENTHESIS, "(", LINE_NUM, COL_NUM);
 	case ')':
 		return MAKE_TOKEN(WTokenType::CLOSE_PARENTHESIS, ")", LINE_NUM, COL_NUM);
 	case '{':

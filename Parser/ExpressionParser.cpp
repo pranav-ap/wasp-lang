@@ -8,43 +8,46 @@
 #include <memory>
 #include <map>
 
+#define ADVANCE_PTR token_pipe->advance_pointer()
+#define RETREAT_PTR token_pipe->retreat_pointer()
 #define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr");
 #define MAKE_EXPRESSION(x) std::make_shared<Expression>(x)
 
 using std::vector;
 using std::string;
+using std::map;
 using std::make_shared;
 using std::shared_ptr;
-using std::map;
 using std::move;
 
 Expression_ptr ExpressionParser::parse_expression()
 {
 	while (true)
 	{
-		Token_ptr current_token = token_pipe->get_current_token();
+		Token_ptr current = token_pipe->current();
 
-		if (current_token == nullptr)
+		if (current == nullptr)
 			break;
 
-		switch (current_token->type)
+		switch (current->type)
 		{
 		case WTokenType::EOL:
+		case WTokenType::INDENT:
 		case WTokenType::COMMA:
 		case WTokenType::CLOSE_CURLY_BRACE:
-		case WTokenType::CLOSE_BRACKET:
+		case WTokenType::CLOSE_SQUARE_BRACKET:
 		{
 			return finish_parsing();
 		}
 		case WTokenType::NumberLiteral:
 		{
-			ast.push(MAKE_EXPRESSION(stod(current_token->value)));
+			ast.push(MAKE_EXPRESSION(stod(current->value)));
 			ADVANCE_PTR;
 			break;
 		}
 		case WTokenType::StringLiteral:
 		{
-			ast.push(MAKE_EXPRESSION(current_token->value));
+			ast.push(MAKE_EXPRESSION(current->value));
 			ADVANCE_PTR;
 			break;
 		}
@@ -64,24 +67,8 @@ Expression_ptr ExpressionParser::parse_expression()
 		{
 			ADVANCE_PTR;
 
-			auto member_access_expression = consume_member_access(current_token);
-
-			if (member_access_expression)
-			{
-				ast.push(member_access_expression);
-			}
-			else
-			{
-				ast.push(MAKE_EXPRESSION(current_token->value));
-			}
-
-			break;
-		}
-		case WTokenType::OPEN_BRACKET:
-		{
-			ADVANCE_PTR;
-			auto vector_literal = parse_vector_literal();
-			ast.push(move(vector_literal));
+			auto expression = parse_identifier(current);
+			ast.push(expression);
 			break;
 		}
 		case WTokenType::OPEN_CURLY_BRACE:
@@ -91,11 +78,25 @@ Expression_ptr ExpressionParser::parse_expression()
 			ast.push(move(literal));
 			break;
 		}
+		case WTokenType::OPEN_SQUARE_BRACKET:
+		{
+			ADVANCE_PTR;
+			auto literal = parse_list_literal();
+			ast.push(move(literal));
+			break;
+		}
 		case WTokenType::OPEN_PARENTHESIS:
 		{
 			inside_function_call.push(false);
-			operator_stack->dumb_push(move(current_token));
+			operator_stack->dumb_push(move(current));
 			ADVANCE_PTR;
+			break;
+		}
+		case WTokenType::OPEN_TUPLE_PARENTHESIS:
+		{
+			ADVANCE_PTR;
+			auto literal = parse_tuple_literal();
+			ast.push(move(literal));
 			break;
 		}
 		case WTokenType::CLOSE_PARENTHESIS:
@@ -111,7 +112,7 @@ Expression_ptr ExpressionParser::parse_expression()
 		{
 			ADVANCE_PTR;
 			auto arguments = parse_function_call_arguments();
-			ast.push(MAKE_EXPRESSION(FunctionCall(current_token->value, arguments)));
+			ast.push(MAKE_EXPRESSION(FunctionCall(current->value, arguments)));
 			break;
 		}
 		case WTokenType::BANG:
@@ -132,7 +133,7 @@ Expression_ptr ExpressionParser::parse_expression()
 		case WTokenType::AND:
 		case WTokenType::OR:
 		{
-			operator_stack->smart_push(move(current_token), ast);
+			operator_stack->smart_push(move(current), ast);
 			ADVANCE_PTR;
 			break;
 		}
@@ -142,120 +143,115 @@ Expression_ptr ExpressionParser::parse_expression()
 	return finish_parsing();
 }
 
-// Literal Parsers
-
-Expression_ptr ExpressionParser::parse_vector_literal()
+ExpressionVector ExpressionParser::parse_expressions()
 {
-	vector<Expression_ptr> elements;
-
-	if (token_pipe->next_significant_token_is(WTokenType::CLOSE_BRACKET))
-		return MAKE_EXPRESSION(VectorLiteral(elements));
+	ExpressionVector elements;
 
 	while (true)
 	{
 		auto element = parse_expression();
 		elements.push_back(move(element));
 
-		if (token_pipe->next_significant_token_is(WTokenType::CLOSE_BRACKET))
-			return MAKE_EXPRESSION(VectorLiteral(elements));
-
-		ASSERT(
-			token_pipe->next_significant_token_is(WTokenType::COMMA),
-			"Expected a COMMA"
-		);
+		if (token_pipe->eventually(WTokenType::COMMA))
+			return elements;
 	}
+}
+
+Expression_ptr ExpressionParser::parse_tuple_literal()
+{
+	ExpressionVector elements;
+
+	if (token_pipe->eventually(WTokenType::CLOSE_PARENTHESIS))
+		return MAKE_EXPRESSION(TupleLiteral(elements));
+
+	elements = parse_expressions();
+	ASSERT(token_pipe->eventually(WTokenType::CLOSE_PARENTHESIS), "Expected a CLOSE_PARENTHESIS");
+
+	return MAKE_EXPRESSION(TupleLiteral(elements));
+}
+
+Expression_ptr ExpressionParser::parse_list_literal()
+{
+	ExpressionVector elements;
+
+	if (token_pipe->eventually(WTokenType::CLOSE_SQUARE_BRACKET))
+		return MAKE_EXPRESSION(ListLiteral(elements));
+
+	elements = parse_expressions();
+	ASSERT(token_pipe->eventually(WTokenType::CLOSE_SQUARE_BRACKET), "Expected a CLOSE_SQUARE_BRACKET");
+
+	return MAKE_EXPRESSION(ListLiteral(elements));
 }
 
 Expression_ptr ExpressionParser::parse_dictionary_literal()
 {
 	map<Token_ptr, Expression_ptr> pairs;
 
-	if (token_pipe->next_significant_token_is(WTokenType::CLOSE_CURLY_BRACE))
+	if (token_pipe->eventually(WTokenType::CLOSE_CURLY_BRACE))
 		return MAKE_EXPRESSION(DictionaryLiteral(pairs));
 
 	while (true)
 	{
 		auto key = consume_valid_dictionary_key();
 
-		ASSERT(
-			token_pipe->next_significant_token_is(WTokenType::COLON),
-			"Expected a COLON"
-		);
+		ASSERT(token_pipe->eventually(WTokenType::COLON), "Expected a COLON");
 
 		auto value = parse_expression();
 		pairs.insert_or_assign(key, value);
 
-		if (token_pipe->next_significant_token_is(WTokenType::CLOSE_CURLY_BRACE))
+		if (token_pipe->eventually(WTokenType::CLOSE_CURLY_BRACE))
 			return MAKE_EXPRESSION(DictionaryLiteral(pairs));
 
-		ASSERT(
-			token_pipe->next_significant_token_is(WTokenType::COMMA),
-			"Expected a COMMA"
-		);
+		ASSERT(token_pipe->eventually(WTokenType::COMMA), "Expected a COMMA");
 	}
 }
 
-Expression_ptr ExpressionParser::consume_member_access(Token_ptr identifier)
+Expression_ptr ExpressionParser::parse_identifier(Token_ptr identifier)
 {
-	if (token_pipe->next_significant_token_is(WTokenType::OPEN_BRACKET))
+	if (token_pipe->eventually(WTokenType::OPEN_SQUARE_BRACKET))
 	{
 		auto expression = parse_expression();
-
-		ASSERT(
-			token_pipe->next_significant_token_is(WTokenType::CLOSE_BRACKET),
-			"Expected a CLOSE_BRACKET"
-		);
+		ASSERT(token_pipe->eventually(WTokenType::CLOSE_SQUARE_BRACKET), "Expected a CLOSE_BRACKET");
 
 		return MAKE_EXPRESSION(MemberAccess(identifier->value, move(expression)));
 	}
-	else if (
-		token_pipe->next_significant_token_is(WTokenType::DOT) ||
-		token_pipe->next_significant_token_is(WTokenType::COLON_COLON)
-		)
+	else if (token_pipe->eventually(WTokenType::DOT))
 	{
-		auto member_identifier = token_pipe->consume_required_token(WTokenType::Identifier);
+		auto member_identifier = token_pipe->required(WTokenType::Identifier);
+
 		return MAKE_EXPRESSION(MemberAccess(
 			identifier->value,
 			MAKE_EXPRESSION(Identifier(member_identifier->value))
 		));
 	}
+	else if (token_pipe->eventually(WTokenType::COLON_COLON))
+	{
+		auto member_identifier = token_pipe->required(WTokenType::Identifier);
+		return MAKE_EXPRESSION(EnumMember(identifier->value, member_identifier->value));
+	}
 
-	return nullptr;
+	return MAKE_EXPRESSION(identifier->value);
 }
 
 ExpressionVector ExpressionParser::parse_function_call_arguments()
 {
 	ExpressionVector expressions;
 
-	ASSERT(
-		token_pipe->next_significant_token_is(WTokenType::OPEN_PARENTHESIS),
-		"Expected a OPEN_PARENTHESIS"
-	);
-
+	ASSERT(token_pipe->eventually(WTokenType::OPEN_PARENTHESIS), "Expected a OPEN_PARENTHESIS");
 	inside_function_call.push(true);
 
-	if (token_pipe->next_significant_token_is(WTokenType::CLOSE_PARENTHESIS))
+	if (token_pipe->eventually(WTokenType::CLOSE_PARENTHESIS))
 	{
 		inside_function_call.pop();
 		return expressions;
 	}
 
-	while (true)
-	{
-		auto expression = parse_expression();
-		expressions.push_back(move(expression));
+	expressions = parse_expressions();
 
-		if (token_pipe->next_significant_token_is(WTokenType::COMMA))
-			continue;
+	ASSERT(token_pipe->eventually(WTokenType::CLOSE_PARENTHESIS), "Expected a CLOSE_PARENTHESIS");
+	inside_function_call.pop();
 
-		ASSERT(
-			token_pipe->next_significant_token_is(WTokenType::CLOSE_PARENTHESIS),
-			"Expected a CLOSE_PARENTHESIS"
-		);
-
-		inside_function_call.pop();
-		return expressions;
-	}
+	return expressions;
 }
 
 // Utils
@@ -274,7 +270,7 @@ Expression_ptr ExpressionParser::finish_parsing()
 
 Token_ptr ExpressionParser::consume_valid_dictionary_key()
 {
-	auto token = token_pipe->get_significant_token();
+	auto token = token_pipe->significant();
 	NULL_CHECK(token);
 
 	switch (token->type)

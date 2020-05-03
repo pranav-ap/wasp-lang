@@ -41,6 +41,7 @@ std::ostream& operator<<(std::ostream& os, const WTokenType type)
 	case WTokenType::CLOSE_SQUARE_BRACKET:
 	case WTokenType::OPEN_CURLY_BRACE:
 	case WTokenType::CLOSE_CURLY_BRACE:
+	case WTokenType::OPEN_TUPLE_PARENTHESIS:
 	case WTokenType::BACKWARD_SLASH:
 	case WTokenType::ARROW:
 	case WTokenType::COMMA:
@@ -100,6 +101,7 @@ std::ostream& operator<<(std::ostream& os, const WTokenType type)
 	case WTokenType::FALSE_KEYWORD:
 	case WTokenType::IMPORT:
 	case WTokenType::FROM:
+	case WTokenType::PASS:
 	case WTokenType::PUB:
 	{
 		os << "Keyword";

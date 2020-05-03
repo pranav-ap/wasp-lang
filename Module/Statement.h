@@ -17,7 +17,7 @@
 #include <variant>
 
 struct Assignment;
-struct ConditionalBranch;
+struct Branching;
 struct WhileLoop;
 struct ForInLoop;
 struct Break;
@@ -28,13 +28,13 @@ struct FunctionDefinition;
 struct EnumDefinition;
 struct ImportCustom;
 struct ImportInBuilt;
-struct ExpressionStatement;
 struct Return;
+struct ExpressionStatement;
 
 using Statement = MODULE_API std::variant<
 	std::monostate,
 	Assignment,
-	ConditionalBranch,
+	Branching,
 	WhileLoop, ForInLoop,
 	Break, Continue,
 	VariableDefinition, UDTDefinition, FunctionDefinition, EnumDefinition,
@@ -51,8 +51,6 @@ struct MODULE_API StatementBase
 {
 };
 
-// Assignment
-
 struct MODULE_API Assignment : public StatementBase
 {
 	string_vector names;
@@ -62,14 +60,12 @@ struct MODULE_API Assignment : public StatementBase
 		: names(names), expressions(expressions) {};
 };
 
-// Branching
-
-struct MODULE_API ConditionalBranch : public StatementBase
+struct MODULE_API Branching : public StatementBase
 {
 	std::vector<std::pair<Expression_ptr, Block>> branches;
 
-	ConditionalBranch() {};
-	//void push(Expression_ptr condition, Block consequence);
+	Branching(std::vector<std::pair<Expression_ptr, Block>> branches)
+		: branches(branches) {};
 };
 
 // Looping
@@ -83,7 +79,7 @@ struct MODULE_API Loop : public StatementBase
 struct MODULE_API WhileLoop : public Loop
 {
 	Expression_ptr condition;
-	WhileLoop(Block block, Expression_ptr condition)
+	WhileLoop(Expression_ptr condition, Block block)
 		: Loop(block), condition(condition) {};
 };
 
@@ -93,7 +89,7 @@ struct MODULE_API ForInLoop : public Loop
 	std::string item_name;
 	Expression_ptr iterable;
 
-	ForInLoop(Block block, Type_ptr item_type, std::string item_name, Expression_ptr iterable)
+	ForInLoop(Type_ptr item_type, std::string item_name, Expression_ptr iterable, Block block)
 		: Loop(block), item_type(item_type), item_name(item_name), iterable(iterable) {};
 };
 

@@ -13,7 +13,7 @@
 
 #include "Token.h"
 #include "TokenPipe.h"
-#include "Types.h"
+#include "TypeSystem.h"
 #include "Expression.h"
 #include "Statement.h"
 #include "Module.h"
@@ -24,14 +24,16 @@ class PARSER_API Parser
 	TokenPipe_ptr token_pipe;
 	ExpressionParser_ptr expr_parser;
 
+	std::vector<int> indent_level;
+
 	Statement_ptr parse_statement(bool is_public);
 	Statement_ptr parse_public_statement();
 
 	Statement_ptr parse_expression_statement();
 
-	Statement_ptr parse_return_statement();
-	Statement_ptr parse_break_statement();
-	Statement_ptr parse_continue_statement();
+	Statement_ptr parse_return();
+	Statement_ptr parse_break();
+	Statement_ptr parse_continue();
 
 	Statement_ptr parse_variable_declaration(bool is_public, bool is_mutable);
 
@@ -40,13 +42,13 @@ class PARSER_API Parser
 	Statement_ptr consume_shortcut_assignment(Token_ptr identifier, Token_ptr shortcut_operator);
 	Statement_ptr consume_multiple_assignment(Token_ptr identifier);
 
-	Statement_ptr parse_import_statement();
+	Statement_ptr parse_import();
 
 	// Block statement parsing
 
-	Statement_ptr parse_branching_statement();
-	Statement_ptr parse_infinite_loop_statement();
-	Statement_ptr parse_foreach_loop_statement();
+	Statement_ptr parse_branching();
+	Statement_ptr parse_while_loop();
+	Statement_ptr parse_for_in_loop();
 
 	// Type parsers
 
@@ -58,9 +60,9 @@ class PARSER_API Parser
 
 	// Definition Parsers
 
-	Statement_ptr parse_UDT_declaration(bool is_public);
+	Statement_ptr parse_UDT_definition(bool is_public);
 	Statement_ptr parse_function_definition(bool is_public);
-	Statement_ptr parse_enum_statement(bool is_public);
+	Statement_ptr parse_enum_definition(bool is_public);
 
 	// Utils
 

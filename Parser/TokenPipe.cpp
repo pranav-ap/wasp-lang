@@ -1,9 +1,13 @@
 #pragma once
 #include "pch.h"
 #include "TokenPipe.h"
+#include "Token.h"
 #include "CommonAssertion.h"
+#include <algorithm>
 
-Token_ptr TokenPipe::get_current_token() const
+using std::vector;
+
+Token_ptr TokenPipe::current() const
 {
 	if (index >= tokens.size()) {
 		return nullptr;
@@ -12,17 +16,20 @@ Token_ptr TokenPipe::get_current_token() const
 	return tokens[index];
 }
 
-Token_ptr TokenPipe::get_significant_token()
+Token_ptr TokenPipe::current(vector<WTokenType> ignorables)
 {
-	ignore(WTokenType::EOL);
-	return get_current_token();
+	ignore(ignorables);
+
+	if (index >= tokens.size()) {
+		return nullptr;
+	}
+
+	return tokens[index];
 }
 
-Token_ptr TokenPipe::consume_optional_token(WTokenType token_type)
+Token_ptr TokenPipe::optional(WTokenType token_type)
 {
-	auto token = get_significant_token();
-
-	if (token && token_type == token->type)
+	if (auto token = current(); token_type == token->type)
 	{
 		advance_pointer();
 		return token;
@@ -31,20 +38,44 @@ Token_ptr TokenPipe::consume_optional_token(WTokenType token_type)
 	return nullptr;
 }
 
-Token_ptr TokenPipe::consume_required_token(WTokenType token_type)
+Token_ptr TokenPipe::optional(WTokenType token_type, vector<WTokenType> ignorables)
 {
-	auto token = get_significant_token();
+	ignore(ignorables);
+
+	if (auto token = current(); token_type == token->type)
+	{
+		advance_pointer();
+		return token;
+	}
+
+	return nullptr;
+}
+
+Token_ptr TokenPipe::required(WTokenType token_type)
+{
+	auto token = current();
 	ASSERT(token_type == token->type, "Token is incorrect type");
 
 	advance_pointer();
 	return token;
 }
 
-bool TokenPipe::next_significant_token_is(WTokenType token_type)
+Token_ptr TokenPipe::required(WTokenType token_type, vector<WTokenType> ignorables)
 {
-	auto token = get_significant_token();
+	ignore(ignorables);
 
-	if (token && token_type == token->type)
+	auto token = current();
+	ASSERT(token_type == token->type, "Token is incorrect type");
+
+	advance_pointer();
+	return token;
+}
+
+bool TokenPipe::eventually(WTokenType token_type, vector<WTokenType> ignorables)
+{
+	ignore(ignorables);
+
+	if (auto token = current(); token_type == token->type)
 	{
 		advance_pointer();
 		return true;
@@ -53,36 +84,38 @@ bool TokenPipe::next_significant_token_is(WTokenType token_type)
 	return false;
 }
 
-void TokenPipe::ignore(WTokenType token_type)
+int TokenPipe::consume_indents()
 {
-	while (true)
+	int indent_level = 0;
+
+	while (auto token = current())
 	{
-		auto token = get_current_token();
-
-		if (token)
+		if (token->type == WTokenType::INDENT)
 		{
-			if (token->type != token_type)
-				break;
-
+			indent_level++;
 			advance_pointer();
 		}
-		else
-		{
-			break;
-		}
 	}
+
+	return indent_level;
 }
 
 // Utils
 
+void TokenPipe::ignore(vector<WTokenType> ignorables)
+{
+	while (auto token = current())
+	{
+		if (std::find(ignorables.begin(), ignorables.end(), token->type) != ignorables.end())
+			break;
+
+		advance_pointer();
+	}
+}
+
 size_t TokenPipe::get_size() const
 {
 	return tokens.size();
-}
-
-int TokenPipe::get_pointer_index() const
-{
-	return index;
 }
 
 void TokenPipe::advance_pointer()

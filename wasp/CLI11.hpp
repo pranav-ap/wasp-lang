@@ -4895,8 +4895,8 @@ namespace CLI {
 		}
 
 		/// Remove the error when extras are left over on the command line.
-		App* required(bool require = true) {
-			required_ = require;
+		App* required(bool required = true) {
+			required_ = required;
 			return this;
 		}
 

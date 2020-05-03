@@ -52,7 +52,8 @@ const std::map<std::string, WTokenType> keyword_map = {
 	{ "import", WTokenType::IMPORT },
 	{ "from", WTokenType::FROM },
 
-	{ "pub", WTokenType::PUB }
+	{ "pub", WTokenType::PUB },
+	{ "pass", WTokenType::PASS }
 };
 
 class LEXER_API Lexer
@@ -94,6 +95,7 @@ class LEXER_API Lexer
 	Token_ptr consume_dot();
 	Token_ptr consume_colon();
 
+	Token_ptr consume_open_parenthesis();
 	Token_ptr consume_single_char_punctuation(char ch);
 
 	Token_ptr consume_eol();
