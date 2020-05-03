@@ -19,12 +19,7 @@ Token_ptr TokenPipe::current() const
 Token_ptr TokenPipe::current(vector<WTokenType> ignorables)
 {
 	ignore(ignorables);
-
-	if (index >= tokens.size()) {
-		return nullptr;
-	}
-
-	return tokens[index];
+	return current();
 }
 
 Token_ptr TokenPipe::optional(WTokenType token_type)
@@ -41,19 +36,13 @@ Token_ptr TokenPipe::optional(WTokenType token_type)
 Token_ptr TokenPipe::optional(WTokenType token_type, vector<WTokenType> ignorables)
 {
 	ignore(ignorables);
-
-	if (auto token = current(); token_type == token->type)
-	{
-		advance_pointer();
-		return token;
-	}
-
-	return nullptr;
+	return optional(token_type);
 }
 
 Token_ptr TokenPipe::required(WTokenType token_type)
 {
 	auto token = current();
+	ASSERT(token != nullptr, "Oh shit! A nullptr");
 	ASSERT(token_type == token->type, "Token is incorrect type");
 
 	advance_pointer();
@@ -63,25 +52,18 @@ Token_ptr TokenPipe::required(WTokenType token_type)
 Token_ptr TokenPipe::required(WTokenType token_type, vector<WTokenType> ignorables)
 {
 	ignore(ignorables);
-
-	auto token = current();
-	ASSERT(token_type == token->type, "Token is incorrect type");
-
-	advance_pointer();
-	return token;
+	return required(token_type);
 }
 
-bool TokenPipe::eventually(WTokenType token_type, vector<WTokenType> ignorables)
+void TokenPipe::expect(WTokenType token_type, vector<WTokenType> ignorables)
 {
 	ignore(ignorables);
 
-	if (auto token = current(); token_type == token->type)
-	{
-		advance_pointer();
-		return true;
-	}
+	auto token = current();
+	ASSERT(token != nullptr, "Oh shit! A nullptr");
+	ASSERT(token_type == token->type, "Token is incorrect type");
 
-	return false;
+	advance_pointer();
 }
 
 int TokenPipe::consume_indents()
@@ -106,7 +88,7 @@ void TokenPipe::ignore(vector<WTokenType> ignorables)
 {
 	while (auto token = current())
 	{
-		if (std::find(ignorables.begin(), ignorables.end(), token->type) != ignorables.end())
+		if (std::find(ignorables.begin(), ignorables.end(), token->type) == ignorables.end())
 			break;
 
 		advance_pointer();

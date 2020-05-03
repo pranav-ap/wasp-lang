@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Token.h"
 #include "TokenPipe.h"
 #include "OperatorStack.h"
 #include "Expression.h"
@@ -13,7 +14,7 @@ class ExpressionParser
 	OperatorStack_ptr operator_stack;
 	ExpressionStack ast;
 
-	std::stack<ExpressionContext> context;
+	std::stack<ExpressionContext> context_stack;
 
 	// Parsers
 

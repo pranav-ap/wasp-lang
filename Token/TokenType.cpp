@@ -95,7 +95,6 @@ std::ostream& operator<<(std::ostream& os, const WTokenType type)
 	case WTokenType::ENUM:
 	case WTokenType::TYPE:
 	case WTokenType::OPT:
-	case WTokenType::SOME:
 	case WTokenType::NONE:
 	case WTokenType::TRUE_KEYWORD:
 	case WTokenType::FALSE_KEYWORD:

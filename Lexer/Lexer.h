@@ -43,7 +43,6 @@ const std::map<std::string, WTokenType> keyword_map = {
 	{ "enum", WTokenType::ENUM },
 	{ "opt", WTokenType::OPT },
 
-	{ "some", WTokenType::SOME },
 	{ "none", WTokenType::NONE },
 
 	{ "true", WTokenType::TRUE_KEYWORD },

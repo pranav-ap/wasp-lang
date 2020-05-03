@@ -101,7 +101,6 @@ enum class TOKEN_API WTokenType
 	ENUM,
 	OPT,
 
-	SOME,
 	NONE,
 
 	TRUE_KEYWORD,

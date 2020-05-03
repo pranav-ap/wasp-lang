@@ -89,7 +89,7 @@ Statement_ptr Parser::parse_statement(bool is_public)
 
 Statement_ptr Parser::parse_import()
 {
-	ASSERT(token_pipe->eventually(WTokenType::OPEN_CURLY_BRACE), "Expected a OPEN_CURLY_BRACE");
+	ASSERT(token_pipe->assert(WTokenType::OPEN_CURLY_BRACE), "Expected a OPEN_CURLY_BRACE");
 
 	string_vector goods;
 
@@ -98,13 +98,13 @@ Statement_ptr Parser::parse_import()
 		auto identifier = token_pipe->required(WTokenType::Identifier);
 		goods.push_back(identifier->value);
 
-		if (token_pipe->eventually(WTokenType::CLOSE_CURLY_BRACE))
+		if (token_pipe->assert(WTokenType::CLOSE_CURLY_BRACE))
 			break;
 
-		ASSERT(token_pipe->eventually(WTokenType::COMMA), "Expected a COMMA or a CLOSE_CURLY_BRACE");
+		ASSERT(token_pipe->assert(WTokenType::COMMA), "Expected a COMMA or a CLOSE_CURLY_BRACE");
 	}
 
-	ASSERT(token_pipe->eventually(WTokenType::FROM), "Expected the FROM keyword");
+	ASSERT(token_pipe->assert(WTokenType::FROM), "Expected the FROM keyword");
 
 	auto current = token_pipe->optional(WTokenType::Identifier);
 
@@ -120,10 +120,10 @@ Statement_ptr Parser::parse_import()
 Statement_ptr Parser::parse_variable_declaration(bool is_public, bool is_mutable)
 {
 	auto identifier = token_pipe->required(WTokenType::Identifier);
-	ASSERT(token_pipe->eventually(WTokenType::COLON), "Expected a COLON");
+	ASSERT(token_pipe->assert(WTokenType::COLON), "Expected a COLON");
 
 	auto type = parse_type();
-	ASSERT(token_pipe->eventually(WTokenType::EQUAL), "Expected a EQUAL");
+	ASSERT(token_pipe->assert(WTokenType::EQUAL), "Expected a EQUAL");
 
 	Expression_ptr expression = expr_parser->parse_expression();
 
@@ -132,13 +132,13 @@ Statement_ptr Parser::parse_variable_declaration(bool is_public, bool is_mutable
 
 Block Parser::parse_block()
 {
-	ASSERT(token_pipe->eventually(WTokenType::OPEN_CURLY_BRACE), "Expected a OPEN_CURLY_BRACE");
+	ASSERT(token_pipe->assert(WTokenType::OPEN_CURLY_BRACE), "Expected a OPEN_CURLY_BRACE");
 
 	Block statements;
 
 	while (true)
 	{
-		if (token_pipe->eventually(WTokenType::CLOSE_CURLY_BRACE))
+		if (token_pipe->assert(WTokenType::CLOSE_CURLY_BRACE))
 			return statements;
 
 		auto statement = parse_statement(false);
