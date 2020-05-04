@@ -5,7 +5,9 @@
 
 #include <map>
 #include <memory>
+#include <algorithm>
 #include <string>
+#include <vector>
 
 using std::string;
 using std::to_string;
@@ -24,6 +26,8 @@ using std::isalpha;
 
 vector<Token_ptr> Lexer::execute()
 {
+	bool found_statement = false;
+
 	while (true)
 	{
 		char ch = get_current_char();
@@ -31,36 +35,39 @@ vector<Token_ptr> Lexer::execute()
 		if (ch == NULL)
 			break;
 
-		if (ch == ' ' && tokens.back()->type != WTokenType::EOL)
+		Token_ptr token;
+
+		if (!found_statement && ch == ' ')
+		{
+			NEXT;
+			token = consume_space();
+		}
+		else if (found_statement && ch == ' ')
 		{
 			NEXT;
 			continue;
 		}
-
-		Token_ptr token;
-
-		if (isdigit(static_cast<unsigned char>(ch)))
+		else if (ch == '\n')
 		{
+			found_statement = false;
+			NEXT;
+			token = consume_eol();
+		}
+		else if (isdigit(static_cast<unsigned char>(ch)))
+		{
+			found_statement = true;
 			NEXT;
 			token = consume_number_literal(ch);
 		}
 		else if (isalpha(ch) || ch == '_')
 		{
+			found_statement = true;
 			NEXT;
 			token = consume_identifier(ch);
 		}
-		else if (ch == '\n')
-		{
-			NEXT;
-			token = consume_eol();
-		}
-		else if (ch == ' ')
-		{
-			NEXT;
-			token = consume_indent();
-		}
 		else
 		{
+			found_statement = true;
 			NEXT;
 
 			switch (ch)
@@ -93,7 +100,7 @@ vector<Token_ptr> Lexer::execute()
 
 		if (token)
 		{
-			spdlog::info("Ln {} Col {} : {}", token->line_num, token->column_num, token->value);
+			//spdlog::info("Ln {} Col {} : {}", token->line_num, token->column_num, token->value);
 			tokens.push_back(move(token));
 		}
 		else
@@ -299,9 +306,7 @@ Token_ptr Lexer::consume_dot()
 Token_ptr Lexer::consume_colon()
 {
 	if (expect_current_char(':'))
-	{
 		return MAKE_TOKEN(WTokenType::COLON_COLON, "::", LINE_NUM, COL_NUM);
-	}
 
 	return MAKE_TOKEN(WTokenType::COLON, ":", LINE_NUM, COL_NUM);
 }
@@ -309,9 +314,7 @@ Token_ptr Lexer::consume_colon()
 Token_ptr Lexer::consume_open_parenthesis()
 {
 	if (expect_current_char('@'))
-	{
 		return MAKE_TOKEN(WTokenType::OPEN_TUPLE_PARENTHESIS, "(@", LINE_NUM, COL_NUM);
-	}
 
 	return MAKE_TOKEN(WTokenType::OPEN_PARENTHESIS, "(", LINE_NUM, COL_NUM);
 }
@@ -352,26 +355,9 @@ Token_ptr Lexer::consume_eol()
 	return MAKE_TOKEN(WTokenType::EOL, "\\n", line_num, column_num);
 }
 
-Token_ptr Lexer::consume_indent()
+Token_ptr Lexer::consume_space()
 {
-	int num_of_spaces = 1;
-
-	while (expect_current_char(' '))
-	{
-		num_of_spaces++;
-
-		if (num_of_spaces == 4)
-		{
-			return MAKE_TOKEN(WTokenType::INDENT, "INDENT", LINE_NUM, COL_NUM);
-		}
-	}
-
-	if (!expect_current_char('\n')) {
-		spdlog::error("Indentation level is wrong");
-		exit(1);
-	}
-
-	return MAKE_TOKEN(WTokenType::EOL, "\\n", LINE_NUM, COL_NUM);
+	return MAKE_TOKEN(WTokenType::SPACE, "SPACE", LINE_NUM, COL_NUM);
 }
 
 Token_ptr Lexer::consume_unknown_token(char ch)
@@ -379,20 +365,83 @@ Token_ptr Lexer::consume_unknown_token(char ch)
 	string unknown_token;
 	unknown_token.push_back(ch);
 
-	while (ch = get_current_char())
+	for (ch = get_current_char(); ch != ' ' && ch != '\n';)
 	{
-		if (ch != ' ' && ch != '\n')
-		{
-			unknown_token.push_back(ch);
-			NEXT;
-			continue;
-		}
-
-		break;
+		unknown_token.push_back(ch);
+		NEXT;
 	}
 
-	string message = unknown_token + " I have NO idea what this token is! Fix it!";
-	ERROR(message);
-
 	return MAKE_TOKEN(WTokenType::UNKNOWN, unknown_token, LINE_NUM, COL_NUM);
+}
+
+// UTILS
+
+bool Lexer::expect_current_char(char ch)
+{
+	if (ch == get_current_char())
+	{
+		pointer.advance();
+		return true;
+	}
+
+	return false;
+}
+
+char Lexer::get_char_at(int index) const
+{
+	if ((size_t)index >= raw_source.size() || index < 0)
+		return NULL;
+
+	return raw_source[index];
+}
+
+char Lexer::get_current_char() const
+{
+	int index = pointer.get_index();
+	return get_char_at(index);
+}
+
+char Lexer::get_right_char() const
+{
+	int index = pointer.get_index();
+	return get_char_at(index + 1);
+}
+
+Token_ptr Lexer::get_previous_significant_token()
+{
+	Token_ptr previous_token = nullptr;
+
+	for (auto t = tokens.rbegin(); t != tokens.rend(); t++)
+	{
+		if (auto token = *t; token->type != WTokenType::EOL)
+		{
+			previous_token = token;
+			break;
+		}
+	}
+
+	return previous_token;
+}
+
+bool Lexer::is_unary()
+{
+	Token_ptr previous_token = get_previous_significant_token();
+
+	if (previous_token == nullptr)
+		return true;
+
+	switch (previous_token->type)
+	{
+	case WTokenType::NumberLiteral:
+	case WTokenType::Identifier:
+	case WTokenType::FunctionIdentifier:
+	{
+		return false;
+	}
+
+	default:
+	{
+		return true;
+	}
+	}
 }

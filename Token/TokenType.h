@@ -112,10 +112,13 @@ enum class TOKEN_API WTokenType
 	PUB,
 	PASS,
 
-	// Other
+	// Whitespace
 
 	EOL,
-	INDENT,
+	SPACE,
+
+	// Other
+
 	UNKNOWN
 };
 

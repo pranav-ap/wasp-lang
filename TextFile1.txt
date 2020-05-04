@@ -1,0 +1,20 @@
+	switch (context)
+	{
+	case StatementContext::BRANCH:
+	case StatementContext::LOOP:
+	case StatementContext::FUNCTION_DEFINITION:
+	case StatementContext::UDT_DEFINITION:
+	case StatementContext::ENUM_DEFINITION:
+	{
+		if (current_indent < expected_indent || current_indent == expected_indent)
+			return nullptr;
+
+		ASSERT(current_indent == expected_indent + 4, "You must indent here");
+		break;
+	}
+	default:
+	{
+		ASSERT(current_indent == expected_indent, "Cannot change indentation for no reason");
+		break;
+	}
+	}

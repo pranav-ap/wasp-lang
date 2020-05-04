@@ -3,6 +3,7 @@
 #include "Parser.h"
 #include "TokenType.h"
 #include "TokenPipe.h"
+#include "StatementContext.h"
 #include "CommonAssertion.h"
 
 #include <iostream>
@@ -20,6 +21,7 @@
 #define MAKE_STATEMENT(x) std::make_shared<Statement>(x)
 #define MAKE_EXPRESSION(x) std::make_shared<Expression>(x)
 #define MAKE_TYPE(x) std::make_shared<Type>(x)
+#define IGNORABLES_TYPE_1 { WTokenType::EOL }
 
 using std::string;
 using std::vector;
@@ -39,15 +41,11 @@ using std::holds_alternative;
 Module Parser::execute()
 {
 	Module mod;
-	size_t length = token_pipe->get_size();
 
-	// error on indent
+	context_stack.push({ StatementContext::GLOBAL, 0 });
 
-	while (true)
+	while ((size_t)token_pipe->get_pointer_index() < token_pipe->get_size())
 	{
-		if ((size_t)token_pipe->get_pointer_index() >= length)
-			break;
-
 		Statement_ptr node = parse_statement(false);
 
 		if (node)
@@ -56,6 +54,9 @@ Module Parser::execute()
 		}
 	}
 
+	ASSERT(context_stack.size() == 1, "Context stack is not in global state");
+	context_stack.pop();
+
 	return mod;
 }
 
@@ -63,24 +64,33 @@ Module Parser::execute()
 
 Statement_ptr Parser::parse_statement(bool is_public)
 {
-	auto token = token_pipe->significant();
+	token_pipe->skip_empty_lines();
+
+	// Handle Indentation
+
+	const int current_indent = token_pipe->consume_spaces();
+	const int expected_indent = context_stack.top().second;
+
+	auto token = token_pipe->current();
 
 	if (token == nullptr)
 		return nullptr;
 
-	/*
-	count indent
-	indent == old
+	ASSERT(current_indent == expected_indent, "Cannot change indentation for no reason");
 
-	*/
+	// Parse
 
 	ADVANCE_PTR;
 
 	switch (token->type)
 	{
 		CASE(WTokenType::IMPORT, parse_import());
-		CASE(WTokenType::LET, parse_variable_declaration(is_public, true));
-		CASE(WTokenType::CONST_KEYWORD, parse_variable_declaration(is_public, false));
+		CASE(WTokenType::LET, parse_variable_definition(is_public, true));
+		CASE(WTokenType::CONST_KEYWORD, parse_variable_definition(is_public, false));
+		CASE(WTokenType::PASS, parse_pass());
+		CASE(WTokenType::BREAK, parse_break());
+		CASE(WTokenType::CONTINUE, parse_continue());
+		CASE(WTokenType::WHILE, parse_while_loop());
 	default:
 	{
 	}
@@ -89,7 +99,7 @@ Statement_ptr Parser::parse_statement(bool is_public)
 
 Statement_ptr Parser::parse_import()
 {
-	ASSERT(token_pipe->assert(WTokenType::OPEN_CURLY_BRACE), "Expected a OPEN_CURLY_BRACE");
+	token_pipe->expect(WTokenType::OPEN_CURLY_BRACE);
 
 	string_vector goods;
 
@@ -98,17 +108,15 @@ Statement_ptr Parser::parse_import()
 		auto identifier = token_pipe->required(WTokenType::Identifier);
 		goods.push_back(identifier->value);
 
-		if (token_pipe->assert(WTokenType::CLOSE_CURLY_BRACE))
+		if (token_pipe->optional(WTokenType::CLOSE_CURLY_BRACE))
 			break;
 
-		ASSERT(token_pipe->assert(WTokenType::COMMA), "Expected a COMMA or a CLOSE_CURLY_BRACE");
+		token_pipe->expect(WTokenType::COMMA);
 	}
 
-	ASSERT(token_pipe->assert(WTokenType::FROM), "Expected the FROM keyword");
+	token_pipe->expect(WTokenType::FROM);
 
-	auto current = token_pipe->optional(WTokenType::Identifier);
-
-	if (current)
+	if (auto current = token_pipe->optional(WTokenType::Identifier))
 	{
 		return MAKE_STATEMENT(ImportInBuilt(current->value, goods));
 	}
@@ -117,31 +125,212 @@ Statement_ptr Parser::parse_import()
 	return MAKE_STATEMENT(ImportCustom(path_token->value, goods));
 }
 
-Statement_ptr Parser::parse_variable_declaration(bool is_public, bool is_mutable)
+Statement_ptr Parser::parse_variable_definition(bool is_public, bool is_mutable)
 {
 	auto identifier = token_pipe->required(WTokenType::Identifier);
-	ASSERT(token_pipe->assert(WTokenType::COLON), "Expected a COLON");
+	token_pipe->expect(WTokenType::COLON);
 
 	auto type = parse_type();
-	ASSERT(token_pipe->assert(WTokenType::EQUAL), "Expected a EQUAL");
+	token_pipe->expect(WTokenType::EQUAL);
 
 	Expression_ptr expression = expr_parser->parse_expression();
 
 	return MAKE_STATEMENT(VariableDefinition(is_public, is_mutable, identifier->value, move(type), move(expression)));
 }
 
+// Block statement parsing
+
 Block Parser::parse_block()
 {
-	ASSERT(token_pipe->assert(WTokenType::OPEN_CURLY_BRACE), "Expected a OPEN_CURLY_BRACE");
-
 	Block statements;
+
+	while (auto statement = parse_statement(false))
+	{
+		statements.push_back(move(statement));
+	}
+
+	return statements;
+}
+
+Statement_ptr Parser::parse_while_loop()
+{
+	token_pipe->skip_empty_lines();
+
+	auto condition = expr_parser->parse_expression();
+	token_pipe->expect(WTokenType::COLON);
+
+	const auto previous_indent = context_stack.top().second;
+	context_stack.push({ StatementContext::LOOP, previous_indent + 4 });
+
+	auto block = parse_block();
+
+	ASSERT(context_stack.top().first == StatementContext::LOOP, "While Loop Context mismatch");
+	context_stack.pop();
+
+	return MAKE_STATEMENT(WhileLoop(condition, block));
+}
+
+Statement_ptr Parser::parse_return()
+{
+	if (auto expression = expr_parser->parse_expression())
+	{
+		return MAKE_STATEMENT(Return(move(expression)));
+	}
+
+	return MAKE_STATEMENT(Return());
+}
+
+Statement_ptr Parser::parse_break()
+{
+	return MAKE_STATEMENT(Break());
+}
+
+Statement_ptr Parser::parse_pass()
+{
+	return MAKE_STATEMENT(Pass());
+}
+
+Statement_ptr Parser::parse_continue()
+{
+	return MAKE_STATEMENT(Continue());
+}
+
+// Type Parsers
+
+Type_ptr Parser::parse_type()
+{
+	if (token_pipe->optional(WTokenType::OPEN_SQUARE_BRACKET))
+	{
+		return parse_list_type();
+	}
+	else if (token_pipe->optional(WTokenType::OPEN_CURLY_BRACE))
+	{
+		return parse_map_type();
+	}
+	else if (token_pipe->optional(WTokenType::OPEN_PARENTHESIS))
+	{
+		return parse_tuple_type();
+	}
+
+	return consume_datatype_word();
+}
+
+Type_ptr Parser::parse_list_type()
+{
+	auto type = parse_type();
+
+	token_pipe->expect(WTokenType::CLOSE_SQUARE_BRACKET);
+
+	return MAKE_TYPE(ListType(move(type)));
+}
+
+Type_ptr Parser::parse_tuple_type()
+{
+	vector<Type_ptr> types;
 
 	while (true)
 	{
-		if (token_pipe->assert(WTokenType::CLOSE_CURLY_BRACE))
-			return statements;
+		auto type = parse_type();
+		types.push_back(type);
 
-		auto statement = parse_statement(false);
-		statements.push_back(move(statement));
+		if (token_pipe->optional(WTokenType::COMMA))
+		{
+			continue;
+		}
+
+		token_pipe->expect(WTokenType::CLOSE_PARENTHESIS);
 	}
+
+	return MAKE_TYPE(TupleType(types));
+}
+
+Type_ptr Parser::parse_map_type()
+{
+	auto key_type = parse_type();
+	token_pipe->expect(WTokenType::ARROW);
+
+	auto value_type = parse_type();
+	token_pipe->expect(WTokenType::CLOSE_CURLY_BRACE);
+
+	return MAKE_TYPE(MapType(move(key_type), move(value_type)));
+}
+
+Type_ptr Parser::consume_datatype_word()
+{
+	auto token = token_pipe->current();
+	NULL_CHECK(token);
+
+	switch (token->type)
+	{
+	case WTokenType::NUM:
+	{
+		ADVANCE_PTR;
+		return MAKE_TYPE(NumberType());
+	}
+	case WTokenType::STR:
+	{
+		ADVANCE_PTR;
+		return MAKE_TYPE(StringType());
+	}
+	case WTokenType::BOOL:
+	{
+		ADVANCE_PTR;
+		return MAKE_TYPE(BooleanType());
+	}
+	case WTokenType::Identifier:
+	{
+		ADVANCE_PTR;
+		return MAKE_TYPE(UDTType(token->value));
+	}
+	default:
+	{
+		FATAL("Expected a datatype");
+	}
+	}
+}
+
+// Utils
+
+void Parser::convert_shortcut_token(Token_ptr token)
+{
+	switch (token->type)
+	{
+	case WTokenType::PLUS_EQUAL:
+	{
+		token->type = WTokenType::PLUS;
+		token->value = "+";
+		break;
+	}
+	case WTokenType::MINUS_EQUAL: {
+		token->type = WTokenType::MINUS;
+		token->value = "-";
+		break;
+	}
+	case WTokenType::STAR_EQUAL:
+	{
+		token->type = WTokenType::STAR;
+		token->value = "*";
+		break;
+	}
+	case WTokenType::DIVISION_EQUAL:
+	{
+		token->type = WTokenType::DIVISION;
+		token->value = "/";
+		break;
+	}
+	case WTokenType::REMINDER_EQUAL:
+	{
+		token->type = WTokenType::REMINDER;
+		token->value = "%";
+		break;
+	}
+	case WTokenType::POWER_EQUAL:
+	{
+		token->type = WTokenType::POWER;
+		token->value = "^";
+		break;
+	}
+	}
+
+	FATAL(token->value + " is not a shortcut token");
 }

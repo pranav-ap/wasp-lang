@@ -6,11 +6,6 @@
 #define PARSER_API __declspec(dllimport)
 #endif
 
-#include <vector>
-#include <stack>
-#include <memory>
-#include <utility>
-
 #include "Token.h"
 #include "TokenPipe.h"
 #include "TypeSystem.h"
@@ -18,24 +13,28 @@
 #include "Statement.h"
 #include "Module.h"
 #include "ExpressionParser.h"
+#include "StatementContext.h"
+
+#include <vector>
+#include <stack>
+#include <memory>
+#include <utility>
 
 class PARSER_API Parser
 {
 	TokenPipe_ptr token_pipe;
 	ExpressionParser_ptr expr_parser;
 
-	std::vector<int> indent_level;
+	std::stack<std::pair<StatementContext, int>> context_stack;
 
 	Statement_ptr parse_statement(bool is_public);
 	Statement_ptr parse_public_statement();
-
 	Statement_ptr parse_expression_statement();
 
+	Statement_ptr parse_pass();
 	Statement_ptr parse_return();
 	Statement_ptr parse_break();
 	Statement_ptr parse_continue();
-
-	Statement_ptr parse_variable_declaration(bool is_public, bool is_mutable);
 
 	Statement_ptr consume_assignment_or_expression_statement(Token_ptr identifier);
 	Statement_ptr consume_assignment(Token_ptr identifier);
@@ -60,6 +59,7 @@ class PARSER_API Parser
 
 	// Definition Parsers
 
+	Statement_ptr parse_variable_definition(bool is_public, bool is_mutable);
 	Statement_ptr parse_UDT_definition(bool is_public);
 	Statement_ptr parse_function_definition(bool is_public);
 	Statement_ptr parse_enum_definition(bool is_public);

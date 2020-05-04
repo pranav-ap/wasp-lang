@@ -21,6 +21,7 @@ struct Branching;
 struct WhileLoop;
 struct ForInLoop;
 struct Break;
+struct Pass;
 struct Continue;
 struct VariableDefinition;
 struct UDTDefinition;
@@ -39,7 +40,7 @@ using Statement = MODULE_API std::variant<
 	Break, Continue,
 	VariableDefinition, UDTDefinition, FunctionDefinition, EnumDefinition,
 	ImportCustom, ImportInBuilt,
-	Return,
+	Return, Pass,
 	ExpressionStatement
 >;
 
@@ -94,6 +95,10 @@ struct MODULE_API ForInLoop : public Loop
 };
 
 struct MODULE_API Break : public StatementBase
+{
+};
+
+struct MODULE_API Pass : public StatementBase
 {
 };
 

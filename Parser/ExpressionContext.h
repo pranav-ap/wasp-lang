@@ -1,9 +1,6 @@
-#pragma once
-#include "Token.h"
-
 enum class ExpressionContext
 {
-	GLOBAL,
+	GLOBAL_EXPRESSION,
 	SEQUENCE_LITERAL,
 	DICTIONARY_LITERAL,
 	FUNCTION_CALL,

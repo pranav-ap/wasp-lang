@@ -7,6 +7,15 @@
 
 using std::vector;
 
+Token_ptr TokenPipe::token_at(int i) const
+{
+	if (i >= tokens.size()) {
+		return nullptr;
+	}
+
+	return tokens[i];
+}
+
 Token_ptr TokenPipe::current() const
 {
 	if (index >= tokens.size()) {
@@ -55,10 +64,8 @@ Token_ptr TokenPipe::required(WTokenType token_type, vector<WTokenType> ignorabl
 	return required(token_type);
 }
 
-void TokenPipe::expect(WTokenType token_type, vector<WTokenType> ignorables)
+void TokenPipe::expect(WTokenType token_type)
 {
-	ignore(ignorables);
-
 	auto token = current();
 	ASSERT(token != nullptr, "Oh shit! A nullptr");
 	ASSERT(token_type == token->type, "Token is incorrect type");
@@ -66,23 +73,73 @@ void TokenPipe::expect(WTokenType token_type, vector<WTokenType> ignorables)
 	advance_pointer();
 }
 
-int TokenPipe::consume_indents()
+void TokenPipe::expect(WTokenType token_type, vector<WTokenType> ignorables)
 {
-	int indent_level = 0;
+	ignore(ignorables);
+	expect(token_type);
+}
+
+int TokenPipe::consume_spaces()
+{
+	int space_count = 0;
 
 	while (auto token = current())
 	{
-		if (token->type == WTokenType::INDENT)
+		if (token->type == WTokenType::SPACE)
 		{
-			indent_level++;
+			space_count++;
 			advance_pointer();
+			continue;
 		}
+
+		break;
 	}
 
-	return indent_level;
+	return space_count;
 }
 
-// Utils
+void TokenPipe::skip_empty_lines()
+{
+	while (true)
+	{
+		ignore({ WTokenType::EOL });
+
+		int space_count = 0;
+		int i = get_pointer_index();
+
+		while (auto token = token_at(i))
+		{
+			if (token->type == WTokenType::SPACE)
+			{
+				space_count++;
+				i++;
+				continue;
+			}
+
+			if (token->type == WTokenType::EOL)
+			{
+				pointer_skip(space_count + 1);
+			}
+
+			break;
+		}
+
+		break;
+	}
+}
+
+// Ignore
+
+void TokenPipe::ignore(WTokenType ignorable)
+{
+	while (auto token = current())
+	{
+		if (token->type != ignorable)
+			break;
+
+		advance_pointer();
+	}
+}
 
 void TokenPipe::ignore(vector<WTokenType> ignorables)
 {
@@ -95,9 +152,21 @@ void TokenPipe::ignore(vector<WTokenType> ignorables)
 	}
 }
 
+// UTILS
+
 size_t TokenPipe::get_size() const
 {
 	return tokens.size();
+}
+
+int TokenPipe::get_pointer_index() const
+{
+	return index;
+}
+
+void TokenPipe::pointer_skip(int skip)
+{
+	index = get_pointer_index() + skip;
 }
 
 void TokenPipe::advance_pointer()

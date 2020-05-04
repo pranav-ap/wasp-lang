@@ -3,7 +3,6 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <regex>
 
 using std::string;
 using std::ifstream;
@@ -20,8 +19,6 @@ std::string read_source(string path)
 		raw_source.append(line);
 		raw_source.append("\n");
 	}
-
-	raw_source = std::regex_replace(raw_source, std::regex("\t"), "    ");
 
 	return raw_source;
 }

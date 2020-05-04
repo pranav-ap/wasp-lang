@@ -12,7 +12,7 @@
 #define RETREAT_PTR token_pipe->retreat_pointer()
 #define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr");
 #define MAKE_EXPRESSION(x) std::make_shared<Expression>(x)
-#define IGNORABLES { WTokenType::EOL, WTokenType::INDENT }
+#define IGNORABLES { WTokenType::EOL }
 
 using std::vector;
 using std::string;
@@ -23,7 +23,7 @@ using std::move;
 
 Expression_ptr ExpressionParser::parse_expression()
 {
-	context_stack.push(ExpressionContext::GLOBAL);
+	context_stack.push(ExpressionContext::GLOBAL_EXPRESSION);
 
 	while (true)
 	{
@@ -172,15 +172,15 @@ Expression_ptr ExpressionParser::parse_expression()
 
 		// OTHER
 
-		case WTokenType::INDENT:
+		case WTokenType::SPACE:
 		{
 			ADVANCE_PTR;
 			break;
 		}
 		case WTokenType::EOL:
+		case WTokenType::COLON:
 		case WTokenType::COMMA:
 		{
-			ADVANCE_PTR;
 			return finish_parsing();
 		}
 		}
@@ -191,32 +191,45 @@ Expression_ptr ExpressionParser::parse_expression()
 
 ExpressionVector ExpressionParser::parse_expressions()
 {
+	context_stack.push(ExpressionContext::GLOBAL_EXPRESSION);
+
+	ExpressionVector expressions = parse_comma_separated_expressions();
+
+	ASSERT(context_stack.top() == ExpressionContext::GLOBAL_EXPRESSION, "GLOBAL_EXPRESSION Context Mismatch");
+	context_stack.pop();
+
+	return expressions;
+}
+
+ExpressionVector ExpressionParser::parse_comma_separated_expressions()
+{
 	context_stack.push(ExpressionContext::COMMA_SEPARATED_EXPRESSIONS);
 
 	ExpressionVector elements;
 
-	while (true)
+	while (auto element = parse_expression())
 	{
-		auto element = parse_expression();
 		elements.push_back(move(element));
 
-		if (token_pipe->optional(WTokenType::COMMA, IGNORABLES))
-			return elements;
+		if (token_pipe->optional(WTokenType::COMMA))
+			break;
 	}
 
 	ASSERT(context_stack.top() == ExpressionContext::COMMA_SEPARATED_EXPRESSIONS, "COMMA_SEPARATED_EXPRESSIONS Context Mismatch");
 	context_stack.pop();
+
+	return elements;
 }
 
 Expression_ptr ExpressionParser::parse_tuple_literal()
 {
 	ExpressionVector elements;
 
-	if (token_pipe->optional(WTokenType::CLOSE_PARENTHESIS, IGNORABLES))
+	if (token_pipe->optional(WTokenType::CLOSE_PARENTHESIS))
 		return MAKE_EXPRESSION(TupleLiteral(elements));
 
-	elements = parse_expressions();
-	token_pipe->expect(WTokenType::CLOSE_PARENTHESIS, IGNORABLES);
+	elements = parse_comma_separated_expressions();
+	token_pipe->expect(WTokenType::CLOSE_PARENTHESIS);
 
 	return MAKE_EXPRESSION(TupleLiteral(elements));
 }
@@ -225,11 +238,11 @@ Expression_ptr ExpressionParser::parse_list_literal()
 {
 	ExpressionVector elements;
 
-	if (token_pipe->optional(WTokenType::CLOSE_SQUARE_BRACKET, IGNORABLES))
+	if (token_pipe->optional(WTokenType::CLOSE_SQUARE_BRACKET))
 		return MAKE_EXPRESSION(ListLiteral(elements));
 
-	elements = parse_expressions();
-	token_pipe->expect(WTokenType::CLOSE_SQUARE_BRACKET, IGNORABLES);
+	elements = parse_comma_separated_expressions();
+	token_pipe->expect(WTokenType::CLOSE_SQUARE_BRACKET);
 
 	return MAKE_EXPRESSION(ListLiteral(elements));
 }
@@ -238,13 +251,15 @@ Expression_ptr ExpressionParser::parse_dictionary_literal()
 {
 	map<Token_ptr, Expression_ptr> pairs;
 
-	if (token_pipe->optional(WTokenType::CLOSE_CURLY_BRACE, IGNORABLES))
+	if (token_pipe->optional(WTokenType::CLOSE_CURLY_BRACE))
 		return MAKE_EXPRESSION(DictionaryLiteral(pairs));
 
 	while (true)
 	{
+		token_pipe->skip_empty_lines();
+
 		auto key = consume_valid_dictionary_key();
-		token_pipe->expect(WTokenType::COLON, IGNORABLES);
+		token_pipe->expect(WTokenType::COLON);
 
 		auto value = parse_expression();
 		pairs.insert_or_assign(key, value);
@@ -252,7 +267,7 @@ Expression_ptr ExpressionParser::parse_dictionary_literal()
 		if (token_pipe->optional(WTokenType::CLOSE_CURLY_BRACE, IGNORABLES))
 			return MAKE_EXPRESSION(DictionaryLiteral(pairs));
 
-		token_pipe->expect(WTokenType::COMMA, IGNORABLES);
+		token_pipe->expect(WTokenType::COMMA);
 	}
 }
 
@@ -263,7 +278,7 @@ Expression_ptr ExpressionParser::parse_identifier(Token_ptr identifier)
 		context_stack.push(ExpressionContext::SEQUENCE_MEMBER_ACCESS);
 
 		auto expression = parse_expression();
-		token_pipe->expect(WTokenType::CLOSE_SQUARE_BRACKET, IGNORABLES);
+		token_pipe->expect(WTokenType::CLOSE_SQUARE_BRACKET);
 
 		ASSERT(context_stack.top() == ExpressionContext::SEQUENCE_MEMBER_ACCESS, "SEQUENCE_MEMBER_ACCESS Context Mismatch");
 		context_stack.pop();
@@ -290,7 +305,7 @@ Expression_ptr ExpressionParser::parse_identifier(Token_ptr identifier)
 
 ExpressionVector ExpressionParser::parse_function_call_arguments()
 {
-	token_pipe->expect(WTokenType::OPEN_PARENTHESIS, IGNORABLES);
+	token_pipe->expect(WTokenType::OPEN_PARENTHESIS);
 
 	ExpressionVector expressions;
 
@@ -301,12 +316,13 @@ ExpressionVector ExpressionParser::parse_function_call_arguments()
 		return expressions;
 	}
 
-	expressions = parse_expressions();
+	expressions = parse_comma_separated_expressions();
 
-	token_pipe->expect(WTokenType::CLOSE_PARENTHESIS, IGNORABLES);
+	token_pipe->expect(WTokenType::CLOSE_PARENTHESIS);
 
 	ASSERT(context_stack.top() == ExpressionContext::FUNCTION_CALL, "FUNCTION_CALL Context Mismatch");
 	context_stack.pop();
+
 	return expressions;
 }
 

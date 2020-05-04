@@ -1,0 +1,12 @@
+#pragma once
+
+enum class StatementContext
+{
+	GLOBAL,
+	EXPRESSION,
+	BRANCH,
+	LOOP,
+	FUNCTION_DEFINITION,
+	UDT_DEFINITION,
+	ENUM_DEFINITION
+};

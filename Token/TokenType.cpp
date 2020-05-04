@@ -114,9 +114,9 @@ std::ostream& operator<<(std::ostream& os, const WTokenType type)
 		os << "EOL";
 		break;
 	}
-	case WTokenType::INDENT:
+	case WTokenType::SPACE:
 	{
-		os << "INDENT";
+		os << "SPACE";
 		break;
 	}
 	case WTokenType::UNKNOWN:

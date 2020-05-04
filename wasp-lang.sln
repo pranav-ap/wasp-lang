@@ -14,6 +14,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "code samples", "code samples", "{F6C1ADA9-3AF5-413E-878D-22C33EB8531B}"
 	ProjectSection(SolutionItems) = preProject
 		main.wasp = main.wasp
+		TextFile1.txt = TextFile1.txt
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Token", "Token\Token.vcxproj", "{5637E073-6798-4882-A7E7-413E1F93F541}"
@@ -23,8 +24,6 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wasp", "wasp\wasp.vcxproj", "{F3E76B69-603D-402E-98F6-925B1F6FCAA3}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Module", "Module\Module.vcxproj", "{C6CEAE21-8418-4F75-A649-766C237FD649}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TypeSystem", "TypeSystem\TypeSystem.vcxproj", "{631F497A-18C4-4A9A-BF08-2F4142930E5F}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Parser", "Parser\Parser.vcxproj", "{F06E8F9D-8718-4634-920A-CCA5B750CF96}"
 EndProject
@@ -76,14 +75,6 @@ Global
 		{C6CEAE21-8418-4F75-A649-766C237FD649}.Release|x64.Build.0 = Release|x64
 		{C6CEAE21-8418-4F75-A649-766C237FD649}.Release|x86.ActiveCfg = Release|Win32
 		{C6CEAE21-8418-4F75-A649-766C237FD649}.Release|x86.Build.0 = Release|Win32
-		{631F497A-18C4-4A9A-BF08-2F4142930E5F}.Debug|x64.ActiveCfg = Debug|x64
-		{631F497A-18C4-4A9A-BF08-2F4142930E5F}.Debug|x64.Build.0 = Debug|x64
-		{631F497A-18C4-4A9A-BF08-2F4142930E5F}.Debug|x86.ActiveCfg = Debug|Win32
-		{631F497A-18C4-4A9A-BF08-2F4142930E5F}.Debug|x86.Build.0 = Debug|Win32
-		{631F497A-18C4-4A9A-BF08-2F4142930E5F}.Release|x64.ActiveCfg = Release|x64
-		{631F497A-18C4-4A9A-BF08-2F4142930E5F}.Release|x64.Build.0 = Release|x64
-		{631F497A-18C4-4A9A-BF08-2F4142930E5F}.Release|x86.ActiveCfg = Release|Win32
-		{631F497A-18C4-4A9A-BF08-2F4142930E5F}.Release|x86.Build.0 = Release|Win32
 		{F06E8F9D-8718-4634-920A-CCA5B750CF96}.Debug|x64.ActiveCfg = Debug|x64
 		{F06E8F9D-8718-4634-920A-CCA5B750CF96}.Debug|x64.Build.0 = Debug|x64
 		{F06E8F9D-8718-4634-920A-CCA5B750CF96}.Debug|x86.ActiveCfg = Debug|Win32

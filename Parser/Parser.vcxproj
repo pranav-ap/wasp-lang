@@ -159,6 +159,7 @@
     <ClInclude Include="OperatorStack.h" />
     <ClInclude Include="Parser.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="StatementContext.h" />
     <ClInclude Include="TokenPipe.h" />
   </ItemGroup>
   <ItemGroup>
@@ -180,9 +181,6 @@
     </ProjectReference>
     <ProjectReference Include="..\Token\Token.vcxproj">
       <Project>{5637e073-6798-4882-a7e7-413e1f93f541}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\TypeSystem\TypeSystem.vcxproj">
-      <Project>{631f497a-18c4-4a9a-bf08-2f4142930e5f}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Utils\Utils.vcxproj">
       <Project>{fd212e30-089e-4160-84e4-201daa0064b7}</Project>

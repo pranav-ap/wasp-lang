@@ -2,6 +2,7 @@
 #include "WaspCLI.h"
 #include "file_io.h"
 #include "Lexer.h"
+#include "Parser.h"
 #include <string>
 #include <vector>
 
@@ -56,4 +57,7 @@ void WaspCLI::run()
 
 	Lexer lexer(raw_source);
 	vector<Token_ptr> tokens = lexer.execute();
+
+	Parser parser(tokens);
+	Module mod = parser.execute();
 }

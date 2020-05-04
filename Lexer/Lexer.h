@@ -15,6 +15,7 @@
 #include <vector>
 #include <memory>
 #include <map>
+#include <regex>
 
 const std::map<std::string, WTokenType> keyword_map = {
 	{ "if", WTokenType::IF },
@@ -70,7 +71,8 @@ class LEXER_API Lexer
 	char get_current_char() const;
 	char get_right_char() const;
 
-	bool is_unary() const;
+	Token_ptr get_previous_significant_token();
+	bool is_unary();
 
 	bool expect_current_char(char ch);
 
@@ -98,12 +100,14 @@ class LEXER_API Lexer
 	Token_ptr consume_single_char_punctuation(char ch);
 
 	Token_ptr consume_eol();
-	Token_ptr consume_indent();
+	Token_ptr consume_space();
 	Token_ptr consume_unknown_token(char ch);
 
 public:
-	Lexer(std::string raw_source)
-		: raw_source(raw_source), position(TokenPosition()), pointer(Pointer()) {};
+	Lexer(std::string raw_source) : position(TokenPosition()), pointer(Pointer())
+	{
+		this->raw_source = std::regex_replace(raw_source, std::regex("\t"), "    ");
+	};
 
 	std::vector<Token_ptr> execute();
 };

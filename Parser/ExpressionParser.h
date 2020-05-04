@@ -10,7 +10,6 @@
 class ExpressionParser
 {
 	TokenPipe_ptr token_pipe;
-
 	OperatorStack_ptr operator_stack;
 	ExpressionStack ast;
 
@@ -23,6 +22,7 @@ class ExpressionParser
 	Expression_ptr parse_tuple_literal();
 	Expression_ptr parse_dictionary_literal();
 	ExpressionVector parse_function_call_arguments();
+	ExpressionVector parse_comma_separated_expressions();
 
 	// Utils
 

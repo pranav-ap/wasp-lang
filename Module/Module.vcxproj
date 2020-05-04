@@ -158,6 +158,7 @@
     <ClInclude Include="Module.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Statement.h" />
+    <ClInclude Include="TypeSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />

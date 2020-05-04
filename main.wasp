@@ -1,5 +1,4 @@
-if a > 1:
-    a = 4
-else:
-    a = 3
+let a: num = 4
 
+while true:
+    pass

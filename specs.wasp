@@ -1,0 +1,43 @@
+import { add } from "path"
+
+let a: num = 4
+
+a, b, c =   1,
+            2,
+            3
+
+person.foo().bar()
+
+
+if a > 3 and r == 3:
+    pass
+elif a > 3:
+    pass
+else:
+    pass
+
+while true:
+    pass
+
+for x : num in 1...9:
+    pass
+
+fn add(a: num, b: num) -> num:
+    if a > b:
+        return a + b + 4
+    return a + b
+
+gen add(a: num, b: num) -> opt num:
+    if a > b:
+        yield a + b + 4
+    yield a + b
+
+type Person:
+    name : str
+    age: num
+
+    fn init(name : str, age: num):
+        self.name = name
+        self.age = age
+
+
