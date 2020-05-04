@@ -1,4 +1,4 @@
-let a: num = 4
+type Person:
+    name: str
+    age: num
 
-while true:
-    pass

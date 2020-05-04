@@ -180,6 +180,7 @@ Expression_ptr ExpressionParser::parse_expression()
 		case WTokenType::EOL:
 		case WTokenType::COLON:
 		case WTokenType::COMMA:
+		case WTokenType::EQUAL:
 		{
 			return finish_parsing();
 		}
@@ -191,20 +192,6 @@ Expression_ptr ExpressionParser::parse_expression()
 
 ExpressionVector ExpressionParser::parse_expressions()
 {
-	context_stack.push(ExpressionContext::GLOBAL_EXPRESSION);
-
-	ExpressionVector expressions = parse_comma_separated_expressions();
-
-	ASSERT(context_stack.top() == ExpressionContext::GLOBAL_EXPRESSION, "GLOBAL_EXPRESSION Context Mismatch");
-	context_stack.pop();
-
-	return expressions;
-}
-
-ExpressionVector ExpressionParser::parse_comma_separated_expressions()
-{
-	context_stack.push(ExpressionContext::COMMA_SEPARATED_EXPRESSIONS);
-
 	ExpressionVector elements;
 
 	while (auto element = parse_expression())
@@ -212,11 +199,10 @@ ExpressionVector ExpressionParser::parse_comma_separated_expressions()
 		elements.push_back(move(element));
 
 		if (token_pipe->optional(WTokenType::COMMA))
-			break;
-	}
+			continue;
 
-	ASSERT(context_stack.top() == ExpressionContext::COMMA_SEPARATED_EXPRESSIONS, "COMMA_SEPARATED_EXPRESSIONS Context Mismatch");
-	context_stack.pop();
+		break;
+	}
 
 	return elements;
 }
@@ -228,7 +214,7 @@ Expression_ptr ExpressionParser::parse_tuple_literal()
 	if (token_pipe->optional(WTokenType::CLOSE_PARENTHESIS))
 		return MAKE_EXPRESSION(TupleLiteral(elements));
 
-	elements = parse_comma_separated_expressions();
+	elements = parse_expressions();
 	token_pipe->expect(WTokenType::CLOSE_PARENTHESIS);
 
 	return MAKE_EXPRESSION(TupleLiteral(elements));
@@ -241,7 +227,7 @@ Expression_ptr ExpressionParser::parse_list_literal()
 	if (token_pipe->optional(WTokenType::CLOSE_SQUARE_BRACKET))
 		return MAKE_EXPRESSION(ListLiteral(elements));
 
-	elements = parse_comma_separated_expressions();
+	elements = parse_expressions();
 	token_pipe->expect(WTokenType::CLOSE_SQUARE_BRACKET);
 
 	return MAKE_EXPRESSION(ListLiteral(elements));
@@ -300,7 +286,7 @@ Expression_ptr ExpressionParser::parse_identifier(Token_ptr identifier)
 		return MAKE_EXPRESSION(EnumMember(identifier->value, member_identifier->value));
 	}
 
-	return MAKE_EXPRESSION(identifier->value);
+	return MAKE_EXPRESSION(Identifier(identifier->value));
 }
 
 ExpressionVector ExpressionParser::parse_function_call_arguments()
@@ -316,7 +302,7 @@ ExpressionVector ExpressionParser::parse_function_call_arguments()
 		return expressions;
 	}
 
-	expressions = parse_comma_separated_expressions();
+	expressions = parse_expressions();
 
 	token_pipe->expect(WTokenType::CLOSE_PARENTHESIS);
 

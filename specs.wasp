@@ -30,9 +30,10 @@ fn add(a: num, b: num) -> num:
 gen add(a: num, b: num) -> opt num:
     if a > b:
         yield a + b + 4
+
     yield a + b
 
-type Person:
+type Person extends Animal:
     name : str
     age: num
 

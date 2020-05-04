@@ -36,7 +36,7 @@ class PARSER_API Parser
 	Statement_ptr parse_break();
 	Statement_ptr parse_continue();
 
-	Statement_ptr consume_assignment_or_expression_statement(Token_ptr identifier);
+	Statement_ptr parse_assignment_or_expression(Token_ptr identifier);
 	Statement_ptr consume_assignment(Token_ptr identifier);
 	Statement_ptr consume_shortcut_assignment(Token_ptr identifier, Token_ptr shortcut_operator);
 	Statement_ptr consume_multiple_assignment(Token_ptr identifier);
