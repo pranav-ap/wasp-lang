@@ -10,7 +10,8 @@
 
 #define ADVANCE_PTR token_pipe->advance_pointer()
 #define RETREAT_PTR token_pipe->retreat_pointer()
-#define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr");
+#define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr")
+#define OPT_CHECK(x) ASSERT(x.has_value(), "Oh shit! Option is none")
 #define MAKE_EXPRESSION(x) std::make_shared<Expression>(x)
 #define IGNORABLES { WTokenType::EOL }
 #define PUSH_CONTEXT(x) context_stack.push(x);
@@ -29,24 +30,24 @@ Expression_ptr ExpressionParser::parse_expression()
 
 	while (true)
 	{
-		Token_ptr current = token_pipe->current();
+		auto current = token_pipe->current();
 
-		if (current == nullptr)
+		if (!current.has_value())
 			break;
 
-		switch (current->type)
+		switch (current.value()->type)
 		{
 			// SIMPLE
 
 		case WTokenType::NumberLiteral:
 		{
-			ast.push(MAKE_EXPRESSION(stod(current->value)));
+			ast.push(MAKE_EXPRESSION(stod(current.value()->value)));
 			ADVANCE_PTR;
 			break;
 		}
 		case WTokenType::StringLiteral:
 		{
-			ast.push(MAKE_EXPRESSION(current->value));
+			ast.push(MAKE_EXPRESSION(current.value()->value));
 			ADVANCE_PTR;
 			break;
 		}
@@ -65,7 +66,7 @@ Expression_ptr ExpressionParser::parse_expression()
 		case WTokenType::Identifier:
 		{
 			ADVANCE_PTR;
-			auto expression = parse_identifier(current);
+			auto expression = parse_identifier(current.value());
 			ast.push(expression);
 			break;
 		}
@@ -119,7 +120,7 @@ Expression_ptr ExpressionParser::parse_expression()
 			PUSH_CONTEXT(ExpressionContext::FUNCTION_CALL);
 			ADVANCE_PTR;
 			auto arguments = parse_function_call_arguments();
-			ast.push(MAKE_EXPRESSION(FunctionCall(current->value, arguments)));
+			ast.push(MAKE_EXPRESSION(FunctionCall(current.value()->value, arguments)));
 			break;
 		}
 		case WTokenType::CLOSE_PARENTHESIS:
@@ -138,7 +139,7 @@ Expression_ptr ExpressionParser::parse_expression()
 		case WTokenType::OPEN_PARENTHESIS:
 		{
 			PUSH_CONTEXT(ExpressionContext::PARENTHESIS);
-			operator_stack->dumb_push(move(current));
+			operator_stack->dumb_push(move(current.value()));
 			ADVANCE_PTR;
 			break;
 		}
@@ -160,7 +161,7 @@ Expression_ptr ExpressionParser::parse_expression()
 		case WTokenType::AND:
 		case WTokenType::OR:
 		{
-			operator_stack->smart_push(move(current), ast);
+			operator_stack->smart_push(move(current.value()), ast);
 			ADVANCE_PTR;
 			break;
 		}
@@ -237,7 +238,7 @@ Expression_ptr ExpressionParser::parse_dictionary_literal()
 
 	while (true)
 	{
-		token_pipe->skip_empty_lines();
+		token_pipe->optional(WTokenType::EOL);
 
 		auto key = consume_valid_dictionary_key();
 		token_pipe->expect(WTokenType::COLON);
@@ -321,9 +322,9 @@ Expression_ptr ExpressionParser::finish_parsing()
 Token_ptr ExpressionParser::consume_valid_dictionary_key()
 {
 	auto token = token_pipe->current();
-	NULL_CHECK(token);
+	OPT_CHECK(token);
 
-	switch (token->type)
+	switch (token.value()->type)
 	{
 	case WTokenType::Identifier:
 	case WTokenType::StringLiteral:
@@ -332,7 +333,7 @@ Token_ptr ExpressionParser::consume_valid_dictionary_key()
 	case WTokenType::FALSE_KEYWORD:
 	{
 		ADVANCE_PTR;
-		return move(token);
+		return move(token.value());
 	}
 	}
 

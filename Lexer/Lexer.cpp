@@ -4,6 +4,7 @@
 #include "spdlog.h"
 
 #include <map>
+#include <optional>
 #include <memory>
 #include <algorithm>
 #include <string>
@@ -12,6 +13,9 @@
 using std::string;
 using std::to_string;
 using std::map;
+using std::optional;
+using std::make_optional;
+using std::nullopt;
 using std::vector;
 using std::move;
 using std::make_shared;
@@ -409,30 +413,27 @@ char Lexer::get_right_char() const
 	return get_char_at(index + 1);
 }
 
-Token_ptr Lexer::get_previous_significant_token()
+std::optional<Token_ptr> Lexer::get_previous_significant_token()
 {
-	Token_ptr previous_token = nullptr;
-
 	for (auto t = tokens.rbegin(); t != tokens.rend(); t++)
 	{
 		if (auto token = *t; token->type != WTokenType::EOL)
 		{
-			previous_token = token;
-			break;
+			return make_optional(token);
 		}
 	}
 
-	return previous_token;
+	return nullopt;
 }
 
 bool Lexer::is_unary()
 {
-	Token_ptr previous_token = get_previous_significant_token();
+	auto previous_token = get_previous_significant_token();
 
-	if (previous_token == nullptr)
+	if (!previous_token.has_value())
 		return true;
 
-	switch (previous_token->type)
+	switch (previous_token.value()->type)
 	{
 	case WTokenType::NumberLiteral:
 	case WTokenType::Identifier:

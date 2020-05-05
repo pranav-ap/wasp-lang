@@ -3,14 +3,12 @@
 #include "Parser.h"
 #include "TokenType.h"
 #include "TokenPipe.h"
-#include "StatementContext.h"
 #include "CommonAssertion.h"
 
 #include <iostream>
 #include <vector>
 #include <stack>
 #include <map>
-#include <tuple>
 #include <memory>
 #include <utility>
 #include <variant>
@@ -18,6 +16,7 @@
 #define ADVANCE_PTR token_pipe->advance_pointer()
 #define RETREAT_PTR token_pipe->retreat_pointer()
 #define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr")
+#define OPT_CHECK(x) ASSERT(x.has_value(), "Oh shit! Option is none")
 #define CASE(token_type, call) case token_type: { return call; }
 #define MAKE_STATEMENT(x) std::make_shared<Statement>(x)
 #define MAKE_EXPRESSION(x) std::make_shared<Expression>(x)
@@ -46,8 +45,6 @@ Module Parser::execute()
 {
 	Module mod;
 
-	context_stack.push({ StatementContext::GLOBAL, 0 });
-
 	while ((size_t)token_pipe->get_current_index() < token_pipe->get_size())
 	{
 		Statement_ptr node = parse_statement(false);
@@ -58,54 +55,46 @@ Module Parser::execute()
 		}
 	}
 
-	pop_context(StatementContext::GLOBAL);
-
 	return mod;
 }
 
 // Statement Parsers
 
-Statement_ptr Parser::parse_statement(bool is_public)
+Statement_ptr Parser::parse_statement(bool is_public, int expected_indent)
 {
-	token_pipe->skip_empty_lines();
-
-	auto [current_indent, expected_indent] = get_indent_pair();
-
-	if (current_indent < expected_indent)
+	if (!token_pipe->has_indent(expected_indent))
 		return nullptr;
-
-	token_pipe->jump_pointer(current_indent);
 
 	auto token = token_pipe->current();
 
-	if (token == nullptr)
+	if (!token.has_value())
 		return nullptr;
-
-	ASSERT(current_indent == expected_indent, "Cannot change indentation for no reason");
 
 	// Parse
 
 	ADVANCE_PTR;
 
-	switch (token->type)
+	switch (token.value()->type)
 	{
 		CASE(WTokenType::IMPORT, parse_import());
 		CASE(WTokenType::LET, parse_variable_definition(is_public, true));
 		CASE(WTokenType::CONST_KEYWORD, parse_variable_definition(is_public, false));
-		CASE(WTokenType::Identifier, parse_assignment_or_expression(move(token)));
+		CASE(WTokenType::Identifier, parse_assignment_or_expression(move(token.value())));
 
-		CASE(WTokenType::IF, parse_branching());
-		CASE(WTokenType::FOR, parse_for_in_loop());
-		CASE(WTokenType::WHILE, parse_while_loop());
-		CASE(WTokenType::TYPE, parse_UDT_definition(is_public));
-		CASE(WTokenType::FN, parse_function_definition(is_public));
-		CASE(WTokenType::ENUM, parse_enum_definition(is_public));
+		CASE(WTokenType::IF, parse_branching(expected_indent + 4));
+		CASE(WTokenType::FOR, parse_for_in_loop(expected_indent + 4));
+		CASE(WTokenType::WHILE, parse_while_loop(expected_indent + 4));
+
+		CASE(WTokenType::TYPE, parse_UDT_definition(is_public, expected_indent + 4));
+		CASE(WTokenType::FN, parse_function_definition(is_public, expected_indent + 4));
+		CASE(WTokenType::ENUM, parse_enum_definition(is_public, expected_indent + 4));
+		CASE(WTokenType::PUB, parse_public_statement(expected_indent + 4));
 
 		CASE(WTokenType::PASS, parse_pass());
 		CASE(WTokenType::BREAK, parse_break());
 		CASE(WTokenType::RETURN, parse_return());
 		CASE(WTokenType::CONTINUE, parse_continue());
-		CASE(WTokenType::PUB, parse_public_statement());
+
 	default:
 	{
 		RETREAT_PTR;
@@ -114,25 +103,25 @@ Statement_ptr Parser::parse_statement(bool is_public)
 	}
 }
 
-Statement_ptr Parser::parse_public_statement()
+Statement_ptr Parser::parse_public_statement(int expected_indent)
 {
 	auto token = token_pipe->current();
-	NULL_CHECK(token);
+	OPT_CHECK(token);
 
 	ADVANCE_PTR;
 
 	const bool is_public = true;
 
-	switch (token->type)
+	switch (token.value()->type)
 	{
 		CASE(WTokenType::LET, parse_variable_definition(is_public, true));
 		CASE(WTokenType::CONST_KEYWORD, parse_variable_definition(is_public, false));
-		CASE(WTokenType::TYPE, parse_UDT_definition(is_public));
-		CASE(WTokenType::FN, parse_function_definition(is_public));
-		CASE(WTokenType::ENUM, parse_enum_definition(is_public));
+		CASE(WTokenType::TYPE, parse_UDT_definition(is_public, expected_indent));
+		CASE(WTokenType::FN, parse_function_definition(is_public, expected_indent));
+		CASE(WTokenType::ENUM, parse_enum_definition(is_public, expected_indent));
 	default:
 	{
-		FATAL(token->value + " cannot be made public");
+		FATAL(token.value()->value + " cannot be made public");
 	}
 	}
 }
@@ -158,16 +147,21 @@ Statement_ptr Parser::parse_import()
 
 	if (auto current = token_pipe->optional(WTokenType::Identifier))
 	{
-		return MAKE_STATEMENT(ImportInBuilt(current->value, goods));
+		token_pipe->expect(WTokenType::EOL);
+		return MAKE_STATEMENT(ImportInBuilt(current.value()->value, goods));
 	}
 
 	auto path_token = token_pipe->required(WTokenType::StringLiteral);
+	token_pipe->expect(WTokenType::EOL);
+
 	return MAKE_STATEMENT(ImportCustom(path_token->value, goods));
 }
 
 Statement_ptr Parser::parse_expression_statement()
 {
 	auto expression = expr_parser->parse_expression();
+	token_pipe->expect(WTokenType::EOL);
+
 	return MAKE_STATEMENT(ExpressionStatement(move(expression)));
 }
 
@@ -177,7 +171,7 @@ Statement_ptr Parser::parse_assignment_or_expression(Token_ptr identifier)
 {
 	auto current_token = token_pipe->current();
 
-	WTokenType current_token_type = current_token ? current_token->type : WTokenType::UNKNOWN;
+	WTokenType current_token_type = current_token.has_value() ? current_token.value()->type : WTokenType::UNKNOWN;
 
 	switch (current_token_type)
 	{
@@ -199,7 +193,7 @@ Statement_ptr Parser::parse_assignment_or_expression(Token_ptr identifier)
 	case WTokenType::POWER_EQUAL:
 	{
 		ADVANCE_PTR;
-		return consume_shortcut_assignment(identifier, current_token);
+		return consume_shortcut_assignment(identifier, current_token.value());
 	}
 	default:
 	{
@@ -212,6 +206,8 @@ Statement_ptr Parser::parse_assignment_or_expression(Token_ptr identifier)
 Statement_ptr Parser::consume_assignment(Token_ptr identifier)
 {
 	auto expression = expr_parser->parse_expression();
+	token_pipe->expect(WTokenType::EOL);
+
 	return MAKE_STATEMENT(Assignment(identifier->value, move(expression)));
 }
 
@@ -222,6 +218,7 @@ Statement_ptr Parser::consume_shortcut_assignment(Token_ptr identifier, Token_pt
 
 	auto identifier_expression = MAKE_EXPRESSION(Identifier(identifier->value));
 	auto rhs = MAKE_EXPRESSION(Binary(identifier_expression, shortcut_operator, move(expression)));
+	token_pipe->expect(WTokenType::EOL);
 
 	return MAKE_STATEMENT(Assignment(identifier->value, move(rhs)));
 }
@@ -230,21 +227,22 @@ Statement_ptr Parser::consume_multiple_assignment(Token_ptr identifier)
 {
 	auto lhs_list = expr_parser->parse_expressions();
 	token_pipe->expect(WTokenType::EQUAL);
+
 	auto expressions = expr_parser->parse_expressions();
+	token_pipe->expect(WTokenType::EOL);
+
 	return MAKE_STATEMENT(MultipleAssignment(lhs_list, expressions));
 }
 
 // Block statement parsing
 
-Block Parser::parse_block(StatementContext context)
+Block Parser::parse_block(int expected_indent)
 {
-	push_context(context);
-
 	Block statements;
 
 	while (true)
 	{
-		auto statement = parse_statement(false);
+		auto statement = parse_statement(false, expected_indent);
 
 		if (!statement)
 			break;
@@ -252,34 +250,32 @@ Block Parser::parse_block(StatementContext context)
 		statements.push_back(move(statement));
 	}
 
-	pop_context(context);
-
 	return statements;
 }
 
-pair<Expression_ptr, Block> Parser::parse_condition_and_consequence()
+pair<Expression_ptr, Block> Parser::parse_condition_and_consequence(int expected_indent)
 {
 	auto condition = expr_parser->parse_expression();
 	token_pipe->expect(WTokenType::COLON);
-	auto consequence = parse_block(StatementContext::BRANCH);
+	token_pipe->expect(WTokenType::EOL);
+
+	auto consequence = parse_block(expected_indent);
 
 	return make_pair(condition, consequence);
 }
 
-Statement_ptr Parser::parse_branching()
+Statement_ptr Parser::parse_branching(int expected_indent)
 {
 	std::vector<std::pair<Expression_ptr, Block>> branches;
 
-	auto condition_consequence_pair = parse_condition_and_consequence();
+	auto condition_consequence_pair = parse_condition_and_consequence(expected_indent);
 	branches.push_back(condition_consequence_pair);
 
 	while (true)
 	{
-		token_pipe->skip_empty_lines();
-
 		if (token_pipe->optional(WTokenType::ELIF))
 		{
-			condition_consequence_pair = parse_condition_and_consequence();
+			condition_consequence_pair = parse_condition_and_consequence(expected_indent);
 			branches.push_back(condition_consequence_pair);
 
 			continue;
@@ -288,31 +284,30 @@ Statement_ptr Parser::parse_branching()
 		break;
 	}
 
-	token_pipe->skip_empty_lines();
-
 	Block else_branch;
 
 	if (token_pipe->optional(WTokenType::ELSE))
 	{
 		token_pipe->expect(WTokenType::COLON);
-		token_pipe->skip_empty_lines();
-		else_branch = parse_block(StatementContext::BRANCH);
+		token_pipe->expect(WTokenType::EOL);
+		else_branch = parse_block(expected_indent);
 	}
 
 	return MAKE_STATEMENT(Branching(branches, else_branch));
 }
 
-Statement_ptr Parser::parse_while_loop()
+Statement_ptr Parser::parse_while_loop(int expected_indent)
 {
 	auto condition = expr_parser->parse_expression();
 	token_pipe->expect(WTokenType::COLON);
+	token_pipe->expect(WTokenType::EOL);
 
-	auto block = parse_block(StatementContext::LOOP);
+	auto block = parse_block(expected_indent);
 
 	return MAKE_STATEMENT(WhileLoop(condition, block));
 }
 
-Statement_ptr Parser::parse_for_in_loop()
+Statement_ptr Parser::parse_for_in_loop(int expected_indent)
 {
 	auto [identifier, item_type] = consume_identifier_type_pair();
 
@@ -322,8 +317,9 @@ Statement_ptr Parser::parse_for_in_loop()
 	NULL_CHECK(iterable_expression);
 
 	token_pipe->expect(WTokenType::COLON);
+	token_pipe->expect(WTokenType::EOL);
 
-	auto block = parse_block(StatementContext::LOOP);
+	auto block = parse_block(expected_indent);
 
 	return MAKE_STATEMENT(ForInLoop(item_type, identifier, iterable_expression, block));
 }
@@ -332,24 +328,30 @@ Statement_ptr Parser::parse_return()
 {
 	if (auto expression = expr_parser->parse_expression())
 	{
+		token_pipe->expect(WTokenType::EOL);
 		return MAKE_STATEMENT(Return(move(expression)));
 	}
+
+	token_pipe->expect(WTokenType::EOL);
 
 	return MAKE_STATEMENT(Return());
 }
 
 Statement_ptr Parser::parse_break()
 {
+	token_pipe->expect(WTokenType::EOL);
 	return MAKE_STATEMENT(Break());
 }
 
 Statement_ptr Parser::parse_pass()
 {
+	token_pipe->expect(WTokenType::EOL);
 	return MAKE_STATEMENT(Pass());
 }
 
 Statement_ptr Parser::parse_continue()
 {
+	token_pipe->expect(WTokenType::EOL);
 	return MAKE_STATEMENT(Continue());
 }
 
@@ -360,27 +362,27 @@ Statement_ptr Parser::parse_variable_definition(bool is_public, bool is_mutable)
 	auto [identifier, type] = consume_identifier_type_pair();
 	token_pipe->expect(WTokenType::EQUAL);
 	Expression_ptr expression = expr_parser->parse_expression();
+	token_pipe->expect(WTokenType::EOL);
 
 	return MAKE_STATEMENT(VariableDefinition(is_public, is_mutable, identifier, move(type), move(expression)));
 }
 
-Statement_ptr Parser::parse_UDT_definition(bool is_public)
+Statement_ptr Parser::parse_UDT_definition(bool is_public, int expected_indent)
 {
 	auto name = token_pipe->required(WTokenType::Identifier);
 	token_pipe->expect(WTokenType::COLON);
-
-	push_context(StatementContext::UDT_DEFINITION);
-
-	auto [current_indent, expected_indent] = get_indent_pair();
-	ASSERT(current_indent == expected_indent, "Cannot change indentation for no reason");
-
-	token_pipe->jump_pointer(current_indent);
+	token_pipe->expect(WTokenType::EOL);
 
 	map<string, Type_ptr> member_types;
-	std::map<std::string, bool> is_public_member_map;
+	map<string, bool> is_public_member_map;
+
+	token_pipe->expect_indent(expected_indent);
 
 	if (token_pipe->optional(WTokenType::PASS))
+	{
+		token_pipe->expect(WTokenType::EOL);
 		return MAKE_STATEMENT(UDTDefinition(is_public, name->value, member_types, is_public_member_map));
+	}
 
 	while (true)
 	{
@@ -393,22 +395,16 @@ Statement_ptr Parser::parse_UDT_definition(bool is_public)
 		member_types.insert_or_assign(identifier, type);
 		is_public_member_map.insert_or_assign(identifier, is_public_member);
 
-		auto [current_indent, expected_indent] = get_indent_pair();
+		token_pipe->expect(WTokenType::EOL);
 
-		if (current_indent < expected_indent)
+		if (!token_pipe->has_indent(expected_indent))
 			break;
-
-		ASSERT(current_indent == expected_indent, "Cannot change indentation for no reason");
-
-		token_pipe->jump_pointer(current_indent);
 	}
-
-	pop_context(StatementContext::UDT_DEFINITION);
 
 	return MAKE_STATEMENT(UDTDefinition(is_public, name->value, member_types, is_public_member_map));
 }
 
-Statement_ptr Parser::parse_function_definition(bool is_public)
+Statement_ptr Parser::parse_function_definition(bool is_public, int expected_indent)
 {
 	auto identifier = token_pipe->required(WTokenType::FunctionIdentifier);
 	token_pipe->expect(WTokenType::OPEN_PARENTHESIS);
@@ -439,54 +435,51 @@ Statement_ptr Parser::parse_function_definition(bool is_public)
 	}
 
 	token_pipe->expect(WTokenType::COLON);
+	token_pipe->expect(WTokenType::EOL);
 
-	auto block = parse_block(StatementContext::FUNCTION_DEFINITION);
+	auto block = parse_block(expected_indent);
 
 	return MAKE_STATEMENT(FunctionDefinition(is_public, identifier->value, arguments, move(optional_return_type), block));
 }
 
-Statement_ptr Parser::parse_enum_definition(bool is_public)
+Statement_ptr Parser::parse_enum_definition(bool is_public, int expected_indent)
 {
 	auto identifier = token_pipe->required(WTokenType::Identifier);
 	token_pipe->expect(WTokenType::COLON);
+	token_pipe->expect(WTokenType::EOL);
 
-	vector<string> members = parse_enum_members();
+	auto members = parse_enum_members(expected_indent);
 
 	return MAKE_STATEMENT(EnumDefinition(is_public, identifier->value, members));
 }
 
-vector<string> Parser::parse_enum_members()
+vector<string> Parser::parse_enum_members(int expected_indent)
 {
-	push_context(StatementContext::ENUM_DEFINITION);
-
 	vector<string> members;
 
 	while (true)
 	{
-		token_pipe->skip_empty_lines();
-
-		auto [current_indent, expected_indent] = get_indent_pair();
-
-		if (current_indent < expected_indent)
+		if (!token_pipe->has_indent(expected_indent))
 			break;
-
-		ASSERT(current_indent == expected_indent, "Cannot change indentation for no reason");
-
-		token_pipe->jump_pointer(current_indent);
 
 		auto identifier = token_pipe->required(WTokenType::Identifier);
 		members.push_back(identifier->value);
 
 		if (token_pipe->optional(WTokenType::COLON))
 		{
-			auto children = parse_enum_members();
+			token_pipe->expect(WTokenType::EOL);
+			auto children = parse_enum_members(expected_indent + 4);
 
 			for (auto const& child : children)
+			{
 				members.push_back(identifier->value + "::" + child);
+			}
+		}
+		else
+		{
+			token_pipe->expect(WTokenType::EOL);
 		}
 	}
-
-	pop_context(StatementContext::ENUM_DEFINITION);
 
 	return members;
 }
@@ -563,9 +556,9 @@ Type_ptr Parser::parse_map_type(bool is_optional)
 Type_ptr Parser::consume_datatype_word(bool is_optional)
 {
 	auto token = token_pipe->current();
-	NULL_CHECK(token);
+	OPT_CHECK(token);
 
-	switch (token->type)
+	switch (token.value()->type)
 	{
 	case WTokenType::NUM:
 	{
@@ -585,16 +578,14 @@ Type_ptr Parser::consume_datatype_word(bool is_optional)
 	case WTokenType::Identifier:
 	{
 		ADVANCE_PTR;
-		return is_optional ? MAKE_OPTIONAL_TYPE(UDTType(token->value)) : MAKE_TYPE(UDTType(token->value));
-	}
-	default:
-	{
-		FATAL("Expected a datatype");
+		return is_optional ? MAKE_OPTIONAL_TYPE(UDTType(token.value()->value)) : MAKE_TYPE(UDTType(token.value()->value));
 	}
 	}
+
+	FATAL("Expected a datatype");
 }
 
-pair<std::string, Type_ptr>  Parser::consume_identifier_type_pair()
+pair<string, Type_ptr>  Parser::consume_identifier_type_pair()
 {
 	auto identifier = token_pipe->required(WTokenType::Identifier);
 	token_pipe->expect(WTokenType::COLON);
@@ -647,26 +638,4 @@ void Parser::convert_shortcut_token(Token_ptr token)
 	}
 
 	FATAL(token->value + " is not a shortcut token");
-}
-
-pair<int, int> Parser::get_indent_pair()
-{
-	int current_indent = token_pipe->count_spaces();
-	int expected_indent = context_stack.top().second;
-
-	return make_pair(current_indent, expected_indent);
-}
-
-void Parser::push_context(StatementContext context)
-{
-	token_pipe->skip_empty_lines();
-
-	int previous_indent = context_stack.top().second;
-	context_stack.push({ context, previous_indent + 4 });
-}
-
-void Parser::pop_context(StatementContext context)
-{
-	ASSERT(context_stack.top().first == context, "Context Mismatch");
-	context_stack.pop();
 }

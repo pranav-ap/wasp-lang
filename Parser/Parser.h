@@ -13,10 +13,8 @@
 #include "Statement.h"
 #include "Module.h"
 #include "ExpressionParser.h"
-#include "StatementContext.h"
 
 #include <vector>
-#include <tuple>
 #include <stack>
 #include <memory>
 #include <utility>
@@ -26,10 +24,8 @@ class PARSER_API Parser
 	TokenPipe_ptr token_pipe;
 	ExpressionParser_ptr expr_parser;
 
-	std::stack<std::pair<StatementContext, int>> context_stack;
-
-	Statement_ptr parse_statement(bool is_public);
-	Statement_ptr parse_public_statement();
+	Statement_ptr parse_statement(bool is_public = false, int expected_indent = 0);
+	Statement_ptr parse_public_statement(int expected_indent);
 	Statement_ptr parse_expression_statement();
 
 	Statement_ptr parse_pass();
@@ -46,9 +42,9 @@ class PARSER_API Parser
 
 	// Block statement parsing
 
-	Statement_ptr parse_branching();
-	Statement_ptr parse_while_loop();
-	Statement_ptr parse_for_in_loop();
+	Statement_ptr parse_branching(int expected_indent = 0);
+	Statement_ptr parse_while_loop(int expected_indent = 0);
+	Statement_ptr parse_for_in_loop(int expected_indent = 0);
 
 	// Type parsers
 
@@ -63,20 +59,17 @@ class PARSER_API Parser
 	// Definition Parsers
 
 	Statement_ptr parse_variable_definition(bool is_public, bool is_mutable);
-	Statement_ptr parse_UDT_definition(bool is_public);
-	Statement_ptr parse_function_definition(bool is_public);
-	Statement_ptr parse_enum_definition(bool is_public);
-	std::vector<std::string> parse_enum_members();
+	Statement_ptr parse_UDT_definition(bool is_public, int expected_indent);
+	Statement_ptr parse_function_definition(bool is_public, int expected_indent);
+	Statement_ptr parse_enum_definition(bool is_public, int expected_indent);
+	std::vector<std::string> parse_enum_members(int expected_indent);
 
 	// Utils
 
-	Block parse_block(StatementContext context);
-	std::pair<Expression_ptr, Block> parse_condition_and_consequence();
-	void convert_shortcut_token(Token_ptr token);
+	Block parse_block(int expected_indent);
+	std::pair<Expression_ptr, Block> parse_condition_and_consequence(int expected_indent);
 
-	std::pair<int, int> get_indent_pair();
-	void push_context(StatementContext context);
-	void pop_context(StatementContext context);
+	void convert_shortcut_token(Token_ptr token);
 
 public:
 	Parser(std::vector<Token_ptr>& tokens)

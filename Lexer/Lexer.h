@@ -11,6 +11,7 @@
 #include "TokenType.h"
 #include "Pointer.h"
 
+#include <optional>
 #include <string>
 #include <vector>
 #include <memory>
@@ -70,9 +71,8 @@ class LEXER_API Lexer
 	// Consumers
 
 	Token_ptr consume_number_literal(char ch);
-	Token_ptr consume_string_literal();
-
 	Token_ptr consume_identifier(char ch);
+	Token_ptr consume_string_literal();
 
 	Token_ptr consume_plus();
 	Token_ptr consume_minus();
@@ -100,7 +100,7 @@ class LEXER_API Lexer
 	char get_current_char() const;
 	char get_right_char() const;
 
-	Token_ptr get_previous_significant_token();
+	std::optional<Token_ptr> get_previous_significant_token();
 	bool is_unary();
 
 	bool expect_current_char(char ch);

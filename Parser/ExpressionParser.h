@@ -6,6 +6,7 @@
 #include "Expression.h"
 #include "ExpressionContext.h"
 #include <stack>
+#include <optional>
 
 class ExpressionParser
 {

@@ -13,16 +13,6 @@ using std::nullopt;
 using std::make_optional;
 using std::optional;
 
-optional<Token_ptr> TokenPipe::token_at(int position) const
-{
-	if (position >= tokens.size())
-	{
-		return nullopt;
-	}
-
-	return make_optional(tokens[position]);
-}
-
 // Current
 
 optional<Token_ptr> TokenPipe::current() const
@@ -107,11 +97,10 @@ void TokenPipe::expect_indent(const int expected_indent)
 {
 	int count = 0;
 
-	while (count <= expected_indent)
+	while (count < expected_indent)
 	{
 		expect(WTokenType::SPACE);
 		count++;
-		advance_pointer();
 	}
 
 	auto token = current();
@@ -120,6 +109,47 @@ void TokenPipe::expect_indent(const int expected_indent)
 	{
 		ASSERT(token.value()->type != WTokenType::SPACE, "Incorrect Indentation");
 	}
+}
+
+bool TokenPipe::has_indent(const int expected_indent)
+{
+	int count = 0;
+
+	while (count <= expected_indent)
+	{
+		auto token = current();
+
+		if (token.has_value())
+		{
+			if (token.value()->type == WTokenType::SPACE)
+			{
+				advance_pointer();
+				count++;
+			}
+			else
+			{
+				ASSERT(token.value()->type != WTokenType::SPACE, "Incorrect Indentation");
+				break;
+			}
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	if (count == expected_indent)
+	{
+		return true;
+	}
+
+	while (count > 0)
+	{
+		retreat_pointer();
+		count--;
+	}
+
+	return false;
 }
 
 // Ignore
