@@ -1,3 +1,5 @@
+#pragma once
+
 enum class ExpressionContext
 {
 	GLOBAL_EXPRESSION,
@@ -5,6 +7,5 @@ enum class ExpressionContext
 	DICTIONARY_LITERAL,
 	FUNCTION_CALL,
 	PARENTHESIS,
-	SEQUENCE_MEMBER_ACCESS,
-	COMMA_SEPARATED_EXPRESSIONS
+	SEQUENCE_MEMBER_ACCESS
 };

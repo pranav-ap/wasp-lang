@@ -16,6 +16,7 @@
 #include "StatementContext.h"
 
 #include <vector>
+#include <tuple>
 #include <stack>
 #include <memory>
 #include <utility>
@@ -51,11 +52,13 @@ class PARSER_API Parser
 
 	// Type parsers
 
-	Type_ptr parse_type();
-	Type_ptr parse_list_type();
-	Type_ptr parse_map_type();
-	Type_ptr parse_tuple_type();
-	Type_ptr consume_datatype_word();
+	Type_ptr parse_type(bool is_optional = false);
+	Type_ptr parse_list_type(bool is_optional);
+	Type_ptr parse_map_type(bool is_optional);
+	Type_ptr parse_tuple_type(bool is_optional);
+	Type_ptr consume_datatype_word(bool is_optional);
+
+	std::pair<std::string, Type_ptr> consume_identifier_type_pair();
 
 	// Definition Parsers
 
@@ -63,11 +66,16 @@ class PARSER_API Parser
 	Statement_ptr parse_UDT_definition(bool is_public);
 	Statement_ptr parse_function_definition(bool is_public);
 	Statement_ptr parse_enum_definition(bool is_public);
+	std::vector<std::string> parse_enum_members();
 
 	// Utils
 
-	Block parse_block();
+	Block parse_block(StatementContext context);
 	void convert_shortcut_token(Token_ptr token);
+
+	std::pair<int, int> get_indent_pair();
+	void push_context(StatementContext context);
+	void pop_context(StatementContext context);
 
 public:
 	Parser(std::vector<Token_ptr>& tokens)

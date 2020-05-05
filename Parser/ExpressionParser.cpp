@@ -13,6 +13,8 @@
 #define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr");
 #define MAKE_EXPRESSION(x) std::make_shared<Expression>(x)
 #define IGNORABLES { WTokenType::EOL }
+#define PUSH_CONTEXT(x) context_stack.push(x);
+#define POP_CONTEXT(x) ASSERT(context_stack.top() == x, "Context Mismatch"); context_stack.pop();
 
 using std::vector;
 using std::string;
@@ -23,7 +25,7 @@ using std::move;
 
 Expression_ptr ExpressionParser::parse_expression()
 {
-	context_stack.push(ExpressionContext::GLOBAL_EXPRESSION);
+	PUSH_CONTEXT(ExpressionContext::GLOBAL_EXPRESSION);
 
 	while (true)
 	{
@@ -72,7 +74,7 @@ Expression_ptr ExpressionParser::parse_expression()
 
 		case WTokenType::OPEN_CURLY_BRACE:
 		{
-			context_stack.push(ExpressionContext::DICTIONARY_LITERAL);
+			PUSH_CONTEXT(ExpressionContext::DICTIONARY_LITERAL);
 			ADVANCE_PTR;
 			auto literal = parse_dictionary_literal();
 			ast.push(move(literal));
@@ -80,8 +82,7 @@ Expression_ptr ExpressionParser::parse_expression()
 		}
 		case WTokenType::CLOSE_CURLY_BRACE:
 		{
-			ASSERT(context_stack.top() == ExpressionContext::DICTIONARY_LITERAL, "DICTIONARY_LITERAL Context Mismatch");
-			context_stack.pop();
+			POP_CONTEXT(ExpressionContext::DICTIONARY_LITERAL);
 			ADVANCE_PTR;
 			return finish_parsing();
 		}
@@ -90,7 +91,7 @@ Expression_ptr ExpressionParser::parse_expression()
 
 		case WTokenType::OPEN_SQUARE_BRACKET:
 		{
-			context_stack.push(ExpressionContext::SEQUENCE_LITERAL);
+			PUSH_CONTEXT(ExpressionContext::SEQUENCE_LITERAL);
 			ADVANCE_PTR;
 			auto literal = parse_list_literal();
 			ast.push(move(literal));
@@ -98,7 +99,7 @@ Expression_ptr ExpressionParser::parse_expression()
 		}
 		case WTokenType::OPEN_TUPLE_PARENTHESIS:
 		{
-			context_stack.push(ExpressionContext::SEQUENCE_LITERAL);
+			PUSH_CONTEXT(ExpressionContext::SEQUENCE_LITERAL);
 			ADVANCE_PTR;
 			auto literal = parse_tuple_literal();
 			ast.push(move(literal));
@@ -106,8 +107,7 @@ Expression_ptr ExpressionParser::parse_expression()
 		}
 		case WTokenType::CLOSE_SQUARE_BRACKET:
 		{
-			ASSERT(context_stack.top() == ExpressionContext::SEQUENCE_LITERAL, "SEQUENCE_LITERAL Context Mismatch");
-			context_stack.pop();
+			POP_CONTEXT(ExpressionContext::SEQUENCE_LITERAL);
 			ADVANCE_PTR;
 			return finish_parsing();
 		}
@@ -116,7 +116,7 @@ Expression_ptr ExpressionParser::parse_expression()
 
 		case WTokenType::FunctionIdentifier:
 		{
-			context_stack.push(ExpressionContext::FUNCTION_CALL);
+			PUSH_CONTEXT(ExpressionContext::FUNCTION_CALL);
 			ADVANCE_PTR;
 			auto arguments = parse_function_call_arguments();
 			ast.push(MAKE_EXPRESSION(FunctionCall(current->value, arguments)));
@@ -125,15 +125,10 @@ Expression_ptr ExpressionParser::parse_expression()
 		case WTokenType::CLOSE_PARENTHESIS:
 		{
 			if (context_stack.top() == ExpressionContext::FUNCTION_CALL)
-			{
 				return finish_parsing();
-			}
 
 			operator_stack->drain_into_ast_until_open_parenthesis(ast);
-
-			ASSERT(context_stack.top() == ExpressionContext::PARENTHESIS, "PARENTHESIS Context Mismatch");
-			context_stack.pop();
-
+			POP_CONTEXT(ExpressionContext::PARENTHESIS);
 			ADVANCE_PTR;
 			return finish_parsing();
 		}
@@ -142,7 +137,7 @@ Expression_ptr ExpressionParser::parse_expression()
 
 		case WTokenType::OPEN_PARENTHESIS:
 		{
-			context_stack.push(ExpressionContext::PARENTHESIS);
+			PUSH_CONTEXT(ExpressionContext::PARENTHESIS);
 			operator_stack->dumb_push(move(current));
 			ADVANCE_PTR;
 			break;
@@ -261,13 +256,12 @@ Expression_ptr ExpressionParser::parse_identifier(Token_ptr identifier)
 {
 	if (token_pipe->optional(WTokenType::OPEN_SQUARE_BRACKET))
 	{
-		context_stack.push(ExpressionContext::SEQUENCE_MEMBER_ACCESS);
+		PUSH_CONTEXT(ExpressionContext::SEQUENCE_MEMBER_ACCESS);
 
 		auto expression = parse_expression();
 		token_pipe->expect(WTokenType::CLOSE_SQUARE_BRACKET);
 
-		ASSERT(context_stack.top() == ExpressionContext::SEQUENCE_MEMBER_ACCESS, "SEQUENCE_MEMBER_ACCESS Context Mismatch");
-		context_stack.pop();
+		POP_CONTEXT(ExpressionContext::SEQUENCE_MEMBER_ACCESS);
 
 		return MAKE_EXPRESSION(MemberAccess(identifier->value, move(expression)));
 	}
@@ -297,17 +291,14 @@ ExpressionVector ExpressionParser::parse_function_call_arguments()
 
 	if (token_pipe->optional(WTokenType::CLOSE_PARENTHESIS))
 	{
-		ASSERT(context_stack.top() == ExpressionContext::FUNCTION_CALL, "FUNCTION_CALL Context Mismatch");
-		context_stack.pop();
+		POP_CONTEXT(ExpressionContext::FUNCTION_CALL);
 		return expressions;
 	}
 
 	expressions = parse_expressions();
 
 	token_pipe->expect(WTokenType::CLOSE_PARENTHESIS);
-
-	ASSERT(context_stack.top() == ExpressionContext::FUNCTION_CALL, "FUNCTION_CALL Context Mismatch");
-	context_stack.pop();
+	POP_CONTEXT(ExpressionContext::FUNCTION_CALL);
 
 	return expressions;
 }
@@ -318,9 +309,8 @@ Expression_ptr ExpressionParser::finish_parsing()
 {
 	operator_stack->drain_into_ast(ast);
 
-	ASSERT(ast.size() != 0, "Malformed Expression. AST is empty.");
-	ASSERT(context_stack.size() == 1, "Context Mismatch");
-	context_stack.pop();
+	ASSERT(ast.size() == 1, "Malformed Expression. AST must have a single node after parsing.");
+	POP_CONTEXT(ExpressionContext::GLOBAL_EXPRESSION);
 
 	auto result = move(ast.top());
 	ast.pop();

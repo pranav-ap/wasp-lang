@@ -2,12 +2,9 @@ import { add } from "path"
 
 let a: num = 4
 
-a, b, c =   1,
-            2,
-            3
+a, b, c =   1, 2, 3
 
 person.foo().bar()
-
 
 if a > 3 and r == 3:
     pass
@@ -42,3 +39,9 @@ type Person extends Animal:
         self.age = age
 
 
+enum Kind:
+    OPCUA
+    DDS
+    XYZ:
+        ABC
+        DEF

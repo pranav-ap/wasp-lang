@@ -39,9 +39,9 @@ using Statement = MODULE_API std::variant<
 	Branching,
 	WhileLoop, ForInLoop,
 	Break, Continue,
+	Return, Pass,
 	VariableDefinition, UDTDefinition, FunctionDefinition, EnumDefinition,
 	ImportCustom, ImportInBuilt,
-	Return, Pass,
 	ExpressionStatement
 >;
 
@@ -140,9 +140,10 @@ struct MODULE_API VariableDefinition : public Definition
 struct MODULE_API UDTDefinition : public Definition
 {
 	std::map<std::string, Type_ptr> member_types;
+	std::map<std::string, bool> is_public_member;
 
-	UDTDefinition(bool is_public, std::string name, std::map<std::string, Type_ptr> member_types)
-		: Definition(is_public, name), member_types(member_types) {};
+	UDTDefinition(bool is_public, std::string name, std::map<std::string, Type_ptr> member_types, std::map<std::string, bool> is_public_member)
+		: Definition(is_public, name), member_types(member_types), is_public_member(is_public_member) {};
 };
 
 struct MODULE_API FunctionDefinition : public Definition
@@ -157,9 +158,9 @@ struct MODULE_API FunctionDefinition : public Definition
 
 struct MODULE_API EnumDefinition : public Definition
 {
-	string_vector members;
+	std::vector<std::string> members;
 
-	EnumDefinition(bool is_public, std::string name, string_vector members)
+	EnumDefinition(bool is_public, std::string name, std::vector<std::string> members)
 		: Definition(is_public, name), members(members) {};
 };
 

@@ -26,51 +26,53 @@ using std::isalpha;
 
 vector<Token_ptr> Lexer::execute()
 {
+	spdlog::set_pattern("%^[%=8l]%$ %@ %v");
+
 	bool found_statement = false;
 
 	while (true)
 	{
-		char ch = get_current_char();
+		char current_char = get_current_char();
 
-		if (ch == NULL)
+		if (current_char == NULL)
 			break;
 
 		Token_ptr token;
 
-		if (!found_statement && ch == ' ')
+		if (!found_statement && current_char == ' ')
 		{
 			NEXT;
 			token = consume_space();
 		}
-		else if (found_statement && ch == ' ')
+		else if (found_statement && current_char == ' ')
 		{
 			NEXT;
 			continue;
 		}
-		else if (ch == '\n')
+		else if (current_char == '\n')
 		{
 			found_statement = false;
 			NEXT;
 			token = consume_eol();
 		}
-		else if (isdigit(static_cast<unsigned char>(ch)))
+		else if (isdigit(static_cast<unsigned char>(current_char)))
 		{
 			found_statement = true;
 			NEXT;
-			token = consume_number_literal(ch);
+			token = consume_number_literal(current_char);
 		}
-		else if (isalpha(ch) || ch == '_')
+		else if (isalpha(current_char) || current_char == '_')
 		{
 			found_statement = true;
 			NEXT;
-			token = consume_identifier(ch);
+			token = consume_identifier(current_char);
 		}
 		else
 		{
 			found_statement = true;
 			NEXT;
 
-			switch (ch)
+			switch (current_char)
 			{
 			case '\\':
 			case ')':
@@ -79,7 +81,7 @@ vector<Token_ptr> Lexer::execute()
 			case '[':
 			case ']':
 			case ',':
-			case '|': CASE_BODY(consume_single_char_punctuation(ch));
+			case '|': CASE_BODY(consume_single_char_punctuation(current_char));
 			case '(': CASE_BODY(consume_open_parenthesis());
 			case '"': CASE_BODY(consume_string_literal());
 			case '+': CASE_BODY(consume_plus());
@@ -94,18 +96,18 @@ vector<Token_ptr> Lexer::execute()
 			case '>': CASE_BODY(consume_greater_than());
 			case '.': CASE_BODY(consume_dot());
 			case ':': CASE_BODY(consume_colon());
-			default: CASE_BODY(consume_unknown_token(ch));
+			default: CASE_BODY(consume_unknown_token(current_char));
 			}
 		}
 
 		if (token)
 		{
-			//spdlog::info("Ln {} Col {} : {}", token->line_num, token->column_num, token->value);
+			//spdlog::info("Ln {} Col {}\t: {}", token->line_num, token->column_num, token->value);
 			tokens.push_back(move(token));
 		}
 		else
 		{
-			spdlog::error("Token == nullptr");
+			spdlog::error("A Token Consumer returns nullptr");
 			exit(1);
 		}
 	}

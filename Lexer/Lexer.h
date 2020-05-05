@@ -30,12 +30,14 @@ const std::map<std::string, WTokenType> keyword_map = {
 
 	{ "while", WTokenType::WHILE },
 	{ "for", WTokenType::FOR },
+	{ "in", WTokenType::IN_KEYWORD },
 	{ "break", WTokenType::BREAK },
 	{ "continue", WTokenType::CONTINUE },
-	{ "in", WTokenType::IN_KEYWORD },
 
 	{ "fn", WTokenType::FN },
 	{ "return", WTokenType::RETURN },
+	{ "gen", WTokenType::GEN },
+	{ "yield", WTokenType::YIELD },
 
 	{ "type", WTokenType::TYPE },
 	{ "num", WTokenType::NUM },
@@ -65,17 +67,6 @@ class LEXER_API Lexer
 
 	std::vector<Token_ptr> tokens;
 
-	// Utils
-
-	char get_char_at(int index) const;
-	char get_current_char() const;
-	char get_right_char() const;
-
-	Token_ptr get_previous_significant_token();
-	bool is_unary();
-
-	bool expect_current_char(char ch);
-
 	// Consumers
 
 	Token_ptr consume_number_literal(char ch);
@@ -95,13 +86,24 @@ class LEXER_API Lexer
 	Token_ptr consume_lesser_than();
 	Token_ptr consume_dot();
 	Token_ptr consume_colon();
-
 	Token_ptr consume_open_parenthesis();
 	Token_ptr consume_single_char_punctuation(char ch);
 
 	Token_ptr consume_eol();
 	Token_ptr consume_space();
+
 	Token_ptr consume_unknown_token(char ch);
+
+	// Utils
+
+	char get_char_at(int index) const;
+	char get_current_char() const;
+	char get_right_char() const;
+
+	Token_ptr get_previous_significant_token();
+	bool is_unary();
+
+	bool expect_current_char(char ch);
 
 public:
 	Lexer(std::string raw_source) : position(TokenPosition()), pointer(Pointer())

@@ -16,12 +16,13 @@ public:
 
 	int get_pointer_index() const;
 	void pointer_skip(int index);
+
 	void advance_pointer();
 	void retreat_pointer();
 
-	// Token Functions
+	Token_ptr token_at(int index) const;
 
-	Token_ptr token_at(int i) const;
+	// Token Functions
 
 	Token_ptr current() const;
 	Token_ptr current(std::vector<WTokenType> ignorables);
@@ -40,6 +41,7 @@ public:
 
 	int consume_spaces();
 	void skip_empty_lines();
+
 	size_t get_size() const;
 };
 

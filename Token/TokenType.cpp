@@ -89,6 +89,8 @@ std::ostream& operator<<(std::ostream& os, const WTokenType type)
 	case WTokenType::CONTINUE:
 	case WTokenType::FN:
 	case WTokenType::RETURN:
+	case WTokenType::GEN:
+	case WTokenType::YIELD:
 	case WTokenType::NUM:
 	case WTokenType::STR:
 	case WTokenType::BOOL:

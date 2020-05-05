@@ -105,23 +105,23 @@ void TokenPipe::skip_empty_lines()
 		ignore({ WTokenType::EOL });
 
 		int space_count = 0;
-		int i = get_pointer_index();
+		int token_index = get_pointer_index();
 
-		while (auto token = token_at(i))
+		while (auto token = token_at(token_index))
 		{
 			if (token->type == WTokenType::SPACE)
 			{
 				space_count++;
-				i++;
-				continue;
+				token_index++;
 			}
-
-			if (token->type == WTokenType::EOL)
+			else if (token->type == WTokenType::EOL)
 			{
 				pointer_skip(space_count + 1);
 			}
-
-			break;
+			else
+			{
+				break;
+			}
 		}
 
 		break;

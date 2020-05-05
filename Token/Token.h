@@ -6,10 +6,10 @@
 #define TOKEN_API __declspec(dllimport)
 #endif
 
+#include "TokenType.h"
 #include <string>
 #include <iostream>
 #include <memory>
-#include "TokenType.h"
 
 struct TOKEN_API Token
 {

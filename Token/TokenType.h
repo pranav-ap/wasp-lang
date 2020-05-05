@@ -6,9 +6,6 @@
 #define TOKEN_API __declspec(dllimport)
 #endif
 
-#include <string>
-#include <iostream>
-
 enum class TOKEN_API WTokenType
 {
 	// Literals
@@ -93,6 +90,8 @@ enum class TOKEN_API WTokenType
 
 	FN,
 	RETURN,
+	GEN,
+	YIELD,
 
 	TYPE,
 	NUM,
@@ -121,5 +120,3 @@ enum class TOKEN_API WTokenType
 
 	UNKNOWN
 };
-
-TOKEN_API std::ostream& operator<<(std::ostream& os, const WTokenType type);

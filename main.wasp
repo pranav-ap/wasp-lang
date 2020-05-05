@@ -1,4 +1,6 @@
-type Person:
-    name: str
-    age: num
-
+enum Kind:
+    OPCUA
+    DDS
+    XYZ:
+        ABC
+        DEF

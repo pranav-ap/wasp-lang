@@ -8,7 +8,7 @@ using std::string;
 using std::ifstream;
 using std::getline;
 
-std::string read_source(string path)
+string read_source(string path)
 {
 	ifstream code(path);
 	string line;

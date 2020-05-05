@@ -90,7 +90,7 @@
       <PreprocessorDefinitions>_DEBUG;MODULE_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\include;..\include\spdlog;..\Token;..\ObjectSystem;..\TypeSystem;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include;..\include\spdlog;..\Token;..\ObjectSystem;</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
