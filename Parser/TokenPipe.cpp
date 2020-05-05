@@ -13,22 +13,22 @@ using std::nullopt;
 using std::make_optional;
 using std::optional;
 
-TokenPipe::TokenPipe(std::vector<Token_ptr> tokens)
-{
-}
-
 optional<Token_ptr> TokenPipe::token_at(int position) const
 {
-	if (position >= tokens.size()) {
+	if (position >= tokens.size())
+	{
 		return nullopt;
 	}
 
 	return make_optional(tokens[position]);
 }
 
+// Current
+
 optional<Token_ptr> TokenPipe::current() const
 {
-	if (index >= tokens.size()) {
+	if (index >= tokens.size())
+	{
 		return nullopt;
 	}
 
@@ -42,6 +42,8 @@ optional<Token_ptr> TokenPipe::current(vector<WTokenType> ignorables)
 	auto token = current();
 	return token;
 }
+
+// Optional
 
 optional<Token_ptr> TokenPipe::optional(WTokenType token_type)
 {
@@ -64,6 +66,8 @@ optional<Token_ptr> TokenPipe::optional(WTokenType token_type, vector<WTokenType
 	return token;
 }
 
+// Required
+
 Token_ptr TokenPipe::required(WTokenType token_type)
 {
 	auto token = current();
@@ -81,6 +85,8 @@ Token_ptr TokenPipe::required(WTokenType token_type, vector<WTokenType> ignorabl
 	auto token = required(token_type);
 	return token;
 }
+
+// Expect
 
 void TokenPipe::expect(WTokenType token_type)
 {
@@ -114,26 +120,6 @@ void TokenPipe::expect_indent(const int expected_indent)
 	{
 		ASSERT(token.value()->type != WTokenType::SPACE, "Incorrect Indentation");
 	}
-}
-
-int TokenPipe::count_spaces()
-{
-	int space_count = 0;
-
-	while (true)
-	{
-		auto token = current();
-
-		if (token.has_value() && token.value()->type == WTokenType::SPACE)
-		{
-			space_count++;
-			continue;
-		}
-
-		break;
-	}
-
-	return space_count;
 }
 
 // Ignore
@@ -172,11 +158,6 @@ void TokenPipe::ignore(vector<WTokenType> ignorables)
 
 // UTILS
 
-size_t TokenPipe::get_size() const
-{
-	return tokens.size();
-}
-
 int TokenPipe::get_current_index() const
 {
 	return index;
@@ -195,4 +176,9 @@ void TokenPipe::advance_pointer()
 void TokenPipe::retreat_pointer()
 {
 	index--;
+}
+
+size_t TokenPipe::get_size() const
+{
+	return tokens.size();
 }

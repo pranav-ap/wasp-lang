@@ -1,4 +1,0 @@
-import { echo } from io
-
-let a : num = 5
-echo(a)

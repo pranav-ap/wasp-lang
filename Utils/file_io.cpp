@@ -16,8 +16,11 @@ string read_source(string path)
 
 	while (getline(code, line))
 	{
-		raw_source.append(line);
-		raw_source.append("\n");
+		if (line.find_first_not_of(" \t\n\v\f\r") != std::string::npos)
+		{
+			raw_source.append(line);
+			raw_source.append("\n");
+		}
 	}
 
 	return raw_source;

@@ -11,7 +11,7 @@ class TokenPipe
 	int index;
 
 public:
-	TokenPipe(std::vector<Token_ptr> tokens);
+	TokenPipe(std::vector<Token_ptr> tokens) : tokens(tokens), index(0) {};
 
 	// Token Functions
 
@@ -40,8 +40,6 @@ public:
 	void advance_pointer();
 	void advance_pointer(int steps);
 	void retreat_pointer();
-
-	int count_spaces();
 
 	size_t get_size() const;
 };
