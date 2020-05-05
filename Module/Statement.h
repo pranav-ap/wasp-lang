@@ -74,9 +74,10 @@ struct MODULE_API MultipleAssignment : public StatementBase
 struct MODULE_API Branching : public StatementBase
 {
 	std::vector<std::pair<Expression_ptr, Block>> branches;
+	Block else_branch;
 
-	Branching(std::vector<std::pair<Expression_ptr, Block>> branches)
-		: branches(branches) {};
+	Branching(std::vector<std::pair<Expression_ptr, Block>> branches, Block else_branch)
+		: branches(branches), else_branch(else_branch) {};
 };
 
 // Looping

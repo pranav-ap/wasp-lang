@@ -107,32 +107,36 @@ void OperatorStack::dumb_push(Token_ptr operator_token)
 	operator_stack.push(move(operator_token));
 }
 
-void OperatorStack::smart_push(Token_ptr operator_token, ExpressionStack& ast)
+void OperatorStack::smart_push(Token_ptr current_operator, ExpressionStack& ast)
 {
-	int operator_precedence = get_precedence(operator_token->type);
-
-	while (operator_stack.size() > 0)
+	if (operator_stack.size() == 0)
 	{
-		Token_ptr top_operator = operator_stack.top();
-		auto top_operator_type = top_operator->type;
-		int top_operator_precedence = get_precedence(top_operator_type);
-
-		if (top_operator_type != WTokenType::OPEN_PARENTHESIS)
-		{
-			if (top_operator_precedence > operator_precedence ||
-				(top_operator_precedence == operator_precedence && is_left_associative(top_operator_type)))
-			{
-				operator_stack.pop();
-				push_operator_into_ast(move(top_operator), ast);
-			}
-		}
-		else
-		{
-			break;
-		}
+		operator_stack.push(current_operator);
+		return;
 	}
 
-	operator_stack.push(operator_token);
+	auto current_operator_type = current_operator->type;
+	int current_operator_precedence = get_precedence(current_operator_type);
+
+	Token_ptr top_operator = operator_stack.top();
+
+	auto top_operator_type = top_operator->type;
+	int top_operator_precedence = get_precedence(top_operator_type);
+
+	while (
+		((top_operator_precedence > current_operator_precedence) ||
+			(top_operator_precedence == current_operator_precedence && is_left_associative(current_operator_type)))
+		&&
+		(top_operator_type != WTokenType::OPEN_PARENTHESIS))
+	{
+		if (operator_stack.size() == 0)
+			break;
+
+		operator_stack.pop();
+		push_operator_into_ast(move(top_operator), ast);
+	}
+
+	operator_stack.push(current_operator);
 }
 
 // UTILS
@@ -244,7 +248,7 @@ bool OperatorStack::is_left_associative(WTokenType token_type)
 	case WTokenType::UNARY_MINUS:
 	case WTokenType::UNARY_PLUS:
 	case WTokenType::BANG:
-	case WTokenType::EQUAL:
+	case WTokenType::EQUAL_EQUAL:
 	{
 		return false;
 	}

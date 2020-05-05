@@ -91,17 +91,19 @@ Statement_ptr Parser::parse_statement(bool is_public)
 		CASE(WTokenType::LET, parse_variable_definition(is_public, true));
 		CASE(WTokenType::CONST_KEYWORD, parse_variable_definition(is_public, false));
 		CASE(WTokenType::Identifier, parse_assignment_or_expression(move(token)));
+
+		CASE(WTokenType::IF, parse_branching());
+		CASE(WTokenType::FOR, parse_for_in_loop());
+		CASE(WTokenType::WHILE, parse_while_loop());
+		CASE(WTokenType::TYPE, parse_UDT_definition(is_public));
+		CASE(WTokenType::FN, parse_function_definition(is_public));
+		CASE(WTokenType::ENUM, parse_enum_definition(is_public));
+
 		CASE(WTokenType::PASS, parse_pass());
 		CASE(WTokenType::BREAK, parse_break());
 		CASE(WTokenType::RETURN, parse_return());
 		CASE(WTokenType::CONTINUE, parse_continue());
-		CASE(WTokenType::WHILE, parse_while_loop());
 		CASE(WTokenType::PUB, parse_public_statement());
-		CASE(WTokenType::FOR, parse_for_in_loop());
-		CASE(WTokenType::TYPE, parse_UDT_definition(is_public));
-		CASE(WTokenType::FN, parse_function_definition(is_public));
-		CASE(WTokenType::ENUM, parse_enum_definition(is_public));
-		//CASE(WTokenType::IF, parse_branching());
 	default:
 	{
 		RETREAT_PTR;
@@ -238,18 +240,67 @@ Block Parser::parse_block(StatementContext context)
 
 	Block statements;
 
-	while (auto statement = parse_statement(false))
+	while (true)
+	{
+		auto statement = parse_statement(false);
+
+		if (!statement)
+			break;
+
 		statements.push_back(move(statement));
+	}
 
 	pop_context(context);
 
 	return statements;
 }
 
-Statement_ptr Parser::parse_while_loop()
+pair<Expression_ptr, Block> Parser::parse_condition_and_consequence()
 {
+	auto condition = expr_parser->parse_expression();
+	token_pipe->expect(WTokenType::COLON);
+	auto consequence = parse_block(StatementContext::BRANCH);
+
+	return make_pair(condition, consequence);
+}
+
+Statement_ptr Parser::parse_branching()
+{
+	std::vector<std::pair<Expression_ptr, Block>> branches;
+
+	auto condition_consequence_pair = parse_condition_and_consequence();
+	branches.push_back(condition_consequence_pair);
+
+	while (true)
+	{
+		token_pipe->skip_empty_lines();
+
+		if (token_pipe->optional(WTokenType::ELIF))
+		{
+			condition_consequence_pair = parse_condition_and_consequence();
+			branches.push_back(condition_consequence_pair);
+
+			continue;
+		}
+
+		break;
+	}
+
 	token_pipe->skip_empty_lines();
 
+	Block else_branch;
+
+	if (token_pipe->optional(WTokenType::ELSE))
+	{
+		token_pipe->expect(WTokenType::COLON);
+		else_branch = parse_block(StatementContext::BRANCH);
+	}
+
+	return MAKE_STATEMENT(Branching(branches, else_branch));
+}
+
+Statement_ptr Parser::parse_while_loop()
+{
 	auto condition = expr_parser->parse_expression();
 	token_pipe->expect(WTokenType::COLON);
 
@@ -415,6 +466,7 @@ vector<string> Parser::parse_enum_members()
 		ASSERT(current_indent == expected_indent, "Cannot change indentation for no reason");
 
 		auto identifier = token_pipe->required(WTokenType::Identifier);
+		members.push_back(identifier->value);
 
 		if (token_pipe->optional(WTokenType::COLON))
 		{
@@ -422,10 +474,6 @@ vector<string> Parser::parse_enum_members()
 
 			for (auto const& child : children)
 				members.push_back(identifier->value + "::" + child);
-		}
-		else
-		{
-			members.push_back(identifier->value);
 		}
 	}
 

@@ -71,6 +71,7 @@ class PARSER_API Parser
 	// Utils
 
 	Block parse_block(StatementContext context);
+	std::pair<Expression_ptr, Block> parse_condition_and_consequence();
 	void convert_shortcut_token(Token_ptr token);
 
 	std::pair<int, int> get_indent_pair();

@@ -1,6 +1,6 @@
-enum Kind:
-    OPCUA
-    DDS
-    XYZ:
-        ABC
-        DEF
+if a > 3 and r == 3:
+    pass
+elif a > 3:
+    pass
+else:
+    pass
