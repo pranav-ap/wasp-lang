@@ -48,7 +48,7 @@ Module Parser::execute()
 
 	context_stack.push({ StatementContext::GLOBAL, 0 });
 
-	while ((size_t)token_pipe->get_pointer_index() < token_pipe->get_size())
+	while ((size_t)token_pipe->get_current_index() < token_pipe->get_size())
 	{
 		Statement_ptr node = parse_statement(false);
 
@@ -73,6 +73,8 @@ Statement_ptr Parser::parse_statement(bool is_public)
 
 	if (current_indent < expected_indent)
 		return nullptr;
+
+	token_pipe->jump_pointer(current_indent);
 
 	auto token = token_pipe->current();
 
@@ -293,6 +295,7 @@ Statement_ptr Parser::parse_branching()
 	if (token_pipe->optional(WTokenType::ELSE))
 	{
 		token_pipe->expect(WTokenType::COLON);
+		token_pipe->skip_empty_lines();
 		else_branch = parse_block(StatementContext::BRANCH);
 	}
 
@@ -371,6 +374,8 @@ Statement_ptr Parser::parse_UDT_definition(bool is_public)
 	auto [current_indent, expected_indent] = get_indent_pair();
 	ASSERT(current_indent == expected_indent, "Cannot change indentation for no reason");
 
+	token_pipe->jump_pointer(current_indent);
+
 	map<string, Type_ptr> member_types;
 	std::map<std::string, bool> is_public_member_map;
 
@@ -394,6 +399,8 @@ Statement_ptr Parser::parse_UDT_definition(bool is_public)
 			break;
 
 		ASSERT(current_indent == expected_indent, "Cannot change indentation for no reason");
+
+		token_pipe->jump_pointer(current_indent);
 	}
 
 	pop_context(StatementContext::UDT_DEFINITION);
@@ -464,6 +471,8 @@ vector<string> Parser::parse_enum_members()
 			break;
 
 		ASSERT(current_indent == expected_indent, "Cannot change indentation for no reason");
+
+		token_pipe->jump_pointer(current_indent);
 
 		auto identifier = token_pipe->required(WTokenType::Identifier);
 		members.push_back(identifier->value);
@@ -642,7 +651,7 @@ void Parser::convert_shortcut_token(Token_ptr token)
 
 pair<int, int> Parser::get_indent_pair()
 {
-	int current_indent = token_pipe->consume_spaces();
+	int current_indent = token_pipe->count_spaces();
 	int expected_indent = context_stack.top().second;
 
 	return make_pair(current_indent, expected_indent);

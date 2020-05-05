@@ -4,71 +4,89 @@
 #include "Token.h"
 #include "CommonAssertion.h"
 #include <algorithm>
+#include <optional>
+
+#define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr")
 
 using std::vector;
+using std::nullopt;
+using std::make_optional;
+using std::optional;
 
-Token_ptr TokenPipe::token_at(int i) const
+TokenPipe::TokenPipe(std::vector<Token_ptr> tokens)
 {
-	if (i >= tokens.size()) {
-		return nullptr;
-	}
-
-	return tokens[i];
 }
 
-Token_ptr TokenPipe::current() const
+optional<Token_ptr> TokenPipe::token_at(int position) const
+{
+	if (position >= tokens.size()) {
+		return nullopt;
+	}
+
+	return make_optional(tokens[position]);
+}
+
+optional<Token_ptr> TokenPipe::current() const
 {
 	if (index >= tokens.size()) {
-		return nullptr;
+		return nullopt;
 	}
 
-	return tokens[index];
+	return make_optional(tokens[index]);
 }
 
-Token_ptr TokenPipe::current(vector<WTokenType> ignorables)
+optional<Token_ptr> TokenPipe::current(vector<WTokenType> ignorables)
 {
 	ignore(ignorables);
-	return current();
+
+	auto token = current();
+	return token;
 }
 
-Token_ptr TokenPipe::optional(WTokenType token_type)
+optional<Token_ptr> TokenPipe::optional(WTokenType token_type)
 {
-	if (auto token = current(); token_type == token->type)
+	auto token = current();
+
+	if (token.has_value() && token.value()->type == token_type)
 	{
 		advance_pointer();
 		return token;
 	}
 
-	return nullptr;
+	return nullopt;
 }
 
-Token_ptr TokenPipe::optional(WTokenType token_type, vector<WTokenType> ignorables)
+optional<Token_ptr> TokenPipe::optional(WTokenType token_type, vector<WTokenType> ignorables)
 {
 	ignore(ignorables);
-	return optional(token_type);
+
+	auto token = optional(token_type);
+	return token;
 }
 
 Token_ptr TokenPipe::required(WTokenType token_type)
 {
 	auto token = current();
-	ASSERT(token != nullptr, "Oh shit! A nullptr");
-	ASSERT(token_type == token->type, "Token is incorrect type");
+	ASSERT(token.has_value(), "Token does not have any value");
+	ASSERT(token.value()->type == token_type, "Token has an incorrect type");
 
 	advance_pointer();
-	return token;
+	return token.value();
 }
 
 Token_ptr TokenPipe::required(WTokenType token_type, vector<WTokenType> ignorables)
 {
 	ignore(ignorables);
-	return required(token_type);
+
+	auto token = required(token_type);
+	return token;
 }
 
 void TokenPipe::expect(WTokenType token_type)
 {
 	auto token = current();
-	ASSERT(token != nullptr, "Oh shit! A nullptr");
-	ASSERT(token_type == token->type, "Token is incorrect type");
+	ASSERT(token.has_value(), "Token does not have any value");
+	ASSERT(token.value()->type == token_type, "Token has an incorrect type");
 
 	advance_pointer();
 }
@@ -79,16 +97,36 @@ void TokenPipe::expect(WTokenType token_type, vector<WTokenType> ignorables)
 	expect(token_type);
 }
 
-int TokenPipe::consume_spaces()
+void TokenPipe::expect_indent(const int expected_indent)
+{
+	int count = 0;
+
+	while (count <= expected_indent)
+	{
+		expect(WTokenType::SPACE);
+		count++;
+		advance_pointer();
+	}
+
+	auto token = current();
+
+	if (token.has_value())
+	{
+		ASSERT(token.value()->type != WTokenType::SPACE, "Incorrect Indentation");
+	}
+}
+
+int TokenPipe::count_spaces()
 {
 	int space_count = 0;
 
-	while (auto token = current())
+	while (true)
 	{
-		if (token->type == WTokenType::SPACE)
+		auto token = current();
+
+		if (token.has_value() && token.value()->type == WTokenType::SPACE)
 		{
 			space_count++;
-			advance_pointer();
 			continue;
 		}
 
@@ -98,43 +136,18 @@ int TokenPipe::consume_spaces()
 	return space_count;
 }
 
-void TokenPipe::skip_empty_lines()
-{
-	while (true)
-	{
-		ignore({ WTokenType::EOL });
-
-		int space_count = 0;
-		int token_index = get_pointer_index();
-
-		while (auto token = token_at(token_index))
-		{
-			if (token->type == WTokenType::SPACE)
-			{
-				space_count++;
-				token_index++;
-			}
-			else if (token->type == WTokenType::EOL)
-			{
-				pointer_skip(space_count + 1);
-			}
-			else
-			{
-				break;
-			}
-		}
-
-		break;
-	}
-}
-
 // Ignore
 
 void TokenPipe::ignore(WTokenType ignorable)
 {
-	while (auto token = current())
+	while (true)
 	{
-		if (token->type != ignorable)
+		auto token = current();
+
+		if (!token.has_value())
+			break;
+
+		if (token.value()->type != ignorable)
 			break;
 
 		advance_pointer();
@@ -143,9 +156,14 @@ void TokenPipe::ignore(WTokenType ignorable)
 
 void TokenPipe::ignore(vector<WTokenType> ignorables)
 {
-	while (auto token = current())
+	while (true)
 	{
-		if (std::find(ignorables.begin(), ignorables.end(), token->type) == ignorables.end())
+		auto token = current();
+
+		if (!token.has_value())
+			break;
+
+		if (std::find(ignorables.begin(), ignorables.end(), token.value()->type) == ignorables.end())
 			break;
 
 		advance_pointer();
@@ -159,14 +177,14 @@ size_t TokenPipe::get_size() const
 	return tokens.size();
 }
 
-int TokenPipe::get_pointer_index() const
+int TokenPipe::get_current_index() const
 {
 	return index;
 }
 
-void TokenPipe::pointer_skip(int skip)
+void TokenPipe::advance_pointer(int steps)
 {
-	index = get_pointer_index() + skip;
+	index = get_current_index() + steps;
 }
 
 void TokenPipe::advance_pointer()

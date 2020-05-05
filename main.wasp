@@ -1,6 +1,5 @@
-if a > 3 and r == 3:
-    pass
-elif a > 3:
-    pass
-else:
-    pass
+fn add(a: num, b: num) -> num:
+    if a > b:
+        return a + b + 4
+    return a + b
+
