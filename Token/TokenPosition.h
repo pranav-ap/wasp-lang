@@ -16,6 +16,7 @@ public:
 
 	void increment_line_number();
 	void increment_column_number();
+	void decrement_column_number();
 	void reset_column_number();
 
 	int get_line_num() const;

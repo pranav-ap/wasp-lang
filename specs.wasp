@@ -1,5 +1,7 @@
 import { add } from "path"
 
+// Its more of a comment really
+
 let a: num = 4
 
 a, b, c = 1, 2, 3

@@ -1,5 +1,1 @@
-
-// list.get(34).set(1, "hello")
-
-for x : num in [1, 2, 3]:
-    pass
+234.call()

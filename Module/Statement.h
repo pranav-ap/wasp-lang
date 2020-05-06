@@ -65,20 +65,20 @@ struct MODULE_API StatementBase
 
 struct MODULE_API Assignment : public StatementBase
 {
-	std::string name;
-	Expression_ptr expression;
+	Expression_ptr lhs_expression;
+	Expression_ptr rhs_expression;
 
-	Assignment(std::string name, Expression_ptr expression)
-		: name(name), expression(expression) {};
+	Assignment(Expression_ptr lhs_expression, Expression_ptr rhs_expression)
+		: lhs_expression(std::move(lhs_expression)), rhs_expression(std::move(rhs_expression)) {};
 };
 
 struct MODULE_API MultipleAssignment : public StatementBase
 {
-	ExpressionVector names;
-	ExpressionVector expressions;
+	ExpressionVector lhs_expressions;
+	ExpressionVector rhs_expressions;
 
-	MultipleAssignment(ExpressionVector names, ExpressionVector expressions)
-		: names(names), expressions(expressions) {};
+	MultipleAssignment(ExpressionVector lhs_expressions, ExpressionVector rhs_expressions)
+		: lhs_expressions(std::move(lhs_expressions)), rhs_expressions(std::move(rhs_expressions)) {};
 };
 
 struct MODULE_API Branching : public StatementBase
@@ -102,7 +102,7 @@ struct MODULE_API WhileLoop : public Loop
 {
 	Expression_ptr condition;
 	WhileLoop(Expression_ptr condition, Block block)
-		: Loop(block), condition(condition) {};
+		: Loop(block), condition(std::move(condition)) {};
 };
 
 struct MODULE_API ForInLoop : public Loop
@@ -112,7 +112,7 @@ struct MODULE_API ForInLoop : public Loop
 	Expression_ptr iterable;
 
 	ForInLoop(Type_ptr item_type, std::string item_name, Expression_ptr iterable, Block block)
-		: Loop(block), item_type(item_type), item_name(item_name), iterable(iterable) {};
+		: Loop(block), item_type(std::move(item_type)), item_name(item_name), iterable(std::move(iterable)) {};
 };
 
 struct MODULE_API Break : public StatementBase
@@ -162,7 +162,7 @@ struct MODULE_API AliasDefinition : public Definition
 	Type_ptr type;
 
 	AliasDefinition(bool is_public, std::string name, Type_ptr type)
-		: Definition(is_public, name), type(move(type)) {};
+		: Definition(is_public, name), type(std::move(type)) {};
 };
 
 struct MODULE_API CallableDefinition : public Definition

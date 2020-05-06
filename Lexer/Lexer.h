@@ -37,7 +37,7 @@ const std::map<std::string, WTokenType> keyword_map = {
 	{ "fn", WTokenType::FN },
 	{ "return", WTokenType::RETURN },
 	{ "gen", WTokenType::GEN },
-	{ "yield", WTokenType::YIELD },
+	{ "yield", WTokenType::YIELD_KEYWORD },
 
 	{ "type", WTokenType::TYPE },
 	{ "num", WTokenType::NUM },

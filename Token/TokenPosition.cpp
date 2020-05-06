@@ -12,6 +12,11 @@ void TokenPosition::increment_column_number()
 	this->column_num++;
 }
 
+void TokenPosition::decrement_column_number()
+{
+	this->column_num--;
+}
+
 void TokenPosition::reset_column_number()
 {
 	this->column_num = 1;

@@ -101,7 +101,7 @@ Statement_ptr Parser::parse_statement(bool is_public, int expected_indent)
 		CASE(WTokenType::PASS, parse_pass());
 		CASE(WTokenType::BREAK, parse_break());
 		CASE(WTokenType::RETURN, parse_return());
-		CASE(WTokenType::YIELD, parse_yield());
+		CASE(WTokenType::YIELD_KEYWORD, parse_yield());
 		CASE(WTokenType::CONTINUE, parse_continue());
 
 	default:
@@ -135,37 +135,6 @@ Statement_ptr Parser::parse_public_statement(int expected_indent)
 	}
 }
 
-Statement_ptr Parser::parse_import()
-{
-	token_pipe->expect(WTokenType::OPEN_CURLY_BRACE);
-
-	string_vector goods;
-
-	while (true)
-	{
-		auto identifier = token_pipe->required(WTokenType::Identifier);
-		goods.push_back(identifier->value);
-
-		if (token_pipe->optional(WTokenType::CLOSE_CURLY_BRACE))
-			break;
-
-		token_pipe->expect(WTokenType::COMMA);
-	}
-
-	token_pipe->expect(WTokenType::FROM);
-
-	if (auto current = token_pipe->optional(WTokenType::Identifier))
-	{
-		token_pipe->expect(WTokenType::EOL);
-		return MAKE_STATEMENT(ImportInBuilt(current.value()->value, goods));
-	}
-
-	auto path_token = token_pipe->required(WTokenType::StringLiteral);
-	token_pipe->expect(WTokenType::EOL);
-
-	return MAKE_STATEMENT(ImportCustom(path_token->value, goods));
-}
-
 Statement_ptr Parser::parse_expression_statement()
 {
 	auto expression = expr_parser->parse_expression();
@@ -178,22 +147,33 @@ Statement_ptr Parser::parse_expression_statement()
 
 Statement_ptr Parser::parse_assignment_or_expression(Token_ptr identifier)
 {
+	RETREAT_PTR;
+	auto lhs_expression = expr_parser->parse_expression();
+
+	if (token_pipe->optional(WTokenType::EOL))
+	{
+		return MAKE_STATEMENT(ExpressionStatement(move(lhs_expression)));
+	}
+	else if (token_pipe->optional(WTokenType::EQUAL))
+	{
+		auto assignment = consume_assignment(move(lhs_expression));
+		return assignment;
+	}
+	else if (token_pipe->optional(WTokenType::COMMA))
+	{
+		auto assignment = consume_multiple_assignment(move(lhs_expression));
+		return assignment;
+	}
+
 	auto current_token = token_pipe->current();
 
-	WTokenType current_token_type = current_token.has_value() ? current_token.value()->type : WTokenType::UNKNOWN;
+	if (!current_token.has_value())
+	{
+		FATAL("Expected an expression statement or assignment");
+	}
 
-	switch (current_token_type)
+	switch (current_token.value()->type)
 	{
-	case WTokenType::EQUAL:
-	{
-		ADVANCE_PTR;
-		return consume_assignment(identifier);
-	}
-	case WTokenType::COMMA:
-	{
-		RETREAT_PTR;
-		return consume_multiple_assignment(identifier);
-	}
 	case WTokenType::PLUS_EQUAL:
 	case WTokenType::MINUS_EQUAL:
 	case WTokenType::STAR_EQUAL:
@@ -202,45 +182,52 @@ Statement_ptr Parser::parse_assignment_or_expression(Token_ptr identifier)
 	case WTokenType::POWER_EQUAL:
 	{
 		ADVANCE_PTR;
-		return consume_shortcut_assignment(identifier, current_token.value());
+		return consume_shortcut_assignment(lhs_expression, current_token.value());
 	}
 	default:
 	{
-		RETREAT_PTR;
-		return parse_expression_statement();
+		FATAL("Expected an expression statement or assignment");
 	}
 	}
 }
 
-Statement_ptr Parser::consume_assignment(Token_ptr identifier)
+Statement_ptr Parser::consume_assignment(Expression_ptr lhs_expression)
 {
-	auto expression = expr_parser->parse_expression();
+	auto rhs_expression = expr_parser->parse_expression();
 	token_pipe->expect(WTokenType::EOL);
 
-	return MAKE_STATEMENT(Assignment(identifier->value, move(expression)));
+	return MAKE_STATEMENT(Assignment(move(lhs_expression), move(rhs_expression)));
 }
 
-Statement_ptr Parser::consume_shortcut_assignment(Token_ptr identifier, Token_ptr shortcut_operator)
+Statement_ptr Parser::consume_shortcut_assignment(Expression_ptr lhs_expression, Token_ptr operator_token)
 {
-	auto expression = expr_parser->parse_expression();
-	convert_shortcut_token(shortcut_operator);
+	convert_shortcut_token(operator_token);
 
-	auto identifier_expression = MAKE_EXPRESSION(Identifier(identifier->value));
-	auto rhs = MAKE_EXPRESSION(Binary(identifier_expression, shortcut_operator, move(expression)));
+	auto rhs_expression = expr_parser->parse_expression();
+
+	auto unshortcut_rhs_expression = MAKE_EXPRESSION(Binary(move(lhs_expression), operator_token, move(rhs_expression)));
 	token_pipe->expect(WTokenType::EOL);
 
-	return MAKE_STATEMENT(Assignment(identifier->value, move(rhs)));
+	return MAKE_STATEMENT(Assignment(move(lhs_expression), move(unshortcut_rhs_expression)));
 }
 
-Statement_ptr Parser::consume_multiple_assignment(Token_ptr identifier)
+Statement_ptr Parser::consume_multiple_assignment(Expression_ptr first_lhs_expression)
 {
-	auto lhs_list = expr_parser->parse_expressions();
+	// PARSE LHS
+
+	ExpressionVector lhs_expressions = { first_lhs_expression };
+	auto other_lhs_expressions = expr_parser->parse_expressions();
+	lhs_expressions.insert(lhs_expressions.end(), other_lhs_expressions.begin(), other_lhs_expressions.end());
+
 	token_pipe->expect(WTokenType::EQUAL);
 
-	auto expressions = expr_parser->parse_expressions();
+	// PARSE RHS
+
+	auto rhs_expressions = expr_parser->parse_expressions();
+
 	token_pipe->expect(WTokenType::EOL);
 
-	return MAKE_STATEMENT(MultipleAssignment(lhs_list, expressions));
+	return MAKE_STATEMENT(MultipleAssignment(lhs_expressions, rhs_expressions));
 }
 
 // Block statement parsing
@@ -634,6 +621,39 @@ pair<string, Type_ptr>  Parser::consume_identifier_type_pair()
 	auto type = parse_type();
 
 	return make_pair(identifier->value, move(type));
+}
+
+// Other
+
+Statement_ptr Parser::parse_import()
+{
+	token_pipe->expect(WTokenType::OPEN_CURLY_BRACE);
+
+	string_vector goods;
+
+	while (true)
+	{
+		auto identifier = token_pipe->required(WTokenType::Identifier);
+		goods.push_back(identifier->value);
+
+		if (token_pipe->optional(WTokenType::CLOSE_CURLY_BRACE))
+			break;
+
+		token_pipe->expect(WTokenType::COMMA);
+	}
+
+	token_pipe->expect(WTokenType::FROM);
+
+	if (auto current = token_pipe->optional(WTokenType::Identifier))
+	{
+		token_pipe->expect(WTokenType::EOL);
+		return MAKE_STATEMENT(ImportInBuilt(current.value()->value, goods));
+	}
+
+	auto path_token = token_pipe->required(WTokenType::StringLiteral);
+	token_pipe->expect(WTokenType::EOL);
+
+	return MAKE_STATEMENT(ImportCustom(path_token->value, goods));
 }
 
 // Utils

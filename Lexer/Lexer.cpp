@@ -13,6 +13,7 @@
 #define MAKE_TOKEN(type, token, line_num, col_num) std::make_shared<Token>(type, token, line_num, col_num)
 #define CASE_BODY(call) { token = call; break; }
 #define NEXT pointer.advance(); position.increment_column_number();
+#define PREVIOUS pointer.retreat(); position.decrement_column_number();
 #define LINE_NUM position.get_line_num()
 #define COL_NUM position.get_column_num()
 
@@ -154,6 +155,12 @@ Token_ptr Lexer::consume_number_literal(char ch)
 		}
 
 		break;
+	}
+
+	if (number_literal.back() == '.')
+	{
+		number_literal.pop_back();
+		PREVIOUS;
 	}
 
 	return MAKE_TOKEN(WTokenType::NumberLiteral, number_literal, LINE_NUM, COL_NUM);
