@@ -141,11 +141,7 @@ Token_ptr Lexer::consume_number_literal(char ch)
 		if (ch == '.')
 		{
 			if (reached_decimal_point)
-			{
-				spdlog::error("Multiple decimal points are detected");
-				NEXT;
-				return nullptr;
-			}
+				break;
 
 			reached_decimal_point = true;
 

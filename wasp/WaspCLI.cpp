@@ -4,6 +4,7 @@
 #include "Lexer.h"
 #include "Parser.h"
 #include <string>
+#include <iostream>
 #include <vector>
 #include <chrono>
 
@@ -55,12 +56,12 @@ CLI::App& WaspCLI::get_app()
 
 void WaspCLI::run()
 {
+	auto start = high_resolution_clock::now();
+
 	string raw_source = read_source(filepath);
 
 	Lexer lexer(raw_source);
 	vector<Token_ptr> tokens = lexer.execute();
-
-	auto start = high_resolution_clock::now();
 
 	Parser parser(tokens);
 	Module mod = parser.execute();
@@ -69,4 +70,5 @@ void WaspCLI::run()
 	duration<double> elapsed_seconds = end - start;
 
 	double time_taken = elapsed_seconds.count();
+	cout << " Time Taken : " << time_taken << " seconds" << endl;
 }

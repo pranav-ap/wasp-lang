@@ -240,12 +240,11 @@ Expression_ptr ExpressionParser::parse_dictionary_literal()
 	if (token_pipe->optional(WTokenType::CLOSE_CURLY_BRACE))
 		return MAKE_EXPRESSION(DictionaryLiteral(pairs));
 
+	token_pipe->expect(WTokenType::EOL);
+
 	while (true)
 	{
-		if (token_pipe->optional(WTokenType::CLOSE_CURLY_BRACE))
-			return MAKE_EXPRESSION(DictionaryLiteral(pairs));
-
-		token_pipe->optional(WTokenType::EOL);
+		token_pipe->ignore(WTokenType::SPACE);
 
 		auto key = consume_valid_dictionary_key();
 		token_pipe->expect(WTokenType::COLON);
@@ -253,7 +252,14 @@ Expression_ptr ExpressionParser::parse_dictionary_literal()
 		auto value = parse_expression();
 		pairs.insert_or_assign(key, value);
 
+		if (token_pipe->optional(WTokenType::EOL))
+		{
+			token_pipe->expect(WTokenType::CLOSE_CURLY_BRACE);
+			return MAKE_EXPRESSION(DictionaryLiteral(pairs));
+		}
+
 		token_pipe->expect(WTokenType::COMMA);
+		token_pipe->expect(WTokenType::EOL);
 	}
 }
 
