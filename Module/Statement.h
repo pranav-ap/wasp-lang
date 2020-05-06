@@ -17,7 +17,6 @@
 #include <variant>
 
 struct Assignment;
-struct MultipleAssignment;
 struct Branching;
 struct WhileLoop;
 struct ForInLoop;
@@ -38,7 +37,7 @@ struct ExpressionStatement;
 
 using Statement = MODULE_API std::variant<
 	std::monostate,
-	Assignment, MultipleAssignment,
+	Assignment,
 
 	Branching,
 	WhileLoop, ForInLoop,
@@ -65,20 +64,11 @@ struct MODULE_API StatementBase
 
 struct MODULE_API Assignment : public StatementBase
 {
-	Expression_ptr lhs_expression;
-	Expression_ptr rhs_expression;
-
-	Assignment(Expression_ptr lhs_expression, Expression_ptr rhs_expression)
-		: lhs_expression(std::move(lhs_expression)), rhs_expression(std::move(rhs_expression)) {};
-};
-
-struct MODULE_API MultipleAssignment : public StatementBase
-{
 	ExpressionVector lhs_expressions;
 	ExpressionVector rhs_expressions;
 
-	MultipleAssignment(ExpressionVector lhs_expressions, ExpressionVector rhs_expressions)
-		: lhs_expressions(std::move(lhs_expressions)), rhs_expressions(std::move(rhs_expressions)) {};
+	Assignment(ExpressionVector lhs_expressions, ExpressionVector rhs_expressions)
+		: lhs_expressions(lhs_expressions), rhs_expressions(rhs_expressions) {};
 };
 
 struct MODULE_API Branching : public StatementBase

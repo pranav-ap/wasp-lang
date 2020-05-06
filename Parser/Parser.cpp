@@ -138,6 +138,13 @@ Statement_ptr Parser::parse_public_statement(int expected_indent)
 Statement_ptr Parser::parse_expression_statement()
 {
 	auto expression = expr_parser->parse_expression();
+
+	if (token_pipe->optional(WTokenType::EQUAL))
+	{
+		auto assignment = consume_assignment({ move(expression) });
+		return assignment;
+	}
+
 	token_pipe->expect(WTokenType::EOL);
 
 	return MAKE_STATEMENT(ExpressionStatement(move(expression)));
@@ -148,21 +155,19 @@ Statement_ptr Parser::parse_expression_statement()
 Statement_ptr Parser::parse_assignment_or_expression(Token_ptr identifier)
 {
 	RETREAT_PTR;
-	auto lhs_expression = expr_parser->parse_expression();
+	auto lhs_expressions = expr_parser->parse_expressions();
+
+	if (token_pipe->optional(WTokenType::EQUAL))
+	{
+		auto assignment = consume_assignment(lhs_expressions);
+		return assignment;
+	}
+
+	ASSERT(lhs_expressions.size() == 1, "Comma separated expressions were not expected here");
 
 	if (token_pipe->optional(WTokenType::EOL))
 	{
-		return MAKE_STATEMENT(ExpressionStatement(move(lhs_expression)));
-	}
-	else if (token_pipe->optional(WTokenType::EQUAL))
-	{
-		auto assignment = consume_assignment(move(lhs_expression));
-		return assignment;
-	}
-	else if (token_pipe->optional(WTokenType::COMMA))
-	{
-		auto assignment = consume_multiple_assignment(move(lhs_expression));
-		return assignment;
+		return MAKE_STATEMENT(ExpressionStatement(move(lhs_expressions.front())));
 	}
 
 	auto current_token = token_pipe->current();
@@ -182,7 +187,7 @@ Statement_ptr Parser::parse_assignment_or_expression(Token_ptr identifier)
 	case WTokenType::POWER_EQUAL:
 	{
 		ADVANCE_PTR;
-		return consume_shortcut_assignment(lhs_expression, current_token.value());
+		return consume_shortcut_assignment(lhs_expressions.front(), current_token.value());
 	}
 	default:
 	{
@@ -191,12 +196,12 @@ Statement_ptr Parser::parse_assignment_or_expression(Token_ptr identifier)
 	}
 }
 
-Statement_ptr Parser::consume_assignment(Expression_ptr lhs_expression)
+Statement_ptr Parser::consume_assignment(ExpressionVector lhs_expressions)
 {
-	auto rhs_expression = expr_parser->parse_expression();
+	auto rhs_expressions = expr_parser->parse_expressions();
 	token_pipe->expect(WTokenType::EOL);
 
-	return MAKE_STATEMENT(Assignment(move(lhs_expression), move(rhs_expression)));
+	return MAKE_STATEMENT(Assignment(lhs_expressions, rhs_expressions));
 }
 
 Statement_ptr Parser::consume_shortcut_assignment(Expression_ptr lhs_expression, Token_ptr operator_token)
@@ -208,26 +213,7 @@ Statement_ptr Parser::consume_shortcut_assignment(Expression_ptr lhs_expression,
 	auto unshortcut_rhs_expression = MAKE_EXPRESSION(Binary(move(lhs_expression), operator_token, move(rhs_expression)));
 	token_pipe->expect(WTokenType::EOL);
 
-	return MAKE_STATEMENT(Assignment(move(lhs_expression), move(unshortcut_rhs_expression)));
-}
-
-Statement_ptr Parser::consume_multiple_assignment(Expression_ptr first_lhs_expression)
-{
-	// PARSE LHS
-
-	ExpressionVector lhs_expressions = { first_lhs_expression };
-	auto other_lhs_expressions = expr_parser->parse_expressions();
-	lhs_expressions.insert(lhs_expressions.end(), other_lhs_expressions.begin(), other_lhs_expressions.end());
-
-	token_pipe->expect(WTokenType::EQUAL);
-
-	// PARSE RHS
-
-	auto rhs_expressions = expr_parser->parse_expressions();
-
-	token_pipe->expect(WTokenType::EOL);
-
-	return MAKE_STATEMENT(MultipleAssignment(lhs_expressions, rhs_expressions));
+	return MAKE_STATEMENT(Assignment({ move(lhs_expression) }, { move(unshortcut_rhs_expression) }));
 }
 
 // Block statement parsing
