@@ -117,6 +117,6 @@ enum class TOKEN_API WTokenType
 	SPACE,
 
 	// Other
-
+	COMMENT,
 	UNKNOWN
 };

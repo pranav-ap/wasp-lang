@@ -42,6 +42,8 @@ using std::optional;
 using std::make_optional;
 using std::holds_alternative;
 
+using identifier_type_pair_vector = std::vector<std::pair<std::string, Type_ptr>>;
+
 // API
 
 Module Parser::execute()
@@ -65,6 +67,8 @@ Module Parser::execute()
 
 Statement_ptr Parser::parse_statement(bool is_public, int expected_indent)
 {
+	token_pipe->ignore({ WTokenType::EOL, WTokenType::COMMENT });
+
 	if (!token_pipe->has_indent(expected_indent))
 		return nullptr;
 
@@ -430,12 +434,12 @@ Statement_ptr Parser::parse_type_definition(bool is_public, int expected_indent)
 	return MAKE_STATEMENT(UDTDefinition(is_public, name->value, member_types, is_public_member_map));
 }
 
-tuple<string, vector<pair<string, Type_ptr>>, optional<Type_ptr>, Block> Parser::parse_callable_definition(int expected_indent)
+tuple<string, identifier_type_pair_vector, optional<Type_ptr>, Block> Parser::parse_callable_definition(int expected_indent)
 {
 	auto identifier = token_pipe->required(WTokenType::CallableIdentifier);
 	token_pipe->expect(WTokenType::OPEN_PARENTHESIS);
 
-	vector<pair<string, Type_ptr>> arguments;
+	identifier_type_pair_vector arguments;
 
 	if (!token_pipe->optional(WTokenType::CLOSE_PARENTHESIS))
 	{

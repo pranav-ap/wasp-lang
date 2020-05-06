@@ -10,6 +10,12 @@
 #include <string>
 #include <vector>
 
+#define MAKE_TOKEN(type, token, line_num, col_num) std::make_shared<Token>(type, token, line_num, col_num)
+#define CASE_BODY(call) { token = call; break; }
+#define NEXT pointer.advance(); position.increment_column_number();
+#define LINE_NUM position.get_line_num()
+#define COL_NUM position.get_column_num()
+
 using std::string;
 using std::to_string;
 using std::map;
@@ -21,12 +27,6 @@ using std::move;
 using std::make_shared;
 using std::isdigit;
 using std::isalpha;
-
-#define MAKE_TOKEN(type, token, line_num, col_num) std::make_shared<Token>(type, token, line_num, col_num)
-#define CASE_BODY(call) { token = call; break; }
-#define NEXT pointer.advance(); position.increment_column_number();
-#define LINE_NUM position.get_line_num()
-#define COL_NUM position.get_column_num()
 
 vector<Token_ptr> Lexer::execute()
 {
@@ -243,7 +243,27 @@ Token_ptr Lexer::consume_star()
 Token_ptr Lexer::consume_division()
 {
 	if (expect_current_char('='))
+	{
 		return MAKE_TOKEN(WTokenType::DIVISION_EQUAL, "/=", LINE_NUM, COL_NUM);
+	}
+	else if (expect_current_char('/'))
+	{
+		string comment;
+
+		while (char ch = get_current_char())
+		{
+			if (ch != '\n')
+			{
+				comment.push_back(ch);
+				NEXT;
+				continue;
+			}
+
+			break;
+		}
+
+		return MAKE_TOKEN(WTokenType::COMMENT, comment, LINE_NUM, COL_NUM);
+	}
 
 	return MAKE_TOKEN(WTokenType::DIVISION, "/", LINE_NUM, COL_NUM);
 }
@@ -413,7 +433,7 @@ char Lexer::get_right_char() const
 	return get_char_at(index + 1);
 }
 
-std::optional<Token_ptr> Lexer::get_previous_significant_token()
+optional<Token_ptr> Lexer::get_previous_significant_token()
 {
 	for (auto t = tokens.rbegin(); t != tokens.rend(); t++)
 	{

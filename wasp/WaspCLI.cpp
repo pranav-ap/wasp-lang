@@ -5,11 +5,13 @@
 #include "Parser.h"
 #include <string>
 #include <vector>
+#include <chrono>
 
 using std::string;
 using std::vector;
 using std::cout;
 using std::endl;
+using namespace std::chrono;
 
 WaspCLI::WaspCLI()
 {
@@ -58,6 +60,13 @@ void WaspCLI::run()
 	Lexer lexer(raw_source);
 	vector<Token_ptr> tokens = lexer.execute();
 
+	auto start = high_resolution_clock::now();
+
 	Parser parser(tokens);
 	Module mod = parser.execute();
+
+	auto end = high_resolution_clock::now();
+	duration<double> elapsed_seconds = end - start;
+
+	double time_taken = elapsed_seconds.count();
 }

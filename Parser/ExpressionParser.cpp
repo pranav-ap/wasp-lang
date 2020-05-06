@@ -13,9 +13,6 @@
 #define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr")
 #define OPT_CHECK(x) ASSERT(x.has_value(), "Oh shit! Option is none")
 #define MAKE_EXPRESSION(x) std::make_shared<Expression>(x)
-#define IGNORABLES { WTokenType::EOL }
-#define PUSH_CONTEXT(x) context_stack.push(x);
-#define POP_CONTEXT(x) ASSERT(context_stack.top() == x, "Context Mismatch"); context_stack.pop();
 
 using std::vector;
 using std::string;
@@ -26,8 +23,6 @@ using std::move;
 
 Expression_ptr ExpressionParser::parse_expression()
 {
-	PUSH_CONTEXT(ExpressionContext::GLOBAL_EXPRESSION);
-
 	while (true)
 	{
 		auto current = token_pipe->current();
@@ -70,12 +65,19 @@ Expression_ptr ExpressionParser::parse_expression()
 			ast.push(expression);
 			break;
 		}
+		case WTokenType::DOT:
+		{
+			ADVANCE_PTR;
+			auto expression = parse_member_access();
+			ast.push(expression);
+			break;
+		}
 
 		// DICTIONARY_LITERAL
 
 		case WTokenType::OPEN_CURLY_BRACE:
 		{
-			PUSH_CONTEXT(ExpressionContext::DICTIONARY_LITERAL);
+			push_context(ExpressionContext::DICTIONARY_LITERAL);
 			ADVANCE_PTR;
 			auto literal = parse_dictionary_literal();
 			ast.push(move(literal));
@@ -83,7 +85,7 @@ Expression_ptr ExpressionParser::parse_expression()
 		}
 		case WTokenType::CLOSE_CURLY_BRACE:
 		{
-			POP_CONTEXT(ExpressionContext::DICTIONARY_LITERAL);
+			push_context(ExpressionContext::DICTIONARY_LITERAL);
 			ADVANCE_PTR;
 			return finish_parsing();
 		}
@@ -92,7 +94,7 @@ Expression_ptr ExpressionParser::parse_expression()
 
 		case WTokenType::OPEN_SQUARE_BRACKET:
 		{
-			PUSH_CONTEXT(ExpressionContext::SEQUENCE_LITERAL);
+			push_context(ExpressionContext::SEQUENCE_LITERAL);
 			ADVANCE_PTR;
 			auto literal = parse_list_literal();
 			ast.push(move(literal));
@@ -100,7 +102,7 @@ Expression_ptr ExpressionParser::parse_expression()
 		}
 		case WTokenType::OPEN_TUPLE_PARENTHESIS:
 		{
-			PUSH_CONTEXT(ExpressionContext::SEQUENCE_LITERAL);
+			push_context(ExpressionContext::SEQUENCE_LITERAL);
 			ADVANCE_PTR;
 			auto literal = parse_tuple_literal();
 			ast.push(move(literal));
@@ -108,7 +110,7 @@ Expression_ptr ExpressionParser::parse_expression()
 		}
 		case WTokenType::CLOSE_SQUARE_BRACKET:
 		{
-			POP_CONTEXT(ExpressionContext::SEQUENCE_LITERAL);
+			pop_context(ExpressionContext::SEQUENCE_LITERAL);
 			ADVANCE_PTR;
 			return finish_parsing();
 		}
@@ -117,7 +119,7 @@ Expression_ptr ExpressionParser::parse_expression()
 
 		case WTokenType::CallableIdentifier:
 		{
-			PUSH_CONTEXT(ExpressionContext::FUNCTION_CALL);
+			push_context(ExpressionContext::FUNCTION_CALL);
 			ADVANCE_PTR;
 			auto arguments = parse_function_call_arguments();
 			ast.push(MAKE_EXPRESSION(FunctionCall(current.value()->value, arguments)));
@@ -126,10 +128,14 @@ Expression_ptr ExpressionParser::parse_expression()
 		case WTokenType::CLOSE_PARENTHESIS:
 		{
 			if (context_stack.top() == ExpressionContext::FUNCTION_CALL)
+			{
+				pop_context(ExpressionContext::FUNCTION_CALL);
+				ADVANCE_PTR;
 				return finish_parsing();
+			}
 
 			operator_stack->drain_into_ast_until_open_parenthesis(ast);
-			POP_CONTEXT(ExpressionContext::PARENTHESIS);
+			pop_context(ExpressionContext::PARENTHESIS);
 			ADVANCE_PTR;
 			return finish_parsing();
 		}
@@ -138,7 +144,7 @@ Expression_ptr ExpressionParser::parse_expression()
 
 		case WTokenType::OPEN_PARENTHESIS:
 		{
-			PUSH_CONTEXT(ExpressionContext::PARENTHESIS);
+			push_context(ExpressionContext::PARENTHESIS);
 			operator_stack->dumb_push(move(current.value()));
 			ADVANCE_PTR;
 			break;
@@ -211,7 +217,6 @@ Expression_ptr ExpressionParser::parse_tuple_literal()
 		return MAKE_EXPRESSION(TupleLiteral(elements));
 
 	elements = parse_expressions();
-	token_pipe->expect(WTokenType::CLOSE_PARENTHESIS);
 
 	return MAKE_EXPRESSION(TupleLiteral(elements));
 }
@@ -224,7 +229,6 @@ Expression_ptr ExpressionParser::parse_list_literal()
 		return MAKE_EXPRESSION(ListLiteral(elements));
 
 	elements = parse_expressions();
-	token_pipe->expect(WTokenType::CLOSE_SQUARE_BRACKET);
 
 	return MAKE_EXPRESSION(ListLiteral(elements));
 }
@@ -238,6 +242,9 @@ Expression_ptr ExpressionParser::parse_dictionary_literal()
 
 	while (true)
 	{
+		if (token_pipe->optional(WTokenType::CLOSE_CURLY_BRACE))
+			return MAKE_EXPRESSION(DictionaryLiteral(pairs));
+
 		token_pipe->optional(WTokenType::EOL);
 
 		auto key = consume_valid_dictionary_key();
@@ -246,42 +253,35 @@ Expression_ptr ExpressionParser::parse_dictionary_literal()
 		auto value = parse_expression();
 		pairs.insert_or_assign(key, value);
 
-		if (token_pipe->optional(WTokenType::CLOSE_CURLY_BRACE, IGNORABLES))
-			return MAKE_EXPRESSION(DictionaryLiteral(pairs));
-
 		token_pipe->expect(WTokenType::COMMA);
 	}
 }
 
 Expression_ptr ExpressionParser::parse_identifier(Token_ptr identifier)
 {
-	if (token_pipe->optional(WTokenType::OPEN_SQUARE_BRACKET))
-	{
-		PUSH_CONTEXT(ExpressionContext::SEQUENCE_MEMBER_ACCESS);
-
-		auto expression = parse_expression();
-		token_pipe->expect(WTokenType::CLOSE_SQUARE_BRACKET);
-
-		POP_CONTEXT(ExpressionContext::SEQUENCE_MEMBER_ACCESS);
-
-		return MAKE_EXPRESSION(MemberAccess(identifier->value, move(expression)));
-	}
-	else if (token_pipe->optional(WTokenType::DOT))
-	{
-		auto member_identifier = token_pipe->required(WTokenType::Identifier);
-
-		return MAKE_EXPRESSION(MemberAccess(
-			identifier->value,
-			MAKE_EXPRESSION(Identifier(member_identifier->value))
-		));
-	}
-	else if (token_pipe->optional(WTokenType::COLON_COLON))
+	if (token_pipe->optional(WTokenType::COLON_COLON))
 	{
 		auto member_identifier = token_pipe->required(WTokenType::Identifier);
 		return MAKE_EXPRESSION(EnumMember(identifier->value, member_identifier->value));
 	}
 
 	return MAKE_EXPRESSION(Identifier(identifier->value));
+}
+
+Expression_ptr ExpressionParser::parse_member_access()
+{
+	ASSERT(ast.size() > 0, "Cannot use dot operator without a container before it");
+
+	push_context(ExpressionContext::MEMBER_ACCESS);
+
+	auto container = move(ast.top());
+	ast.pop();
+
+	auto access_expression = parse_expression();
+
+	pop_context(ExpressionContext::MEMBER_ACCESS);
+
+	return MAKE_EXPRESSION(MemberAccess(container, access_expression));
 }
 
 ExpressionVector ExpressionParser::parse_function_call_arguments()
@@ -292,14 +292,11 @@ ExpressionVector ExpressionParser::parse_function_call_arguments()
 
 	if (token_pipe->optional(WTokenType::CLOSE_PARENTHESIS))
 	{
-		POP_CONTEXT(ExpressionContext::FUNCTION_CALL);
+		pop_context(ExpressionContext::FUNCTION_CALL);
 		return expressions;
 	}
 
 	expressions = parse_expressions();
-
-	token_pipe->expect(WTokenType::CLOSE_PARENTHESIS);
-	POP_CONTEXT(ExpressionContext::FUNCTION_CALL);
 
 	return expressions;
 }
@@ -311,7 +308,6 @@ Expression_ptr ExpressionParser::finish_parsing()
 	operator_stack->drain_into_ast(ast);
 
 	ASSERT(ast.size() == 1, "Malformed Expression. AST must have a single node after parsing.");
-	POP_CONTEXT(ExpressionContext::GLOBAL_EXPRESSION);
 
 	auto result = move(ast.top());
 	ast.pop();
@@ -338,4 +334,15 @@ Token_ptr ExpressionParser::consume_valid_dictionary_key()
 	}
 
 	FATAL("Expected a valid map key");
+}
+
+void ExpressionParser::push_context(ExpressionContext context)
+{
+	context_stack.push(context);
+}
+
+void ExpressionParser::pop_context(ExpressionContext context)
+{
+	ASSERT(context_stack.top() == context, "Context Mismatch");
+	context_stack.pop();
 }

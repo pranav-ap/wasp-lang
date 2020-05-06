@@ -16,6 +16,9 @@ class ExpressionParser
 
 	std::stack<ExpressionContext> context_stack;
 
+	void push_context(ExpressionContext context);
+	void pop_context(ExpressionContext context);
+
 	// Parsers
 
 	Expression_ptr parse_identifier(Token_ptr identifier_token);
@@ -23,6 +26,7 @@ class ExpressionParser
 	Expression_ptr parse_tuple_literal();
 	Expression_ptr parse_dictionary_literal();
 	ExpressionVector parse_function_call_arguments();
+	Expression_ptr parse_member_access();
 
 	// Utils
 

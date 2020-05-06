@@ -2,9 +2,9 @@ import { add } from "path"
 
 let a: num = 4
 
-a, b, c =   1, 2, 3
+a, b, c = 1, 2, 3
 
-person.foo().bar()
+list.get(34).set(1, "hello")
 
 if a > 3 and r == 3:
     pass

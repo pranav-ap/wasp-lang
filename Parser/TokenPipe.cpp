@@ -6,6 +6,8 @@
 #include <algorithm>
 #include <optional>
 
+#define OPT_CHECK(x) ASSERT(x.has_value(), "Oh shit! Option is none")
+
 using std::vector;
 using std::nullopt;
 using std::make_optional;
@@ -59,7 +61,7 @@ optional<Token_ptr> TokenPipe::optional(WTokenType token_type, vector<WTokenType
 Token_ptr TokenPipe::required(WTokenType token_type)
 {
 	auto token = current();
-	ASSERT(token.has_value(), "Token does not have any value");
+	OPT_CHECK(token);
 	ASSERT(token.value()->type == token_type, "Token has an incorrect type");
 
 	advance_pointer();
@@ -79,7 +81,7 @@ Token_ptr TokenPipe::required(WTokenType token_type, vector<WTokenType> ignorabl
 void TokenPipe::expect(WTokenType token_type)
 {
 	auto token = current();
-	ASSERT(token.has_value(), "Token does not have any value");
+	OPT_CHECK(token);
 	ASSERT(token.value()->type == token_type, "Token has an incorrect type");
 
 	advance_pointer();

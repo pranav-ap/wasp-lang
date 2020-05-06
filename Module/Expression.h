@@ -72,11 +72,11 @@ struct MODULE_API DictionaryLiteral : public ExpressionBase
 
 struct MODULE_API MemberAccess : public ExpressionBase
 {
-	std::string name;
-	Expression_ptr expression;
+	Expression_ptr container;
+	Expression_ptr access_expression;
 
-	MemberAccess(std::string name, Expression_ptr expression)
-		: name(name), expression(std::move(expression)) {};
+	MemberAccess(Expression_ptr container, Expression_ptr access_expression)
+		: container(std::move(container)), access_expression(std::move(access_expression)) {};
 };
 
 struct MODULE_API EnumMember : public ExpressionBase

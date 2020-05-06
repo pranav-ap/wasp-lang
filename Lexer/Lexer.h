@@ -16,7 +16,6 @@
 #include <vector>
 #include <memory>
 #include <map>
-#include <regex>
 
 const std::map<std::string, WTokenType> keyword_map = {
 	{ "if", WTokenType::IF },

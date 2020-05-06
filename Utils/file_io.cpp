@@ -21,6 +21,10 @@ string read_source(string path)
 			raw_source.append(line);
 			raw_source.append("\n");
 		}
+		else
+		{
+			raw_source.append("\n");
+		}
 	}
 
 	return raw_source;

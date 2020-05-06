@@ -121,6 +121,11 @@ std::ostream& operator<<(std::ostream& os, const WTokenType type)
 		os << "SPACE";
 		break;
 	}
+	case WTokenType::COMMENT:
+	{
+		os << "COMMENT";
+		break;
+	}
 	case WTokenType::UNKNOWN:
 	{
 		os << "UNKNOWN";
