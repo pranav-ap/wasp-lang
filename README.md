@@ -84,7 +84,7 @@ continue
 # Functions
 
 ```rust
-fn add (a: num, b: num) : num {
+fn add (a: num, b: num) -> num {
 	return a + b
 }
 ```

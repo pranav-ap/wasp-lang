@@ -85,7 +85,7 @@ Statement_ptr Parser::parse_statement(bool is_public, int expected_indent)
 		CASE(WTokenType::FOR, parse_for_in_loop(expected_indent + 4));
 		CASE(WTokenType::WHILE, parse_while_loop(expected_indent + 4));
 
-		CASE(WTokenType::TYPE, parse_UDT_definition(is_public, expected_indent + 4));
+		CASE(WTokenType::TYPE, parse_type_definition(is_public, expected_indent + 4));
 		CASE(WTokenType::FN, parse_function_definition(is_public, expected_indent + 4));
 		CASE(WTokenType::ENUM, parse_enum_definition(is_public, expected_indent + 4));
 		CASE(WTokenType::PUB, parse_public_statement(expected_indent + 4));
@@ -116,7 +116,7 @@ Statement_ptr Parser::parse_public_statement(int expected_indent)
 	{
 		CASE(WTokenType::LET, parse_variable_definition(is_public, true));
 		CASE(WTokenType::CONST_KEYWORD, parse_variable_definition(is_public, false));
-		CASE(WTokenType::TYPE, parse_UDT_definition(is_public, expected_indent));
+		CASE(WTokenType::TYPE, parse_type_definition(is_public, expected_indent));
 		CASE(WTokenType::FN, parse_function_definition(is_public, expected_indent));
 		CASE(WTokenType::ENUM, parse_enum_definition(is_public, expected_indent));
 	default:
@@ -367,9 +367,17 @@ Statement_ptr Parser::parse_variable_definition(bool is_public, bool is_mutable)
 	return MAKE_STATEMENT(VariableDefinition(is_public, is_mutable, identifier, move(type), move(expression)));
 }
 
-Statement_ptr Parser::parse_UDT_definition(bool is_public, int expected_indent)
+Statement_ptr Parser::parse_type_definition(bool is_public, int expected_indent)
 {
 	auto name = token_pipe->required(WTokenType::Identifier);
+
+	if (token_pipe->optional(WTokenType::EQUAL))
+	{
+		auto type = parse_type();
+		token_pipe->expect(WTokenType::EOL);
+		return MAKE_STATEMENT(AliasDefinition(is_public, name->value, move(type)));
+	}
+
 	token_pipe->expect(WTokenType::COLON);
 	token_pipe->expect(WTokenType::EOL);
 

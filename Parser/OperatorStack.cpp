@@ -4,6 +4,8 @@
 #include "CommonAssertion.h"
 #include <iostream>
 
+#define MAKE_EXPRESSION(x) std::make_shared<Expression>(x)
+
 using std::vector;
 using std::stack;
 using std::make_shared;
@@ -11,8 +13,6 @@ using std::shared_ptr;
 using std::pair;
 using std::make_pair;
 using std::move;
-
-#define MAKE_EXPRESSION(x) std::make_shared<Expression>(x)
 
 void OperatorStack::push_operator_into_ast(Token_ptr operator_token, ExpressionStack& ast)
 {

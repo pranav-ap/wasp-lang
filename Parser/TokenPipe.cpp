@@ -6,8 +6,6 @@
 #include <algorithm>
 #include <optional>
 
-#define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr")
-
 using std::vector;
 using std::nullopt;
 using std::make_optional;

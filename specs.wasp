@@ -16,7 +16,7 @@ else:
 while true:
     pass
 
-for x : num in 1...9:
+for x : num in [1, 2, 3]:
     pass
 
 fn add(a: num, b: num) -> num:

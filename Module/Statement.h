@@ -26,6 +26,7 @@ struct Pass;
 struct Continue;
 struct VariableDefinition;
 struct UDTDefinition;
+struct AliasDefinition;
 struct FunctionDefinition;
 struct EnumDefinition;
 struct ImportCustom;
@@ -40,7 +41,7 @@ using Statement = MODULE_API std::variant<
 	WhileLoop, ForInLoop,
 	Break, Continue,
 	Return, Pass,
-	VariableDefinition, UDTDefinition, FunctionDefinition, EnumDefinition,
+	VariableDefinition, UDTDefinition, AliasDefinition, FunctionDefinition, EnumDefinition,
 	ImportCustom, ImportInBuilt,
 	ExpressionStatement
 >;
@@ -145,6 +146,14 @@ struct MODULE_API UDTDefinition : public Definition
 
 	UDTDefinition(bool is_public, std::string name, std::map<std::string, Type_ptr> member_types, std::map<std::string, bool> is_public_member)
 		: Definition(is_public, name), member_types(member_types), is_public_member(is_public_member) {};
+};
+
+struct MODULE_API AliasDefinition : public Definition
+{
+	Type_ptr type;
+
+	AliasDefinition(bool is_public, std::string name, Type_ptr type)
+		: Definition(is_public, name), type(move(type)) {};
 };
 
 struct MODULE_API FunctionDefinition : public Definition
