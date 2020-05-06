@@ -115,7 +115,7 @@ Expression_ptr ExpressionParser::parse_expression()
 
 		// FUNCTION CALL
 
-		case WTokenType::FunctionIdentifier:
+		case WTokenType::CallableIdentifier:
 		{
 			PUSH_CONTEXT(ExpressionContext::FUNCTION_CALL);
 			ADVANCE_PTR;

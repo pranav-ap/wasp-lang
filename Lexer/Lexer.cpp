@@ -202,7 +202,7 @@ Token_ptr Lexer::consume_identifier(char ch)
 	}
 
 	if (get_current_char() == '(') {
-		return MAKE_TOKEN(WTokenType::FunctionIdentifier, identifier, LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(WTokenType::CallableIdentifier, identifier, LINE_NUM, COL_NUM);
 	}
 
 	return MAKE_TOKEN(WTokenType::Identifier, identifier, LINE_NUM, COL_NUM);
@@ -437,7 +437,7 @@ bool Lexer::is_unary()
 	{
 	case WTokenType::NumberLiteral:
 	case WTokenType::Identifier:
-	case WTokenType::FunctionIdentifier:
+	case WTokenType::CallableIdentifier:
 	{
 		return false;
 	}

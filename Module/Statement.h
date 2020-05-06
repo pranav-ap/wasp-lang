@@ -24,25 +24,34 @@ struct ForInLoop;
 struct Break;
 struct Pass;
 struct Continue;
+struct Return;
+struct YieldStatement;
 struct VariableDefinition;
 struct UDTDefinition;
 struct AliasDefinition;
 struct FunctionDefinition;
+struct GeneratorDefinition;
 struct EnumDefinition;
 struct ImportCustom;
 struct ImportInBuilt;
-struct Return;
 struct ExpressionStatement;
 
 using Statement = MODULE_API std::variant<
 	std::monostate,
 	Assignment, MultipleAssignment,
+
 	Branching,
 	WhileLoop, ForInLoop,
 	Break, Continue,
-	Return, Pass,
-	VariableDefinition, UDTDefinition, AliasDefinition, FunctionDefinition, EnumDefinition,
+	Return, YieldStatement, Pass,
+
+	VariableDefinition,
+	UDTDefinition, AliasDefinition,
+	FunctionDefinition, GeneratorDefinition,
+	EnumDefinition,
+
 	ImportCustom, ImportInBuilt,
+
 	ExpressionStatement
 >;
 
@@ -156,14 +165,26 @@ struct MODULE_API AliasDefinition : public Definition
 		: Definition(is_public, name), type(move(type)) {};
 };
 
-struct MODULE_API FunctionDefinition : public Definition
+struct MODULE_API CallableDefinition : public Definition
 {
 	std::vector<std::pair<std::string, Type_ptr>> arguments;
 	std::optional<Type_ptr> return_type;
 	Block body;
 
-	FunctionDefinition(bool is_public, std::string name, std::vector<std::pair<std::string, Type_ptr>> arguments, std::optional<Type_ptr> return_type, Block body)
+	CallableDefinition(bool is_public, std::string name, std::vector<std::pair<std::string, Type_ptr>> arguments, std::optional<Type_ptr> return_type, Block body)
 		: Definition(is_public, name), arguments(arguments), return_type(return_type), body(body) {};
+};
+
+struct MODULE_API FunctionDefinition : public CallableDefinition
+{
+	FunctionDefinition(bool is_public, std::string name, std::vector<std::pair<std::string, Type_ptr>> arguments, std::optional<Type_ptr> return_type, Block body)
+		: CallableDefinition(is_public, name, arguments, return_type, body) {};
+};
+
+struct MODULE_API GeneratorDefinition : public CallableDefinition
+{
+	GeneratorDefinition(bool is_public, std::string name, std::vector<std::pair<std::string, Type_ptr>> arguments, std::optional<Type_ptr> return_type, Block body)
+		: CallableDefinition(is_public, name, arguments, return_type, body) {};
 };
 
 struct MODULE_API EnumDefinition : public Definition
@@ -207,6 +228,15 @@ struct MODULE_API Return : public StatementBase
 
 	Return() : expression(std::nullopt) {};
 	Return(Expression_ptr expression)
+		: expression(std::make_optional(std::move(expression))) {};
+};
+
+struct MODULE_API YieldStatement : public StatementBase
+{
+	std::optional<Expression_ptr> expression;
+
+	YieldStatement() : expression(std::nullopt) {};
+	YieldStatement(Expression_ptr expression)
 		: expression(std::make_optional(std::move(expression))) {};
 };
 

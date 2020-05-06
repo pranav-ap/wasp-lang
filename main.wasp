@@ -1,1 +1,5 @@
-type Person = str
+gen add(a: num, b: num) -> opt num:
+    if a:
+        return b
+
+    yield c

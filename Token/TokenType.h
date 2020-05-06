@@ -16,7 +16,7 @@ enum class TOKEN_API WTokenType
 	// Identifiers
 
 	Identifier,
-	FunctionIdentifier,
+	CallableIdentifier,
 
 	// Punctuations
 

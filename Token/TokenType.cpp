@@ -27,9 +27,9 @@ std::ostream& operator<<(std::ostream& os, const WTokenType type)
 		os << "Identifier";
 		break;
 	}
-	case WTokenType::FunctionIdentifier:
+	case WTokenType::CallableIdentifier:
 	{
-		os << "Function Identifier";
+		os << "Callable Identifier";
 		break;
 	}
 

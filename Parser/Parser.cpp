@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <vector>
+#include <tuple>
 #include <stack>
 #include <map>
 #include <memory>
@@ -35,6 +36,8 @@ using std::make_shared;
 using std::move;
 using std::pair;
 using std::make_pair;
+using std::tuple;
+using std::make_tuple;
 using std::optional;
 using std::make_optional;
 using std::holds_alternative;
@@ -87,12 +90,14 @@ Statement_ptr Parser::parse_statement(bool is_public, int expected_indent)
 
 		CASE(WTokenType::TYPE, parse_type_definition(is_public, expected_indent + 4));
 		CASE(WTokenType::FN, parse_function_definition(is_public, expected_indent + 4));
+		CASE(WTokenType::GEN, parse_generator_definition(is_public, expected_indent + 4));
 		CASE(WTokenType::ENUM, parse_enum_definition(is_public, expected_indent + 4));
 		CASE(WTokenType::PUB, parse_public_statement(expected_indent + 4));
 
 		CASE(WTokenType::PASS, parse_pass());
 		CASE(WTokenType::BREAK, parse_break());
 		CASE(WTokenType::RETURN, parse_return());
+		CASE(WTokenType::YIELD, parse_yield());
 		CASE(WTokenType::CONTINUE, parse_continue());
 
 	default:
@@ -337,6 +342,19 @@ Statement_ptr Parser::parse_return()
 	return MAKE_STATEMENT(Return());
 }
 
+Statement_ptr Parser::parse_yield()
+{
+	if (auto expression = expr_parser->parse_expression())
+	{
+		token_pipe->expect(WTokenType::EOL);
+		return MAKE_STATEMENT(YieldStatement(move(expression)));
+	}
+
+	token_pipe->expect(WTokenType::EOL);
+
+	return MAKE_STATEMENT(YieldStatement());
+}
+
 Statement_ptr Parser::parse_break()
 {
 	token_pipe->expect(WTokenType::EOL);
@@ -412,9 +430,9 @@ Statement_ptr Parser::parse_type_definition(bool is_public, int expected_indent)
 	return MAKE_STATEMENT(UDTDefinition(is_public, name->value, member_types, is_public_member_map));
 }
 
-Statement_ptr Parser::parse_function_definition(bool is_public, int expected_indent)
+tuple<string, vector<pair<string, Type_ptr>>, optional<Type_ptr>, Block> Parser::parse_callable_definition(int expected_indent)
 {
-	auto identifier = token_pipe->required(WTokenType::FunctionIdentifier);
+	auto identifier = token_pipe->required(WTokenType::CallableIdentifier);
 	token_pipe->expect(WTokenType::OPEN_PARENTHESIS);
 
 	vector<pair<string, Type_ptr>> arguments;
@@ -447,7 +465,19 @@ Statement_ptr Parser::parse_function_definition(bool is_public, int expected_ind
 
 	auto block = parse_block(expected_indent);
 
-	return MAKE_STATEMENT(FunctionDefinition(is_public, identifier->value, arguments, move(optional_return_type), block));
+	return make_tuple(identifier->value, arguments, optional_return_type, block);
+}
+
+Statement_ptr Parser::parse_function_definition(bool is_public, int expected_indent)
+{
+	auto [identifier, arguments, optional_return_type, block] = parse_callable_definition(expected_indent);
+	return MAKE_STATEMENT(FunctionDefinition(is_public, identifier, arguments, optional_return_type, block));
+}
+
+Statement_ptr Parser::parse_generator_definition(bool is_public, int expected_indent)
+{
+	auto [identifier, arguments, optional_return_type, block] = parse_callable_definition(expected_indent);
+	return MAKE_STATEMENT(GeneratorDefinition(is_public, identifier, arguments, optional_return_type, block));
 }
 
 Statement_ptr Parser::parse_enum_definition(bool is_public, int expected_indent)

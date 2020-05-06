@@ -106,10 +106,8 @@ class LEXER_API Lexer
 	bool expect_current_char(char ch);
 
 public:
-	Lexer(std::string raw_source) : position(TokenPosition()), pointer(Pointer())
-	{
-		this->raw_source = std::regex_replace(raw_source, std::regex("\t"), "    ");
-	};
+	Lexer(std::string raw_source)
+		: raw_source(raw_source), position(TokenPosition()), pointer(Pointer()) {};
 
 	std::vector<Token_ptr> execute();
 };

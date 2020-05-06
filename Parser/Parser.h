@@ -15,6 +15,7 @@
 #include "ExpressionParser.h"
 
 #include <vector>
+#include <tuple>
 #include <stack>
 #include <memory>
 #include <utility>
@@ -30,6 +31,7 @@ class PARSER_API Parser
 
 	Statement_ptr parse_pass();
 	Statement_ptr parse_return();
+	Statement_ptr parse_yield();
 	Statement_ptr parse_break();
 	Statement_ptr parse_continue();
 
@@ -60,9 +62,13 @@ class PARSER_API Parser
 
 	Statement_ptr parse_variable_definition(bool is_public, bool is_mutable);
 	Statement_ptr parse_type_definition(bool is_public, int expected_indent);
-	Statement_ptr parse_function_definition(bool is_public, int expected_indent);
+
 	Statement_ptr parse_enum_definition(bool is_public, int expected_indent);
 	std::vector<std::string> parse_enum_members(int expected_indent);
+
+	std::tuple<std::string, std::vector<std::pair<std::string, Type_ptr>>, std::optional<Type_ptr>, Block> parse_callable_definition(int expected_indent);
+	Statement_ptr parse_function_definition(bool is_public, int expected_indent);
+	Statement_ptr parse_generator_definition(bool is_public, int expected_indent);
 
 	// Utils
 
