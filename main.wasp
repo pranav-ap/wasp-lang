@@ -1,3 +1,65 @@
+import { add } from "path"
 
+// Its more of a comment really
+
+
+let x : any = "hello"
+
+let x : str = "hello"
+let x : bool = true
+let x : num = 5
+
+let x : [num] = [1, 2, 3]
+let x : (num, str) = (@ 1, "hi")
+let x : (num) = (@ 1)
+let x : { str -> str } = { "a" : "b" ,  "c" : "d" }
 let x : Person = { a : "b" ,  c : "d" }
 let x : num | str = 5
+
+a, b, c = 1, 2, 3
+
+list.get(34).set(1, "hello")
+
+234.call()
+
+if a > 3 and r == 3:
+    pass
+elif a > 3:
+    pass
+else:
+    pass
+
+while true:
+    pass
+
+for x : num in [1, 2, 3]:
+    pass
+
+fn add(a: num, b: num) -> num:
+    if a > b:
+        return a + b + 4
+    return a + b
+
+gen add(a: num, b: num) -> opt num:
+    if a > b:
+        yield a + b + 4
+
+    yield a + b
+
+type Person:
+    name: str
+	foo: bool
+
+let p: Person = {
+    name: "jim",
+    foo : true
+}
+
+foo.name
+
+enum Kind:
+    OPCUA
+    DDS
+    XYZ:
+        ABC
+        DEF

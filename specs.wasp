@@ -2,7 +2,19 @@ import { add } from "path"
 
 // Its more of a comment really
 
-let a: num = 4
+
+let x : any = "hello"
+
+let x : str = "hello"
+let x : bool = true
+let x : num = 5
+
+let x : [num] = [1, 2, 3]
+let x : (num, str) = (@ 1, "hi")
+let x : (num) = (@ 1)
+let x : { str -> str } = { "a" : "b" ,  "c" : "d" }
+let x : Person = { a : "b" ,  c : "d" }
+let x : num | str = 5
 
 a, b, c = 1, 2, 3
 
@@ -34,13 +46,16 @@ gen add(a: num, b: num) -> opt num:
 
     yield a + b
 
-type Person extends Animal:
-    name : str
-    age: num
+type Person:
+    name: str
+	foo: bool
 
-    fn init(name : str, age: num):
-        self.name = name
-        self.age = age
+let p : Person = {
+  name : "jim",
+  foo : true
+}
+
+foo.name
 
 enum Kind:
     OPCUA

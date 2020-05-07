@@ -79,8 +79,8 @@ Expression_ptr ExpressionParser::parse_expression()
 		{
 			push_context(ExpressionContext::DICTIONARY_LITERAL);
 			ADVANCE_PTR;
-			auto literal = parse_dictionary_literal();
-			ast.push(move(literal));
+			auto value = parse_dictionary_literal();
+			ast.push(move(value));
 			break;
 		}
 		case WTokenType::CLOSE_CURLY_BRACE:
@@ -93,23 +93,23 @@ Expression_ptr ExpressionParser::parse_expression()
 
 		case WTokenType::OPEN_SQUARE_BRACKET:
 		{
-			push_context(ExpressionContext::SEQUENCE_LITERAL);
+			push_context(ExpressionContext::LIST_LITERAL);
 			ADVANCE_PTR;
-			auto literal = parse_list_literal();
-			ast.push(move(literal));
+			auto value = parse_list_literal();
+			ast.push(move(value));
 			break;
 		}
 		case WTokenType::OPEN_TUPLE_PARENTHESIS:
 		{
-			push_context(ExpressionContext::SEQUENCE_LITERAL);
+			push_context(ExpressionContext::TUPLE_LITERAL);
 			ADVANCE_PTR;
-			auto literal = parse_tuple_literal();
-			ast.push(move(literal));
+			auto value = parse_tuple_literal();
+			ast.push(move(value));
 			break;
 		}
 		case WTokenType::CLOSE_SQUARE_BRACKET:
 		{
-			pop_context(ExpressionContext::SEQUENCE_LITERAL);
+			pop_context(ExpressionContext::LIST_LITERAL);
 			return finish_parsing();
 		}
 
@@ -354,6 +354,14 @@ void ExpressionParser::push_context(ExpressionContext context)
 
 void ExpressionParser::pop_context(ExpressionContext context)
 {
-	ASSERT(context_stack.top() == context, "Context Mismatch");
-	context_stack.pop();
+	if (context_stack.top() == ExpressionContext::TUPLE_LITERAL)
+	{
+		ASSERT(context == ExpressionContext::PARENTHESIS, "Context Mismatch");
+		context_stack.pop();
+	}
+	else
+	{
+		ASSERT(context_stack.top() == context, "Context Mismatch");
+		context_stack.pop();
+	}
 }

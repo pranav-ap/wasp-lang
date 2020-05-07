@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <regex>
 
 using std::string;
 using std::ifstream;
@@ -18,6 +19,7 @@ string read_source(string path)
 	{
 		if (line.find_first_not_of(" \t\n\v\f\r") != std::string::npos)
 		{
+			line = std::regex_replace(line, std::regex("\t"), "    ");
 			raw_source.append(line);
 			raw_source.append("\n");
 		}

@@ -489,32 +489,40 @@ Type_ptr Parser::parse_type(bool is_optional)
 	if (token_pipe->optional(WTokenType::OPT))
 		is_optional = true;
 
-	if (token_pipe->optional(WTokenType::OPEN_SQUARE_BRACKET))
-	{
-		return parse_list_type(is_optional);
-	}
-	else if (token_pipe->optional(WTokenType::OPEN_CURLY_BRACE))
-	{
-		return parse_map_type(is_optional);
-	}
-	else if (token_pipe->optional(WTokenType::OPEN_PARENTHESIS))
-	{
-		return parse_tuple_type(is_optional);
-	}
-
 	vector<Type_ptr> types;
 
 	while (true)
 	{
-		auto type_word = consume_datatype_word(is_optional);
-		types.push_back(type_word);
+		Type_ptr type;
+
+		if (token_pipe->optional(WTokenType::OPEN_SQUARE_BRACKET))
+		{
+			type = parse_list_type(is_optional);
+		}
+		else if (token_pipe->optional(WTokenType::OPEN_CURLY_BRACE))
+		{
+			type = parse_map_type(is_optional);
+		}
+		else if (token_pipe->optional(WTokenType::OPEN_PARENTHESIS))
+		{
+			type = parse_tuple_type(is_optional);
+		}
+		else
+		{
+			type = consume_datatype_word(is_optional);
+		}
+
+		types.push_back(type);
 
 		if (token_pipe->optional(WTokenType::BAR))
 		{
 			continue;
 		}
 
-		return types.size() > 0 ? MAKE_TYPE(VariantType(types)) : move(types.front());
+		if (types.size() > 1)
+			return MAKE_TYPE(VariantType(types));
+
+		return move(types.front());
 	}
 }
 
@@ -542,6 +550,7 @@ Type_ptr Parser::parse_tuple_type(bool is_optional)
 			continue;
 
 		token_pipe->expect(WTokenType::CLOSE_PARENTHESIS);
+		break;
 	}
 
 	if (is_optional)
