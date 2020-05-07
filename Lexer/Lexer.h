@@ -44,6 +44,7 @@ const std::map<std::string, WTokenType> keyword_map = {
 	{ "str", WTokenType::STR },
 	{ "bool", WTokenType::BOOL },
 	{ "enum", WTokenType::ENUM },
+	{ "any", WTokenType::ANY },
 	{ "opt", WTokenType::OPT },
 
 	{ "none", WTokenType::NONE },

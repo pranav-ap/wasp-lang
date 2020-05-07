@@ -1,4 +1,3 @@
-a = {
-    id: 1,
-    name: "john"
-}
+
+let x : Person = { a : "b" ,  c : "d" }
+let x : num | str = 5

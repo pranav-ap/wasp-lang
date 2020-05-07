@@ -4,7 +4,8 @@
 
 int main(int argc, char** argv)
 {
+	spdlog::set_pattern("%^[%=8l]%$ %@ %v");
+
 	WaspCLI cli;
-	spdlog::set_pattern("[%^---%L---%$] %v");
 	CLI11_PARSE(cli.get_app(), argc, argv);
 }

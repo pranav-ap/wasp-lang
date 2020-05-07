@@ -15,7 +15,6 @@
         - enum
         - variant
     - None
-    - Function
 
 
 ## Declaring variables  

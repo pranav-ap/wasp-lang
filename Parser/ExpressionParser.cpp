@@ -86,7 +86,6 @@ Expression_ptr ExpressionParser::parse_expression()
 		case WTokenType::CLOSE_CURLY_BRACE:
 		{
 			push_context(ExpressionContext::DICTIONARY_LITERAL);
-			ADVANCE_PTR;
 			return finish_parsing();
 		}
 
@@ -111,7 +110,6 @@ Expression_ptr ExpressionParser::parse_expression()
 		case WTokenType::CLOSE_SQUARE_BRACKET:
 		{
 			pop_context(ExpressionContext::SEQUENCE_LITERAL);
-			ADVANCE_PTR;
 			return finish_parsing();
 		}
 
@@ -130,13 +128,11 @@ Expression_ptr ExpressionParser::parse_expression()
 			if (context_stack.top() == ExpressionContext::FUNCTION_CALL)
 			{
 				pop_context(ExpressionContext::FUNCTION_CALL);
-				ADVANCE_PTR;
 				return finish_parsing();
 			}
 
 			operator_stack->drain_into_ast_until_open_parenthesis(ast);
 			pop_context(ExpressionContext::PARENTHESIS);
-			ADVANCE_PTR;
 			return finish_parsing();
 		}
 
@@ -218,6 +214,8 @@ Expression_ptr ExpressionParser::parse_tuple_literal()
 
 	elements = parse_expressions();
 
+	token_pipe->expect(WTokenType::CLOSE_PARENTHESIS);
+
 	return MAKE_EXPRESSION(TupleLiteral(elements));
 }
 
@@ -230,6 +228,8 @@ Expression_ptr ExpressionParser::parse_list_literal()
 
 	elements = parse_expressions();
 
+	token_pipe->expect(WTokenType::CLOSE_SQUARE_BRACKET);
+
 	return MAKE_EXPRESSION(ListLiteral(elements));
 }
 
@@ -240,26 +240,29 @@ Expression_ptr ExpressionParser::parse_dictionary_literal()
 	if (token_pipe->optional(WTokenType::CLOSE_CURLY_BRACE))
 		return MAKE_EXPRESSION(DictionaryLiteral(pairs));
 
-	token_pipe->expect(WTokenType::EOL);
-
 	while (true)
 	{
-		token_pipe->ignore(WTokenType::SPACE);
+		token_pipe->ignore({ WTokenType::SPACE, WTokenType::EOL });
 
 		auto key = consume_valid_dictionary_key();
-		token_pipe->expect(WTokenType::COLON);
 
-		auto value = parse_expression();
-		pairs.insert_or_assign(key, value);
-
-		if (token_pipe->optional(WTokenType::EOL))
+		if (token_pipe->optional(WTokenType::COLON))
 		{
-			token_pipe->expect(WTokenType::CLOSE_CURLY_BRACE);
-			return MAKE_EXPRESSION(DictionaryLiteral(pairs));
+			auto value = parse_expression();
+			pairs.insert_or_assign(key, value);
+		}
+		else
+		{
+			auto value = MAKE_EXPRESSION(Identifier(key->value));
+			pairs.insert_or_assign(key, value);
 		}
 
+		token_pipe->ignore({ WTokenType::SPACE, WTokenType::EOL });
+
+		if (token_pipe->optional(WTokenType::CLOSE_CURLY_BRACE))
+			return MAKE_EXPRESSION(DictionaryLiteral(pairs));
+
 		token_pipe->expect(WTokenType::COMMA);
-		token_pipe->expect(WTokenType::EOL);
 	}
 }
 
@@ -303,6 +306,8 @@ ExpressionVector ExpressionParser::parse_function_call_arguments()
 	}
 
 	expressions = parse_expressions();
+
+	token_pipe->expect(WTokenType::CLOSE_PARENTHESIS);
 
 	return expressions;
 }

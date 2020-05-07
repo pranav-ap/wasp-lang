@@ -38,7 +38,6 @@ public:
 	int get_current_index() const;
 
 	void advance_pointer();
-	void advance_pointer(int steps);
 	void retreat_pointer();
 
 	size_t get_size() const;

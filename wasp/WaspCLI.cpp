@@ -3,6 +3,7 @@
 #include "file_io.h"
 #include "Lexer.h"
 #include "Parser.h"
+#include "spdlog.h"
 #include <string>
 #include <iostream>
 #include <vector>
@@ -31,7 +32,7 @@ WaspCLI::WaspCLI()
 			[](int) { cout << "wasp version 0.1" << endl; },
 			"Prints the version of wasp"
 		)
-		->ignore_case();;
+		->ignore_case();
 
 	// RUN Command
 
@@ -68,7 +69,7 @@ void WaspCLI::run()
 
 	auto end = high_resolution_clock::now();
 	duration<double> elapsed_seconds = end - start;
-
 	double time_taken = elapsed_seconds.count();
-	cout << " Time Taken : " << time_taken << " seconds" << endl;
+
+	spdlog::info(" Time Taken : {} seconds", time_taken);
 }

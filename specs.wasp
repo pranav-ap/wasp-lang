@@ -6,9 +6,8 @@ let a: num = 4
 
 a, b, c = 1, 2, 3
 
-[a, b, c] = array
-
 list.get(34).set(1, "hello")
+
 234.call()
 
 if a > 3 and r == 3:
@@ -42,7 +41,6 @@ type Person extends Animal:
     fn init(name : str, age: num):
         self.name = name
         self.age = age
-
 
 enum Kind:
     OPCUA

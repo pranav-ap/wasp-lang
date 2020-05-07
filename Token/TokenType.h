@@ -98,6 +98,7 @@ enum class TOKEN_API WTokenType
 	STR,
 	BOOL,
 	ENUM,
+	ANY,
 	OPT,
 
 	NONE,
@@ -117,6 +118,7 @@ enum class TOKEN_API WTokenType
 	SPACE,
 
 	// Other
+
 	COMMENT,
 	UNKNOWN
 };

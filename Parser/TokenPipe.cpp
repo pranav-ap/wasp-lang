@@ -193,11 +193,6 @@ int TokenPipe::get_current_index() const
 	return index;
 }
 
-void TokenPipe::advance_pointer(int steps)
-{
-	index = get_current_index() + steps;
-}
-
 void TokenPipe::advance_pointer()
 {
 	index++;

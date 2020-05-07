@@ -22,7 +22,6 @@ struct UDTType;
 struct MapType;
 struct EnumType;
 struct VariantType;
-struct FunctionType;
 struct NoneType;
 
 using Type = MODULE_API std::variant<
@@ -32,7 +31,6 @@ using Type = MODULE_API std::variant<
 	UDTType, MapType,
 	EnumType,
 	VariantType,
-	FunctionType,
 	NoneType,
 	AnyType
 >;
@@ -52,12 +50,6 @@ struct MODULE_API ScalarType : public AnyType
 
 struct MODULE_API CompositeType : public AnyType
 {
-};
-
-struct MODULE_API FunctionType : public AnyType
-{
-	type_vector argument_types;
-	FunctionType(type_vector argument_types) : argument_types(argument_types) {};
 };
 
 struct MODULE_API NoneType : public AnyType

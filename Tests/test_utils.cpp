@@ -36,15 +36,3 @@ vector<Token_ptr> prepare_to_assert(vector<Token> vector_of_tokens)
 
 	return vec;
 }
-//
-//vector<Statement> prepare_to_assert(Module mod)
-//{
-//	vector<Statement> statements;
-//
-//	for (const auto stat_ptr : mod.get_statements())
-//	{
-//		statements.push_back(*stat_ptr);
-//	}
-//
-//	return statements;
-//}
