@@ -9,15 +9,14 @@
 #include <vector>
 #include <chrono>
 
+using namespace std::chrono;
 using std::string;
 using std::vector;
 using std::cout;
 using std::endl;
-using namespace std::chrono;
 
 WaspCLI::WaspCLI()
 {
-	provide_trace = false;
 	filepath = "";
 
 	// Setup CLI options and commands
@@ -43,10 +42,6 @@ WaspCLI::WaspCLI()
 		->required()
 		->check(CLI::ExistingFile);
 
-	run_cmd
-		->add_flag("-t, --trace", provide_trace, "Provides interpreter traces")
-		->ignore_case();
-
 	run_cmd->callback([&]() { run(); });
 }
 
@@ -57,6 +52,7 @@ CLI::App& WaspCLI::get_app()
 
 void WaspCLI::run()
 {
+	spdlog::info("Welcome to spdlog!");
 	auto start = high_resolution_clock::now();
 
 	string raw_source = read_source(filepath);
@@ -71,5 +67,5 @@ void WaspCLI::run()
 	duration<double> elapsed_seconds = end - start;
 	double time_taken = elapsed_seconds.count();
 
-	spdlog::info(" Time Taken : {} seconds", time_taken);
+	spdlog::info("Time Taken : {} seconds", time_taken);
 }

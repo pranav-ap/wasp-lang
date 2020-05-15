@@ -5,9 +5,7 @@
 class WaspCLI
 {
 	CLI::App app;
-
 	std::string filepath;
-	bool provide_trace;
 
 	void run();
 

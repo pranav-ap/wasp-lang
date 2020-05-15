@@ -1,0 +1,10 @@
+#pragma once
+
+enum class ExpressionContext
+{
+	SEQUENCE_LITERAL,
+	DICTIONARY_LITERAL,
+	FUNCTION_CALL,
+	PARENTHESIS,
+	MEMBER_ACCESS
+};

@@ -6,28 +6,194 @@
       <Extensions>cpp;c;cc;cxx;c++;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
     <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+      <UniqueIdentifier>{9a83462b-8cb9-487f-98fa-d5e3ebcc6600}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    <Filter Include="Header Files\Token">
+      <UniqueIdentifier>{a72fa00d-12e0-4061-ae39-3f753cbfa018}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Lexer">
+      <UniqueIdentifier>{4baa87b0-5808-42b3-ba23-33cb0f811feb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Parser">
+      <UniqueIdentifier>{7fc5760d-390a-4513-8d67-95fbe6b517df}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Module">
+      <UniqueIdentifier>{5886c91a-a59b-425d-9a86-cce0da605bb0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ObjectSystem">
+      <UniqueIdentifier>{263ad712-293a-4467-b96c-1c9cff900a9e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\TypeSystem">
+      <UniqueIdentifier>{04f0a8f3-00bc-484b-8dcb-913efa0ecc36}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Environment">
+      <UniqueIdentifier>{9521a63e-0413-4595-a4df-1e8a1efb5fb6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Utils">
+      <UniqueIdentifier>{28b062d2-15b2-4003-9b14-e68252ef6ec8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Lexer">
+      <UniqueIdentifier>{e5b73184-614e-4093-9b7d-43957b3c7472}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Module">
+      <UniqueIdentifier>{5a2b5fa1-a29e-48de-92d8-820922a97c7c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Environment">
+      <UniqueIdentifier>{ce30a4d2-9b3c-4cc3-b62b-c49af0e3700e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Utils">
+      <UniqueIdentifier>{57df6e50-f7e3-4cff-9316-d1b2fbe4d920}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\TypeSystem">
+      <UniqueIdentifier>{b3b03373-8c39-48f7-9b31-49f92aa8dae5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ObjectSystem">
+      <UniqueIdentifier>{f58ecba9-e895-4a13-884e-4f559ee330a6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Parser">
+      <UniqueIdentifier>{67d630a2-364f-45d9-a6a0-beb3247217a6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Token">
+      <UniqueIdentifier>{ab7dd6df-650c-4552-bacb-23aa1788dffa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\CLI">
+      <UniqueIdentifier>{cdec41f6-4425-4a22-bdcf-f5a3bb629cc8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\CLI">
+      <UniqueIdentifier>{baa814a3-6eff-48a3-8365-561ff3def73c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Evaluator">
+      <UniqueIdentifier>{3ee38438-b9a1-404c-aaf3-7058f54b2f59}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Evaluator">
+      <UniqueIdentifier>{ef2daba1-e802-46a6-a32a-ba4fbeaf820b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="wasp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Environment.cpp">
+      <Filter>Source Files\Environment</Filter>
+    </ClCompile>
     <ClCompile Include="WaspCLI.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\CLI</Filter>
+    </ClCompile>
+    <ClCompile Include="TokenPipe.cpp">
+      <Filter>Source Files\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="Parser.cpp">
+      <Filter>Source Files\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="OperatorStack.cpp">
+      <Filter>Source Files\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="ExpressionParser.cpp">
+      <Filter>Source Files\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="file_io.cpp">
+      <Filter>Source Files\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Lexer.cpp">
+      <Filter>Source Files\Lexer</Filter>
+    </ClCompile>
+    <ClCompile Include="Pointer.cpp">
+      <Filter>Source Files\Lexer</Filter>
+    </ClCompile>
+    <ClCompile Include="TokenPosition.cpp">
+      <Filter>Source Files\Token</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectSystem.cpp">
+      <Filter>Source Files\ObjectSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Module.cpp">
+      <Filter>Source Files\Module</Filter>
+    </ClCompile>
+    <ClCompile Include="Assertion.cpp">
+      <Filter>Source Files\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Builtins.cpp">
+      <Filter>Source Files\Evaluator</Filter>
+    </ClCompile>
+    <ClCompile Include="DispatchTables.cpp">
+      <Filter>Source Files\Evaluator</Filter>
+    </ClCompile>
+    <ClCompile Include="Evaluator.cpp">
+      <Filter>Source Files\Evaluator</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CLI11.hpp">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Environment.h">
+      <Filter>Header Files\Environment</Filter>
+    </ClInclude>
+    <ClInclude Include="Info.h">
+      <Filter>Header Files\Environment</Filter>
+    </ClInclude>
+    <ClInclude Include="Scope.h">
+      <Filter>Header Files\Environment</Filter>
+    </ClInclude>
+    <ClInclude Include="Lexer.h">
+      <Filter>Header Files\Lexer</Filter>
+    </ClInclude>
+    <ClInclude Include="Pointer.h">
+      <Filter>Header Files\Lexer</Filter>
     </ClInclude>
     <ClInclude Include="WaspCLI.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\CLI</Filter>
+    </ClInclude>
+    <ClInclude Include="Parser.h">
+      <Filter>Header Files\Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="TokenPipe.h">
+      <Filter>Header Files\Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="ExpressionParser.h">
+      <Filter>Header Files\Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="ExpressionContext.h">
+      <Filter>Header Files\Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="file_io.h">
+      <Filter>Header Files\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectSystem.h">
+      <Filter>Header Files\ObjectSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Module.h">
+      <Filter>Header Files\Module</Filter>
+    </ClInclude>
+    <ClInclude Include="Expression.h">
+      <Filter>Header Files\Module</Filter>
+    </ClInclude>
+    <ClInclude Include="Statement.h">
+      <Filter>Header Files\Module</Filter>
+    </ClInclude>
+    <ClInclude Include="Token.h">
+      <Filter>Header Files\Token</Filter>
+    </ClInclude>
+    <ClInclude Include="TokenPosition.h">
+      <Filter>Header Files\Token</Filter>
+    </ClInclude>
+    <ClInclude Include="TokenType.h">
+      <Filter>Header Files\Token</Filter>
+    </ClInclude>
+    <ClInclude Include="OperatorStack.h">
+      <Filter>Header Files\Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="TypeSystem.h">
+      <Filter>Header Files\TypeSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Assertion.h">
+      <Filter>Header Files\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Builtins.h">
+      <Filter>Header Files\Evaluator</Filter>
+    </ClInclude>
+    <ClInclude Include="DispatchTables.h">
+      <Filter>Header Files\Evaluator</Filter>
+    </ClInclude>
+    <ClInclude Include="Evaluator.h">
+      <Filter>Header Files\Evaluator</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
