@@ -52,7 +52,7 @@ class Evaluator
 	Object_ptr evaluate(MapLiteral expression);
 	Object_ptr evaluate(UDTLiteral expression);
 
-	Object_ptr evaluate(MemberAccess expression);
+	Object_ptr evaluate(UDTMemberAccess expression);
 	Object_ptr evaluate(EnumMember expression);
 
 	Object_ptr evaluate(Identifier expression);

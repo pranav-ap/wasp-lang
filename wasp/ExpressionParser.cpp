@@ -326,7 +326,7 @@ Expression_ptr ExpressionParser::parse_member_access()
 
 	pop_context(ExpressionContext::MEMBER_ACCESS);
 
-	return MAKE_EXPRESSION(MemberAccess(container, access_expression));
+	return MAKE_EXPRESSION(UDTMemberAccess(container, access_expression));
 }
 
 ExpressionVector ExpressionParser::parse_function_call_arguments()

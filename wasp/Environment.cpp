@@ -228,6 +228,23 @@ void Environment::create_UDT(
 	ASSERT(result.second, name + " already exists in scope!");
 }
 
+void Environment::create_alias(
+	string name,
+	bool is_public,
+	Type_ptr type)
+{
+	auto scope = scopes.front();
+
+	auto result = scope->store.insert(
+		{
+			name,
+			make_shared<Info>(AliasInfo(is_public, type))
+		}
+	);
+
+	ASSERT(result.second, name + " already exists in scope!");
+}
+
 void Environment::create_enum(
 	string name,
 	bool is_public,

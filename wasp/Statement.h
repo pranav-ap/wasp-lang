@@ -71,10 +71,10 @@ struct Assignment : public StatementBase
 struct Branching : public StatementBase
 {
 	std::vector<std::pair<Expression_ptr, Block>> branches;
-	Block else_branch;
+	Block else_block;
 
-	Branching(std::vector<std::pair<Expression_ptr, Block>> branches, Block else_branch)
-		: branches(branches), else_branch(else_branch) {};
+	Branching(std::vector<std::pair<Expression_ptr, Block>> branches, Block else_block)
+		: branches(branches), else_block(else_block) {};
 };
 
 // Looping

@@ -13,7 +13,7 @@ struct ListLiteral;
 struct TupleLiteral;
 struct MapLiteral;
 struct UDTLiteral;
-struct MemberAccess;
+struct UDTMemberAccess;
 struct EnumMember;
 struct Identifier;
 struct Call;
@@ -25,7 +25,7 @@ using Expression = std::variant<
 	double, std::string, bool,
 	ListLiteral, TupleLiteral,
 	MapLiteral, UDTLiteral,
-	MemberAccess, EnumMember,
+	UDTMemberAccess, EnumMember,
 	Identifier, Call,
 	Unary, Binary
 >;
@@ -88,12 +88,12 @@ struct UDTLiteral : public DictionaryLiteral
 
 // Member
 
-struct MemberAccess : public ExpressionBase
+struct UDTMemberAccess : public ExpressionBase
 {
 	Expression_ptr container;
 	Expression_ptr access_expression;
 
-	MemberAccess(Expression_ptr container, Expression_ptr access_expression)
+	UDTMemberAccess(Expression_ptr container, Expression_ptr access_expression)
 		: container(std::move(container)), access_expression(std::move(access_expression)) {};
 };
 

@@ -65,6 +65,12 @@ public:
 		std::map<std::string, Type_ptr> member_types
 	);
 
+	void create_alias(
+		std::string name,
+		bool is_public,
+		Type_ptr type
+	);
+
 	void create_enum(
 		std::string name,
 		bool is_public,

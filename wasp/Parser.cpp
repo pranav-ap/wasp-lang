@@ -248,16 +248,16 @@ Statement_ptr Parser::parse_branching(int expected_indent)
 		break;
 	}
 
-	Block else_branch;
+	Block else_block;
 
 	if (token_pipe->optional(WTokenType::ELSE))
 	{
 		token_pipe->expect(WTokenType::COLON);
 		token_pipe->expect(WTokenType::EOL);
-		else_branch = parse_block(expected_indent);
+		else_block = parse_block(expected_indent);
 	}
 
-	return MAKE_STATEMENT(Branching(branches, else_branch));
+	return MAKE_STATEMENT(Branching(branches, else_block));
 }
 
 Statement_ptr Parser::parse_while_loop(int expected_indent)

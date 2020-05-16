@@ -27,8 +27,8 @@ Object_ptr io::echo_visit(std::vector<Object_ptr> arguments)
 	THROW_ASSERT(arguments.size() == 1, "echo(..) takes a string or number as argument");
 
 	return std::visit(overloaded{
-		[](std::string text) { cout << text << endl; return VOID; },
-		[](double number) { cout << number << endl; return VOID; },
+		[](StringObject text) { cout << text.value << endl; return VOID; },
+		[](NumberObject number) { cout << number.value << endl; return VOID; },
 
 		[](auto) { THROW("echo(..) takes a string or number as argument"); }
 		}, *arguments[0]);
@@ -41,5 +41,5 @@ Object_ptr io::ask_visit(std::vector<Object_ptr> arguments)
 	string text;
 	cin >> text;
 
-	return MAKE_OBJECT_VARIANT(text);
+	return MAKE_OBJECT_VARIANT(StringObject(text));
 }
