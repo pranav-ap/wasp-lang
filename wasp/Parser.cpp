@@ -506,7 +506,11 @@ Type_ptr Parser::parse_type(bool is_optional)
 
 		if (token_pipe->optional(WTokenType::OPEN_SQUARE_BRACKET))
 		{
-			type = parse_sequence_type(is_optional);
+			type = parse_list_type(is_optional);
+		}
+		else if (token_pipe->optional(WTokenType::LEFT_ANGLE_BRACKET))
+		{
+			type = parse_tuple_type(is_optional);
 		}
 		else if (token_pipe->optional(WTokenType::OPEN_CURLY_BRACE))
 		{
@@ -531,7 +535,7 @@ Type_ptr Parser::parse_type(bool is_optional)
 	}
 }
 
-Type_ptr Parser::parse_sequence_type(bool is_optional)
+Type_ptr Parser::parse_list_type(bool is_optional)
 {
 	vector<Type_ptr> types;
 
@@ -543,18 +547,32 @@ Type_ptr Parser::parse_sequence_type(bool is_optional)
 		if (token_pipe->optional(WTokenType::COMMA))
 			continue;
 
-		token_pipe->expect(WTokenType::CLOSE_PARENTHESIS);
+		token_pipe->expect(WTokenType::CLOSE_SQUARE_BRACKET);
 		break;
 	}
 
-	if (types.size() == 1)
+	if (is_optional)
 	{
-		if (is_optional)
-		{
-			return MAKE_OPTIONAL_TYPE(ListType(move(types.front())));
-		}
+		return MAKE_OPTIONAL_TYPE(ListType(move(types.front())));
+	}
 
-		return MAKE_TYPE(ListType(move(types.front())));
+	return MAKE_TYPE(ListType(move(types.front())));
+}
+
+Type_ptr Parser::parse_tuple_type(bool is_optional)
+{
+	vector<Type_ptr> types;
+
+	while (true)
+	{
+		auto type = parse_type();
+		types.push_back(type);
+
+		if (token_pipe->optional(WTokenType::COMMA))
+			continue;
+
+		token_pipe->expect(WTokenType::RIGHT_ANGLE_BRACKET);
+		break;
 	}
 
 	if (is_optional)

@@ -44,7 +44,8 @@ class Parser
 	// Type parsers
 
 	Type_ptr parse_type(bool is_optional = false);
-	Type_ptr parse_sequence_type(bool is_optional);
+	Type_ptr parse_list_type(bool is_optional);
+	Type_ptr parse_tuple_type(bool is_optional);
 	Type_ptr parse_map_type(bool is_optional);
 	Type_ptr consume_datatype_word(bool is_optional);
 

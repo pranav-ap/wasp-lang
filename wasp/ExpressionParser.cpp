@@ -72,27 +72,45 @@ Expression_ptr ExpressionParser::parse_expression()
 			break;
 		}
 
-		// DICTIONARY_LITERAL
+		// UDT LITERAL
+
+		case WTokenType::NEW:
+		{
+			push_context(ExpressionContext::UDT_LITERAL);
+			ADVANCE_PTR;
+			token_pipe->expect(WTokenType::OPEN_CURLY_BRACE);
+			auto value = parse_map_literal_or_UDT_creation(true);
+			ast.push(move(value));
+			break;
+		}
+
+		// MAP_LITERAL
 
 		case WTokenType::OPEN_CURLY_BRACE:
 		{
-			push_context(ExpressionContext::DICTIONARY_LITERAL);
+			push_context(ExpressionContext::MAP_LITERAL);
 			ADVANCE_PTR;
-			auto value = parse_dictionary_literal();
+			auto value = parse_map_literal_or_UDT_creation(false);
 			ast.push(move(value));
 			break;
 		}
 		case WTokenType::CLOSE_CURLY_BRACE:
 		{
-			push_context(ExpressionContext::DICTIONARY_LITERAL);
+			if (context_stack.top() == ExpressionContext::UDT_LITERAL)
+			{
+				pop_context(ExpressionContext::UDT_LITERAL);
+				return finish_parsing();
+			}
+
+			push_context(ExpressionContext::MAP_LITERAL);
 			return finish_parsing();
 		}
 
-		// SEQUENCE_LITERAL
+		// LIST LITERAL
 
 		case WTokenType::OPEN_SQUARE_BRACKET:
 		{
-			push_context(ExpressionContext::SEQUENCE_LITERAL);
+			push_context(ExpressionContext::LIST_LITERAL);
 			ADVANCE_PTR;
 			auto value = parse_sequence_literal();
 			ast.push(move(value));
@@ -100,7 +118,23 @@ Expression_ptr ExpressionParser::parse_expression()
 		}
 		case WTokenType::CLOSE_SQUARE_BRACKET:
 		{
-			pop_context(ExpressionContext::SEQUENCE_LITERAL);
+			pop_context(ExpressionContext::LIST_LITERAL);
+			return finish_parsing();
+		}
+
+		// TUPLE LITERAL
+
+		case WTokenType::LEFT_ANGLE_BRACKET:
+		{
+			push_context(ExpressionContext::TUPLE_LITERAL);
+			ADVANCE_PTR;
+			auto value = parse_sequence_literal();
+			ast.push(move(value));
+			break;
+		}
+		case WTokenType::RIGHT_ANGLE_BRACKET:
+		{
+			pop_context(ExpressionContext::TUPLE_LITERAL);
 			return finish_parsing();
 		}
 
@@ -111,7 +145,7 @@ Expression_ptr ExpressionParser::parse_expression()
 			push_context(ExpressionContext::FUNCTION_CALL);
 			ADVANCE_PTR;
 			auto arguments = parse_function_call_arguments();
-			ast.push(MAKE_EXPRESSION(FunctionCall(current.value()->value, arguments)));
+			ast.push(MAKE_EXPRESSION(Call(current.value()->value, arguments)));
 			break;
 		}
 		case WTokenType::CLOSE_PARENTHESIS:
@@ -196,26 +230,44 @@ ExpressionVector ExpressionParser::parse_expressions()
 	return elements;
 }
 
-Expression_ptr ExpressionParser::parse_sequence_literal()
+Expression_ptr ExpressionParser::parse_sequence_literal(bool is_tuple)
 {
 	ExpressionVector elements;
 
-	if (token_pipe->optional(WTokenType::CLOSE_SQUARE_BRACKET))
-		return MAKE_EXPRESSION(SequenceLiteral(elements));
+	if (is_tuple && token_pipe->optional(WTokenType::RIGHT_ANGLE_BRACKET))
+	{
+		return MAKE_EXPRESSION(TupleLiteral(elements));
+	}
+	else if (token_pipe->optional(WTokenType::OPEN_SQUARE_BRACKET))
+	{
+		return MAKE_EXPRESSION(ListLiteral(elements));
+	}
 
 	elements = parse_expressions();
 
-	token_pipe->expect(WTokenType::CLOSE_SQUARE_BRACKET);
+	if (is_tuple)
+	{
+		token_pipe->expect(WTokenType::RIGHT_ANGLE_BRACKET);
+		return MAKE_EXPRESSION(TupleLiteral(elements));
+	}
 
-	return MAKE_EXPRESSION(SequenceLiteral(elements));
+	token_pipe->expect(WTokenType::CLOSE_SQUARE_BRACKET);
+	return MAKE_EXPRESSION(ListLiteral(elements));
 }
 
-Expression_ptr ExpressionParser::parse_dictionary_literal()
+Expression_ptr ExpressionParser::parse_map_literal_or_UDT_creation(bool is_UDT)
 {
 	map<Token_ptr, Expression_ptr> pairs;
 
 	if (token_pipe->optional(WTokenType::CLOSE_CURLY_BRACE))
-		return MAKE_EXPRESSION(DictionaryLiteral(pairs));
+	{
+		if (is_UDT)
+		{
+			return MAKE_EXPRESSION(UDTLiteral(pairs));
+		}
+
+		return MAKE_EXPRESSION(MapLiteral(pairs));
+	}
 
 	while (true)
 	{
@@ -237,10 +289,17 @@ Expression_ptr ExpressionParser::parse_dictionary_literal()
 		token_pipe->ignore({ WTokenType::SPACE, WTokenType::EOL });
 
 		if (token_pipe->optional(WTokenType::CLOSE_CURLY_BRACE))
-			return MAKE_EXPRESSION(DictionaryLiteral(pairs));
+			break;
 
 		token_pipe->expect(WTokenType::COMMA);
 	}
+
+	if (is_UDT)
+	{
+		return MAKE_EXPRESSION(UDTLiteral(pairs));
+	}
+
+	return MAKE_EXPRESSION(MapLiteral(pairs));
 }
 
 Expression_ptr ExpressionParser::parse_identifier(Token_ptr identifier)

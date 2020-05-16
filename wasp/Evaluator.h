@@ -36,6 +36,7 @@ class Evaluator
 	Object_ptr evaluate(EnumDefinition statement);
 
 	Object_ptr evaluate(ExpressionStatement statement);
+	Object_ptr evaluate(AssertStatement statement);
 
 	Object_ptr evaluate(ImportCustom statement);
 	Object_ptr evaluate(ImportInBuilt statement);
@@ -46,14 +47,16 @@ class Evaluator
 	Object_ptr evaluate(double number_literal);
 	Object_ptr evaluate(bool bool_literal);
 
-	Object_ptr evaluate(SequenceLiteral expression);
-	Object_ptr evaluate(DictionaryLiteral expression);
+	Object_ptr evaluate(ListLiteral expression);
+	Object_ptr evaluate(TupleLiteral expression);
+	Object_ptr evaluate(MapLiteral expression);
+	Object_ptr evaluate(UDTLiteral expression);
 
 	Object_ptr evaluate(MemberAccess expression);
 	Object_ptr evaluate(EnumMember expression);
 
 	Object_ptr evaluate(Identifier expression);
-	Object_ptr evaluate(FunctionCall expression);
+	Object_ptr evaluate(Call expression);
 
 	Object_ptr evaluate(Unary expression);
 	Object_ptr evaluate(Binary expression);
@@ -75,8 +78,8 @@ class Evaluator
 	Object_ptr loop_over_iterable(std::string item_name, Block block, ListObject& vector_object);
 	Object_ptr loop_over_iterable(std::string pair_name, Block block, MapObject& map_object);
 
-	Object_ptr evaluate_function_call(FunctionCall call_expression, FunctionInfo* info, std::vector<Object_ptr> formal_arguments);
-	Object_ptr evaluate_function_call(FunctionCall call_expression, InBuiltFunctionInfo* info);
+	Object_ptr evaluate_function_call(Call call_expression, FunctionInfo* info, std::vector<Object_ptr> formal_arguments);
+	Object_ptr evaluate_function_call(Call call_expression, InBuiltFunctionInfo* info);
 
 public:
 	Evaluator(Environment_ptr global_env) : env(global_env) {};

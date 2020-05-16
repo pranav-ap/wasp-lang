@@ -33,6 +33,8 @@ using std::make_shared;
 using std::holds_alternative;
 using std::visit;
 
+// API
+
 void Evaluator::execute(Module mod)
 {
 	for (auto statement : mod.nodes)
@@ -40,6 +42,8 @@ void Evaluator::execute(Module mod)
 		evaluate(statement);
 	}
 }
+
+// Evaluate
 
 Object_ptr Evaluator::evaluate(Statement_ptr statement)
 {
@@ -65,6 +69,7 @@ Object_ptr Evaluator::evaluate(Statement_ptr statement)
 		[&](EnumDefinition stat) { return evaluate(stat); },
 
 		[&](ExpressionStatement stat) { return evaluate(stat); },
+		[&](AssertStatement stat) { return evaluate(stat); },
 
 		[&](ImportCustom stat) { return evaluate(stat); },
 		[&](ImportInBuilt stat) { return evaluate(stat); },
@@ -79,14 +84,20 @@ Object_ptr Evaluator::evaluate(Expression_ptr expression)
 			[&](string exp) { return evaluate(exp); },
 			[&](double exp) { return evaluate(exp); },
 			[&](bool exp) { return evaluate(exp); },
-			[&](SequenceLiteral exp) { return evaluate(exp); },
-			[&](DictionaryLiteral exp) { return evaluate(exp); },
-			[&](Identifier exp) { return evaluate(exp); },
+
+			[&](ListLiteral exp) { return evaluate(exp); },
+			[&](TupleLiteral exp) { return evaluate(exp); },
+			[&](MapLiteral exp) { return evaluate(exp); },
+			[&](UDTLiteral exp) { return evaluate(exp); },
+
 			[&](EnumMember exp) { return evaluate(exp); },
+			[&](MemberAccess exp) { return evaluate(exp); },
+
 			[&](Unary exp) { return evaluate(exp); },
 			[&](Binary exp) { return evaluate(exp); },
-			[&](MemberAccess exp) { return evaluate(exp); },
-			[&](FunctionCall exp) { return evaluate(exp); },
+
+			[&](Identifier exp) { return evaluate(exp); },
+			[&](Call exp) { return evaluate(exp); },
 
 			[](auto) { THROW("Never Seen this Expression before!"); }
 		}, *expression);
@@ -97,7 +108,7 @@ Object_ptr Evaluator::evaluate(Expression_ptr expression)
 Object_ptr Evaluator::evaluate(Assignment statement)
 {
 	ASSERT(
-		statement.names.size() == statement.expressions.size(),
+		statement.lhs_expressions.size() == statement.rhs_expressions.size(),
 		"Mismatch in number of identifiers and RHS expressions"
 	);
 
@@ -326,6 +337,11 @@ Object_ptr Evaluator::evaluate(ExpressionStatement statement)
 	return evaluate(statement.expression);
 }
 
+Object_ptr Evaluator::evaluate(AssertStatement statement)
+{
+	return Object_ptr();
+}
+
 Object_ptr Evaluator::evaluate(ImportCustom statement)
 {
 	return VOID;
@@ -359,6 +375,26 @@ Object_ptr Evaluator::evaluate(double number_literal)
 Object_ptr Evaluator::evaluate(bool bool_literal)
 {
 	return MAKE_OBJECT_VARIANT(BooleanObject(bool_literal));
+}
+
+Object_ptr Evaluator::evaluate(ListLiteral expression)
+{
+	return Object_ptr();
+}
+
+Object_ptr Evaluator::evaluate(TupleLiteral expression)
+{
+	return Object_ptr();
+}
+
+Object_ptr Evaluator::evaluate(MapLiteral expression)
+{
+	return Object_ptr();
+}
+
+Object_ptr Evaluator::evaluate(UDTLiteral expression)
+{
+	return Object_ptr();
 }
 
 Object_ptr Evaluator::evaluate(SequenceLiteral sequence_literal)
@@ -422,7 +458,7 @@ Object_ptr Evaluator::evaluate(Identifier expression)
 	return move(info->value);
 }
 
-Object_ptr Evaluator::evaluate(FunctionCall call_expression)
+Object_ptr Evaluator::evaluate(Call call_expression)
 {
 	if (auto info = env->get_inbuilt_function_info_if_exists(call_expression.name))
 	{
@@ -702,7 +738,7 @@ Object_ptr Evaluator::loop_over_iterable(string item_name, Block block, MapObjec
 
 // Evaluate function
 
-Object_ptr Evaluator::evaluate_function_call(FunctionCall call_expression, FunctionInfo* info, vector<Object_ptr> formal_arguments)
+Object_ptr Evaluator::evaluate_function_call(Call call_expression, FunctionInfo* info, vector<Object_ptr> formal_arguments)
 {
 	int index = 0;
 
@@ -734,7 +770,7 @@ Object_ptr Evaluator::evaluate_function_call(FunctionCall call_expression, Funct
 	FATAL("Function must return a ReturnObject");
 }
 
-Object_ptr Evaluator::evaluate_function_call(FunctionCall call_expression, InBuiltFunctionInfo* info)
+Object_ptr Evaluator::evaluate_function_call(Call call_expression, InBuiltFunctionInfo* info)
 {
 	vector<Object_ptr> argument_objects;
 

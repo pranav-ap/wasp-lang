@@ -22,9 +22,9 @@ class ExpressionParser
 	// Parsers
 
 	Expression_ptr parse_identifier(Token_ptr identifier_token);
-	Expression_ptr parse_sequence_literal();
-	Expression_ptr parse_dictionary_literal();
 	Expression_ptr parse_member_access();
+	Expression_ptr parse_sequence_literal(bool is_tuple = false);
+	Expression_ptr parse_map_literal_or_UDT_creation(bool is_UDT = false);
 
 	ExpressionVector parse_function_call_arguments();
 

@@ -11,7 +11,7 @@ let x : num | str = 5
 let x : opt num = 5
 
 let x : [num] = [1, 2, 3]
-let x : [num, str] = [1, "hi"]
+let x : ⟨ num, str ⟩ = ⟨ 1, "hello" ⟩
 
 let x : { str -> str } = { "a" : "b" ,  "c" : "d" }
 let x : Person = { a : "b" ,  c : "d" }
@@ -43,21 +43,21 @@ fn add(a: num, b: num) -> num:
 gen add(a: num, b: num) -> opt num:
     if a > b:
         yield a + b + 4
-
     yield a + b
 
 type Person:
     name: str
 	foo: bool
 
-    always:
-        a > 4
-        a + b = 42
+    always a > 4
+    always a + b = 42
 
 let p : Person = {
   name : "jim",
   foo : true
 }
+
+let p: Person = new { name: "jim", foo: true }
 
 foo.name
 
@@ -67,3 +67,6 @@ enum Kind:
     XYZ:
         ABC
         DEF
+
+match expr:
+    none -> return false

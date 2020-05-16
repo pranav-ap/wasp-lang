@@ -12,23 +12,31 @@
 
 #define MAKE_TOKEN(type, token, line_num, col_num) std::make_shared<Token>(type, token, line_num, col_num)
 #define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr")
-#define CASE_BODY(call) { token = call; break; }
-#define NEXT pointer.advance(); position.increment_column_number();
-#define PREVIOUS pointer.retreat(); position.decrement_column_number();
+#define CASE_BODY(call) \
+	{                   \
+		token = call;   \
+		break;          \
+	}
+#define NEXT           \
+	pointer.advance(); \
+	position.increment_column_number();
+#define PREVIOUS       \
+	pointer.retreat(); \
+	position.decrement_column_number();
 #define LINE_NUM position.get_line_num()
 #define COL_NUM position.get_column_num()
 
+using std::isalpha;
+using std::isdigit;
+using std::make_optional;
+using std::make_shared;
+using std::map;
+using std::move;
+using std::nullopt;
+using std::optional;
 using std::string;
 using std::to_string;
-using std::map;
-using std::optional;
-using std::make_optional;
-using std::nullopt;
 using std::vector;
-using std::move;
-using std::make_shared;
-using std::isdigit;
-using std::isalpha;
 
 vector<Token_ptr> Lexer::execute()
 {
@@ -85,21 +93,36 @@ vector<Token_ptr> Lexer::execute()
 			case '[':
 			case ']':
 			case ',':
-			case '|': CASE_BODY(consume_single_char_punctuation(current_char));
-			case '"': CASE_BODY(consume_string_literal());
-			case '+': CASE_BODY(consume_plus());
-			case '-': CASE_BODY(consume_minus());
-			case '*': CASE_BODY(consume_star());
-			case '/': CASE_BODY(consume_division());
-			case '%': CASE_BODY(consume_reminder());
-			case '^': CASE_BODY(consume_power());
-			case '=': CASE_BODY(consume_equal());
-			case '!': CASE_BODY(consume_bang());
-			case '<': CASE_BODY(consume_lesser_than());
-			case '>': CASE_BODY(consume_greater_than());
-			case '.': CASE_BODY(consume_dot());
-			case ':': CASE_BODY(consume_colon());
-			default: CASE_BODY(consume_unknown_token(current_char));
+			case '|':
+				CASE_BODY(consume_single_char_punctuation(current_char));
+			case '"':
+				CASE_BODY(consume_string_literal());
+			case '+':
+				CASE_BODY(consume_plus());
+			case '-':
+				CASE_BODY(consume_minus());
+			case '*':
+				CASE_BODY(consume_star());
+			case '/':
+				CASE_BODY(consume_division());
+			case '%':
+				CASE_BODY(consume_reminder());
+			case '^':
+				CASE_BODY(consume_power());
+			case '=':
+				CASE_BODY(consume_equal());
+			case '!':
+				CASE_BODY(consume_bang());
+			case '<':
+				CASE_BODY(consume_lesser_than());
+			case '>':
+				CASE_BODY(consume_greater_than());
+			case '.':
+				CASE_BODY(consume_dot());
+			case ':':
+				CASE_BODY(consume_colon());
+			default:
+				CASE_BODY(consume_unknown_token(current_char));
 			}
 		}
 
@@ -194,7 +217,8 @@ Token_ptr Lexer::consume_identifier(char ch)
 		return MAKE_TOKEN(keyword_type, identifier, LINE_NUM, COL_NUM);
 	}
 
-	if (get_current_char() == '(') {
+	if (get_current_char() == '(')
+	{
 		return MAKE_TOKEN(WTokenType::CALLABLE_IDENTIFIER, identifier, LINE_NUM, COL_NUM);
 	}
 
@@ -348,6 +372,10 @@ Token_ptr Lexer::consume_single_char_punctuation(char ch)
 		return MAKE_TOKEN(WTokenType::OPEN_SQUARE_BRACKET, "[", LINE_NUM, COL_NUM);
 	case ']':
 		return MAKE_TOKEN(WTokenType::CLOSE_SQUARE_BRACKET, "]", LINE_NUM, COL_NUM);
+	case 10217: // '⟨'
+		return MAKE_TOKEN(WTokenType::LEFT_ANGLE_BRACKET, "⟨", LINE_NUM, COL_NUM);
+	case 10216: // '⟩'
+		return MAKE_TOKEN(WTokenType::RIGHT_ANGLE_BRACKET, "⟩", LINE_NUM, COL_NUM);
 	case ',':
 		return MAKE_TOKEN(WTokenType::COMMA, ",", LINE_NUM, COL_NUM);
 	case '|':

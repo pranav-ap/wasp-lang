@@ -43,6 +43,8 @@ const std::map<std::string, WTokenType> keyword_map = {
 
 	{ "none", WTokenType::NONE },
 
+	{ "new", WTokenType::NEW },
+
 	{ "true", WTokenType::TRUE_KEYWORD },
 	{ "false", WTokenType::FALSE_KEYWORD },
 

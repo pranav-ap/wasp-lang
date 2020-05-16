@@ -9,21 +9,24 @@
 #include <memory>
 #include <variant>
 
-struct SequenceLiteral;
-struct DictionaryLiteral;
+struct ListLiteral;
+struct TupleLiteral;
+struct MapLiteral;
+struct UDTLiteral;
 struct MemberAccess;
 struct EnumMember;
 struct Identifier;
-struct FunctionCall;
+struct Call;
 struct Unary;
 struct Binary;
 
 using Expression = std::variant<
 	std::monostate,
 	double, std::string, bool,
-	SequenceLiteral, DictionaryLiteral,
+	ListLiteral, TupleLiteral,
+	MapLiteral, UDTLiteral,
 	MemberAccess, EnumMember,
-	Identifier, FunctionCall,
+	Identifier, Call,
 	Unary, Binary
 >;
 
@@ -41,6 +44,8 @@ struct Identifier : public ExpressionBase
 	Identifier(std::string name) : name(name) {};
 };
 
+// SequenceLiteral
+
 struct SequenceLiteral : public ExpressionBase
 {
 	ExpressionVector expressions;
@@ -48,12 +53,40 @@ struct SequenceLiteral : public ExpressionBase
 		: expressions(expressions) {};
 };
 
+struct ListLiteral : public SequenceLiteral
+{
+	ListLiteral(ExpressionVector expressions)
+		: SequenceLiteral(expressions) {};
+};
+
+struct TupleLiteral : public SequenceLiteral
+{
+	TupleLiteral(ExpressionVector expressions)
+		: SequenceLiteral(expressions) {};
+};
+
+// DictionaryLiteral
+
 struct DictionaryLiteral : public ExpressionBase
 {
 	std::map<Token_ptr, Expression_ptr> pairs;
 	DictionaryLiteral(std::map<Token_ptr, Expression_ptr> pairs)
 		: pairs(pairs) {};
 };
+
+struct MapLiteral : public DictionaryLiteral
+{
+	MapLiteral(std::map<Token_ptr, Expression_ptr> pairs)
+		: DictionaryLiteral(pairs) {};
+};
+
+struct UDTLiteral : public DictionaryLiteral
+{
+	UDTLiteral(std::map<Token_ptr, Expression_ptr> pairs)
+		: DictionaryLiteral(pairs) {};
+};
+
+// Member
 
 struct MemberAccess : public ExpressionBase
 {
@@ -73,14 +106,14 @@ struct EnumMember : public ExpressionBase
 		: enum_name(enum_name), member_name(member_name) {};
 };
 
-struct FunctionCall : public ExpressionBase
+struct Call : public ExpressionBase
 {
 	std::string name;
 	ExpressionVector arguments;
 
-	FunctionCall(std::string name)
+	Call(std::string name)
 		: name(name) {};
-	FunctionCall(std::string name, ExpressionVector arguments)
+	Call(std::string name, ExpressionVector arguments)
 		: name(name), arguments(arguments) {};
 };
 

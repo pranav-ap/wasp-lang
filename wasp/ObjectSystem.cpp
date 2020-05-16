@@ -393,3 +393,8 @@ std::string NoneObject::stringify()
 {
 	return "none";
 }
+
+std::string CallObject::stringify()
+{
+	return "CallObject " + name;
+}
