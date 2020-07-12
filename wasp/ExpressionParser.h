@@ -24,13 +24,16 @@ class ExpressionParser
 	Expression_ptr parse_identifier(Token_ptr identifier_token);
 	Expression_ptr parse_member_access();
 	Expression_ptr parse_sequence_literal(bool is_tuple = false);
-	Expression_ptr parse_map_literal_or_UDT_creation(bool is_UDT = false);
+	Expression_ptr parse_UDT_creation();
+	Expression_ptr parse_map_literal();
 
 	ExpressionVector parse_function_call_arguments();
 
 	// Utils
 
-	Token_ptr consume_valid_dictionary_key();
+	Token_ptr consume_valid_map_key();
+	Token_ptr consume_valid_UDT_key();
+
 	Expression_ptr finish_parsing();
 
 public:

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "TypeSystem.h"
 #include "Expression.h"
 
 #include <string>
@@ -53,7 +52,7 @@ using Statement = std::variant<
 
 using Statement_ptr = std::shared_ptr<Statement>;
 using Block = std::vector<Statement_ptr>;
-using string_vector = std::vector<std::string>;
+using string_vector = std::vector<std::wstring>;
 
 struct StatementBase
 {
@@ -94,12 +93,11 @@ struct WhileLoop : public Loop
 
 struct ForInLoop : public Loop
 {
-	Type_ptr item_type;
-	std::string item_name;
+	std::wstring item_name;
 	Expression_ptr iterable;
 
-	ForInLoop(Type_ptr item_type, std::string item_name, Expression_ptr iterable, Block block)
-		: Loop(block), item_type(std::move(item_type)), item_name(item_name), iterable(std::move(iterable)) {};
+	ForInLoop(std::wstring item_name, Expression_ptr iterable, Block block)
+		: Loop(block), item_name(item_name), iterable(std::move(iterable)) {};
 };
 
 struct Break : public StatementBase
@@ -119,66 +117,47 @@ struct Continue : public StatementBase
 struct Definition : public StatementBase
 {
 	bool is_public;
-	std::string name;
+	std::wstring name;
 
-	Definition(bool is_public, std::string name)
+	Definition(bool is_public, std::wstring name)
 		: is_public(is_public), name(name) {};
 };
 
 struct VariableDefinition : public Definition
 {
 	bool is_mutable;
-	Type_ptr type;
 	Expression_ptr expression;
 
-	VariableDefinition(bool is_public, bool is_mutable, std::string name, Type_ptr type, Expression_ptr expression)
-		: Definition(is_public, name), is_mutable(is_mutable), type(std::move(type)), expression(std::move(expression)) {};
-};
-
-struct UDTDefinition : public Definition
-{
-	std::map<std::string, Type_ptr> member_types;
-	std::map<std::string, bool> is_public_member;
-
-	UDTDefinition(bool is_public, std::string name, std::map<std::string, Type_ptr> member_types, std::map<std::string, bool> is_public_member)
-		: Definition(is_public, name), member_types(member_types), is_public_member(is_public_member) {};
-};
-
-struct AliasDefinition : public Definition
-{
-	Type_ptr type;
-
-	AliasDefinition(bool is_public, std::string name, Type_ptr type)
-		: Definition(is_public, name), type(std::move(type)) {};
+	VariableDefinition(bool is_public, bool is_mutable, std::wstring name, Expression_ptr expression)
+		: Definition(is_public, name), is_mutable(is_mutable), expression(std::move(expression)) {};
 };
 
 struct CallableDefinition : public Definition
 {
-	std::vector<std::pair<std::string, Type_ptr>> arguments;
-	std::optional<Type_ptr> return_type;
+	std::vector<std::wstring> arguments;
 	Block body;
 
-	CallableDefinition(bool is_public, std::string name, std::vector<std::pair<std::string, Type_ptr>> arguments, std::optional<Type_ptr> return_type, Block body)
-		: Definition(is_public, name), arguments(arguments), return_type(return_type), body(body) {};
+	CallableDefinition(bool is_public, std::wstring name, std::vector<std::wstring> arguments, Block body)
+		: Definition(is_public, name), arguments(arguments), body(body) {};
 };
 
 struct FunctionDefinition : public CallableDefinition
 {
-	FunctionDefinition(bool is_public, std::string name, std::vector<std::pair<std::string, Type_ptr>> arguments, std::optional<Type_ptr> return_type, Block body)
-		: CallableDefinition(is_public, name, arguments, return_type, body) {};
+	FunctionDefinition(bool is_public, std::wstring name, std::vector<std::wstring> arguments, Block body)
+		: CallableDefinition(is_public, name, arguments, body) {};
 };
 
 struct GeneratorDefinition : public CallableDefinition
 {
-	GeneratorDefinition(bool is_public, std::string name, std::vector<std::pair<std::string, Type_ptr>> arguments, std::optional<Type_ptr> return_type, Block body)
-		: CallableDefinition(is_public, name, arguments, return_type, body) {};
+	GeneratorDefinition(bool is_public, std::wstring name, std::vector<std::wstring> arguments, Block body)
+		: CallableDefinition(is_public, name, arguments, body) {};
 };
 
 struct EnumDefinition : public Definition
 {
 	string_vector members;
 
-	EnumDefinition(bool is_public, std::string name, string_vector members)
+	EnumDefinition(bool is_public, std::wstring name, string_vector members)
 		: Definition(is_public, name), members(members) {};
 };
 
@@ -193,17 +172,17 @@ struct Import : public StatementBase
 
 struct ImportCustom : public Import
 {
-	std::string path;
+	std::wstring path;
 
-	ImportCustom(std::string path, string_vector goods)
+	ImportCustom(std::wstring path, string_vector goods)
 		: Import(goods), path(path) {};
 };
 
 struct ImportInBuilt : public Import
 {
-	std::string module_name;
+	std::wstring module_name;
 
-	ImportInBuilt(std::string module_name, string_vector goods)
+	ImportInBuilt(std::wstring module_name, string_vector goods)
 		: Import(goods), module_name(module_name) {};
 };
 

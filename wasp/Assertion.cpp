@@ -3,16 +3,15 @@
 #include <string>
 #include "spdlog.h"
 
-void ASSERT(bool condition, std::string message)
+void ASSERT(bool condition, std::wstring message)
 {
 	if (!condition)
 	{
-		spdlog::error(message);
-		exit(1);
+		FATAL(message);
 	}
 }
 
-void FATAL(std::string message)
+void FATAL(std::wstring message)
 {
 	spdlog::error(message);
 	exit(1);

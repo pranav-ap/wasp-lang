@@ -2,4 +2,4 @@
 
 #include <string>
 
-std::string read_source(std::string path);
+std::wstring read_source(std::string path);

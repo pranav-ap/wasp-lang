@@ -103,11 +103,8 @@ void TokenPipe::expect_indent(const int expected_indent)
 	}
 
 	auto token = current();
-
-	if (token.has_value())
-	{
-		ASSERT(token.value()->type != WTokenType::SPACE, "Incorrect Indentation");
-	}
+	OPT_CHECK(token);
+	ASSERT(token.value()->type != WTokenType::SPACE, "Incorrect Indentation");
 }
 
 bool TokenPipe::has_indent(const int expected_indent)

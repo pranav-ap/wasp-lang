@@ -1,6 +1,7 @@
 #pragma once
-#include "WaspCLI.h"
+
 #include "spdlog.h"
+#include "WaspCLI.h"
 
 int main(int argc, char** argv)
 {

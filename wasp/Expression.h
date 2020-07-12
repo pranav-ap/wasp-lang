@@ -12,7 +12,6 @@
 struct ListLiteral;
 struct TupleLiteral;
 struct MapLiteral;
-struct UDTLiteral;
 struct UDTMemberAccess;
 struct EnumMember;
 struct Identifier;
@@ -22,10 +21,9 @@ struct Binary;
 
 using Expression = std::variant<
 	std::monostate,
-	double, std::string, bool,
+	double, std::wstring, bool,
 	ListLiteral, TupleLiteral,
-	MapLiteral, UDTLiteral,
-	UDTMemberAccess, EnumMember,
+	MapLiteral, EnumMember,
 	Identifier, Call,
 	Unary, Binary
 >;
@@ -40,8 +38,8 @@ struct ExpressionBase
 
 struct Identifier : public ExpressionBase
 {
-	std::string name;
-	Identifier(std::string name) : name(name) {};
+	std::wstring name;
+	Identifier(std::wstring name) : name(name) {};
 };
 
 // SequenceLiteral
@@ -65,55 +63,33 @@ struct TupleLiteral : public SequenceLiteral
 		: SequenceLiteral(expressions) {};
 };
 
-// DictionaryLiteral
-
-struct DictionaryLiteral : public ExpressionBase
+struct MapLiteral : public ExpressionBase
 {
 	std::map<Token_ptr, Expression_ptr> pairs;
-	DictionaryLiteral(std::map<Token_ptr, Expression_ptr> pairs)
-		: pairs(pairs) {};
-};
 
-struct MapLiteral : public DictionaryLiteral
-{
 	MapLiteral(std::map<Token_ptr, Expression_ptr> pairs)
-		: DictionaryLiteral(pairs) {};
-};
-
-struct UDTLiteral : public DictionaryLiteral
-{
-	UDTLiteral(std::map<Token_ptr, Expression_ptr> pairs)
-		: DictionaryLiteral(pairs) {};
+		: pairs(pairs) {};
 };
 
 // Member
 
-struct UDTMemberAccess : public ExpressionBase
-{
-	Expression_ptr container;
-	Expression_ptr access_expression;
-
-	UDTMemberAccess(Expression_ptr container, Expression_ptr access_expression)
-		: container(std::move(container)), access_expression(std::move(access_expression)) {};
-};
-
 struct EnumMember : public ExpressionBase
 {
-	std::string enum_name;
-	std::string member_name;
+	std::wstring enum_name;
+	std::wstring member_name;
 
-	EnumMember(std::string enum_name, std::string member_name)
+	EnumMember(std::wstring enum_name, std::wstring member_name)
 		: enum_name(enum_name), member_name(member_name) {};
 };
 
 struct Call : public ExpressionBase
 {
-	std::string name;
+	std::wstring name;
 	ExpressionVector arguments;
 
-	Call(std::string name)
+	Call(std::wstring name)
 		: name(name) {};
-	Call(std::string name, ExpressionVector arguments)
+	Call(std::wstring name, ExpressionVector arguments)
 		: name(name), arguments(arguments) {};
 };
 

@@ -830,7 +830,7 @@ namespace CLI {
 		enum class enabler {};
 
 		/// An instance to use in EnableIf
-		constexpr enabler accept = {};
+		constexpr enabler dummy = {};
 	} // namespace detail
 
 	/// A copy of enable_if_t from C++14, compatible with C++11.
@@ -999,7 +999,7 @@ namespace CLI {
 		};
 
 		/// Templated operation to get a value from a stream
-		template <typename T, enable_if_t<is_istreamable<T>::value, detail::enabler> = detail::accept>
+		template <typename T, enable_if_t<is_istreamable<T>::value, detail::enabler> = detail::dummy>
 		bool from_stream(const std::string& istring, T& obj) {
 			std::istringstream is;
 			is.str(istring);
@@ -1007,7 +1007,7 @@ namespace CLI {
 			return !is.fail() && !is.rdbuf()->in_avail();
 		}
 
-		template <typename T, enable_if_t<!is_istreamable<T>::value, detail::enabler> = detail::accept>
+		template <typename T, enable_if_t<!is_istreamable<T>::value, detail::enabler> = detail::dummy>
 		bool from_stream(const std::string& /*istring*/, T& /*obj*/) {
 			return false;
 		}
@@ -1025,7 +1025,7 @@ namespace CLI {
 		};
 
 		/// Convert an object to a string (directly forward if this can become a string)
-		template <typename T, enable_if_t<std::is_constructible<std::string, T>::value, detail::enabler> = detail::accept>
+		template <typename T, enable_if_t<std::is_constructible<std::string, T>::value, detail::enabler> = detail::dummy>
 		auto to_string(T&& value) -> decltype(std::forward<T>(value)) {
 			return std::forward<T>(value);
 		}
@@ -1033,7 +1033,7 @@ namespace CLI {
 		/// Convert an object to a string (streaming must be supported for that type)
 		template <typename T,
 			enable_if_t<!std::is_constructible<std::string, T>::value&& is_ostreamable<T>::value, detail::enabler> =
-			detail::accept>
+			detail::dummy>
 			std::string to_string(T&& value) {
 			std::stringstream stream;
 			stream << value;
@@ -1044,7 +1044,7 @@ namespace CLI {
 		template <typename T,
 			enable_if_t<!std::is_constructible<std::string, T>::value && !is_ostreamable<T>::value &&
 			!is_vector<typename std::remove_reference<typename std::remove_const<T>::type>::type>::value,
-			detail::enabler> = detail::accept>
+			detail::enabler> = detail::dummy>
 			std::string to_string(T&&) {
 			return std::string{};
 		}
@@ -1053,7 +1053,7 @@ namespace CLI {
 		template <typename T,
 			enable_if_t<!std::is_constructible<std::string, T>::value && !is_ostreamable<T>::value&&
 			is_vector<typename std::remove_reference<typename std::remove_const<T>::type>::type>::value,
-			detail::enabler> = detail::accept>
+			detail::enabler> = detail::dummy>
 			std::string to_string(T&& variable) {
 			std::vector<std::string> defaults;
 			defaults.reserve(variable.size());
@@ -1070,7 +1070,7 @@ namespace CLI {
 		template <typename T1,
 			typename T2,
 			typename T,
-			enable_if_t<std::is_same<T1, T2>::value, detail::enabler> = detail::accept>
+			enable_if_t<std::is_same<T1, T2>::value, detail::enabler> = detail::dummy>
 			auto checked_to_string(T&& value) -> decltype(to_string(std::forward<T>(value))) {
 			return to_string(std::forward<T>(value));
 		}
@@ -1079,23 +1079,23 @@ namespace CLI {
 		template <typename T1,
 			typename T2,
 			typename T,
-			enable_if_t<!std::is_same<T1, T2>::value, detail::enabler> = detail::accept>
+			enable_if_t<!std::is_same<T1, T2>::value, detail::enabler> = detail::dummy>
 			std::string checked_to_string(T&&) {
 			return std::string{};
 		}
 		/// get a string as a convertible value for arithmetic types
-		template <typename T, enable_if_t<std::is_arithmetic<T>::value, detail::enabler> = detail::accept>
+		template <typename T, enable_if_t<std::is_arithmetic<T>::value, detail::enabler> = detail::dummy>
 		std::string value_string(const T& value) {
 			return std::to_string(value);
 		}
 		/// get a string as a convertible value for enumerations
-		template <typename T, enable_if_t<std::is_enum<T>::value, detail::enabler> = detail::accept>
+		template <typename T, enable_if_t<std::is_enum<T>::value, detail::enabler> = detail::dummy>
 		std::string value_string(const T& value) {
 			return std::to_string(static_cast<typename std::underlying_type<T>::type>(value));
 		}
 		/// for other types just use the regular to_string function
 		template <typename T,
-			enable_if_t<!std::is_enum<T>::value && !std::is_arithmetic<T>::value, detail::enabler> = detail::accept>
+			enable_if_t<!std::is_enum<T>::value && !std::is_arithmetic<T>::value, detail::enabler> = detail::dummy>
 			auto value_string(const T& value) -> decltype(to_string(value)) {
 			return to_string(value);
 		}
@@ -1270,13 +1270,13 @@ namespace CLI {
 		template <typename T,
 			enable_if_t<classify_object<T>::value == object_category::integral_value ||
 			classify_object<T>::value == object_category::integer_constructible,
-			detail::enabler> = detail::accept>
+			detail::enabler> = detail::dummy>
 			constexpr const char* type_name() {
 			return "INT";
 		}
 
 		template <typename T,
-			enable_if_t<classify_object<T>::value == object_category::unsigned_integral, detail::enabler> = detail::accept>
+			enable_if_t<classify_object<T>::value == object_category::unsigned_integral, detail::enabler> = detail::dummy>
 			constexpr const char* type_name() {
 			return "UINT";
 		}
@@ -1285,28 +1285,28 @@ namespace CLI {
 			enable_if_t<classify_object<T>::value == object_category::floating_point ||
 			classify_object<T>::value == object_category::number_constructible ||
 			classify_object<T>::value == object_category::double_constructible,
-			detail::enabler> = detail::accept>
+			detail::enabler> = detail::dummy>
 			constexpr const char* type_name() {
 			return "FLOAT";
 		}
 
 		/// Print name for enumeration types
 		template <typename T,
-			enable_if_t<classify_object<T>::value == object_category::enumeration, detail::enabler> = detail::accept>
+			enable_if_t<classify_object<T>::value == object_category::enumeration, detail::enabler> = detail::dummy>
 			constexpr const char* type_name() {
 			return "ENUM";
 		}
 
 		/// Print name for enumeration types
 		template <typename T,
-			enable_if_t<classify_object<T>::value == object_category::boolean_value, detail::enabler> = detail::accept>
+			enable_if_t<classify_object<T>::value == object_category::boolean_value, detail::enabler> = detail::dummy>
 			constexpr const char* type_name() {
 			return "BOOLEAN";
 		}
 
 		/// Print for all other types
 		template <typename T,
-			enable_if_t<classify_object<T>::value >= object_category::string_assignable, detail::enabler> = detail::accept>
+			enable_if_t<classify_object<T>::value >= object_category::string_assignable, detail::enabler> = detail::dummy>
 			constexpr const char* type_name() {
 			return "TEXT";
 		}
@@ -1314,7 +1314,7 @@ namespace CLI {
 		/// Print name for single element tuple types
 		template <typename T,
 			enable_if_t<classify_object<T>::value == object_category::tuple_value && type_count<T>::value == 1,
-			detail::enabler> = detail::accept>
+			detail::enabler> = detail::dummy>
 			inline std::string type_name() {
 			return type_name<typename std::tuple_element<0, T>::type>();
 		}
@@ -1337,7 +1337,7 @@ namespace CLI {
 		/// Print type name for tuples with 2 or more elements
 		template <typename T,
 			enable_if_t<classify_object<T>::value == object_category::tuple_value && type_count<T>::value >= 2,
-			detail::enabler> = detail::accept>
+			detail::enabler> = detail::dummy>
 			std::string type_name() {
 			auto tname = std::string(1, '[') + tuple_name<T, 0>();
 			tname.push_back(']');
@@ -1346,7 +1346,7 @@ namespace CLI {
 
 		/// This one should not be used normally, since vector types print the internal type
 		template <typename T,
-			enable_if_t<classify_object<T>::value == object_category::vector_value, detail::enabler> = detail::accept>
+			enable_if_t<classify_object<T>::value == object_category::vector_value, detail::enabler> = detail::dummy>
 			inline std::string type_name() {
 			return type_name<typename T::value_type>();
 		}
@@ -1400,7 +1400,7 @@ namespace CLI {
 
 		/// Signed integers
 		template <typename T,
-			enable_if_t<classify_object<T>::value == object_category::integral_value, detail::enabler> = detail::accept>
+			enable_if_t<classify_object<T>::value == object_category::integral_value, detail::enabler> = detail::dummy>
 			bool lexical_cast(const std::string& input, T& output) {
 			try {
 				std::size_t n = 0;
@@ -1418,7 +1418,7 @@ namespace CLI {
 
 		/// Unsigned integers
 		template <typename T,
-			enable_if_t<classify_object<T>::value == object_category::unsigned_integral, detail::enabler> = detail::accept>
+			enable_if_t<classify_object<T>::value == object_category::unsigned_integral, detail::enabler> = detail::dummy>
 			bool lexical_cast(const std::string& input, T& output) {
 			if (!input.empty() && input.front() == '-')
 				return false; // std::stoull happily converts negative values to junk without any errors.
@@ -1439,7 +1439,7 @@ namespace CLI {
 
 		/// Boolean values
 		template <typename T,
-			enable_if_t<classify_object<T>::value == object_category::boolean_value, detail::enabler> = detail::accept>
+			enable_if_t<classify_object<T>::value == object_category::boolean_value, detail::enabler> = detail::dummy>
 			bool lexical_cast(const std::string& input, T& output) {
 			try {
 				auto out = to_flag_value(input);
@@ -1459,7 +1459,7 @@ namespace CLI {
 
 		/// Floats
 		template <typename T,
-			enable_if_t<classify_object<T>::value == object_category::floating_point, detail::enabler> = detail::accept>
+			enable_if_t<classify_object<T>::value == object_category::floating_point, detail::enabler> = detail::dummy>
 			bool lexical_cast(const std::string& input, T& output) {
 			try {
 				std::size_t n = 0;
@@ -1476,7 +1476,7 @@ namespace CLI {
 
 		/// String and similar direct assignment
 		template <typename T,
-			enable_if_t<classify_object<T>::value == object_category::string_assignable, detail::enabler> = detail::accept>
+			enable_if_t<classify_object<T>::value == object_category::string_assignable, detail::enabler> = detail::dummy>
 			bool lexical_cast(const std::string& input, T& output) {
 			output = input;
 			return true;
@@ -1485,7 +1485,7 @@ namespace CLI {
 		/// String and similar constructible and copy assignment
 		template <
 			typename T,
-			enable_if_t<classify_object<T>::value == object_category::string_constructible, detail::enabler> = detail::accept>
+			enable_if_t<classify_object<T>::value == object_category::string_constructible, detail::enabler> = detail::dummy>
 			bool lexical_cast(const std::string& input, T& output) {
 			output = T(input);
 			return true;
@@ -1493,7 +1493,7 @@ namespace CLI {
 
 		/// Enumerations
 		template <typename T,
-			enable_if_t<classify_object<T>::value == object_category::enumeration, detail::enabler> = detail::accept>
+			enable_if_t<classify_object<T>::value == object_category::enumeration, detail::enabler> = detail::dummy>
 			bool lexical_cast(const std::string& input, T& output) {
 			typename std::underlying_type<T>::type val;
 			bool retval = detail::lexical_cast(input, val);
@@ -1507,7 +1507,7 @@ namespace CLI {
 		/// Assignable from double or int
 		template <
 			typename T,
-			enable_if_t<classify_object<T>::value == object_category::number_constructible, detail::enabler> = detail::accept>
+			enable_if_t<classify_object<T>::value == object_category::number_constructible, detail::enabler> = detail::dummy>
 			bool lexical_cast(const std::string& input, T& output) {
 			int val;
 			if (lexical_cast(input, val)) {
@@ -1527,7 +1527,7 @@ namespace CLI {
 		/// Assignable from int
 		template <
 			typename T,
-			enable_if_t<classify_object<T>::value == object_category::integer_constructible, detail::enabler> = detail::accept>
+			enable_if_t<classify_object<T>::value == object_category::integer_constructible, detail::enabler> = detail::dummy>
 			bool lexical_cast(const std::string& input, T& output) {
 			int val;
 			if (lexical_cast(input, val)) {
@@ -1540,7 +1540,7 @@ namespace CLI {
 		/// Assignable from double
 		template <
 			typename T,
-			enable_if_t<classify_object<T>::value == object_category::double_constructible, detail::enabler> = detail::accept>
+			enable_if_t<classify_object<T>::value == object_category::double_constructible, detail::enabler> = detail::dummy>
 			bool lexical_cast(const std::string& input, T& output) {
 			double val;
 			if (lexical_cast(input, val)) {
@@ -1551,7 +1551,7 @@ namespace CLI {
 		}
 
 		/// Non-string parsable by a stream
-		template <typename T, enable_if_t<classify_object<T>::value == object_category::other, detail::enabler> = detail::accept>
+		template <typename T, enable_if_t<classify_object<T>::value == object_category::other, detail::enabler> = detail::dummy>
 		bool lexical_cast(const std::string& input, T& output) {
 			static_assert(is_istreamable<T>::value,
 				"option object type must have a lexical cast overload or streaming input operator(>>) defined, if it "
@@ -1565,7 +1565,7 @@ namespace CLI {
 			typename XC,
 			enable_if_t<std::is_same<T, XC>::value && (classify_object<T>::value == object_category::string_assignable ||
 				classify_object<T>::value == object_category::string_constructible),
-			detail::enabler> = detail::accept>
+			detail::enabler> = detail::dummy>
 			bool lexical_assign(const std::string& input, T& output) {
 			return lexical_cast(input, output);
 		}
@@ -1575,7 +1575,7 @@ namespace CLI {
 			typename XC,
 			enable_if_t<std::is_same<T, XC>::value&& classify_object<T>::value != object_category::string_assignable &&
 			classify_object<T>::value != object_category::string_constructible,
-			detail::enabler> = detail::accept>
+			detail::enabler> = detail::dummy>
 			bool lexical_assign(const std::string& input, T& output) {
 			if (input.empty()) {
 				output = T{};
@@ -1588,7 +1588,7 @@ namespace CLI {
 		template <
 			typename T,
 			typename XC,
-			enable_if_t<!std::is_same<T, XC>::value&& std::is_assignable<T&, XC&>::value, detail::enabler> = detail::accept>
+			enable_if_t<!std::is_same<T, XC>::value&& std::is_assignable<T&, XC&>::value, detail::enabler> = detail::dummy>
 			bool lexical_assign(const std::string& input, T& output) {
 			XC val{};
 			bool parse_result = (!input.empty()) ? lexical_cast<XC>(input, val) : true;
@@ -1603,7 +1603,7 @@ namespace CLI {
 			typename XC,
 			enable_if_t<!std::is_same<T, XC>::value && !std::is_assignable<T&, XC&>::value&&
 			std::is_move_assignable<T>::value,
-			detail::enabler> = detail::accept>
+			detail::enabler> = detail::dummy>
 			bool lexical_assign(const std::string& input, T& output) {
 			XC val{};
 			bool parse_result = input.empty() ? true : lexical_cast<XC>(input, val);
@@ -1617,7 +1617,7 @@ namespace CLI {
 			typename T,
 			typename XC,
 			enable_if_t<!is_tuple_like<T>::value && !is_tuple_like<XC>::value && !is_vector<T>::value && !is_vector<XC>::value,
-			detail::enabler> = detail::accept>
+			detail::enabler> = detail::dummy>
 			bool lexical_conversion(const std::vector<std::string>& strings, T& output) {
 			return lexical_assign<T, XC>(strings[0], output);
 		}
@@ -1625,7 +1625,7 @@ namespace CLI {
 		/// Lexical conversion if there is only one element but the conversion type is for two call a two element constructor
 		template <typename T,
 			typename XC,
-			enable_if_t<type_count<T>::value == 1 && type_count<XC>::value == 2, detail::enabler> = detail::accept>
+			enable_if_t<type_count<T>::value == 1 && type_count<XC>::value == 2, detail::enabler> = detail::dummy>
 			bool lexical_conversion(const std::vector<std::string>& strings, T& output) {
 			typename std::tuple_element<0, XC>::type v1;
 			typename std::tuple_element<1, XC>::type v2;
@@ -1644,7 +1644,7 @@ namespace CLI {
 			class XC,
 			enable_if_t<expected_count<T>::value == expected_max_vector_size &&
 			expected_count<XC>::value == expected_max_vector_size && type_count<XC>::value == 1,
-			detail::enabler> = detail::accept>
+			detail::enabler> = detail::dummy>
 			bool lexical_conversion(const std::vector<std::string>& strings, T& output) {
 			output.clear();
 			output.reserve(strings.size());
@@ -1663,7 +1663,7 @@ namespace CLI {
 			class XC,
 			enable_if_t<expected_count<T>::value == expected_max_vector_size &&
 			expected_count<XC>::value == expected_max_vector_size && type_count<XC>::value == 2,
-			detail::enabler> = detail::accept>
+			detail::enabler> = detail::dummy>
 			bool lexical_conversion(const std::vector<std::string>& strings, T& output) {
 			output.clear();
 			for (std::size_t ii = 0; ii < strings.size(); ii += 2) {
@@ -1688,7 +1688,7 @@ namespace CLI {
 			class XC,
 			enable_if_t<(expected_count<T>::value == expected_max_vector_size) && (expected_count<XC>::value == 1) &&
 			(type_count<XC>::value == 1),
-			detail::enabler> = detail::accept>
+			detail::enabler> = detail::dummy>
 			bool lexical_conversion(const std::vector<std::string>& strings, T& output) {
 			bool retval = true;
 			output.clear();
@@ -1704,7 +1704,7 @@ namespace CLI {
 		template <typename T,
 			typename XC,
 			enable_if_t<!is_tuple_like<T>::value && !is_vector<T>::value&& is_vector<XC>::value, detail::enabler> =
-			detail::accept>
+			detail::dummy>
 			bool lexical_conversion(const std::vector<std::string>& strings, T& output) {
 			if (strings.size() > 1 || (!strings.empty() && !(strings.front().empty()))) {
 				XC val;
@@ -1738,7 +1738,7 @@ namespace CLI {
 		}
 
 		/// Conversion for tuples
-		template <class T, class XC, enable_if_t<is_tuple_like<T>::value, detail::enabler> = detail::accept>
+		template <class T, class XC, enable_if_t<is_tuple_like<T>::value, detail::enabler> = detail::dummy>
 		bool lexical_conversion(const std::vector<std::string>& strings, T& output) {
 			static_assert(
 				!is_tuple_like<XC>::value || type_count<T>::value == type_count<XC>::value,
@@ -1751,7 +1751,7 @@ namespace CLI {
 			class XC,
 			enable_if_t<expected_count<T>::value == expected_max_vector_size &&
 			expected_count<XC>::value == expected_max_vector_size && (type_count<XC>::value > 2),
-			detail::enabler> = detail::accept>
+			detail::enabler> = detail::dummy>
 			bool lexical_conversion(const std::vector<std::string>& strings, T& output) {
 			bool retval = true;
 			output.clear();
@@ -1784,7 +1784,7 @@ namespace CLI {
 		/// "-1" an if numbers are passed by some fashion they are captured as well so the function just checks for the most
 		/// common true and false strings then uses stoll to convert the rest for summing
 		template <typename T,
-			enable_if_t<std::is_integral<T>::value&& std::is_unsigned<T>::value, detail::enabler> = detail::accept>
+			enable_if_t<std::is_integral<T>::value&& std::is_unsigned<T>::value, detail::enabler> = detail::dummy>
 			void sum_flag_vector(const std::vector<std::string>& flags, T& output) {
 			int64_t count{ 0 };
 			for (auto& flag : flags) {
@@ -1799,7 +1799,7 @@ namespace CLI {
 		/// "-1" an if numbers are passed by some fashion they are captured as well so the function just checks for the most
 		/// common true and false strings then uses stoll to convert the rest for summing
 		template <typename T,
-			enable_if_t<std::is_integral<T>::value&& std::is_signed<T>::value, detail::enabler> = detail::accept>
+			enable_if_t<std::is_integral<T>::value&& std::is_signed<T>::value, detail::enabler> = detail::dummy>
 			void sum_flag_vector(const std::vector<std::string>& flags, T& output) {
 			int64_t count{ 0 };
 			for (auto& flag : flags) {
@@ -2547,14 +2547,14 @@ namespace CLI {
 
 	namespace detail {
 		template <typename T,
-			enable_if_t<is_copyable_ptr<typename std::remove_reference<T>::type>::value, detail::enabler> = detail::accept>
+			enable_if_t<is_copyable_ptr<typename std::remove_reference<T>::type>::value, detail::enabler> = detail::dummy>
 			auto smart_deref(T value) -> decltype(*value) {
 			return *value;
 		}
 
 		template <
 			typename T,
-			enable_if_t<!is_copyable_ptr<typename std::remove_reference<T>::type>::value, detail::enabler> = detail::accept>
+			enable_if_t<!is_copyable_ptr<typename std::remove_reference<T>::type>::value, detail::enabler> = detail::dummy>
 			typename std::remove_reference<T>::type& smart_deref(T& value) {
 			return value;
 		}
@@ -2602,7 +2602,7 @@ namespace CLI {
 		};
 
 		/// A search function
-		template <typename T, typename V, enable_if_t<!has_find<T, V>::value, detail::enabler> = detail::accept>
+		template <typename T, typename V, enable_if_t<!has_find<T, V>::value, detail::enabler> = detail::dummy>
 		auto search(const T& set, const V& val) -> std::pair<bool, decltype(std::begin(detail::smart_deref(set)))> {
 			using element_t = typename detail::element_type<T>::type;
 			auto& setref = detail::smart_deref(set);
@@ -2613,7 +2613,7 @@ namespace CLI {
 		}
 
 		/// A search function that uses the built in find function
-		template <typename T, typename V, enable_if_t<has_find<T, V>::value, detail::enabler> = detail::accept>
+		template <typename T, typename V, enable_if_t<has_find<T, V>::value, detail::enabler> = detail::dummy>
 		auto search(const T& set, const V& val) -> std::pair<bool, decltype(std::begin(detail::smart_deref(set)))> {
 			auto& setref = detail::smart_deref(set);
 			auto it = setref.find(val);
@@ -3748,7 +3748,7 @@ namespace CLI {
 			if ((Validator_name.empty()) && (!validators_.empty())) {
 				return &(validators_.front());
 			}
-			throw OptionNotFound(std::string{ "Validator " } +Validator_name + " Not Found");
+			throw OptionNotFound(std::string{ "Validator " } + Validator_name + " Not Found");
 		}
 
 		/// Get a Validator by index NOTE: this may not be the order of definition
@@ -4228,7 +4228,7 @@ namespace CLI {
 		}
 
 		/// Get the results as a specified type
-		template <typename T, enable_if_t<!std::is_const<T>::value, detail::enabler> = detail::accept>
+		template <typename T, enable_if_t<!std::is_const<T>::value, detail::enabler> = detail::dummy>
 		void results(T& output) const {
 			bool retval;
 			if (current_option_state_ >= option_state::reduced || (results_.size() == 1 && validators_.empty())) {
@@ -4895,8 +4895,8 @@ namespace CLI {
 		}
 
 		/// Remove the error when extras are left over on the command line.
-		App* required(bool required = true) {
-			required_ = required;
+		App* required(bool require = true) {
+			required_ = require;
 			return this;
 		}
 
@@ -5108,7 +5108,7 @@ namespace CLI {
 		/// Add option for assigning to a variable
 		template <typename AssignTo,
 			typename ConvertTo = AssignTo,
-			enable_if_t<!std::is_const<ConvertTo>::value, detail::enabler> = detail::accept>
+			enable_if_t<!std::is_const<ConvertTo>::value, detail::enabler> = detail::dummy>
 			Option* add_option(std::string option_name,
 				AssignTo& variable, ///< The variable to set
 				std::string option_description = "",
@@ -5160,7 +5160,7 @@ namespace CLI {
 		/// Add option with description but with no variable assignment or callback
 		template <typename T,
 			enable_if_t<std::is_const<T>::value&& std::is_constructible<std::string, T>::value, detail::enabler> =
-			detail::accept>
+			detail::dummy>
 			Option* add_option(std::string option_name, T& option_description) {
 			return add_option(option_name, CLI::callback_t(), option_description, false);
 		}
@@ -5236,7 +5236,7 @@ namespace CLI {
 		/// flag
 		template <typename T,
 			enable_if_t<std::is_const<T>::value&& std::is_constructible<std::string, T>::value, detail::enabler> =
-			detail::accept>
+			detail::dummy>
 			Option* add_flag(std::string flag_name, T& flag_description) {
 			return _add_flag_internal(flag_name, CLI::callback_t(), flag_description);
 		}
@@ -5244,7 +5244,7 @@ namespace CLI {
 		/// Add option for flag with integer result - defaults to allowing multiple passings, but can be forced to one
 		/// if `multi_option_policy(CLI::MultiOptionPolicy::Throw)` is used.
 		template <typename T,
-			enable_if_t<std::is_integral<T>::value && !is_bool<T>::value, detail::enabler> = detail::accept>
+			enable_if_t<std::is_integral<T>::value && !is_bool<T>::value, detail::enabler> = detail::dummy>
 			Option* add_flag(std::string flag_name,
 				T& flag_count, ///< A variable holding the count
 				std::string flag_description = "") {
@@ -5268,7 +5268,7 @@ namespace CLI {
 			enable_if_t<!is_vector<T>::value && !std::is_const<T>::value &&
 			(!std::is_integral<T>::value || is_bool<T>::value) &&
 			!std::is_constructible<std::function<void(int)>, T>::value,
-			detail::enabler> = detail::accept>
+			detail::enabler> = detail::dummy>
 			Option* add_flag(std::string flag_name,
 				T& flag_result, ///< A variable holding true if passed
 				std::string flag_description = "") {
@@ -5280,7 +5280,7 @@ namespace CLI {
 
 		/// Vector version to capture multiple flags.
 		template <typename T,
-			enable_if_t<!std::is_assignable<std::function<void(int64_t)>, T>::value, detail::enabler> = detail::accept>
+			enable_if_t<!std::is_assignable<std::function<void(int64_t)>, T>::value, detail::enabler> = detail::dummy>
 			Option* add_flag(std::string flag_name,
 				std::vector<T>& flag_results, ///< A vector of values with the flag results
 				std::string flag_description = "") {
@@ -7563,7 +7563,7 @@ namespace CLI {
 
 	namespace detail {
 		/// This class is simply to allow tests access to App's protected functions
-		struct AppFriend {
+		/*struct AppFriend {
 			/// Wrap _parse_short, perfectly forward arguments and return
 			template <typename... Args>
 			static auto parse_arg(App* app, Args&&... args) ->
@@ -7579,7 +7579,7 @@ namespace CLI {
 			}
 			/// Wrap the fallthrough parent function to make sure that is working correctly
 			static App* get_fallthrough_parent(App* app) { return app->_get_fallthrough_parent(); }
-		};
+		};*/
 	} // namespace detail
 } // namespace CLI
 

@@ -2,7 +2,6 @@
 
 #include "Token.h"
 #include "TokenPipe.h"
-#include "TypeSystem.h"
 #include "Expression.h"
 #include "Statement.h"
 #include "Module.h"
@@ -41,25 +40,14 @@ class Parser
 	Statement_ptr parse_while_loop(int expected_indent = 0);
 	Statement_ptr parse_for_in_loop(int expected_indent = 0);
 
-	// Type parsers
-
-	Type_ptr parse_type(bool is_optional = false);
-	Type_ptr parse_list_type(bool is_optional);
-	Type_ptr parse_tuple_type(bool is_optional);
-	Type_ptr parse_map_type(bool is_optional);
-	Type_ptr consume_datatype_word(bool is_optional);
-
-	std::pair<std::string, Type_ptr> consume_identifier_type_pair();
-
 	// Definition Parsers
 
 	Statement_ptr parse_variable_definition(bool is_public, bool is_mutable);
-	Statement_ptr parse_type_definition(bool is_public, int expected_indent);
 
 	Statement_ptr parse_enum_definition(bool is_public, int expected_indent);
-	std::vector<std::string> parse_enum_members(int expected_indent);
+	std::vector<std::wstring> parse_enum_members(int expected_indent);
 
-	std::tuple<std::string, std::vector<std::pair<std::string, Type_ptr>>, std::optional<Type_ptr>, Block> parse_callable_definition(int expected_indent);
+	std::tuple<std::wstring, string_vector, Block> parse_callable_definition(int expected_indent);
 	Statement_ptr parse_function_definition(bool is_public, int expected_indent);
 	Statement_ptr parse_generator_definition(bool is_public, int expected_indent);
 

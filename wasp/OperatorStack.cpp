@@ -31,7 +31,7 @@ void OperatorStack::push_operator_into_ast(Token_ptr operator_token, ExpressionS
 	}
 	default:
 	{
-		FATAL(operator_token->value + " operator parity is neither 1 nor 2");
+		FATAL(operator_token->value + L" operator parity is neither 1 nor 2");
 	}
 	}
 }
@@ -40,7 +40,7 @@ void OperatorStack::push_unary_operator_to_ast(Token_ptr operator_token, Express
 {
 	ASSERT(
 		ast.size() > 0,
-		operator_token->value + " requries one operand. But the AST is empty."
+		operator_token->value + L" requries one operand. But the AST is empty."
 	);
 
 	Expression_ptr expression = move(ast.top());
@@ -58,7 +58,7 @@ void OperatorStack::push_binary_operator_to_ast(Token_ptr operator_token, Expres
 {
 	ASSERT(
 		ast.size() >= 2,
-		operator_token->value + " requires two operands"
+		operator_token->value + L" requires two operands"
 	);
 
 	Expression_ptr rhs = move(ast.top());

@@ -1,9 +1,9 @@
 #pragma once
+
 #include "WaspCLI.h"
+#include "spdlog.h"
 #include "file_io.h"
 #include "Lexer.h"
-#include "Parser.h"
-#include "spdlog.h"
 #include <string>
 #include <iostream>
 #include <vector>
@@ -11,6 +11,7 @@
 
 using namespace std::chrono;
 using std::string;
+using std::wstring;
 using std::vector;
 using std::cout;
 using std::endl;
@@ -52,20 +53,23 @@ CLI::App& WaspCLI::get_app()
 
 void WaspCLI::run()
 {
-	spdlog::info("Welcome to spdlog!");
+	//spdlog::info("Welcome to spdlog!");
+
 	auto start = high_resolution_clock::now();
 
-	string raw_source = read_source(filepath);
+	wstring raw_source = read_source(filepath);
 
-	Lexer lexer(raw_source);
-	vector<Token_ptr> tokens = lexer.execute();
-
-	Parser parser(tokens);
-	Module mod = parser.execute();
+	Lexer lexer;
+	vector<Token_ptr> tokens = lexer.execute(raw_source);
 
 	auto end = high_resolution_clock::now();
-	duration<double> elapsed_seconds = end - start;
+
+	// Calculate time taken
+
+	auto elapsed_seconds = end - start;
 	double time_taken = elapsed_seconds.count();
 
-	spdlog::info("Time Taken : {} seconds", time_taken);
+	cout << "Time Taken : " << time_taken << "seconds";
+
+	//spdlog::info("Time Taken : {} seconds", time_taken);
 }

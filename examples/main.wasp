@@ -1,0 +1,10 @@
+while true:
+    pass
+
+for x in [1, 2, 3]:
+    pass
+
+fn add(a, b):
+    if a > b:
+        return a + b + 4
+    return a + b

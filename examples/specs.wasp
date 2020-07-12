@@ -1,0 +1,29 @@
+﻿import { add } from "path"
+
+// Its more of a comment really
+
+let x = 34
+let x = "hello"
+let x = [ 1, 2, 3 ]
+let x = ⌊ 1, "hello" ⌋
+let x = ⟨ "a" : "b",  "c" : "d" ⟩
+
+a, b, c = 1, 2, 3
+
+if a > 3 and r == 3:
+    pass
+elif a > 3:
+    pass
+else:
+    pass
+
+while true:
+    pass
+
+for x in [1, 2, 3]:
+    pass
+
+fn add(a, b):
+    if a > b:
+        return a + b + 4
+    return a + b
