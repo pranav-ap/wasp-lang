@@ -8,10 +8,11 @@ using namespace std::chrono;
 
 int main()
 {
+	spdlog::set_pattern("%^[%=8l]%$ %@ %v");
 	spdlog::info("Welcome to Wasp!");
 	auto start = high_resolution_clock::now();
 
-	DECIMAL_CODE_POINT_VECTOR raw_source = Utils::read_source("main.txt");
+	STRING raw_source = Utils::read_source("../examples/main.txt");
 
 	// Calculate time taken
 

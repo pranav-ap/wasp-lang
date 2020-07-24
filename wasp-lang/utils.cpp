@@ -2,16 +2,15 @@
 #include "utils.h"
 #include "Assertion.h"
 #include <fstream>
-#include <iostream>
+#include <regex>
 #include <string>
 #include <algorithm>
-#include <codecvt>
 
 using std::begin;
 using std::end;
 using std::ifstream;
 using std::string;
-using std::find_if_not;
+using std::wstring;
 
 bool valid_utf8_file(string path)
 {
@@ -24,61 +23,43 @@ bool valid_utf8_file(string path)
 	return utf8::is_valid(start_it, end_it);
 }
 
-bool Utils::check_line_is_empty(DECIMAL_CODE_POINT_VECTOR utf16_line)
+STRING decimal_code_to_wstring(DECIMAL_CODE_POINT_VECTOR utf16_file)
 {
-	const bool is_empty_line = std::none_of(
-		begin(utf16_line),
-		end(utf16_line),
-		[=](DECIMAL_CODE_POINT decimal_code_point)
-		{
-			return std::find(
-				begin(whitespace_characters),
-				end(whitespace_characters),
-				decimal_code_point
-			) == end(whitespace_characters);
-		}
-	);
+	STRING str;
 
-	return is_empty_line;
+	for (CHARACTER ch : utf16_file)
+	{
+		str.push_back(ch);
+	}
+
+	return str;
 }
 
-DECIMAL_CODE_POINT_VECTOR Utils::read_source(string path)
+STRING Utils::read_source(string path)
 {
-	ifstream fs(path);
 	ASSERT(valid_utf8_file(path), "File encoding must be UTF-8");
+
+	ifstream fs(path);
 	ASSERT(fs.is_open(), "File cannot be opened");
 
 	string line;
-	DECIMAL_CODE_POINT_VECTOR utf16_file;
+	STRING raw_source_file;
 
 	while (getline(fs, line))
 	{
-		// Convert to UTF-16
-
 		DECIMAL_CODE_POINT_VECTOR utf16_line;
 		utf8::utf8to16(begin(line), end(line), back_inserter(utf16_line));
 
-		const bool is_empty_line = check_line_is_empty(utf16_line);
+		STRING raw_source_line = decimal_code_to_wstring(utf16_line);
 
-		// ADD '\n' escape character & Replace Tabs with 4 Spaces
-
-		if (!is_empty_line)
+		if (raw_source_line.find_first_not_of(L" \t\n\v\f\r") != wstring::npos)
 		{
-			for (DECIMAL_CODE_POINT decimal_code_point : utf16_line)
-			{
-				if (decimal_code_point == UNSIGNED_SHORT CHARACTER::TAB)
-				{
-					std::fill_n(end(utf16_file), 4, UNSIGNED_SHORT CHARACTER::SPACE);
-				}
-				else
-				{
-					utf16_file.push_back(decimal_code_point);
-				}
-			}
+			raw_source_line = std::regex_replace(raw_source_line, std::wregex(L"\t"), L"    ");
+			raw_source_file.append(raw_source_line);
 		}
 
-		utf16_file.push_back(UNSIGNED_SHORT CHARACTER::EOL);
+		raw_source_file.push_back('\n');
 	}
 
-	return utf16_file;
+	return raw_source_file;
 }
