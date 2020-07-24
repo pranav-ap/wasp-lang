@@ -8,3 +8,5 @@
 /x64/Debug
 /.vs/wasp-lang/v16
 /Debug
+/wasp-lang
+/x64/Release

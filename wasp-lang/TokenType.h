@@ -31,7 +31,7 @@ enum class WTokenType
 	DOT,
 	COLON,
 	COLON_COLON,
-	BAR,
+	VERTICAL_BAR,
 
 	PLUS,
 	UNARY_PLUS,
@@ -75,18 +75,18 @@ enum class WTokenType
 	OR,
 
 	LET,
-	CONST_KEYWORD,
+	CONST,
 
 	WHILE,
 	FOR,
 	BREAK,
 	CONTINUE,
-	IN_KEYWORD,
+	IN,
 
 	FN,
 	RETURN,
 	GEN,
-	YIELD_KEYWORD,
+	YIELD,
 
 	TYPE,
 	NUM,
@@ -98,8 +98,8 @@ enum class WTokenType
 
 	NONE,
 
-	TRUE_KEYWORD,
-	FALSE_KEYWORD,
+	TRUE,
+	FALSE,
 
 	IMPORT,
 	FROM,
