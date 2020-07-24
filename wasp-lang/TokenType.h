@@ -75,13 +75,13 @@ enum class WTokenType
 	OR,
 
 	LET,
-	CONST,
+	CONST_KEYWORD,
 
 	WHILE,
 	FOR,
 	BREAK,
 	CONTINUE,
-	IN,
+	IN_KEYWORD,
 
 	FN,
 	RETURN,
@@ -98,8 +98,8 @@ enum class WTokenType
 
 	NONE,
 
-	TRUE,
-	FALSE,
+	TRUE_KEYWORD,
+	FALSE_KEYWORD,
 
 	IMPORT,
 	FROM,

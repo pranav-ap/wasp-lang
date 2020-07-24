@@ -12,56 +12,56 @@
 #include <memory>
 #include <map>
 
-const std::map<std::string, WTokenType> keyword_map =
+const std::map<STRING, WTokenType> keyword_map =
 {
-	{ "if", WTokenType::IF },
-	{ "elif", WTokenType::ELIF },
-	{ "else", WTokenType::ELSE },
+	{ L"if", WTokenType::IF },
+	{ L"elif", WTokenType::ELIF },
+	{ L"else", WTokenType::ELSE },
 
-	{ "and", WTokenType::AND },
-	{ "or", WTokenType::OR },
+	{ L"and", WTokenType::AND },
+	{ L"or", WTokenType::OR },
 
-	{ "let", WTokenType::LET },
-	{ "const", WTokenType::CONST },
+	{ L"let", WTokenType::LET },
+	{ L"const", WTokenType::CONST_KEYWORD },
 
-	{ "while", WTokenType::WHILE },
-	{ "for", WTokenType::FOR },
-	{ "in", WTokenType::IN },
-	{ "break", WTokenType::BREAK },
-	{ "continue", WTokenType::CONTINUE },
+	{ L"while", WTokenType::WHILE },
+	{ L"for", WTokenType::FOR },
+	{ L"in", WTokenType::IN_KEYWORD },
+	{ L"break", WTokenType::BREAK },
+	{ L"continue", WTokenType::CONTINUE },
 
-	{ "fn", WTokenType::FN },
-	{ "return", WTokenType::RETURN },
-	{ "gen", WTokenType::GEN },
-	{ "yield", WTokenType::YIELD },
+	{ L"fn", WTokenType::FN },
+	{ L"return", WTokenType::RETURN },
+	{ L"gen", WTokenType::GEN },
+	{ L"yield", WTokenType::YIELD },
 
-	{ "type", WTokenType::TYPE },
-	{ "num", WTokenType::NUM },
-	{ "str", WTokenType::STR },
-	{ "bool", WTokenType::BOOL },
-	{ "enum", WTokenType::ENUM },
-	{ "any", WTokenType::ANY },
-	{ "opt", WTokenType::OPT },
+	{ L"type", WTokenType::TYPE },
+	{ L"num", WTokenType::NUM },
+	{ L"str", WTokenType::STR },
+	{ L"bool", WTokenType::BOOL },
+	{ L"enum", WTokenType::ENUM },
+	{ L"any", WTokenType::ANY },
+	{ L"opt", WTokenType::OPT },
 
-	{ "none", WTokenType::NONE },
+	{ L"none", WTokenType::NONE },
 
-	{ "true", WTokenType::TRUE },
-	{ "false", WTokenType::FALSE },
+	{ L"true", WTokenType::TRUE_KEYWORD },
+	{ L"false", WTokenType::FALSE_KEYWORD },
 
-	{ "import", WTokenType::IMPORT },
-	{ "from", WTokenType::FROM },
+	{ L"import", WTokenType::IMPORT },
+	{ L"from", WTokenType::FROM },
 
-	{ "new", WTokenType::NEW },
+	{ L"new", WTokenType::NEW },
 
-	{ "pub", WTokenType::PUB },
-	{ "pass", WTokenType::PASS },
+	{ L"pub", WTokenType::PUB },
+	{ L"pass", WTokenType::PASS },
 
-	{ "assert", WTokenType::ASSERT }
+	{ L"assert", WTokenType::ASSERT }
 };
 
 class Lexer
 {
-	std::string raw_source;
+	STRING raw_source;
 
 	TokenPosition position;
 	Pointer pointer;
@@ -70,8 +70,8 @@ class Lexer
 
 	// Consumers
 
-	Token_ptr consume_number_literal(DECIMAL_CODE_POINT decimal_code_point);
-	Token_ptr consume_identifier(DECIMAL_CODE_POINT decimal_code_point);
+	Token_ptr consume_number_literal(wchar_t ch);
+	Token_ptr consume_identifier(wchar_t ch);
 	Token_ptr consume_string_literal();
 
 	Token_ptr consume_plus();
@@ -85,28 +85,28 @@ class Lexer
 	Token_ptr consume_colon();
 	Token_ptr consume_greater_than();
 	Token_ptr consume_lesser_than();
-	Token_ptr consume_single_char_punctuation(DECIMAL_CODE_POINT decimal_code_point);
+	Token_ptr consume_single_char_punctuation(wchar_t ch);
 
 	Token_ptr consume_eol();
 	Token_ptr consume_space();
 
-	Token_ptr consume_unknown_token(DECIMAL_CODE_POINT decimal_code_point);
+	Token_ptr consume_unknown_token(wchar_t ch);
 
 	// Utils
 
-	DECIMAL_CODE_POINT get_char_at(int index) const;
-	DECIMAL_CODE_POINT get_current_char() const;
-	DECIMAL_CODE_POINT get_right_char() const;
+	wchar_t get_char_at(int index) const;
+	wchar_t get_current_char() const;
+	wchar_t get_right_char() const;
 
 	std::optional<Token_ptr> get_previous_significant_token();
 	bool is_unary();
 
-	bool expect_current_char(DECIMAL_CODE_POINT decimal_code_point);
+	bool expect_current_char(wchar_t ch);
 	void next();
 	void previous();
 
-	void init(std::string raw_source);
+	void init(STRING raw_source);
 public:
 	Lexer() {};
-	std::vector<Token_ptr> execute(std::string raw_source);
+	std::vector<Token_ptr> execute(STRING raw_source);
 };

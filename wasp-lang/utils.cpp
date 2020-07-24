@@ -25,14 +25,14 @@ bool valid_utf8_file(string path)
 
 STRING decimal_code_to_wstring(DECIMAL_CODE_POINT_VECTOR utf16_file)
 {
-	STRING str;
+	STRING wstring_file;
 
 	for (CHARACTER ch : utf16_file)
 	{
-		str.push_back(ch);
+		wstring_file.push_back(ch);
 	}
 
-	return str;
+	return wstring_file;
 }
 
 STRING Utils::read_source(string path)
