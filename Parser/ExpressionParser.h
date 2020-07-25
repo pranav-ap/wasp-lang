@@ -21,7 +21,7 @@ class ExpressionParser
 
 	// Parsers
 
-	Expression_ptr parse_identifier(Token_ptr identifier_token);
+	Expression_ptr parse_identifier(Token_ptr identifier);
 	std::vector<std::wstring> parse_enum_member_chain();
 	Expression_ptr parse_member_access();
 	Expression_ptr parse_list_literal();

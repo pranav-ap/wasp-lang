@@ -1,12 +1,6 @@
 #pragma once
 
-#ifdef UTILS_EXPORTS
-#define UTILS_API __declspec(dllexport)
-#else
-#define UTILS_API __declspec(dllimport)
-#endif
-
-enum class UTILS_API ERROR_CODE
+enum class ERROR_CODE
 {
 	UNEXPECTED_TOKEN,
 	UNEXPECTED_KEYWORD,

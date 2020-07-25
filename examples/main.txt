@@ -47,3 +47,6 @@ type Person :
     foo: bool
 
 let x : Person = new Person("john", false)
+
+x.foo.age
+x(123).foo(36, gg).age

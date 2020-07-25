@@ -71,14 +71,16 @@ Expression_ptr ExpressionParser::parse_expression()
 		}
 		case WTokenType::DOT:
 		{
-			if (context_stack.top() == ExpressionContext::MEMBER_ACCESS)
+			if (context_stack.size() == 0 || context_stack.top() != ExpressionContext::MEMBER_ACCESS)
 			{
+				push_context(ExpressionContext::MEMBER_ACCESS);
 				ADVANCE_PTR;
 				auto expression = parse_member_access();
 				ast.push(expression);
+				break;
 			}
 
-			break;
+			return finish_parsing();
 		}
 
 		// UDT LITERAL
@@ -347,25 +349,17 @@ std::vector<std::wstring> ExpressionParser::parse_enum_member_chain()
 Expression_ptr ExpressionParser::parse_member_access()
 {
 	ASSERT(ast.size() > 0, ERROR_CODE::UNEXPECTED_TOKEN);
-	push_context(ExpressionContext::MEMBER_ACCESS);
 
 	auto container = move(ast.top());
 	ast.pop();
 
 	ExpressionVector chain = { container };
 
-	while (true)
+	do
 	{
 		auto member_expression = parse_expression();
 		chain.push_back(member_expression);
-
-		if (token_pipe->optional(WTokenType::DOT))
-		{
-			continue;
-		}
-
-		break;
-	}
+	} while (token_pipe->optional(WTokenType::DOT));
 
 	pop_context(ExpressionContext::MEMBER_ACCESS);
 	return MAKE_EXPRESSION(UDTMemberAccess(chain));
