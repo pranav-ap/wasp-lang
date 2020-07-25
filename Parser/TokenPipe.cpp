@@ -1,4 +1,5 @@
 #pragma once
+#include "pch.h"
 #include "TokenPipe.h"
 #include "Token.h"
 #include "Assertion.h"

@@ -126,13 +126,15 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\include; ..\include\spdlog;..\Token;..\Utils;..\AST;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include;..\include\spdlog;..\Token;..\Utils;..\AST;..\Type_System;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
+      <AdditionalLibraryDirectories>C:\Users\Pranav\source\repos\wasp-lang\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>AST.lib;Token.lib;Type_System.lib;Utils.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -174,9 +176,19 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Source.cpp" />
     <ClCompile Include="TokenPipe.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\AST\AST.vcxproj">
+      <Project>{a287f968-bd00-4267-9ab3-115e709bccf0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Token\Token.vcxproj">
+      <Project>{abf81544-54c4-45e3-a502-383e2ef061af}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Type_System\Type_System.vcxproj">
+      <Project>{91893e84-36aa-4c0c-89a9-9c79f2c970b9}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\Utils\Utils.vcxproj">
       <Project>{825d931e-a262-42d4-8af0-8e503ac06104}</Project>
     </ProjectReference>

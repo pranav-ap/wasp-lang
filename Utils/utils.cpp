@@ -7,6 +7,9 @@
 #include <string>
 #include <algorithm>
 
+using DECIMAL_CODE_POINT = unsigned short;
+using DECIMAL_CODE_POINT_VECTOR = std::vector<DECIMAL_CODE_POINT>;
+
 using std::begin;
 using std::end;
 using std::ifstream;
@@ -16,7 +19,7 @@ using std::wstring;
 bool valid_utf8_file(string path)
 {
 	ifstream fs(path);
-	ASSERT(fs.is_open(), "File cannot be opened.");
+	ASSERT(fs.is_open(), "File cannot be opened");
 
 	std::istreambuf_iterator<char> start_it(fs.rdbuf());
 	std::istreambuf_iterator<char> end_it;
@@ -59,7 +62,7 @@ std::wstring read_source(string path)
 			raw_source_file.append(raw_source_line);
 		}
 
-		raw_source_file.push_back('\n');
+		raw_source_file.append(L"\n");
 	}
 
 	return raw_source_file;

@@ -38,7 +38,7 @@ const std::map<std::wstring, WTokenType> keyword_map =
 	{ L"fn", WTokenType::FN },
 	{ L"return", WTokenType::RETURN },
 	{ L"gen", WTokenType::GEN },
-	{ L"yield", WTokenType::YIELD },
+	{ L"yield", WTokenType::YIELD_KEYWORD },
 
 	{ L"type", WTokenType::TYPE },
 	{ L"num", WTokenType::NUM },
@@ -113,5 +113,11 @@ class LEXER_API Lexer
 	void init(std::wstring raw_source);
 public:
 	Lexer() {};
+	~Lexer()
+	{
+		raw_source = L"";
+		tokens.clear();
+	};
+
 	std::vector<Token_ptr> execute(std::wstring raw_source);
 };

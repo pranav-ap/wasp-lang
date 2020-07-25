@@ -19,6 +19,8 @@
 #define LEFT_FLOOR_BRACKET 8970
 #define RIGHT_FLOOR_BRACKET 8971
 
+#define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr")
+#define OPT_CHECK(x) ASSERT(x.has_value(), "Oh shit! Option is none")
 #define MAKE_TOKEN(type, token, line_num, col_num) std::make_shared<Token>(type, token, line_num, col_num)
 #define LINE_NUM position.get_line_num()
 #define COL_NUM position.get_column_num()

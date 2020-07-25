@@ -29,6 +29,7 @@ template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
 
 using std::string;
+using std::wstring;
 using std::vector;
 using std::stack;
 using std::map;
@@ -43,13 +44,13 @@ using std::optional;
 using std::make_optional;
 using std::holds_alternative;
 
-using identifier_type_pair_vector = std::vector<std::pair<std::string, Type_ptr>>;
+using identifier_type_pair_vector = std::vector<std::pair<std::wstring, Type_ptr>>;
 
-// API
-
-AST Parser::execute()
+AST Parser::execute(std::vector<Token_ptr>& tokens)
 {
-	AST mod;
+	init(tokens);
+
+	AST ast;
 
 	while ((size_t)token_pipe->get_current_index() < token_pipe->get_size())
 	{
@@ -57,11 +58,17 @@ AST Parser::execute()
 
 		if (node)
 		{
-			mod.add(move(node));
+			ast.add(move(node));
 		}
 	}
 
-	return mod;
+	return ast;
+}
+
+void Parser::init(std::vector<Token_ptr>& tokens)
+{
+	token_pipe = std::make_shared<TokenPipe>(tokens);
+	expr_parser = std::make_shared<ExpressionParser>(token_pipe);
 }
 
 // Statement Parsers
@@ -129,7 +136,7 @@ Statement_ptr Parser::parse_public_statement(int expected_indent)
 		CASE(WTokenType::ENUM, parse_enum_definition(is_public, expected_indent));
 	default:
 	{
-		FATAL(token.value()->value + " cannot be made public");
+		FATAL(ERROR_CODE::UNEXPECTED_KEYWORD);
 	}
 	}
 }
@@ -144,7 +151,7 @@ Statement_ptr Parser::parse_expression_statement()
 		return assignment;
 	}
 
-	ASSERT(lhs_expressions.size() == 1, "Comma separated expressions were not expected here");
+	ASSERT(lhs_expressions.size() == 1, ERROR_CODE::UNEXPECTED_TOKEN);
 
 	if (token_pipe->optional(WTokenType::EOL))
 	{
@@ -170,7 +177,7 @@ Statement_ptr Parser::parse_expression_statement()
 	}
 	default:
 	{
-		FATAL("Expected an expression statement or assignment. This was neither.");
+		FATAL(ERROR_CODE::MALFORMED_STATEMENT);
 	}
 	}
 }
@@ -367,8 +374,8 @@ Statement_ptr Parser::parse_type_definition(bool is_public, int expected_indent)
 	token_pipe->expect(WTokenType::COLON);
 	token_pipe->expect(WTokenType::EOL);
 
-	map<string, Type_ptr> member_types;
-	map<string, bool> is_public_member_map;
+	map<wstring, Type_ptr> member_types;
+	map<wstring, bool> is_public_member_map;
 
 	token_pipe->expect_indent(expected_indent);
 
@@ -398,7 +405,7 @@ Statement_ptr Parser::parse_type_definition(bool is_public, int expected_indent)
 	return MAKE_STATEMENT(UDTDefinition(is_public, name->value, member_types, is_public_member_map));
 }
 
-tuple<string, identifier_type_pair_vector, optional<Type_ptr>, Block> Parser::parse_callable_definition(int expected_indent)
+tuple<wstring, identifier_type_pair_vector, optional<Type_ptr>, Block> Parser::parse_callable_definition(int expected_indent)
 {
 	auto identifier = token_pipe->required(WTokenType::CALLABLE_IDENTIFIER);
 	token_pipe->expect(WTokenType::OPEN_PARENTHESIS);
@@ -459,9 +466,9 @@ Statement_ptr Parser::parse_enum_definition(bool is_public, int expected_indent)
 	return MAKE_STATEMENT(EnumDefinition(is_public, identifier->value, members));
 }
 
-vector<string> Parser::parse_enum_members(int expected_indent)
+vector<wstring> Parser::parse_enum_members(int expected_indent)
 {
-	vector<string> members;
+	vector<wstring> members;
 
 	while (true)
 	{
@@ -478,7 +485,7 @@ vector<string> Parser::parse_enum_members(int expected_indent)
 
 			for (auto const& child : children)
 			{
-				members.push_back(identifier->value + "::" + child);
+				members.push_back(identifier->value + L"::" + child);
 			}
 		}
 		else
@@ -509,11 +516,11 @@ Type_ptr Parser::parse_type(bool is_optional)
 		}
 		else if (token_pipe->optional(WTokenType::OPEN_ANGLE_BRACKET))
 		{
-			type = parse_tuple_type(is_optional);
+			type = parse_map_type(is_optional);
 		}
 		else if (token_pipe->optional(WTokenType::OPEN_FLOOR_BRACKET))
 		{
-			type = parse_map_type(is_optional);
+			type = parse_tuple_type(is_optional);
 		}
 		else
 		{
@@ -522,7 +529,7 @@ Type_ptr Parser::parse_type(bool is_optional)
 
 		types.push_back(type);
 
-		if (token_pipe->optional(WTokenType::BAR))
+		if (token_pipe->optional(WTokenType::VERTICAL_BAR))
 		{
 			continue;
 		}
@@ -570,7 +577,7 @@ Type_ptr Parser::parse_tuple_type(bool is_optional)
 		if (token_pipe->optional(WTokenType::COMMA))
 			continue;
 
-		token_pipe->expect(WTokenType::CLOSE_ANGLE_BRACKET);
+		token_pipe->expect(WTokenType::CLOSE_FLOOR_BRACKET);
 		break;
 	}
 
@@ -588,7 +595,7 @@ Type_ptr Parser::parse_map_type(bool is_optional)
 	token_pipe->expect(WTokenType::ARROW);
 
 	auto value_type = parse_type();
-	token_pipe->expect(WTokenType::CLOSE_FLOOR_BRACKET);
+	token_pipe->expect(WTokenType::CLOSE_ANGLE_BRACKET);
 
 	if (is_optional)
 	{
@@ -632,10 +639,10 @@ Type_ptr Parser::consume_datatype_word(bool is_optional)
 	}
 	}
 
-	FATAL("Expected a datatype");
+	FATAL(ERROR_CODE::EXPECTED_DATATYPE);
 }
 
-pair<string, Type_ptr>  Parser::consume_identifier_type_pair()
+pair<wstring, Type_ptr>  Parser::consume_identifier_type_pair()
 {
 	auto identifier = token_pipe->required(WTokenType::IDENTIFIER);
 	token_pipe->expect(WTokenType::COLON);
@@ -650,7 +657,7 @@ Statement_ptr Parser::parse_import()
 {
 	token_pipe->expect(WTokenType::OPEN_CURLY_BRACE);
 
-	string_vector goods;
+	StringVector goods;
 
 	while (true)
 	{
@@ -686,39 +693,39 @@ void Parser::convert_shortcut_token(Token_ptr token)
 	case WTokenType::PLUS_EQUAL:
 	{
 		token->type = WTokenType::PLUS;
-		token->value = "+";
+		token->value = L"+";
 		break;
 	}
 	case WTokenType::MINUS_EQUAL: {
 		token->type = WTokenType::MINUS;
-		token->value = "-";
+		token->value = L"-";
 		break;
 	}
 	case WTokenType::STAR_EQUAL:
 	{
 		token->type = WTokenType::STAR;
-		token->value = "*";
+		token->value = L"*";
 		break;
 	}
 	case WTokenType::DIVISION_EQUAL:
 	{
 		token->type = WTokenType::DIVISION;
-		token->value = "/";
+		token->value = L"/";
 		break;
 	}
 	case WTokenType::REMINDER_EQUAL:
 	{
 		token->type = WTokenType::REMINDER;
-		token->value = "%";
+		token->value = L"%";
 		break;
 	}
 	case WTokenType::POWER_EQUAL:
 	{
 		token->type = WTokenType::POWER;
-		token->value = "^";
+		token->value = L"^";
 		break;
 	}
 	}
 
-	FATAL(token->value + " is not a shortcut token");
+	FATAL(ERROR_CODE::UNEXPECTED_TOKEN);
 }

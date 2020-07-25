@@ -1,4 +1,5 @@
 #pragma once
+#include "pch.h"
 #include "ExpressionParser.h"
 #include "Assertion.h"
 
@@ -93,7 +94,7 @@ Expression_ptr ExpressionParser::parse_expression()
 
 		// MAP_LITERAL
 
-		case WTokenType::OPEN_FLOOR_BRACKET:
+		case WTokenType::OPEN_ANGLE_BRACKET:
 		{
 			push_context(ExpressionContext::MAP_LITERAL);
 			ADVANCE_PTR;
@@ -101,7 +102,7 @@ Expression_ptr ExpressionParser::parse_expression()
 			ast.push(move(value));
 			break;
 		}
-		case WTokenType::CLOSE_FLOOR_BRACKET:
+		case WTokenType::CLOSE_ANGLE_BRACKET:
 		{
 			pop_context(ExpressionContext::MAP_LITERAL);
 			return finish_parsing();
@@ -113,7 +114,7 @@ Expression_ptr ExpressionParser::parse_expression()
 		{
 			push_context(ExpressionContext::LIST_LITERAL);
 			ADVANCE_PTR;
-			auto value = parse_sequence_literal();
+			auto value = parse_list_literal();
 			ast.push(move(value));
 			break;
 		}
@@ -125,15 +126,15 @@ Expression_ptr ExpressionParser::parse_expression()
 
 		// TUPLE LITERAL
 
-		case WTokenType::OPEN_ANGLE_BRACKET:
+		case WTokenType::OPEN_FLOOR_BRACKET:
 		{
 			push_context(ExpressionContext::TUPLE_LITERAL);
 			ADVANCE_PTR;
-			auto value = parse_sequence_literal();
+			auto value = parse_tuple_literal();
 			ast.push(move(value));
 			break;
 		}
-		case WTokenType::CLOSE_ANGLE_BRACKET:
+		case WTokenType::CLOSE_FLOOR_BRACKET:
 		{
 			pop_context(ExpressionContext::TUPLE_LITERAL);
 			return finish_parsing();
@@ -236,29 +237,34 @@ ExpressionVector ExpressionParser::parse_expressions()
 	return elements;
 }
 
-Expression_ptr ExpressionParser::parse_sequence_literal(bool is_tuple)
+Expression_ptr ExpressionParser::parse_list_literal()
 {
 	ExpressionVector elements;
 
-	if (is_tuple && token_pipe->optional(WTokenType::CLOSE_ANGLE_BRACKET))
-	{
-		return MAKE_EXPRESSION(TupleLiteral(elements));
-	}
-	else if (!is_tuple && token_pipe->optional(WTokenType::CLOSE_SQUARE_BRACKET))
+	if (token_pipe->optional(WTokenType::CLOSE_SQUARE_BRACKET))
 	{
 		return MAKE_EXPRESSION(ListLiteral(elements));
 	}
 
 	elements = parse_expressions();
 
-	if (is_tuple)
+	token_pipe->expect(WTokenType::CLOSE_SQUARE_BRACKET);
+	return MAKE_EXPRESSION(ListLiteral(elements));
+}
+
+Expression_ptr ExpressionParser::parse_tuple_literal()
+{
+	ExpressionVector elements;
+
+	if (token_pipe->optional(WTokenType::CLOSE_FLOOR_BRACKET))
 	{
-		token_pipe->expect(WTokenType::CLOSE_ANGLE_BRACKET);
 		return MAKE_EXPRESSION(TupleLiteral(elements));
 	}
 
-	token_pipe->expect(WTokenType::CLOSE_SQUARE_BRACKET);
-	return MAKE_EXPRESSION(ListLiteral(elements));
+	elements = parse_expressions();
+
+	token_pipe->expect(WTokenType::CLOSE_FLOOR_BRACKET);
+	return MAKE_EXPRESSION(TupleLiteral(elements));
 }
 
 Expression_ptr ExpressionParser::parse_UDT_creation()
@@ -268,20 +274,20 @@ Expression_ptr ExpressionParser::parse_UDT_creation()
 	token_pipe->expect(WTokenType::OPEN_PARENTHESIS);
 
 	if (token_pipe->optional(WTokenType::CLOSE_PARENTHESIS))
-		return MAKE_EXPRESSION(UDTConstruct(expressions));
+		return MAKE_EXPRESSION(UDTConstruct(L"", expressions));
 
 	expressions = parse_expressions();
 
 	token_pipe->expect(WTokenType::CLOSE_PARENTHESIS);
 
-	return MAKE_EXPRESSION(UDTConstruct(expressions));
+	return MAKE_EXPRESSION(UDTConstruct(L"", expressions));
 }
 
 Expression_ptr ExpressionParser::parse_map_literal()
 {
 	map<Token_ptr, Expression_ptr> pairs;
 
-	if (token_pipe->optional(WTokenType::CLOSE_FLOOR_BRACKET))
+	if (token_pipe->optional(WTokenType::CLOSE_ANGLE_BRACKET))
 		return MAKE_EXPRESSION(MapLiteral(pairs));
 
 	while (true)
@@ -303,7 +309,7 @@ Expression_ptr ExpressionParser::parse_map_literal()
 
 		token_pipe->ignore({ WTokenType::SPACE, WTokenType::EOL });
 
-		if (token_pipe->optional(WTokenType::CLOSE_FLOOR_BRACKET))
+		if (token_pipe->optional(WTokenType::CLOSE_ANGLE_BRACKET))
 			break;
 
 		token_pipe->expect(WTokenType::COMMA);
@@ -325,8 +331,7 @@ Expression_ptr ExpressionParser::parse_identifier(Token_ptr identifier)
 
 Expression_ptr ExpressionParser::parse_member_access()
 {
-	ASSERT(ast.size() > 0, "Cannot use dot operator without a container before it");
-
+	ASSERT(ast.size() > 0, ERROR_CODE::UNEXPECTED_TOKEN);
 	push_context(ExpressionContext::MEMBER_ACCESS);
 
 	auto container = move(ast.top());
@@ -376,7 +381,7 @@ Expression_ptr ExpressionParser::finish_parsing()
 {
 	operator_stack->drain_into_ast(ast);
 
-	ASSERT(ast.size() == 1, "Malformed Expression. AST must have a single node after parsing.");
+	ASSERT(ast.size() == 1, ERROR_CODE::MALFORMED_EXPRESSION);
 
 	auto result = move(ast.top());
 	ast.pop();
@@ -401,7 +406,7 @@ Token_ptr ExpressionParser::consume_valid_map_key()
 	}
 	}
 
-	FATAL("Expected a valid map key");
+	FATAL(ERROR_CODE::INVALID_MAP_KEY);
 }
 
 Token_ptr ExpressionParser::consume_valid_UDT_key()
@@ -418,7 +423,7 @@ Token_ptr ExpressionParser::consume_valid_UDT_key()
 	}
 	}
 
-	FATAL("Expected a valid map key");
+	FATAL(ERROR_CODE::INVALID_MAP_KEY);
 }
 
 void ExpressionParser::push_context(ExpressionContext context)
@@ -428,6 +433,6 @@ void ExpressionParser::push_context(ExpressionContext context)
 
 void ExpressionParser::pop_context(ExpressionContext context)
 {
-	ASSERT(context_stack.top() == context, "Context Mismatch");
+	ASSERT(context_stack.top() == context, ERROR_CODE::EXPRESSION_PARSER_CONTEXT_MISMATCH);
 	context_stack.pop();
 }

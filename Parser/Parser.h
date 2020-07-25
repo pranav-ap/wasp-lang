@@ -8,10 +8,9 @@
 
 #include "Token.h"
 #include "TokenPipe.h"
-#include "TypeSystem.h"
 #include "Expression.h"
 #include "Statement.h"
-#include "Module.h"
+#include "AST.h"
 #include "ExpressionParser.h"
 
 #include <vector>
@@ -20,7 +19,7 @@
 #include <memory>
 #include <utility>
 
-PARSER_API class Parser
+class PARSER_API Parser
 {
 	TokenPipe_ptr token_pipe;
 	ExpressionParser_ptr expr_parser;
@@ -55,7 +54,7 @@ PARSER_API class Parser
 	Type_ptr parse_map_type(bool is_optional);
 	Type_ptr consume_datatype_word(bool is_optional);
 
-	std::pair<std::string, Type_ptr> consume_identifier_type_pair();
+	std::pair<std::wstring, Type_ptr> consume_identifier_type_pair();
 
 	// Definition Parsers
 
@@ -63,9 +62,9 @@ PARSER_API class Parser
 	Statement_ptr parse_type_definition(bool is_public, int expected_indent);
 
 	Statement_ptr parse_enum_definition(bool is_public, int expected_indent);
-	std::vector<std::string> parse_enum_members(int expected_indent);
+	std::vector<std::wstring> parse_enum_members(int expected_indent);
 
-	std::tuple<std::string, std::vector<std::pair<std::string, Type_ptr>>, std::optional<Type_ptr>, Block> parse_callable_definition(int expected_indent);
+	std::tuple<std::wstring, std::vector<std::pair<std::wstring, Type_ptr>>, std::optional<Type_ptr>, Block> parse_callable_definition(int expected_indent);
 	Statement_ptr parse_function_definition(bool is_public, int expected_indent);
 	Statement_ptr parse_generator_definition(bool is_public, int expected_indent);
 
@@ -76,10 +75,9 @@ PARSER_API class Parser
 
 	void convert_shortcut_token(Token_ptr token);
 
-public:
-	Parser(std::vector<Token_ptr>& tokens)
-		: token_pipe(std::make_shared<TokenPipe>(tokens)),
-		expr_parser(std::make_shared<ExpressionParser>(token_pipe)) {};
+	void init(std::vector<Token_ptr>& tokens);
 
-	AST execute();
+public:
+	Parser() {};
+	AST execute(std::vector<Token_ptr>& tokens);
 };

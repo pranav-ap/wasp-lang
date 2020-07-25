@@ -9,7 +9,7 @@
 #include "Statement.h"
 #include <vector>
 
-struct AST
+struct AST_API AST
 {
 	std::vector<Statement_ptr> nodes;
 	void add(Statement_ptr node);

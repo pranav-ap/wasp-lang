@@ -1,6 +1,10 @@
 #pragma once
 
+#ifdef TYPESYSTEM_EXPORTS
 #define TYPESYSTEM_API __declspec(dllexport)
+#else
+#define TYPESYSTEM_API __declspec(dllimport)
+#endif
 
 #include <string>
 #include <memory>
@@ -90,14 +94,14 @@ struct TYPESYSTEM_API MapType : public CompositeType
 
 struct TYPESYSTEM_API UDTType : public CompositeType
 {
-	std::string name;
-	UDTType(std::string name) : name(name) {};
+	std::wstring name;
+	UDTType(std::wstring name) : name(name) {};
 };
 
 struct TYPESYSTEM_API EnumType : public CompositeType
 {
-	std::string enum_name;
-	EnumType(std::string enum_name) : enum_name(enum_name) {};
+	std::wstring enum_name;
+	EnumType(std::wstring enum_name) : enum_name(enum_name) {};
 };
 
 struct TYPESYSTEM_API VariantType : public CompositeType

@@ -23,7 +23,8 @@ class ExpressionParser
 
 	Expression_ptr parse_identifier(Token_ptr identifier_token);
 	Expression_ptr parse_member_access();
-	Expression_ptr parse_sequence_literal(bool is_tuple = false);
+	Expression_ptr parse_list_literal();
+	Expression_ptr parse_tuple_literal();
 	Expression_ptr parse_UDT_creation();
 	Expression_ptr parse_map_literal();
 

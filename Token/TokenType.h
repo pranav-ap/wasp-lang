@@ -92,7 +92,7 @@ enum class TOKEN_API WTokenType
 	FN,
 	RETURN,
 	GEN,
-	YIELD,
+	YIELD_KEYWORD,
 
 	TYPE,
 	NUM,

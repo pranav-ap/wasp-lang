@@ -4,6 +4,7 @@
 #include "spdlog.h"
 #include "utils.h"
 #include "Lexer.h"
+#include "Parser.h"
 
 using namespace std::chrono;
 
@@ -18,6 +19,9 @@ int main()
 
 	Lexer lexer;
 	auto tokens = lexer.execute(raw_source);
+
+	Parser parser;
+	auto ast = parser.execute(tokens);
 
 	// Calculate time taken
 

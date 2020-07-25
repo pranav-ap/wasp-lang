@@ -1,4 +1,5 @@
 #pragma once
+#include "pch.h"
 #include "OperatorStack.h"
 #include "Assertion.h"
 #include <iostream>
@@ -31,17 +32,14 @@ void OperatorStack::push_operator_into_ast(Token_ptr operator_token, ExpressionS
 	}
 	default:
 	{
-		FATAL(operator_token->value + " operator parity is neither 1 nor 2");
+		FATAL(ERROR_CODE::ARITY_ERROR);
 	}
 	}
 }
 
 void OperatorStack::push_unary_operator_to_ast(Token_ptr operator_token, ExpressionStack& ast)
 {
-	ASSERT(
-		ast.size() > 0,
-		operator_token->value + " requries one operand. But the AST is empty."
-	);
+	ASSERT(ast.size() > 0, ERROR_CODE::ARITY_ERROR);
 
 	Expression_ptr expression = move(ast.top());
 	ast.pop();
@@ -56,10 +54,7 @@ void OperatorStack::push_unary_operator_to_ast(Token_ptr operator_token, Express
 
 void OperatorStack::push_binary_operator_to_ast(Token_ptr operator_token, ExpressionStack& ast)
 {
-	ASSERT(
-		ast.size() >= 2,
-		operator_token->value + " requires two operands"
-	);
+	ASSERT(ast.size() >= 2, ERROR_CODE::ARITY_ERROR);
 
 	Expression_ptr rhs = move(ast.top());
 	ast.pop();

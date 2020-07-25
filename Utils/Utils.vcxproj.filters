@@ -21,16 +21,19 @@
     <ClInclude Include="pch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Assertion.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Pointer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TokenPosition.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Assertion.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ErrorCode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -41,13 +44,13 @@
     <ClCompile Include="pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Assertion.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Pointer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TokenPosition.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Assertion.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="utils.cpp">
