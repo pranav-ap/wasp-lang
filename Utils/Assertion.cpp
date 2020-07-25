@@ -1,9 +1,10 @@
 #pragma once
+#include "pch.h"
 #include "Assertion.h"
 #include <string>
 #include "spdlog.h"
 
-void Utils::ASSERT(bool condition, std::string message)
+void ASSERT(bool condition, std::string message)
 {
 	if (!condition)
 	{
@@ -11,7 +12,7 @@ void Utils::ASSERT(bool condition, std::string message)
 	}
 }
 
-void Utils::FATAL(std::string message)
+void FATAL(std::string message)
 {
 	spdlog::error(message);
 	exit(1);

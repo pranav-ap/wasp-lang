@@ -1,10 +1,16 @@
 #pragma once
 
+#ifdef TOKEN_EXPORTS
+#define TOKEN_API __declspec(dllexport)
+#else
+#define TOKEN_API __declspec(dllimport)
+#endif
+
 #include "TokenType.h"
 #include <string>
 #include <memory>
 
-struct Token
+struct TOKEN_API Token
 {
 	WTokenType type;
 	std::wstring value;
@@ -16,4 +22,4 @@ struct Token
 		: type(type), value(value), line_num(line_num), column_num(column_num) {};
 };
 
-using Token_ptr = std::shared_ptr<Token>;
+using Token_ptr = TOKEN_API std::shared_ptr<Token>;

@@ -1,0 +1,12 @@
+#pragma once
+
+enum class ExpressionContext
+{
+	LIST_LITERAL,
+	TUPLE_LITERAL,
+	MAP_LITERAL,
+	UDT_CREATION,
+	FUNCTION_CALL,
+	PARENTHESIS,
+	MEMBER_ACCESS
+};

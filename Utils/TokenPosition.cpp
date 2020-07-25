@@ -1,4 +1,5 @@
 #pragma once
+#include "pch.h"
 #include "TokenPosition.h"
 
 void TokenPosition::increment_line_number()

@@ -1,4 +1,5 @@
 #pragma once
+#include "pch.h"
 #include "Lexer.h"
 #include "Assertion.h"
 #include "utils.h"
@@ -10,6 +11,7 @@
 #include <algorithm>
 #include <string>
 #include <vector>
+#include <utility>
 
 #define BOM 65279
 #define LEFT_ANGLE_BRACKET 10216
@@ -37,14 +39,14 @@ using std::string;
 using std::wstring;
 using std::vector;
 
-void Lexer::init(STRING raw_source)
+void Lexer::init(std::wstring raw_source)
 {
 	this->raw_source = raw_source;
 	position = TokenPosition();
 	pointer = Pointer();
 }
 
-vector<Token_ptr> Lexer::execute(STRING raw_source)
+vector<Token_ptr> Lexer::execute(std::wstring raw_source)
 {
 	init(raw_source);
 	bool found_statement = false;
@@ -156,7 +158,7 @@ vector<Token_ptr> Lexer::execute(STRING raw_source)
 
 Token_ptr Lexer::consume_number_literal(wchar_t ch)
 {
-	STRING number_literal;
+	std::wstring number_literal;
 	number_literal.push_back(ch);
 
 	bool reached_decimal_point = false;
@@ -196,7 +198,7 @@ Token_ptr Lexer::consume_number_literal(wchar_t ch)
 
 Token_ptr Lexer::consume_string_literal()
 {
-	STRING string_literal;
+	std::wstring string_literal;
 
 	while (wchar_t ch = get_current_char())
 	{
@@ -215,7 +217,7 @@ Token_ptr Lexer::consume_string_literal()
 
 Token_ptr Lexer::consume_identifier(wchar_t ch)
 {
-	STRING identifier;
+	std::wstring identifier;
 	identifier.push_back(ch);
 
 	while (ch = get_current_char())
@@ -284,7 +286,7 @@ Token_ptr Lexer::consume_division()
 	}
 	else if (expect_current_char('/'))
 	{
-		STRING comment;
+		std::wstring comment;
 
 		while (wchar_t ch = get_current_char())
 		{
@@ -394,6 +396,9 @@ Token_ptr Lexer::consume_single_char_punctuation(wchar_t ch)
 		return MAKE_TOKEN(WTokenType::OPEN_FLOOR_BRACKET, L"⌊", LINE_NUM, COL_NUM);
 	case RIGHT_FLOOR_BRACKET:
 		return MAKE_TOKEN(WTokenType::CLOSE_FLOOR_BRACKET, L"⌋", LINE_NUM, COL_NUM);
+
+	default:
+		return MAKE_TOKEN(WTokenType::UNKNOWN, L"", LINE_NUM, COL_NUM);
 	}
 }
 
@@ -415,7 +420,7 @@ Token_ptr Lexer::consume_space()
 
 Token_ptr Lexer::consume_unknown_token(wchar_t ch)
 {
-	STRING unknown_token;
+	std::wstring unknown_token;
 	unknown_token.push_back(ch);
 
 	for (ch = get_current_char(); ch != ' ' && ch != '\n';)

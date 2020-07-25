@@ -1,10 +1,15 @@
 #pragma once
 
+#ifdef LEXER_EXPORTS
+#define LEXER_API __declspec(dllexport)
+#else
+#define LEXER_API __declspec(dllimport)
+#endif
+
 #include "Token.h"
 #include "TokenPosition.h"
 #include "TokenType.h"
 #include "Pointer.h"
-#include "utils.h"
 
 #include <optional>
 #include <string>
@@ -12,7 +17,7 @@
 #include <memory>
 #include <map>
 
-const std::map<STRING, WTokenType> keyword_map =
+const std::map<std::wstring, WTokenType> keyword_map =
 {
 	{ L"if", WTokenType::IF },
 	{ L"elif", WTokenType::ELIF },
@@ -59,9 +64,9 @@ const std::map<STRING, WTokenType> keyword_map =
 	{ L"assert", WTokenType::ASSERT }
 };
 
-class Lexer
+class LEXER_API Lexer
 {
-	STRING raw_source;
+	std::wstring raw_source;
 
 	TokenPosition position;
 	Pointer pointer;
@@ -105,8 +110,8 @@ class Lexer
 	void next();
 	void previous();
 
-	void init(STRING raw_source);
+	void init(std::wstring raw_source);
 public:
 	Lexer() {};
-	std::vector<Token_ptr> execute(STRING raw_source);
+	std::vector<Token_ptr> execute(std::wstring raw_source);
 };

@@ -10,3 +10,9 @@
 /Debug
 /wasp-lang
 /x64/Release
+/AST/x64/Debug
+/Lexer/x64/Debug
+/Parser/x64/Debug
+/Type_System/x64/Debug
+/Utils/x64/Debug
+/Token/x64/Debug

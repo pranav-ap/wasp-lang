@@ -1,6 +1,12 @@
 #pragma once
 
-enum class WTokenType
+#ifdef TOKEN_EXPORTS
+#define TOKEN_API __declspec(dllexport)
+#else
+#define TOKEN_API __declspec(dllimport)
+#endif
+
+enum class TOKEN_API WTokenType
 {
 	// Literals
 
