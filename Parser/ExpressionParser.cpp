@@ -322,11 +322,24 @@ Expression_ptr ExpressionParser::parse_identifier(Token_ptr identifier)
 {
 	if (token_pipe->optional(WTokenType::COLON_COLON))
 	{
-		auto member_identifier = token_pipe->required(WTokenType::IDENTIFIER);
-		return MAKE_EXPRESSION(EnumMember(identifier->value, member_identifier->value));
+		auto member_chain = parse_enum_member_chain();
+		return MAKE_EXPRESSION(EnumMember(identifier->value, member_chain));
 	}
 
 	return MAKE_EXPRESSION(Identifier(identifier->value));
+}
+
+std::vector<std::wstring> ExpressionParser::parse_enum_member_chain()
+{
+	std::vector<std::wstring> member_chain;
+
+	do
+	{
+		auto member_identifier = token_pipe->required(WTokenType::IDENTIFIER);
+		member_chain.push_back(member_identifier->value);
+	} while (token_pipe->optional(WTokenType::COLON_COLON));
+
+	return member_chain;
 }
 
 Expression_ptr ExpressionParser::parse_member_access()

@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <string>
 #include <chrono>
+#include <memory>
 #include "spdlog.h"
 #include "utils.h"
 #include "Lexer.h"
@@ -17,11 +18,11 @@ int main()
 
 	std::wstring raw_source = read_source("../examples/main.txt");
 
-	Lexer lexer;
-	auto tokens = lexer.execute(raw_source);
+	auto lexer = std::make_unique<Lexer>();
+	auto tokens = lexer->execute(raw_source);
 
-	Parser parser;
-	auto ast = parser.execute(tokens);
+	auto parser = std::make_unique<Parser>();
+	auto ast = parser->execute(tokens);
 
 	// Calculate time taken
 

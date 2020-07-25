@@ -99,10 +99,10 @@ struct AST_API UDTMemberAccess : public ExpressionBase
 struct AST_API EnumMember : public ExpressionBase
 {
 	std::wstring enum_name;
-	std::wstring member_name;
+	std::vector<std::wstring> member_chain;
 
-	EnumMember(std::wstring enum_name, std::wstring member_name)
-		: enum_name(enum_name), member_name(member_name) {};
+	EnumMember(std::wstring enum_name, std::vector<std::wstring> member_chain)
+		: enum_name(enum_name), member_chain(member_chain) {};
 };
 
 struct AST_API Call : public ExpressionBase
