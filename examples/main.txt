@@ -39,3 +39,11 @@ enum NAME :
 	
 NAME::LASTNAME::ID3
 NAME::ID1
+
+type length = num
+
+type Person :
+    name: str
+    foo: bool
+
+let x : Person = new Person("john", false)

@@ -271,16 +271,18 @@ Expression_ptr ExpressionParser::parse_UDT_creation()
 {
 	ExpressionVector expressions;
 
+	auto type_identifier = token_pipe->required(WTokenType::CALLABLE_IDENTIFIER);
+
 	token_pipe->expect(WTokenType::OPEN_PARENTHESIS);
 
 	if (token_pipe->optional(WTokenType::CLOSE_PARENTHESIS))
-		return MAKE_EXPRESSION(UDTConstruct(L"", expressions));
+		return MAKE_EXPRESSION(UDTConstruct(type_identifier->value, expressions));
 
 	expressions = parse_expressions();
 
 	token_pipe->expect(WTokenType::CLOSE_PARENTHESIS);
 
-	return MAKE_EXPRESSION(UDTConstruct(L"", expressions));
+	return MAKE_EXPRESSION(UDTConstruct(type_identifier->value, expressions));
 }
 
 Expression_ptr ExpressionParser::parse_map_literal()
