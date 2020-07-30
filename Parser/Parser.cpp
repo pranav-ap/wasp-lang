@@ -46,11 +46,11 @@ using std::holds_alternative;
 
 using identifier_type_pair_vector = std::vector<std::pair<std::wstring, Type_ptr>>;
 
-AST Parser::execute(std::vector<Token_ptr>& tokens)
+AST_ptr Parser::execute(std::vector<Token_ptr>& tokens)
 {
 	init(tokens);
 
-	AST ast;
+	AST_ptr ast = std::make_shared<AST>();
 
 	while ((size_t)token_pipe->get_current_index() < token_pipe->get_size())
 	{
@@ -58,7 +58,7 @@ AST Parser::execute(std::vector<Token_ptr>& tokens)
 
 		if (node)
 		{
-			ast.add(move(node));
+			ast->add(move(node));
 		}
 	}
 

@@ -289,7 +289,7 @@ Expression_ptr ExpressionParser::parse_UDT_creation()
 
 Expression_ptr ExpressionParser::parse_map_literal()
 {
-	map<Token_ptr, Expression_ptr> pairs;
+	map<Expression_ptr, Expression_ptr> pairs;
 
 	if (token_pipe->optional(WTokenType::CLOSE_ANGLE_BRACKET))
 		return MAKE_EXPRESSION(MapLiteral(pairs));
@@ -307,8 +307,7 @@ Expression_ptr ExpressionParser::parse_map_literal()
 		}
 		else
 		{
-			auto value = MAKE_EXPRESSION(Identifier(key->value));
-			pairs.insert_or_assign(key, value);
+			pairs.insert_or_assign(key, key);
 		}
 
 		token_pipe->ignore({ WTokenType::SPACE, WTokenType::EOL });
@@ -398,7 +397,7 @@ Expression_ptr ExpressionParser::finish_parsing()
 	return move(result);
 }
 
-Token_ptr ExpressionParser::consume_valid_map_key()
+Expression_ptr ExpressionParser::consume_valid_map_key()
 {
 	auto token = token_pipe->current();
 	OPT_CHECK(token);
@@ -406,19 +405,31 @@ Token_ptr ExpressionParser::consume_valid_map_key()
 	switch (token.value()->type)
 	{
 	case WTokenType::STRING_LITERAL:
+	{
+		ADVANCE_PTR;
+		return MAKE_EXPRESSION(token.value()->value);
+	}
 	case WTokenType::NUMBER_LITERAL:
+	{
+		ADVANCE_PTR;
+		return MAKE_EXPRESSION(stod(token.value()->value));
+	}
 	case WTokenType::TRUE_KEYWORD:
+	{
+		ADVANCE_PTR;
+		return MAKE_EXPRESSION(true);
+	}
 	case WTokenType::FALSE_KEYWORD:
 	{
 		ADVANCE_PTR;
-		return move(token.value());
+		return MAKE_EXPRESSION(false);
 	}
 	}
 
 	FATAL(ERROR_CODE::INVALID_MAP_KEY);
 }
 
-Token_ptr ExpressionParser::consume_valid_UDT_key()
+Expression_ptr ExpressionParser::consume_valid_UDT_key()
 {
 	auto token = token_pipe->current();
 	OPT_CHECK(token);
@@ -428,7 +439,7 @@ Token_ptr ExpressionParser::consume_valid_UDT_key()
 	case WTokenType::IDENTIFIER:
 	{
 		ADVANCE_PTR;
-		return move(token.value());
+		return MAKE_EXPRESSION(Identifier(token.value()->value));
 	}
 	}
 

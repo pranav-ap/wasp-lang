@@ -71,9 +71,9 @@ struct AST_API TupleLiteral : public SequenceLiteral
 
 struct AST_API MapLiteral : public ExpressionBase
 {
-	std::map<Token_ptr, Expression_ptr> pairs;
+	std::map<Expression_ptr, Expression_ptr> pairs;
 
-	MapLiteral(std::map<Token_ptr, Expression_ptr> pairs)
+	MapLiteral(std::map<Expression_ptr, Expression_ptr> pairs)
 		: pairs(pairs) {};
 };
 

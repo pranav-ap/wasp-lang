@@ -33,8 +33,8 @@ class ExpressionParser
 
 	// Utils
 
-	Token_ptr consume_valid_map_key();
-	Token_ptr consume_valid_UDT_key();
+	Expression_ptr consume_valid_map_key();
+	Expression_ptr consume_valid_UDT_key();
 
 	Expression_ptr finish_parsing();
 

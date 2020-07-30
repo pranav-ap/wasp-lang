@@ -79,5 +79,5 @@ class PARSER_API Parser
 
 public:
 	Parser() {};
-	AST execute(std::vector<Token_ptr>& tokens);
+	AST_ptr execute(std::vector<Token_ptr>& tokens);
 };

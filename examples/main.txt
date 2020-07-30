@@ -2,51 +2,8 @@
 
 // Its more of a comment really
 
-let x : num = 34
-let x : str = "hello"
-let x : [num] = [ 1, 2, 3 ]
-let x : ⌊ str ⌋ = ⌊ "1", "hello" ⌋
-let x : ⟨ str -> str ⟩ = ⟨ "a" : "b",  "c" : "d" ⟩
-
-a, b, c = 1, 2, 3
-
-if a > 3 and r == 3:
-    pass
-elif a > 3:
-    pass
-else:
-    pass
-
-while true:
-    pass
-
-for x : num in [1, 2, 3]:
-    pass
-
-fn add(a : num, b : num) -> num :
-    if a > b:
-        return a + b + 4
-    return a + b
-
-// add_num_num_return_num
-
-enum NAME :
-    ID1
-    ID2
-    LASTNAME :
-        ID3
-        ID4
-	
-NAME::LASTNAME::ID3
-NAME::ID1
-
-type length = num
-
-type Person :
-    name: str
-    foo: bool
-
-let x : Person = new Person("john", false)
-
-x.foo.age
-x(123).foo(36, gg).age
+let a : num = 34
+let b : str = "hello"
+let c : [num] = [ 1, 2, 3 ]
+let d : ⌊ str ⌋ = ⌊ "1", "hello" ⌋
+let e : ⟨ str -> str ⟩ = ⟨ "a" : "b",  "c" : "d" ⟩

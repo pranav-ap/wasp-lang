@@ -14,3 +14,5 @@ struct AST_API AST
 	std::vector<Statement_ptr> nodes;
 	void add(Statement_ptr node);
 };
+
+using AST_ptr = AST_API std::shared_ptr<AST>;

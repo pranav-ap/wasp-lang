@@ -6,8 +6,12 @@
 #include "utils.h"
 #include "Lexer.h"
 #include "Parser.h"
+#include "AST.h"
+#include "SymbolTable.h"
+#include "SemanticAnalyzer.h"
 
 using namespace std::chrono;
+using std::make_unique;
 
 int main()
 {
@@ -18,11 +22,14 @@ int main()
 
 	std::wstring raw_source = read_source("../examples/main.txt");
 
-	auto lexer = std::make_unique<Lexer>();
+	auto lexer = make_unique<Lexer>();
 	auto tokens = lexer->execute(raw_source);
 
-	auto parser = std::make_unique<Parser>();
+	auto parser = make_unique<Parser>();
 	auto ast = parser->execute(tokens);
+
+	auto semantic_analyser = make_unique<SemanticAnalyzer>();
+	auto root_symbol_table = semantic_analyser->execute(ast);
 
 	// Calculate time taken
 

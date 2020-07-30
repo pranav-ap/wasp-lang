@@ -36,7 +36,7 @@ struct ImportInBuilt;
 struct ExpressionStatement;
 struct AssertStatement;
 
-using Statement = std::variant<
+using Statement = AST_API std::variant<
 	std::monostate,
 
 	Assignment,
@@ -57,15 +57,15 @@ using Statement = std::variant<
 	AssertStatement
 >;
 
-using Statement_ptr = std::shared_ptr<Statement>;
-using Block = std::vector<Statement_ptr>;
-using StringVector = std::vector<std::wstring>;
+using Statement_ptr = AST_API std::shared_ptr<Statement>;
+using Block = AST_API std::vector<Statement_ptr>;
+using StringVector = AST_API std::vector<std::wstring>;
 
 struct StatementBase
 {
 };
 
-struct Assignment : public StatementBase
+struct AST_API Assignment : public StatementBase
 {
 	ExpressionVector lhs_expressions;
 	ExpressionVector rhs_expressions;
@@ -74,7 +74,7 @@ struct Assignment : public StatementBase
 		: lhs_expressions(lhs_expressions), rhs_expressions(rhs_expressions) {};
 };
 
-struct Branching : public StatementBase
+struct AST_API Branching : public StatementBase
 {
 	std::vector<std::pair<Expression_ptr, Block>> branches;
 	Block else_block;
@@ -85,20 +85,20 @@ struct Branching : public StatementBase
 
 // Looping
 
-struct Loop : public StatementBase
+struct AST_API Loop : public StatementBase
 {
 	Block block;
 	Loop(Block block) : block(block) {};
 };
 
-struct WhileLoop : public Loop
+struct AST_API WhileLoop : public Loop
 {
 	Expression_ptr condition;
 	WhileLoop(Expression_ptr condition, Block block)
 		: Loop(block), condition(std::move(condition)) {};
 };
 
-struct ForInLoop : public Loop
+struct AST_API ForInLoop : public Loop
 {
 	Type_ptr item_type;
 	std::wstring item_name;
@@ -108,21 +108,21 @@ struct ForInLoop : public Loop
 		: Loop(block), item_type(std::move(item_type)), item_name(item_name), iterable(std::move(iterable)) {};
 };
 
-struct Break : public StatementBase
+struct AST_API Break : public StatementBase
 {
 };
 
-struct Pass : public StatementBase
+struct AST_API Pass : public StatementBase
 {
 };
 
-struct Continue : public StatementBase
+struct AST_API Continue : public StatementBase
 {
 };
 
 // Definitions
 
-struct Definition : public StatementBase
+struct AST_API Definition : public StatementBase
 {
 	bool is_public;
 	std::wstring name;
@@ -131,7 +131,7 @@ struct Definition : public StatementBase
 		: is_public(is_public), name(name) {};
 };
 
-struct VariableDefinition : public Definition
+struct AST_API VariableDefinition : public Definition
 {
 	bool is_mutable;
 	Type_ptr type;
@@ -141,7 +141,7 @@ struct VariableDefinition : public Definition
 		: Definition(is_public, name), is_mutable(is_mutable), type(std::move(type)), expression(std::move(expression)) {};
 };
 
-struct UDTDefinition : public Definition
+struct AST_API UDTDefinition : public Definition
 {
 	std::map<std::wstring, Type_ptr> member_types;
 	std::map<std::wstring, bool> is_public_member;
@@ -150,7 +150,7 @@ struct UDTDefinition : public Definition
 		: Definition(is_public, name), member_types(member_types), is_public_member(is_public_member) {};
 };
 
-struct AliasDefinition : public Definition
+struct AST_API AliasDefinition : public Definition
 {
 	Type_ptr type;
 
@@ -158,7 +158,7 @@ struct AliasDefinition : public Definition
 		: Definition(is_public, name), type(std::move(type)) {};
 };
 
-struct CallableDefinition : public Definition
+struct AST_API CallableDefinition : public Definition
 {
 	std::vector<std::pair<std::wstring, Type_ptr>> arguments;
 	std::optional<Type_ptr> return_type;
@@ -168,19 +168,19 @@ struct CallableDefinition : public Definition
 		: Definition(is_public, name), arguments(arguments), return_type(return_type), body(body) {};
 };
 
-struct FunctionDefinition : public CallableDefinition
+struct AST_API FunctionDefinition : public CallableDefinition
 {
 	FunctionDefinition(bool is_public, std::wstring name, std::vector<std::pair<std::wstring, Type_ptr>> arguments, std::optional<Type_ptr> return_type, Block body)
 		: CallableDefinition(is_public, name, arguments, return_type, body) {};
 };
 
-struct GeneratorDefinition : public CallableDefinition
+struct AST_API GeneratorDefinition : public CallableDefinition
 {
 	GeneratorDefinition(bool is_public, std::wstring name, std::vector<std::pair<std::wstring, Type_ptr>> arguments, std::optional<Type_ptr> return_type, Block body)
 		: CallableDefinition(is_public, name, arguments, return_type, body) {};
 };
 
-struct EnumDefinition : public Definition
+struct AST_API EnumDefinition : public Definition
 {
 	StringVector members;
 
@@ -190,14 +190,14 @@ struct EnumDefinition : public Definition
 
 // Import
 
-struct Import : public StatementBase
+struct AST_API Import : public StatementBase
 {
 	StringVector goods;
 
 	Import(StringVector goods) : goods(goods) {};
 };
 
-struct ImportCustom : public Import
+struct AST_API ImportCustom : public Import
 {
 	std::wstring path;
 
@@ -205,7 +205,7 @@ struct ImportCustom : public Import
 		: Import(goods), path(path) {};
 };
 
-struct ImportInBuilt : public Import
+struct AST_API ImportInBuilt : public Import
 {
 	std::wstring module_name;
 
@@ -215,7 +215,7 @@ struct ImportInBuilt : public Import
 
 // Other
 
-struct Return : public StatementBase
+struct AST_API Return : public StatementBase
 {
 	std::optional<Expression_ptr> expression;
 
@@ -224,7 +224,7 @@ struct Return : public StatementBase
 		: expression(std::make_optional(std::move(expression))) {};
 };
 
-struct YieldStatement : public StatementBase
+struct AST_API YieldStatement : public StatementBase
 {
 	std::optional<Expression_ptr> expression;
 
@@ -233,14 +233,14 @@ struct YieldStatement : public StatementBase
 		: expression(std::make_optional(std::move(expression))) {};
 };
 
-struct ExpressionStatement : public StatementBase
+struct AST_API ExpressionStatement : public StatementBase
 {
 	Expression_ptr expression;
 	ExpressionStatement(Expression_ptr expression)
 		: expression(std::move(expression)) {};
 };
 
-struct AssertStatement : public StatementBase
+struct AST_API AssertStatement : public StatementBase
 {
 	Expression_ptr expression;
 	AssertStatement(Expression_ptr expression)

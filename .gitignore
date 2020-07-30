@@ -16,3 +16,7 @@
 /Type_System/x64/Debug
 /Utils/x64/Debug
 /Token/x64/Debug
+/Environment/x64/Debug
+/ObjectSystem/x64/Debug
+/SymbolTable/x64/Debug
+/SemanticAnalyzer/x64/Debug
