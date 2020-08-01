@@ -126,7 +126,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\include; ..\include\spdlog;..\Token;..\Type_System;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include; ..\include\spdlog;..\Token;..\Type_System;..\include\gsl;</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>

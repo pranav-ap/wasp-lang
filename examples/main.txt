@@ -7,3 +7,8 @@ let b : str = "hello"
 let c : [num] = [ 1, 2, 3 ]
 let d : ⌊ str ⌋ = ⌊ "1", "hello" ⌋
 let e : ⟨ str -> str ⟩ = ⟨ "a" : "b",  "c" : "d" ⟩
+
+fn add(a : num, b : num) -> num :
+    if a > b:
+        return a + b + 4
+    return a + b

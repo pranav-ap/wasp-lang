@@ -8,6 +8,7 @@
 
 #include "Expression.h"
 #include "Type_System.h"
+#include "uuid.h"
 
 #include <string>
 #include <vector>
@@ -63,6 +64,17 @@ using StringVector = AST_API std::vector<std::wstring>;
 
 struct StatementBase
 {
+	std::wstring id;
+	StatementBase()
+	{
+		id = uuids::to_string<wchar_t>(uuids::uuid_system_generator{}());
+	};
+};
+
+struct AST_API BlockStat : public StatementBase
+{
+	Block block;
+	BlockStat(Block block) : block(block) {};
 };
 
 struct AST_API Assignment : public StatementBase

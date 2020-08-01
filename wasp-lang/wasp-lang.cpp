@@ -29,7 +29,7 @@ int main()
 	auto ast = parser->execute(tokens);
 
 	auto semantic_analyser = make_unique<SemanticAnalyzer>();
-	auto root_symbol_table = semantic_analyser->execute(ast);
+	auto symbol_tables_map = semantic_analyser->execute(ast);
 
 	// Calculate time taken
 

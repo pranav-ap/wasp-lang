@@ -42,9 +42,15 @@ NAME::ID1
 
 type length = num
 
-type Person :
+type Person extends Bird impl IAnimal :
     name: str
     foo: bool
+
+    fn init():
+        pass
+
+interface IAnimal:
+    alive : bool
 
 let x : Person = new Person("john", false)
 
