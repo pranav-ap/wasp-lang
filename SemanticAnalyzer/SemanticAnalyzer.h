@@ -7,15 +7,14 @@
 #endif
 
 #include "SymbolTable.h"
-#include "AST.h"
 #include "Statement.h"
 #include "Visitor.h"
 #include <memory>
+#include <optional>
 
 class SEMANTICANALYZER_API SemanticAnalyzer : public IStatementVisitor, public IExpressionVisitor
 {
-	ScopedSymbolTable_ptr current_symbol_table;
-	std::map<std::wstring, ScopedSymbolTable_ptr> table_of_tables;
+	std::optional<SymbolTable_ptr> current_symbol_table;
 
 	// Statement
 
@@ -61,15 +60,12 @@ class SEMANTICANALYZER_API SemanticAnalyzer : public IStatementVisitor, public I
 	void visit(Unary& expr);
 	void visit(Binary& expr);
 
-	// Utils
-
-	void init();
-	void enter_scope(std::wstring id);
+	void enter_scope(std::optional<SymbolTable_ptr> symbol_table);
 	void leave_scope();
 
 public:
 	SemanticAnalyzer() {};
-	std::map<std::wstring, ScopedSymbolTable_ptr> execute(AST_ptr ast);
+	void execute(Module_ptr ast);
 };
 
 using SemanticAnalyzer_ptr = SEMANTICANALYZER_API std::shared_ptr<SemanticAnalyzer>;

@@ -10,7 +10,6 @@
 #include "TokenPipe.h"
 #include "Expression.h"
 #include "Statement.h"
-#include "AST.h"
 #include "ExpressionParser.h"
 
 #include <vector>
@@ -40,7 +39,7 @@ class PARSER_API Parser
 
 	Statement_ptr parse_import();
 
-	// Block statement parsing
+	// StatementVector statement parsing
 
 	Statement_ptr parse_branching(int expected_indent = 0);
 	Statement_ptr parse_while_loop(int expected_indent = 0);
@@ -64,14 +63,14 @@ class PARSER_API Parser
 	Statement_ptr parse_enum_definition(bool is_public, int expected_indent);
 	std::vector<std::wstring> parse_enum_members(int expected_indent);
 
-	std::tuple<std::wstring, std::vector<std::pair<std::wstring, Type_ptr>>, std::optional<Type_ptr>, Block> parse_callable_definition(int expected_indent);
+	std::tuple<std::wstring, std::vector<std::pair<std::wstring, Type_ptr>>, std::optional<Type_ptr>, StatementVector> parse_callable_definition(int expected_indent);
 	Statement_ptr parse_function_definition(bool is_public, int expected_indent);
 	Statement_ptr parse_generator_definition(bool is_public, int expected_indent);
 
 	// Utils
 
-	Block parse_block(int expected_indent);
-	std::pair<Expression_ptr, Block> parse_condition_and_consequence(int expected_indent);
+	StatementVector parse_block(int expected_indent);
+	std::pair<Expression_ptr, StatementVector> parse_condition_and_consequence(int expected_indent);
 
 	void convert_shortcut_token(Token_ptr token);
 
@@ -79,5 +78,5 @@ class PARSER_API Parser
 
 public:
 	Parser() {};
-	AST_ptr execute(std::vector<Token_ptr>& tokens);
+	Module_ptr execute(std::vector<Token_ptr>& tokens);
 };

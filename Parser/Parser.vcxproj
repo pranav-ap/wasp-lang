@@ -126,7 +126,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\include;..\include\spdlog;..\Token;..\Utils;..\AST;..\Type_System;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include;..\include\spdlog;..\Token;..\Utils;..\AST;..\Type_System;..\SymbolTable;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
@@ -182,6 +182,9 @@
   <ItemGroup>
     <ProjectReference Include="..\AST\AST.vcxproj">
       <Project>{a287f968-bd00-4267-9ab3-115e709bccf0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\SymbolTable\SymbolTable.vcxproj">
+      <Project>{067444ca-cf8e-43f5-89c9-93721db7d3d2}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Token\Token.vcxproj">
       <Project>{abf81544-54c4-45e3-a502-383e2ef061af}</Project>

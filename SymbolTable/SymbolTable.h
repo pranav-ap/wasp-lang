@@ -12,20 +12,20 @@
 #include <string>
 #include <optional>
 
-class ScopedSymbolTable;
-using ScopedSymbolTable_ptr = SYMBOLTABLE_API std::shared_ptr<ScopedSymbolTable>;
+class SymbolTable;
+using SymbolTable_ptr = SYMBOLTABLE_API std::shared_ptr<SymbolTable>;
 
-class SYMBOLTABLE_API ScopedSymbolTable
+class SYMBOLTABLE_API SymbolTable
 {
 	std::map<std::wstring, Symbol_ptr> store;
 
 public:
-	std::optional<ScopedSymbolTable_ptr> enclosing_scope;
+	std::optional<SymbolTable_ptr> enclosing_scope;
 
-	ScopedSymbolTable()
+	SymbolTable()
 		: enclosing_scope(std::nullopt) {};
 
-	ScopedSymbolTable(ScopedSymbolTable_ptr enclosing_scope)
+	SymbolTable(SymbolTable_ptr enclosing_scope)
 		: enclosing_scope(std::make_optional(enclosing_scope)) {};
 
 	void define(std::wstring name, Symbol_ptr symbol);

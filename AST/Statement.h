@@ -8,7 +8,7 @@
 
 #include "Expression.h"
 #include "Type_System.h"
-#include "uuid.h"
+#include "SymbolTable.h"
 
 #include <string>
 #include <vector>
@@ -16,7 +16,9 @@
 #include <memory>
 #include <optional>
 #include <variant>
+#include <utility>
 
+struct Module;
 struct Assignment;
 struct Branching;
 struct WhileLoop;
@@ -37,8 +39,10 @@ struct ImportInBuilt;
 struct ExpressionStatement;
 struct AssertStatement;
 
-using Statement = AST_API std::variant<
+using Statement = AST_API std::variant <
 	std::monostate,
+
+	Module,
 
 	Assignment,
 
@@ -56,28 +60,38 @@ using Statement = AST_API std::variant<
 
 	ExpressionStatement,
 	AssertStatement
->;
+> ;
 
 using Statement_ptr = AST_API std::shared_ptr<Statement>;
-using Block = AST_API std::vector<Statement_ptr>;
+using StatementVector = AST_API std::vector<Statement_ptr>;
 using StringVector = AST_API std::vector<std::wstring>;
+using NameTypePairs = AST_API std::vector<std::pair<std::wstring, Type_ptr>>;
+using ConditionBlockPairs = AST_API std::vector<std::pair<Expression_ptr, StatementVector>>;
 
-struct StatementBase
+struct ScopedBlock
 {
-	std::wstring id;
-	StatementBase()
-	{
-		id = uuids::to_string<wchar_t>(uuids::uuid_system_generator{}());
-	};
+	std::optional<SymbolTable_ptr> symbol_table;
+	StatementVector statements;
+
+	ScopedBlock() {};
+	ScopedBlock(StatementVector statements)
+		: symbol_table(std::make_shared<SymbolTable>()), statements(statements) {};
 };
 
-struct AST_API BlockStat : public StatementBase
+using ScopedBlock_ptr = AST_API std::shared_ptr<ScopedBlock>;
+
+struct AST_API Module : public ScopedBlock
 {
-	Block block;
-	BlockStat(Block block) : block(block) {};
+	Module() {};
+	Module(StatementVector statements)
+		: ScopedBlock(statements) {};
+
+	void add_node(Statement_ptr node);
 };
 
-struct AST_API Assignment : public StatementBase
+using Module_ptr = AST_API std::shared_ptr<Module>;
+
+struct AST_API Assignment
 {
 	ExpressionVector lhs_expressions;
 	ExpressionVector rhs_expressions;
@@ -86,55 +100,62 @@ struct AST_API Assignment : public StatementBase
 		: lhs_expressions(lhs_expressions), rhs_expressions(rhs_expressions) {};
 };
 
-struct AST_API Branching : public StatementBase
+struct AST_API Branching
 {
-	std::vector<std::pair<Expression_ptr, Block>> branches;
-	Block else_block;
+	std::vector<std::pair<Expression_ptr, ScopedBlock_ptr>> branches;
+	ScopedBlock_ptr else_block;
 
-	Branching(std::vector<std::pair<Expression_ptr, Block>> branches, Block else_block)
-		: branches(branches), else_block(else_block) {};
+	Branching(ConditionBlockPairs branches, StatementVector else_block)
+	{
+		for (auto branch : branches)
+		{
+			this->branches.push_back(
+				std::make_pair(
+					branch.first,
+					std::make_shared<ScopedBlock>(branch.second)
+				)
+			);
+		}
+
+		this->else_block = std::make_shared<ScopedBlock>(else_block);
+	};
 };
 
 // Looping
 
-struct AST_API Loop : public StatementBase
-{
-	Block block;
-	Loop(Block block) : block(block) {};
-};
-
-struct AST_API WhileLoop : public Loop
+struct AST_API WhileLoop : public ScopedBlock
 {
 	Expression_ptr condition;
-	WhileLoop(Expression_ptr condition, Block block)
-		: Loop(block), condition(std::move(condition)) {};
+
+	WhileLoop(Expression_ptr condition, StatementVector block)
+		: ScopedBlock(block), condition(std::move(condition)) {};
 };
 
-struct AST_API ForInLoop : public Loop
+struct AST_API ForInLoop : public ScopedBlock
 {
 	Type_ptr item_type;
 	std::wstring item_name;
 	Expression_ptr iterable;
 
-	ForInLoop(Type_ptr item_type, std::wstring item_name, Expression_ptr iterable, Block block)
-		: Loop(block), item_type(std::move(item_type)), item_name(item_name), iterable(std::move(iterable)) {};
+	ForInLoop(Type_ptr item_type, std::wstring item_name, Expression_ptr iterable, StatementVector block)
+		: ScopedBlock(block), item_type(std::move(item_type)), item_name(item_name), iterable(std::move(iterable)) {};
 };
 
-struct AST_API Break : public StatementBase
+struct AST_API Break
 {
 };
 
-struct AST_API Pass : public StatementBase
+struct AST_API Pass
 {
 };
 
-struct AST_API Continue : public StatementBase
+struct AST_API Continue
 {
 };
 
 // Definitions
 
-struct AST_API Definition : public StatementBase
+struct AST_API Definition
 {
 	bool is_public;
 	std::wstring name;
@@ -170,25 +191,24 @@ struct AST_API AliasDefinition : public Definition
 		: Definition(is_public, name), type(std::move(type)) {};
 };
 
-struct AST_API CallableDefinition : public Definition
+struct AST_API CallableDefinition : public Definition, public ScopedBlock
 {
-	std::vector<std::pair<std::wstring, Type_ptr>> arguments;
+	NameTypePairs arguments;
 	std::optional<Type_ptr> return_type;
-	Block body;
 
-	CallableDefinition(bool is_public, std::wstring name, std::vector<std::pair<std::wstring, Type_ptr>> arguments, std::optional<Type_ptr> return_type, Block body)
-		: Definition(is_public, name), arguments(arguments), return_type(return_type), body(body) {};
+	CallableDefinition(bool is_public, std::wstring name, NameTypePairs arguments, std::optional<Type_ptr> return_type, StatementVector body)
+		: Definition(is_public, name), ScopedBlock(body), arguments(arguments), return_type(return_type) {};
 };
 
 struct AST_API FunctionDefinition : public CallableDefinition
 {
-	FunctionDefinition(bool is_public, std::wstring name, std::vector<std::pair<std::wstring, Type_ptr>> arguments, std::optional<Type_ptr> return_type, Block body)
+	FunctionDefinition(bool is_public, std::wstring name, NameTypePairs arguments, std::optional<Type_ptr> return_type, StatementVector body)
 		: CallableDefinition(is_public, name, arguments, return_type, body) {};
 };
 
 struct AST_API GeneratorDefinition : public CallableDefinition
 {
-	GeneratorDefinition(bool is_public, std::wstring name, std::vector<std::pair<std::wstring, Type_ptr>> arguments, std::optional<Type_ptr> return_type, Block body)
+	GeneratorDefinition(bool is_public, std::wstring name, NameTypePairs arguments, std::optional<Type_ptr> return_type, StatementVector body)
 		: CallableDefinition(is_public, name, arguments, return_type, body) {};
 };
 
@@ -202,7 +222,7 @@ struct AST_API EnumDefinition : public Definition
 
 // Import
 
-struct AST_API Import : public StatementBase
+struct AST_API Import
 {
 	StringVector goods;
 
@@ -227,7 +247,7 @@ struct AST_API ImportInBuilt : public Import
 
 // Other
 
-struct AST_API Return : public StatementBase
+struct AST_API Return
 {
 	std::optional<Expression_ptr> expression;
 
@@ -236,7 +256,7 @@ struct AST_API Return : public StatementBase
 		: expression(std::make_optional(std::move(expression))) {};
 };
 
-struct AST_API YieldStatement : public StatementBase
+struct AST_API YieldStatement
 {
 	std::optional<Expression_ptr> expression;
 
@@ -245,16 +265,18 @@ struct AST_API YieldStatement : public StatementBase
 		: expression(std::make_optional(std::move(expression))) {};
 };
 
-struct AST_API ExpressionStatement : public StatementBase
+struct AST_API ExpressionStatement
 {
 	Expression_ptr expression;
+
 	ExpressionStatement(Expression_ptr expression)
 		: expression(std::move(expression)) {};
 };
 
-struct AST_API AssertStatement : public StatementBase
+struct AST_API AssertStatement
 {
 	Expression_ptr expression;
+
 	AssertStatement(Expression_ptr expression)
 		: expression(std::move(expression)) {};
 };

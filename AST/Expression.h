@@ -40,17 +40,13 @@ using Expression_ptr = AST_API std::shared_ptr<Expression>;
 using ExpressionVector = AST_API std::vector<Expression_ptr>;
 using ExpressionStack = AST_API std::stack<Expression_ptr>;
 
-struct ExpressionBase
-{
-};
-
-struct AST_API Identifier : public ExpressionBase
+struct AST_API Identifier
 {
 	std::wstring name;
 	Identifier(std::wstring name) : name(name) {};
 };
 
-struct AST_API SequenceLiteral : public ExpressionBase
+struct AST_API SequenceLiteral
 {
 	ExpressionVector expressions;
 	SequenceLiteral(ExpressionVector expressions)
@@ -69,7 +65,7 @@ struct AST_API TupleLiteral : public SequenceLiteral
 		: SequenceLiteral(expressions) {};
 };
 
-struct AST_API MapLiteral : public ExpressionBase
+struct AST_API MapLiteral
 {
 	std::map<Expression_ptr, Expression_ptr> pairs;
 
@@ -79,7 +75,7 @@ struct AST_API MapLiteral : public ExpressionBase
 
 // UDT
 
-struct AST_API UDTConstruct : public ExpressionBase
+struct AST_API UDTConstruct
 {
 	std::wstring UDT_name;
 	ExpressionVector expressions;
@@ -88,7 +84,7 @@ struct AST_API UDTConstruct : public ExpressionBase
 		: UDT_name(UDT_name), expressions(expressions) {};
 };
 
-struct AST_API UDTMemberAccess : public ExpressionBase
+struct AST_API UDTMemberAccess
 {
 	ExpressionVector chain;
 
@@ -96,7 +92,7 @@ struct AST_API UDTMemberAccess : public ExpressionBase
 		: chain(chain) {};
 };
 
-struct AST_API EnumMember : public ExpressionBase
+struct AST_API EnumMember
 {
 	std::wstring enum_name;
 	std::vector<std::wstring> member_chain;
@@ -105,7 +101,7 @@ struct AST_API EnumMember : public ExpressionBase
 		: enum_name(enum_name), member_chain(member_chain) {};
 };
 
-struct AST_API Call : public ExpressionBase
+struct AST_API Call
 {
 	std::wstring name;
 	ExpressionVector arguments;
@@ -116,7 +112,7 @@ struct AST_API Call : public ExpressionBase
 		: name(name), arguments(arguments) {};
 };
 
-struct AST_API Unary : public ExpressionBase
+struct AST_API Unary
 {
 	Token_ptr op;
 	Expression_ptr operand;
@@ -125,7 +121,7 @@ struct AST_API Unary : public ExpressionBase
 		: op(std::move(op)), operand(std::move(operand)) {};
 };
 
-struct AST_API Binary : public ExpressionBase
+struct AST_API Binary
 {
 	Expression_ptr left;
 	Token_ptr op;

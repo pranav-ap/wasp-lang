@@ -46,11 +46,11 @@ using std::holds_alternative;
 
 using identifier_type_pair_vector = std::vector<std::pair<std::wstring, Type_ptr>>;
 
-AST_ptr Parser::execute(std::vector<Token_ptr>& tokens)
+Module_ptr Parser::execute(std::vector<Token_ptr>& tokens)
 {
 	init(tokens);
 
-	AST_ptr ast = std::make_shared<AST>();
+	auto module_ast = std::make_shared<Module>();
 
 	while ((size_t)token_pipe->get_current_index() < token_pipe->get_size())
 	{
@@ -58,11 +58,11 @@ AST_ptr Parser::execute(std::vector<Token_ptr>& tokens)
 
 		if (node)
 		{
-			ast->add(move(node));
+			module_ast->add_node(move(node));
 		}
 	}
 
-	return ast;
+	return module_ast;
 }
 
 void Parser::init(std::vector<Token_ptr>& tokens)
@@ -204,11 +204,11 @@ Statement_ptr Parser::consume_shortcut_assignment(Expression_ptr lhs_expression,
 	return MAKE_STATEMENT(Assignment({ move(lhs_expression) }, { move(unshortcut_rhs_expression) }));
 }
 
-// Block statement parsing
+// StatementVector statement parsing
 
-Block Parser::parse_block(int expected_indent)
+StatementVector Parser::parse_block(int expected_indent)
 {
-	Block statements;
+	StatementVector statements;
 
 	while (true)
 	{
@@ -223,7 +223,7 @@ Block Parser::parse_block(int expected_indent)
 	return statements;
 }
 
-pair<Expression_ptr, Block> Parser::parse_condition_and_consequence(int expected_indent)
+pair<Expression_ptr, StatementVector> Parser::parse_condition_and_consequence(int expected_indent)
 {
 	auto condition = expr_parser->parse_expression();
 	token_pipe->expect(WTokenType::COLON);
@@ -236,7 +236,7 @@ pair<Expression_ptr, Block> Parser::parse_condition_and_consequence(int expected
 
 Statement_ptr Parser::parse_branching(int expected_indent)
 {
-	std::vector<std::pair<Expression_ptr, Block>> branches;
+	std::vector<std::pair<Expression_ptr, StatementVector>> branches;
 
 	auto condition_consequence_pair = parse_condition_and_consequence(expected_indent);
 	branches.push_back(condition_consequence_pair);
@@ -254,7 +254,7 @@ Statement_ptr Parser::parse_branching(int expected_indent)
 		break;
 	}
 
-	Block else_block;
+	StatementVector else_block;
 
 	if (token_pipe->optional(WTokenType::ELSE))
 	{
@@ -272,9 +272,9 @@ Statement_ptr Parser::parse_while_loop(int expected_indent)
 	token_pipe->expect(WTokenType::COLON);
 	token_pipe->expect(WTokenType::EOL);
 
-	auto block = parse_block(expected_indent);
+	auto StatementVector = parse_block(expected_indent);
 
-	return MAKE_STATEMENT(WhileLoop(condition, block));
+	return MAKE_STATEMENT(WhileLoop(condition, StatementVector));
 }
 
 Statement_ptr Parser::parse_for_in_loop(int expected_indent)
@@ -289,9 +289,9 @@ Statement_ptr Parser::parse_for_in_loop(int expected_indent)
 	token_pipe->expect(WTokenType::COLON);
 	token_pipe->expect(WTokenType::EOL);
 
-	auto block = parse_block(expected_indent);
+	auto StatementVector = parse_block(expected_indent);
 
-	return MAKE_STATEMENT(ForInLoop(item_type, identifier, iterable_expression, block));
+	return MAKE_STATEMENT(ForInLoop(item_type, identifier, iterable_expression, StatementVector));
 }
 
 Statement_ptr Parser::parse_return()
@@ -405,7 +405,7 @@ Statement_ptr Parser::parse_type_definition(bool is_public, int expected_indent)
 	return MAKE_STATEMENT(UDTDefinition(is_public, name->value, member_types, is_public_member_map));
 }
 
-tuple<wstring, identifier_type_pair_vector, optional<Type_ptr>, Block> Parser::parse_callable_definition(int expected_indent)
+tuple<wstring, identifier_type_pair_vector, optional<Type_ptr>, StatementVector> Parser::parse_callable_definition(int expected_indent)
 {
 	auto identifier = token_pipe->required(WTokenType::CALLABLE_IDENTIFIER);
 	token_pipe->expect(WTokenType::OPEN_PARENTHESIS);
@@ -438,21 +438,21 @@ tuple<wstring, identifier_type_pair_vector, optional<Type_ptr>, Block> Parser::p
 	token_pipe->expect(WTokenType::COLON);
 	token_pipe->expect(WTokenType::EOL);
 
-	auto block = parse_block(expected_indent);
+	auto StatementVector = parse_block(expected_indent);
 
-	return make_tuple(identifier->value, arguments, optional_return_type, block);
+	return make_tuple(identifier->value, arguments, optional_return_type, StatementVector);
 }
 
 Statement_ptr Parser::parse_function_definition(bool is_public, int expected_indent)
 {
-	auto [identifier, arguments, optional_return_type, block] = parse_callable_definition(expected_indent);
-	return MAKE_STATEMENT(FunctionDefinition(is_public, identifier, arguments, optional_return_type, block));
+	auto [identifier, arguments, optional_return_type, StatementVector] = parse_callable_definition(expected_indent);
+	return MAKE_STATEMENT(FunctionDefinition(is_public, identifier, arguments, optional_return_type, StatementVector));
 }
 
 Statement_ptr Parser::parse_generator_definition(bool is_public, int expected_indent)
 {
-	auto [identifier, arguments, optional_return_type, block] = parse_callable_definition(expected_indent);
-	return MAKE_STATEMENT(GeneratorDefinition(is_public, identifier, arguments, optional_return_type, block));
+	auto [identifier, arguments, optional_return_type, StatementVector] = parse_callable_definition(expected_indent);
+	return MAKE_STATEMENT(GeneratorDefinition(is_public, identifier, arguments, optional_return_type, StatementVector));
 }
 
 Statement_ptr Parser::parse_enum_definition(bool is_public, int expected_indent)

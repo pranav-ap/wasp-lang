@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "SemanticAnalyzer.h"
+#include "Symbol.h"
 #include "SymbolTable.h"
-#include "AST.h"
 #include "Statement.h"
 #include "Assertion.h"
 #include <variant>
@@ -9,7 +9,7 @@
 #include <memory>
 
 #define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr")
-#define NAME_EXISTS_CHECK(x) ASSERT(x.has_value(), "This name is not declared")
+#define OPT_CHECK(x) ASSERT(x.has_value(), "Oh shit! Option is none")
 #define MAKE_SYMBOL(x) std::make_shared<Symbol>(x)
 
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
@@ -19,34 +19,31 @@ using std::holds_alternative;
 using std::wstring;
 using std::get;
 
-void SemanticAnalyzer::enter_scope(std::wstring id)
+void SemanticAnalyzer::enter_scope(std::optional<SymbolTable_ptr> symbol_table)
 {
-	auto new_scope = std::make_shared<ScopedSymbolTable>(current_symbol_table);
-	current_symbol_table = new_scope;
-	table_of_tables.insert({ id, new_scope });
+	OPT_CHECK(symbol_table);
+	OPT_CHECK(current_symbol_table);
+
+	symbol_table.value()->enclosing_scope = current_symbol_table.value();
+	current_symbol_table = symbol_table.value();
 }
 
 void SemanticAnalyzer::leave_scope()
 {
-	current_symbol_table = current_symbol_table->enclosing_scope.value();
+	OPT_CHECK(current_symbol_table);
+	current_symbol_table = current_symbol_table.value()->enclosing_scope;
 }
 
-void SemanticAnalyzer::init()
+void SemanticAnalyzer::execute(Module_ptr module_ast)
 {
-	current_symbol_table = std::make_shared<ScopedSymbolTable>();
-	table_of_tables.insert({ L"global", current_symbol_table });
-}
+	module_ast->symbol_table = std::make_shared<SymbolTable>();
+	current_symbol_table = module_ast->symbol_table;
+	OPT_CHECK(current_symbol_table);
 
-std::map<std::wstring, ScopedSymbolTable_ptr> SemanticAnalyzer::execute(AST_ptr ast)
-{
-	init();
-
-	for (auto statement : ast->nodes)
+	for (auto statement : module_ast->statements)
 	{
 		visit(statement);
 	}
-
-	return table_of_tables;
 }
 
 // Statement
@@ -98,17 +95,24 @@ void SemanticAnalyzer::visit(Assignment& statement)
 
 void SemanticAnalyzer::visit(Branching& statement)
 {
-	for (const auto [condition, block] : statement.branches)
+	for (const auto branch : statement.branches)
 	{
+		auto condition = branch.first;
 		visit(condition);
 
-		enter_scope(block.id);
-		visit(block);
+		auto body = branch.second->statements;
+		auto symbol_table = branch.second->symbol_table;
+
+		enter_scope(symbol_table);
+		visit(body);
 		leave_scope();
 	}
 
-	enter_scope(statement.id);
-	visit(statement.else_block);
+	auto else_body = statement.else_block->statements;
+	auto symbol_table = statement.else_block->symbol_table;
+
+	enter_scope(symbol_table);
+	visit(else_body);
 	leave_scope();
 }
 
@@ -116,14 +120,14 @@ void SemanticAnalyzer::visit(WhileLoop& statement)
 {
 	visit(statement.condition);
 
-	enter_scope(statement.id);
-	visit(statement.block);
+	enter_scope(statement.symbol_table);
+	visit(statement.statements);
 	leave_scope();
 }
 
 void SemanticAnalyzer::visit(ForInLoop& statement)
 {
-	enter_scope(statement.id);
+	enter_scope(statement.symbol_table);
 
 	auto symbol = MAKE_SYMBOL(VariableSymbol(
 		statement.item_name,
@@ -132,10 +136,10 @@ void SemanticAnalyzer::visit(ForInLoop& statement)
 		statement.item_type
 	));
 
-	current_symbol_table->define(statement.item_name, symbol);
+	OPT_CHECK(current_symbol_table);
+	current_symbol_table.value()->define(statement.item_name, symbol);
 
-	visit(statement.block);
-
+	visit(statement.statements);
 	leave_scope();
 }
 
@@ -176,7 +180,8 @@ void SemanticAnalyzer::visit(VariableDefinition& statement)
 		statement.type
 	));
 
-	current_symbol_table->define(statement.name, symbol);
+	OPT_CHECK(current_symbol_table);
+	current_symbol_table.value()->define(statement.name, symbol);
 }
 
 void SemanticAnalyzer::visit(UDTDefinition& statement)
@@ -188,7 +193,8 @@ void SemanticAnalyzer::visit(UDTDefinition& statement)
 		statement.is_public_member
 	));
 
-	current_symbol_table->define(statement.name, symbol);
+	OPT_CHECK(current_symbol_table);
+	current_symbol_table.value()->define(statement.name, symbol);
 }
 
 void SemanticAnalyzer::visit(AliasDefinition& statement)
@@ -199,7 +205,8 @@ void SemanticAnalyzer::visit(AliasDefinition& statement)
 		statement.type
 	));
 
-	current_symbol_table->define(statement.name, symbol);
+	OPT_CHECK(current_symbol_table);
+	current_symbol_table.value()->define(statement.name, symbol);
 }
 
 void SemanticAnalyzer::visit(FunctionDefinition& statement)
@@ -208,14 +215,14 @@ void SemanticAnalyzer::visit(FunctionDefinition& statement)
 		statement.name,
 		statement.is_public,
 		statement.arguments,
-		statement.return_type,
-		statement.body
+		statement.return_type
 	));
 
-	current_symbol_table->define(statement.name, symbol);
+	OPT_CHECK(current_symbol_table);
+	current_symbol_table.value()->define(statement.name, symbol);
 
-	enter_scope(statement.id);
-	visit(statement.body);
+	enter_scope(statement.symbol_table);
+	visit(statement.statements);
 	leave_scope();
 }
 
@@ -225,8 +232,14 @@ void SemanticAnalyzer::visit(GeneratorDefinition& statement)
 
 void SemanticAnalyzer::visit(EnumDefinition& statement)
 {
-	auto symbol = MAKE_SYMBOL(EnumSymbol(statement.name, statement.is_public, statement.members));
-	current_symbol_table->define(statement.name, symbol);
+	auto symbol = MAKE_SYMBOL(EnumSymbol(
+		statement.name,
+		statement.is_public,
+		statement.members
+	));
+
+	OPT_CHECK(current_symbol_table);
+	current_symbol_table.value()->define(statement.name, symbol);
 }
 
 void SemanticAnalyzer::visit(ImportCustom& statement)
@@ -311,8 +324,8 @@ void SemanticAnalyzer::visit(MapLiteral& expr)
 
 void SemanticAnalyzer::visit(UDTConstruct& expr)
 {
-	std::optional<Symbol_ptr> symbol = current_symbol_table->lookup(expr.UDT_name);
-	NAME_EXISTS_CHECK(symbol);
+	std::optional<Symbol_ptr> symbol = current_symbol_table.value()->lookup(expr.UDT_name);
+	OPT_CHECK(symbol);
 	ASSERT(holds_alternative<UDTSymbol>(*symbol.value()), "This is not a UDT!");
 
 	// type check
@@ -335,8 +348,8 @@ void SemanticAnalyzer::visit(UDTMemberAccess& expr)
 
 void SemanticAnalyzer::visit(EnumMember& expr)
 {
-	std::optional<Symbol_ptr> symbol = current_symbol_table->lookup(expr.enum_name);
-	NAME_EXISTS_CHECK(symbol);
+	std::optional<Symbol_ptr> symbol = current_symbol_table.value()->lookup(expr.enum_name);
+	OPT_CHECK(symbol);
 	ASSERT(holds_alternative<EnumSymbol>(*symbol.value()), "This is not a Enum!");
 
 	auto enum_symbol = get<EnumSymbol>(*symbol.value());
@@ -358,14 +371,14 @@ void SemanticAnalyzer::visit(EnumMember& expr)
 
 void SemanticAnalyzer::visit(Identifier& expr)
 {
-	std::optional<Symbol_ptr> symbol = current_symbol_table->lookup(expr.name);
-	NAME_EXISTS_CHECK(symbol);
+	std::optional<Symbol_ptr> symbol = current_symbol_table.value()->lookup(expr.name);
+	OPT_CHECK(symbol);
 }
 
 void SemanticAnalyzer::visit(Call& expr)
 {
-	std::optional<Symbol_ptr> symbol = current_symbol_table->lookup(expr.name);
-	NAME_EXISTS_CHECK(symbol);
+	std::optional<Symbol_ptr> symbol = current_symbol_table.value()->lookup(expr.name);
+	OPT_CHECK(symbol);
 	ASSERT(holds_alternative<FunctionSymbol>(*symbol.value()), "This is not a function!");
 
 	auto function_symbol = get<FunctionSymbol>(*symbol.value());

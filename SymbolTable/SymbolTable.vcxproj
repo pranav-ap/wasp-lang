@@ -125,7 +125,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>..\AST;..\Type_System;..\Utils;..\Token;..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Type_System;..\Utils;..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -171,9 +171,6 @@
     <ClCompile Include="SymbolTable.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AST\AST.vcxproj">
-      <Project>{a287f968-bd00-4267-9ab3-115e709bccf0}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\Type_System\Type_System.vcxproj">
       <Project>{91893e84-36aa-4c0c-89a9-9c79f2c970b9}</Project>
     </ProjectReference>

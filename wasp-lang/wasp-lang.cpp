@@ -6,7 +6,6 @@
 #include "utils.h"
 #include "Lexer.h"
 #include "Parser.h"
-#include "AST.h"
 #include "SymbolTable.h"
 #include "SemanticAnalyzer.h"
 
@@ -29,7 +28,7 @@ int main()
 	auto ast = parser->execute(tokens);
 
 	auto semantic_analyser = make_unique<SemanticAnalyzer>();
-	auto symbol_tables_map = semantic_analyser->execute(ast);
+	semantic_analyser->execute(ast);
 
 	// Calculate time taken
 

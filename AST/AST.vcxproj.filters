@@ -21,9 +21,6 @@
     <ClInclude Include="pch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="AST.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Expression.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -41,10 +38,10 @@
     <ClCompile Include="pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="AST.cpp">
+    <ClCompile Include="Source.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source.cpp">
+    <ClCompile Include="Statement.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

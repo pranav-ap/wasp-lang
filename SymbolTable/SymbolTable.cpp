@@ -4,7 +4,7 @@
 
 #define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr")
 
-void ScopedSymbolTable::define(std::wstring name, Symbol_ptr symbol)
+void SymbolTable::define(std::wstring name, Symbol_ptr symbol)
 {
 	NULL_CHECK(symbol);
 
@@ -12,7 +12,7 @@ void ScopedSymbolTable::define(std::wstring name, Symbol_ptr symbol)
 	ASSERT(result.second, "Name already exists in scope!");
 }
 
-std::optional<Symbol_ptr> ScopedSymbolTable::lookup(std::wstring name)
+std::optional<Symbol_ptr> SymbolTable::lookup(std::wstring name)
 {
 	if (store.contains(name))
 	{
