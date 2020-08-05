@@ -80,3 +80,5 @@ public:
 	Parser() {};
 	Module_ptr execute(std::vector<Token_ptr>& tokens);
 };
+
+using Parser_ptr = PARSER_API std::unique_ptr<Parser>;

@@ -1,19 +1,20 @@
 #pragma once
 #include "pch.h"
 #include "CallStack.h"
+#include "StackFrame.h"
 #include "Assertion.h"
 #include <memory>
 
 #define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr")
 #define OPT_CHECK(x) ASSERT(x.has_value(), "Oh shit! Option is none")
 
-void CallStack::push(ActivationRecord_ptr activation_record)
+void CallStack::push(StackFrame_ptr stack_frame)
 {
-	NULL_CHECK(activation_record);
-	call_stack.push(std::move(activation_record));
+	NULL_CHECK(stack_frame);
+	call_stack.push(std::move(stack_frame));
 }
 
-ActivationRecord_ptr CallStack::pop()
+StackFrame_ptr CallStack::pop()
 {
 	auto record = call_stack.top();
 	NULL_CHECK(record);
@@ -22,9 +23,14 @@ ActivationRecord_ptr CallStack::pop()
 	return record;
 }
 
-ActivationRecord_ptr CallStack::peek()
+StackFrame_ptr CallStack::peek()
 {
 	auto record = call_stack.top();
 	NULL_CHECK(record);
 	return record;
+}
+
+int CallStack::length()
+{
+	return call_stack.size();
 }

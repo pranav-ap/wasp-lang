@@ -8,7 +8,7 @@
 
 #include "SymbolTable.h"
 #include "Statement.h"
-#include "Visitor.h"
+#include "ASTVisitor.h"
 #include <memory>
 #include <optional>
 
@@ -68,4 +68,4 @@ public:
 	void execute(Module_ptr ast);
 };
 
-using SemanticAnalyzer_ptr = SEMANTICANALYZER_API std::shared_ptr<SemanticAnalyzer>;
+using SemanticAnalyzer_ptr = SEMANTICANALYZER_API std::unique_ptr<SemanticAnalyzer>;

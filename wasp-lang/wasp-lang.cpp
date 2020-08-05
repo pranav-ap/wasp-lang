@@ -21,13 +21,13 @@ int main()
 
 	std::wstring raw_source = read_source("../examples/main.txt");
 
-	auto lexer = make_unique<Lexer>();
-	auto tokens = lexer->execute(raw_source);
+	Lexer_ptr lexer = make_unique<Lexer>();
+	std::vector<Token_ptr> tokens = lexer->execute(raw_source);
 
-	auto parser = make_unique<Parser>();
-	auto ast = parser->execute(tokens);
+	Parser_ptr parser = make_unique<Parser>();
+	Module_ptr ast = parser->execute(tokens);
 
-	auto semantic_analyser = make_unique<SemanticAnalyzer>();
+	SemanticAnalyzer_ptr semantic_analyser = make_unique<SemanticAnalyzer>();
 	semantic_analyser->execute(ast);
 
 	// Calculate time taken

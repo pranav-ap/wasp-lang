@@ -85,11 +85,7 @@ void SemanticAnalyzer::visit(std::vector<Statement_ptr> block)
 
 void SemanticAnalyzer::visit(Assignment& statement)
 {
-	for (const auto expr : statement.lhs_expressions)
-	{
-		// check if valid lhs expressions
-	}
-
+	visit(statement.lhs_expressions);
 	visit(statement.rhs_expressions);
 }
 
@@ -328,8 +324,6 @@ void SemanticAnalyzer::visit(UDTConstruct& expr)
 	OPT_CHECK(symbol);
 	ASSERT(holds_alternative<UDTSymbol>(*symbol.value()), "This is not a UDT!");
 
-	// type check
-
 	//for (const auto expr : expr.expressions)
 	//{
 	//
@@ -338,8 +332,6 @@ void SemanticAnalyzer::visit(UDTConstruct& expr)
 
 void SemanticAnalyzer::visit(UDTMemberAccess& expr)
 {
-	// check if next term is child of prev
-
 	/*for (const auto term : expr.chain)
 	{
 		visit(term);

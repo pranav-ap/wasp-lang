@@ -24,7 +24,7 @@
     <ClInclude Include="CallStack.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ActivationRecord.h">
+    <ClInclude Include="StackFrame.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -36,6 +36,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CallStack.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StackFrame.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

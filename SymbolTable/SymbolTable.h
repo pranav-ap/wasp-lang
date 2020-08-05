@@ -25,9 +25,6 @@ public:
 	SymbolTable()
 		: enclosing_scope(std::nullopt) {};
 
-	SymbolTable(SymbolTable_ptr enclosing_scope)
-		: enclosing_scope(std::make_optional(enclosing_scope)) {};
-
 	void define(std::wstring name, Symbol_ptr symbol);
 	std::optional<Symbol_ptr> lookup(std::wstring name);
 };

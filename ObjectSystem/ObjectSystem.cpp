@@ -13,12 +13,8 @@
 #define MAKE_OBJECT_VARIANT(x) std::make_shared<Object>(x)
 #define VOID std::make_shared<Object>(ReturnObject())
 #define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr")
-
-#define THROW(message) \
-	return std::make_shared<Object>(ErrorObject(message));
-
-#define THROW_ASSERT(condition, message) \
-	if (!condition) { return std::make_shared<Object>(ErrorObject(message)); }
+#define THROW(message) return std::make_shared<Object>(ErrorObject(message));
+#define THROW_IF(condition, message) if (!condition) { return std::make_shared<Object>(ErrorObject(message)); }
 
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
@@ -30,7 +26,7 @@ using std::get;
 Object_ptr ListObject::append(Object_ptr value)
 {
 	NULL_CHECK(value);
-	THROW_ASSERT(value->index() != 0, L"Cannot add monostate to VectorObject");
+	THROW_IF(value->index() != 0, L"Cannot add monostate to VectorObject");
 	values.push_back(value);
 	return VOID;
 }
@@ -38,7 +34,7 @@ Object_ptr ListObject::append(Object_ptr value)
 Object_ptr ListObject::prepend(Object_ptr value)
 {
 	NULL_CHECK(value);
-	THROW_ASSERT(value->index() != 0, L"Cannot add monostate to VectorObject");
+	THROW_IF(value->index() != 0, L"Cannot add monostate to VectorObject");
 	values.push_front(value);
 	return VOID;
 }
@@ -93,7 +89,7 @@ Object_ptr ListObject::get(Object_ptr index_object)
 Object_ptr ListObject::set(Object_ptr index_object, Object_ptr value)
 {
 	NULL_CHECK(value);
-	THROW_ASSERT(value->index() != 0, L"Cannot add monostate to VectorObject");
+	THROW_IF(value->index() != 0, L"Cannot add monostate to VectorObject");
 
 	try
 	{
@@ -134,7 +130,7 @@ Object_ptr MapObject::insert(Object_ptr key, Object_ptr value)
 {
 	NULL_CHECK(key);
 	NULL_CHECK(value);
-	THROW_ASSERT(value->index() != 0, L"Cannot assign monostate to a key in DictionaryObject");
+	THROW_IF(value->index() != 0, L"Cannot assign monostate to a key in DictionaryObject");
 
 	const auto [_, success] = pairs.insert({ key, value });
 	ASSERT(success, "Unable to assign value to key in Map");
@@ -146,7 +142,7 @@ Object_ptr MapObject::set(Object_ptr key, Object_ptr value)
 {
 	NULL_CHECK(key);
 	NULL_CHECK(value);
-	THROW_ASSERT(value->index() != 0, L"Cannot assign monostate to a key in DictionaryObject");
+	THROW_IF(value->index() != 0, L"Cannot assign monostate to a key in DictionaryObject");
 	pairs.insert_or_assign(key, value);
 	return VOID;
 }

@@ -1,12 +1,13 @@
-﻿import { add } from "path"
+﻿import { add } from 'path'
+const io = import('std/io')
 
 // Its more of a comment really
 
 let x : num = 34
-let x : str = "hello"
+let x : str = 'hello'
 let x : [num] = [ 1, 2, 3 ]
-let x : ⌊ str ⌋ = ⌊ "1", "hello" ⌋
-let x : ⟨ str -> str ⟩ = ⟨ "a" : "b",  "c" : "d" ⟩
+let x : ⌊ str ⌋ = ⌊ '1', 'hello' ⌋
+let x : ⟨ str -> str ⟩ = ⟨ 'a' : 'b', 'c' : 'd' ⟩
 
 a, b, c = 1, 2, 3
 
@@ -15,6 +16,9 @@ if a > 3 and r == 3:
 elif a > 3:
     pass
 else:
+    pass
+
+if let number : num = call():
     pass
 
 while true:
@@ -52,9 +56,12 @@ type Person extends Bird impl IAnimal :
 interface IAnimal:
     alive : bool
 
-let x : Person = new Person("john", false)
+    fn get_name():
+        pass
+
+let x : Person = new Person('john', false)
 
 x.foo.age
 x(123).foo(36, gg).age
 
-new Person("john", false).text
+new Person('john', false).text

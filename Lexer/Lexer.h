@@ -121,3 +121,5 @@ public:
 
 	std::vector<Token_ptr> execute(std::wstring raw_source);
 };
+
+using Lexer_ptr = LEXER_API std::unique_ptr<Lexer>;

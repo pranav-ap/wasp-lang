@@ -81,3 +81,6 @@ struct SYMBOLTABLE_API AliasSymbol : public ISymbol
 	AliasSymbol(std::wstring name, bool is_public, Type_ptr type)
 		: ISymbol(name, is_public), type(type) {};
 };
+
+using VariableSymbol_ptr = SYMBOLTABLE_API std::shared_ptr<VariableSymbol>;
+using FunctionSymbol_ptr = SYMBOLTABLE_API std::shared_ptr<FunctionSymbol>;
