@@ -27,6 +27,9 @@ while true:
 for x : num in [1, 2, 3]:
     pass
 
+for i : num in 1..8 step 2:
+    pass
+
 fn add(a : num, b : num) -> num :
     if a > b:
         return a + b + 4
@@ -52,6 +55,12 @@ type Person extends Bird impl IAnimal :
 
     fn init():
         pass
+
+operator [Person + X] -> Person :
+    pass
+
+operator [- Person] -> Person :
+    pass
 
 interface IAnimal:
     alive : bool

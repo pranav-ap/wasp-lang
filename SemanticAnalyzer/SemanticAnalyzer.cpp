@@ -17,65 +17,68 @@ template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
 
 using std::holds_alternative;
 using std::wstring;
-using std::get;
+using std::get_if;
 
-void SemanticAnalyzer::enter_scope(std::optional<SymbolTable_ptr> symbol_table)
+void SemanticAnalyzer::enter_scope()
 {
-	OPT_CHECK(symbol_table);
-	OPT_CHECK(current_symbol_table);
+	NULL_CHECK(symbol_table);
 
-	symbol_table.value()->enclosing_scope = current_symbol_table.value();
-	current_symbol_table = symbol_table.value();
+	auto child_table = std::make_shared<SymbolTable>();
+	child_table->enclosing_scope = symbol_table;
+
+	symbol_table = child_table;
 }
 
 void SemanticAnalyzer::leave_scope()
 {
-	OPT_CHECK(current_symbol_table);
-	current_symbol_table = current_symbol_table.value()->enclosing_scope;
+	NULL_CHECK(symbol_table);
+	OPT_CHECK(symbol_table->enclosing_scope);
+	symbol_table = symbol_table->enclosing_scope.value();
 }
 
-void SemanticAnalyzer::execute(Module_ptr module_ast)
+void SemanticAnalyzer::execute(const Module_ptr module_ast)
 {
-	module_ast->symbol_table = std::make_shared<SymbolTable>();
-	current_symbol_table = module_ast->symbol_table;
-	OPT_CHECK(current_symbol_table);
+	symbol_table = std::make_shared<SymbolTable>();
+	enter_scope();
 
 	for (auto statement : module_ast->statements)
 	{
 		visit(statement);
 	}
+
+	leave_scope();
 }
 
 // Statement
 
-void SemanticAnalyzer::visit(Statement_ptr statement)
+void SemanticAnalyzer::visit(const Statement_ptr statement)
 {
 	std::visit(overloaded{
-		[&](Assignment& stat) { visit(stat); },
-		[&](Branching& stat) { visit(stat); },
-		[&](WhileLoop& stat) { visit(stat); },
-		[&](ForInLoop& stat) { visit(stat); },
-		[&](Break& stat) { visit(stat); },
-		[&](Continue& stat) { visit(stat); },
-		[&](Pass& stat) { visit(stat); },
-		[&](Return& stat) { visit(stat); },
-		[&](YieldStatement& stat) { visit(stat); },
-		[&](VariableDefinition& stat) { visit(stat); },
-		[&](UDTDefinition& stat) { visit(stat); },
-		[&](AliasDefinition& stat) { visit(stat); },
-		[&](FunctionDefinition& stat) { visit(stat); },
-		[&](GeneratorDefinition& stat) { visit(stat); },
-		[&](EnumDefinition& stat) { visit(stat); },
-		[&](ImportCustom& stat) { visit(stat); },
-		[&](ImportInBuilt& stat) { visit(stat); },
-		[&](ExpressionStatement& stat) { visit(stat); },
-		[&](AssertStatement& stat) { visit(stat); },
+		[&](Assignment const& stat) { visit(stat); },
+		[&](Branching const& stat) { visit(stat); },
+		[&](WhileLoop const& stat) { visit(stat); },
+		[&](ForInLoop const& stat) { visit(stat); },
+		[&](Break const& stat) { visit(stat); },
+		[&](Continue const& stat) { visit(stat); },
+		[&](Pass const& stat) { visit(stat); },
+		[&](Return const& stat) { visit(stat); },
+		[&](YieldStatement const& stat) { visit(stat); },
+		[&](VariableDefinition const& stat) { visit(stat); },
+		[&](UDTDefinition const& stat) { visit(stat); },
+		[&](AliasDefinition const& stat) { visit(stat); },
+		[&](FunctionDefinition const& stat) { visit(stat); },
+		[&](GeneratorDefinition const& stat) { visit(stat); },
+		[&](EnumDefinition const& stat) { visit(stat); },
+		[&](ImportCustom const& stat) { visit(stat); },
+		[&](ImportInBuilt const& stat) { visit(stat); },
+		[&](ExpressionStatement const& stat) { visit(stat); },
+		[&](AssertStatement const& stat) { visit(stat); },
 
 		[](auto) { FATAL("Never Seen this Statement before!"); }
 		}, *statement);
 }
 
-void SemanticAnalyzer::visit(std::vector<Statement_ptr> block)
+void SemanticAnalyzer::visit(std::vector<Statement_ptr> const& block)
 {
 	for (const auto stat : block)
 	{
@@ -83,47 +86,45 @@ void SemanticAnalyzer::visit(std::vector<Statement_ptr> block)
 	}
 }
 
-void SemanticAnalyzer::visit(Assignment& statement)
+void SemanticAnalyzer::visit(Assignment const& statement)
 {
 	visit(statement.lhs_expressions);
 	visit(statement.rhs_expressions);
 }
 
-void SemanticAnalyzer::visit(Branching& statement)
+void SemanticAnalyzer::visit(Branching const& statement)
 {
 	for (const auto branch : statement.branches)
 	{
 		auto condition = branch.first;
 		visit(condition);
 
-		auto body = branch.second->statements;
-		auto symbol_table = branch.second->symbol_table;
+		auto body = branch.second;
 
-		enter_scope(symbol_table);
+		enter_scope();
 		visit(body);
 		leave_scope();
 	}
 
-	auto else_body = statement.else_block->statements;
-	auto symbol_table = statement.else_block->symbol_table;
+	auto else_body = statement.else_block;
 
-	enter_scope(symbol_table);
+	enter_scope();
 	visit(else_body);
 	leave_scope();
 }
 
-void SemanticAnalyzer::visit(WhileLoop& statement)
+void SemanticAnalyzer::visit(WhileLoop const& statement)
 {
 	visit(statement.condition);
 
-	enter_scope(statement.symbol_table);
-	visit(statement.statements);
+	enter_scope();
+	visit(statement.block);
 	leave_scope();
 }
 
-void SemanticAnalyzer::visit(ForInLoop& statement)
+void SemanticAnalyzer::visit(ForInLoop const& statement)
 {
-	enter_scope(statement.symbol_table);
+	enter_scope();
 
 	auto symbol = MAKE_SYMBOL(VariableSymbol(
 		statement.item_name,
@@ -132,34 +133,25 @@ void SemanticAnalyzer::visit(ForInLoop& statement)
 		statement.item_type
 	));
 
-	OPT_CHECK(current_symbol_table);
-	current_symbol_table.value()->define(statement.item_name, symbol);
+	symbol_table->define(statement.item_name, symbol);
 
-	visit(statement.statements);
+	visit(statement.block);
 	leave_scope();
 }
 
-void SemanticAnalyzer::visit(Break& statement)
+void SemanticAnalyzer::visit(Break const& statement)
 {
 }
 
-void SemanticAnalyzer::visit(Continue& statement)
+void SemanticAnalyzer::visit(Continue const& statement)
 {
 }
 
-void SemanticAnalyzer::visit(Pass& statement)
+void SemanticAnalyzer::visit(Pass const& statement)
 {
 }
 
-void SemanticAnalyzer::visit(Return& statement)
-{
-	if (statement.expression.has_value())
-	{
-		visit(statement.expression.value());
-	}
-}
-
-void SemanticAnalyzer::visit(YieldStatement& statement)
+void SemanticAnalyzer::visit(Return const& statement)
 {
 	if (statement.expression.has_value())
 	{
@@ -167,7 +159,15 @@ void SemanticAnalyzer::visit(YieldStatement& statement)
 	}
 }
 
-void SemanticAnalyzer::visit(VariableDefinition& statement)
+void SemanticAnalyzer::visit(YieldStatement const& statement)
+{
+	if (statement.expression.has_value())
+	{
+		visit(statement.expression.value());
+	}
+}
+
+void SemanticAnalyzer::visit(VariableDefinition const& statement)
 {
 	auto symbol = MAKE_SYMBOL(VariableSymbol(
 		statement.name,
@@ -176,11 +176,10 @@ void SemanticAnalyzer::visit(VariableDefinition& statement)
 		statement.type
 	));
 
-	OPT_CHECK(current_symbol_table);
-	current_symbol_table.value()->define(statement.name, symbol);
+	symbol_table->define(statement.name, symbol);
 }
 
-void SemanticAnalyzer::visit(UDTDefinition& statement)
+void SemanticAnalyzer::visit(UDTDefinition const& statement)
 {
 	auto symbol = MAKE_SYMBOL(UDTSymbol(
 		statement.name,
@@ -189,11 +188,10 @@ void SemanticAnalyzer::visit(UDTDefinition& statement)
 		statement.is_public_member
 	));
 
-	OPT_CHECK(current_symbol_table);
-	current_symbol_table.value()->define(statement.name, symbol);
+	symbol_table->define(statement.name, symbol);
 }
 
-void SemanticAnalyzer::visit(AliasDefinition& statement)
+void SemanticAnalyzer::visit(AliasDefinition const& statement)
 {
 	auto symbol = MAKE_SYMBOL(AliasSymbol(
 		statement.name,
@@ -201,11 +199,10 @@ void SemanticAnalyzer::visit(AliasDefinition& statement)
 		statement.type
 	));
 
-	OPT_CHECK(current_symbol_table);
-	current_symbol_table.value()->define(statement.name, symbol);
+	symbol_table->define(statement.name, symbol);
 }
 
-void SemanticAnalyzer::visit(FunctionDefinition& statement)
+void SemanticAnalyzer::visit(FunctionDefinition const& statement)
 {
 	auto symbol = MAKE_SYMBOL(FunctionSymbol(
 		statement.name,
@@ -214,19 +211,18 @@ void SemanticAnalyzer::visit(FunctionDefinition& statement)
 		statement.return_type
 	));
 
-	OPT_CHECK(current_symbol_table);
-	current_symbol_table.value()->define(statement.name, symbol);
+	symbol_table->define(statement.name, symbol);
 
-	enter_scope(statement.symbol_table);
-	visit(statement.statements);
+	enter_scope();
+	visit(statement.block);
 	leave_scope();
 }
 
-void SemanticAnalyzer::visit(GeneratorDefinition& statement)
+void SemanticAnalyzer::visit(GeneratorDefinition const& statement)
 {
 }
 
-void SemanticAnalyzer::visit(EnumDefinition& statement)
+void SemanticAnalyzer::visit(EnumDefinition const& statement)
 {
 	auto symbol = MAKE_SYMBOL(EnumSymbol(
 		statement.name,
@@ -234,52 +230,51 @@ void SemanticAnalyzer::visit(EnumDefinition& statement)
 		statement.members
 	));
 
-	OPT_CHECK(current_symbol_table);
-	current_symbol_table.value()->define(statement.name, symbol);
+	symbol_table->define(statement.name, symbol);
 }
 
-void SemanticAnalyzer::visit(ImportCustom& statement)
+void SemanticAnalyzer::visit(ImportCustom const& statement)
 {
 }
 
-void SemanticAnalyzer::visit(ImportInBuilt& statement)
+void SemanticAnalyzer::visit(ImportInBuilt const& statement)
 {
 }
 
-void SemanticAnalyzer::visit(ExpressionStatement& statement)
+void SemanticAnalyzer::visit(ExpressionStatement const& statement)
 {
 	visit(statement.expression);
 }
 
-void SemanticAnalyzer::visit(AssertStatement& statement)
+void SemanticAnalyzer::visit(AssertStatement const& statement)
 {
 	visit(statement.expression);
 }
 
 // Expression
 
-void SemanticAnalyzer::visit(Expression_ptr expression)
+void SemanticAnalyzer::visit(const Expression_ptr expression)
 {
 	std::visit(overloaded{
 		[&](double expr) { visit(expr); },
 		[&](std::wstring expr) { visit(expr); },
 		[&](bool expr) { visit(expr); },
-		[&](ListLiteral& expr) { visit(expr); },
-		[&](TupleLiteral& expr) { visit(expr); },
-		[&](MapLiteral& expr) { visit(expr); },
-		[&](UDTConstruct& expr) { visit(expr); },
-		[&](UDTMemberAccess& expr) { visit(expr); },
-		[&](EnumMember& expr) { visit(expr); },
-		[&](Identifier& expr) { visit(expr); },
-		[&](Call& expr) { visit(expr); },
-		[&](Unary& expr) { visit(expr); },
-		[&](Binary& expr) { visit(expr); },
+		[&](ListLiteral const& expr) { visit(expr); },
+		[&](TupleLiteral const& expr) { visit(expr); },
+		[&](MapLiteral const& expr) { visit(expr); },
+		[&](UDTConstruct const& expr) { visit(expr); },
+		[&](UDTMemberAccess const& expr) { visit(expr); },
+		[&](EnumMember const& expr) { visit(expr); },
+		[&](Identifier const& expr) { visit(expr); },
+		[&](Call const& expr) { visit(expr); },
+		[&](Unary const& expr) { visit(expr); },
+		[&](Binary const& expr) { visit(expr); },
 
 		[](auto) { FATAL("Never Seen this Statement before!"); }
 		}, *expression);
 }
 
-void SemanticAnalyzer::visit(std::vector<Expression_ptr> expression_list)
+void SemanticAnalyzer::visit(std::vector<Expression_ptr> const& expression_list)
 {
 	for (const auto expr : expression_list)
 	{
@@ -287,29 +282,29 @@ void SemanticAnalyzer::visit(std::vector<Expression_ptr> expression_list)
 	}
 }
 
-void SemanticAnalyzer::visit(double expr)
+void SemanticAnalyzer::visit(const double expr)
 {
 }
 
-void SemanticAnalyzer::visit(std::wstring expr)
+void SemanticAnalyzer::visit(const std::wstring expr)
 {
 }
 
-void SemanticAnalyzer::visit(bool expr)
+void SemanticAnalyzer::visit(const bool expr)
 {
 }
 
-void SemanticAnalyzer::visit(ListLiteral& expr)
-{
-	visit(expr.expressions);
-}
-
-void SemanticAnalyzer::visit(TupleLiteral& expr)
+void SemanticAnalyzer::visit(ListLiteral const& expr)
 {
 	visit(expr.expressions);
 }
 
-void SemanticAnalyzer::visit(MapLiteral& expr)
+void SemanticAnalyzer::visit(TupleLiteral const& expr)
+{
+	visit(expr.expressions);
+}
+
+void SemanticAnalyzer::visit(MapLiteral const& expr)
 {
 	for (const auto [key, value] : expr.pairs)
 	{
@@ -318,34 +313,25 @@ void SemanticAnalyzer::visit(MapLiteral& expr)
 	}
 }
 
-void SemanticAnalyzer::visit(UDTConstruct& expr)
+void SemanticAnalyzer::visit(UDTConstruct const& expr)
 {
-	std::optional<Symbol_ptr> symbol = current_symbol_table.value()->lookup(expr.UDT_name);
+	std::optional<Symbol_ptr> symbol = symbol_table->lookup(expr.UDT_name);
 	OPT_CHECK(symbol);
 	ASSERT(holds_alternative<UDTSymbol>(*symbol.value()), "This is not a UDT!");
-
-	//for (const auto expr : expr.expressions)
-	//{
-	//
-	//}
 }
 
-void SemanticAnalyzer::visit(UDTMemberAccess& expr)
+void SemanticAnalyzer::visit(UDTMemberAccess const& expr)
 {
-	/*for (const auto term : expr.chain)
-	{
-		visit(term);
-	}*/
 }
 
-void SemanticAnalyzer::visit(EnumMember& expr)
+void SemanticAnalyzer::visit(EnumMember const& expr)
 {
-	std::optional<Symbol_ptr> symbol = current_symbol_table.value()->lookup(expr.enum_name);
+	std::optional<Symbol_ptr> symbol = symbol_table->lookup(expr.enum_name);
 	OPT_CHECK(symbol);
 	ASSERT(holds_alternative<EnumSymbol>(*symbol.value()), "This is not a Enum!");
 
-	auto enum_symbol = get<EnumSymbol>(*symbol.value());
-	auto enum_members = enum_symbol.members;
+	auto enum_symbol = get_if<EnumSymbol>(&*symbol.value());
+	auto enum_members = enum_symbol->members;
 
 	wstring enum_string = expr.enum_name;
 
@@ -361,34 +347,27 @@ void SemanticAnalyzer::visit(EnumMember& expr)
 	);
 }
 
-void SemanticAnalyzer::visit(Identifier& expr)
+void SemanticAnalyzer::visit(Identifier const& expr)
 {
-	std::optional<Symbol_ptr> symbol = current_symbol_table.value()->lookup(expr.name);
+	std::optional<Symbol_ptr> symbol = symbol_table->lookup(expr.name);
 	OPT_CHECK(symbol);
 }
 
-void SemanticAnalyzer::visit(Call& expr)
+void SemanticAnalyzer::visit(Call const& expr)
 {
-	std::optional<Symbol_ptr> symbol = current_symbol_table.value()->lookup(expr.name);
+	std::optional<Symbol_ptr> symbol = symbol_table->lookup(expr.name);
 	OPT_CHECK(symbol);
 	ASSERT(holds_alternative<FunctionSymbol>(*symbol.value()), "This is not a function!");
 
-	auto function_symbol = get<FunctionSymbol>(*symbol.value());
-
-	// Argument type checking
-
-	/*for (const auto arg : expr.arguments)
-	{
-		visit(arg);
-	}*/
+	auto function_symbol = get_if<FunctionSymbol>(&*symbol.value());
 }
 
-void SemanticAnalyzer::visit(Unary& expr)
+void SemanticAnalyzer::visit(Unary const& expr)
 {
 	visit(expr.operand);
 }
 
-void SemanticAnalyzer::visit(Binary& expr)
+void SemanticAnalyzer::visit(Binary const& expr)
 {
 	visit(expr.left);
 	visit(expr.right);

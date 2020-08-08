@@ -8,64 +8,65 @@
 
 #include "SymbolTable.h"
 #include "Statement.h"
-#include "ASTVisitor.h"
 #include <memory>
 #include <optional>
 
-class SEMANTICANALYZER_API SemanticAnalyzer : public IStatementVisitor, public IExpressionVisitor
+class SEMANTICANALYZER_API SemanticAnalyzer
 {
-	std::optional<SymbolTable_ptr> current_symbol_table;
+	SymbolTable_ptr symbol_table;
 
 	// Statement
 
-	void visit(Statement_ptr statement);
-	void visit(std::vector<Statement_ptr> statements);
+	void visit(const Statement_ptr statement);
+	void visit(std::vector<Statement_ptr> const& statements);
 
-	void visit(Assignment& statement);
-	void visit(Branching& statement);
-	void visit(WhileLoop& statement);
-	void visit(ForInLoop& statement);
-	void visit(Break& statement);
-	void visit(Continue& statement);
-	void visit(Pass& statement);
-	void visit(Return& statement);
-	void visit(YieldStatement& statement);
-	void visit(VariableDefinition& statement);
-	void visit(UDTDefinition& statement);
-	void visit(AliasDefinition& statement);
-	void visit(FunctionDefinition& statement);
-	void visit(GeneratorDefinition& statement);
-	void visit(EnumDefinition& statement);
-	void visit(ImportCustom& statement);
-	void visit(ImportInBuilt& statement);
-	void visit(ExpressionStatement& statement);
-	void visit(AssertStatement& statement);
+	void visit(Assignment const& statement);
+	void visit(Branching const& statement);
+	void visit(WhileLoop const& statement);
+	void visit(ForInLoop const& statement);
+	void visit(Break const& statement);
+	void visit(Continue const& statement);
+	void visit(Pass const& statement);
+	void visit(Return const& statement);
+	void visit(YieldStatement const& statement);
+	void visit(VariableDefinition const& statement);
+	void visit(UDTDefinition const& statement);
+	void visit(AliasDefinition const& statement);
+	void visit(FunctionDefinition const& statement);
+	void visit(GeneratorDefinition const& statement);
+	void visit(EnumDefinition const& statement);
+	void visit(ImportCustom const& statement);
+	void visit(ImportInBuilt const& statement);
+	void visit(ExpressionStatement const& statement);
+	void visit(AssertStatement const& statement);
 
 	// Expression
 
-	void visit(Expression_ptr expr);
-	void visit(std::vector<Expression_ptr> expressions);
+	void visit(const Expression_ptr expr);
+	void visit(std::vector<Expression_ptr> const& expressions);
 
-	void visit(double expr);
-	void visit(std::wstring expr);
-	void visit(bool expr);
-	void visit(ListLiteral& expr);
-	void visit(TupleLiteral& expr);
-	void visit(MapLiteral& expr);
-	void visit(UDTConstruct& expr);
-	void visit(UDTMemberAccess& expr);
-	void visit(EnumMember& expr);
-	void visit(Identifier& expr);
-	void visit(Call& expr);
-	void visit(Unary& expr);
-	void visit(Binary& expr);
+	void visit(const double expr);
+	void visit(const std::wstring expr);
+	void visit(const bool expr);
+	void visit(ListLiteral const& expr);
+	void visit(TupleLiteral const& expr);
+	void visit(MapLiteral const& expr);
+	void visit(UDTConstruct const& expr);
+	void visit(UDTMemberAccess const& expr);
+	void visit(EnumMember const& expr);
+	void visit(Identifier const& expr);
+	void visit(Call const& expr);
+	void visit(Unary const& expr);
+	void visit(Binary const& expr);
 
-	void enter_scope(std::optional<SymbolTable_ptr> symbol_table);
+	// Utils
+
+	void enter_scope();
 	void leave_scope();
 
 public:
 	SemanticAnalyzer() {};
-	void execute(Module_ptr ast);
+	void execute(const Module_ptr ast);
 };
 
 using SemanticAnalyzer_ptr = SEMANTICANALYZER_API std::unique_ptr<SemanticAnalyzer>;

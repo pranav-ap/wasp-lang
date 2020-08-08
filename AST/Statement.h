@@ -8,7 +8,6 @@
 
 #include "Expression.h"
 #include "Type_System.h"
-#include "SymbolTable.h"
 
 #include <string>
 #include <vector>
@@ -63,30 +62,15 @@ using Statement = AST_API std::variant <
 > ;
 
 using Statement_ptr = AST_API std::shared_ptr<Statement>;
-using StatementVector = AST_API std::vector<Statement_ptr>;
-using StringVector = AST_API std::vector<std::wstring>;
+using Block = AST_API std::vector<Statement_ptr>;
 using NameTypePairs = AST_API std::vector<std::pair<std::wstring, Type_ptr>>;
-using ConditionBlockPairs = AST_API std::vector<std::pair<Expression_ptr, StatementVector>>;
+using ConditionBlockPairs = AST_API std::vector<std::pair<Expression_ptr, Block>>;
+using StringVector = AST_API std::vector<std::wstring>;
 
-struct ScopedBlock
+struct AST_API Module
 {
-	std::optional<SymbolTable_ptr> symbol_table;
-	StatementVector statements;
-
-	ScopedBlock() {};
-	ScopedBlock(StatementVector statements)
-		: symbol_table(std::make_shared<SymbolTable>()), statements(statements) {};
-};
-
-using ScopedBlock_ptr = AST_API std::shared_ptr<ScopedBlock>;
-
-struct AST_API Module : public ScopedBlock
-{
-	Module() {};
-	Module(StatementVector statements)
-		: ScopedBlock(statements) {};
-
-	void add_node(Statement_ptr node);
+	Block statements;
+	void add_statement(Statement_ptr node);
 };
 
 using Module_ptr = AST_API std::shared_ptr<Module>;
@@ -102,43 +86,32 @@ struct AST_API Assignment
 
 struct AST_API Branching
 {
-	std::vector<std::pair<Expression_ptr, ScopedBlock_ptr>> branches;
-	ScopedBlock_ptr else_block;
+	ConditionBlockPairs branches;
+	Block else_block;
 
-	Branching(ConditionBlockPairs branches, StatementVector else_block)
-	{
-		for (auto branch : branches)
-		{
-			this->branches.push_back(
-				std::make_pair(
-					branch.first,
-					std::make_shared<ScopedBlock>(branch.second)
-				)
-			);
-		}
-
-		this->else_block = std::make_shared<ScopedBlock>(else_block);
-	};
+	Branching(ConditionBlockPairs branches, Block else_block)
+		: branches(branches), else_block(else_block) {};
 };
-
 // Looping
 
-struct AST_API WhileLoop : public ScopedBlock
+struct AST_API WhileLoop
 {
 	Expression_ptr condition;
+	Block block;
 
-	WhileLoop(Expression_ptr condition, StatementVector block)
-		: ScopedBlock(block), condition(std::move(condition)) {};
+	WhileLoop(Expression_ptr condition, Block block)
+		: condition(std::move(condition)), block(block) {};
 };
 
-struct AST_API ForInLoop : public ScopedBlock
+struct AST_API ForInLoop
 {
 	Type_ptr item_type;
 	std::wstring item_name;
 	Expression_ptr iterable;
+	Block block;
 
-	ForInLoop(Type_ptr item_type, std::wstring item_name, Expression_ptr iterable, StatementVector block)
-		: ScopedBlock(block), item_type(std::move(item_type)), item_name(item_name), iterable(std::move(iterable)) {};
+	ForInLoop(Type_ptr item_type, std::wstring item_name, Expression_ptr iterable, Block block)
+		: block(block), item_type(std::move(item_type)), item_name(item_name), iterable(std::move(iterable)) {};
 };
 
 struct AST_API Break
@@ -191,24 +164,25 @@ struct AST_API AliasDefinition : public Definition
 		: Definition(is_public, name), type(std::move(type)) {};
 };
 
-struct AST_API CallableDefinition : public Definition, public ScopedBlock
+struct AST_API CallableDefinition : public Definition
 {
 	NameTypePairs arguments;
 	std::optional<Type_ptr> return_type;
+	Block block;
 
-	CallableDefinition(bool is_public, std::wstring name, NameTypePairs arguments, std::optional<Type_ptr> return_type, StatementVector body)
-		: Definition(is_public, name), ScopedBlock(body), arguments(arguments), return_type(return_type) {};
+	CallableDefinition(bool is_public, std::wstring name, NameTypePairs arguments, std::optional<Type_ptr> return_type, Block body)
+		: Definition(is_public, name), block(body), arguments(arguments), return_type(return_type) {};
 };
 
 struct AST_API FunctionDefinition : public CallableDefinition
 {
-	FunctionDefinition(bool is_public, std::wstring name, NameTypePairs arguments, std::optional<Type_ptr> return_type, StatementVector body)
+	FunctionDefinition(bool is_public, std::wstring name, NameTypePairs arguments, std::optional<Type_ptr> return_type, Block body)
 		: CallableDefinition(is_public, name, arguments, return_type, body) {};
 };
 
 struct AST_API GeneratorDefinition : public CallableDefinition
 {
-	GeneratorDefinition(bool is_public, std::wstring name, NameTypePairs arguments, std::optional<Type_ptr> return_type, StatementVector body)
+	GeneratorDefinition(bool is_public, std::wstring name, NameTypePairs arguments, std::optional<Type_ptr> return_type, Block body)
 		: CallableDefinition(is_public, name, arguments, return_type, body) {};
 };
 

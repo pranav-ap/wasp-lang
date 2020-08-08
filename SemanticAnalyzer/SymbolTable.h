@@ -1,11 +1,5 @@
 #pragma once
 
-#ifdef SYMBOLTABLE_EXPORTS
-#define SYMBOLTABLE_API __declspec(dllexport)
-#else
-#define SYMBOLTABLE_API __declspec(dllimport)
-#endif
-
 #include "Symbol.h"
 #include <map>
 #include <memory>
@@ -13,9 +7,9 @@
 #include <optional>
 
 class SymbolTable;
-using SymbolTable_ptr = SYMBOLTABLE_API std::shared_ptr<SymbolTable>;
+using SymbolTable_ptr = std::shared_ptr<SymbolTable>;
 
-class SYMBOLTABLE_API SymbolTable
+class SymbolTable
 {
 	std::map<std::wstring, Symbol_ptr> store;
 

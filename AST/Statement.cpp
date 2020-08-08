@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Statement.h"
 
-void Module::add_node(Statement_ptr node)
+void Module::add_statement(Statement_ptr statement)
 {
-	statements.push_back(node);
+	statements.push_back(statement);
 }

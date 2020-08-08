@@ -79,3 +79,62 @@ public:
 	Interpreter() {};
 	void execute(Module_ptr ast);
 };
+
+using Instruction = std::vector<std::byte>;
+using Instructions = std::vector<std::byte>;
+
+enum class OpCode
+{
+	OpConstant
+};
+
+struct OpCodeDefinition
+{
+	std::string name;
+	std::vector<int> operand_width;
+};
+
+std::map<OpCode, OpCodeDefinition> OpCodeDefinitionMap = {};
+
+Instruction make_instruction(OpCode opcode, std::vector<int> operands)
+{
+	Instruction instruction;
+	instruction.push_back(static_cast<std::byte>(opcode));
+
+	auto definition = OpCodeDefinitionMap[opcode];
+
+	for (const int operand : operands)
+	{
+		instruction.push_back(static_cast<std::byte>(operand));
+	}
+
+	return instruction;
+}
+
+struct Bytecode
+{
+	Instructions instructions;
+	// constant object pool
+};
+
+class Compiler
+{
+	Instructions instructions;
+	// constant object pool
+public:
+	Bytecode compile(/*AST*/);
+};
+
+class VM
+{
+	Instructions instructions;
+	// constant object pool
+
+public:
+	void run();
+};
+
+void ff()
+{
+	std::byte b = static_cast<std::byte>(OpCode::OpConstant);
+}
