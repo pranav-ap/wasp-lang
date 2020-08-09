@@ -2,6 +2,7 @@
 #include "pch.h"
 #include "Compiler.h"
 #include "Assertion.h"
+#include <memory>
 
 #define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr")
 #define OPT_CHECK(x) ASSERT(x.has_value(), "Oh shit! Option is none")
@@ -11,6 +12,8 @@
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
 
+using std::move;
+
 Bytecode_ptr Compiler::execute(const Module_ptr module_ast)
 {
 	for (auto statement : module_ast->statements)
@@ -18,7 +21,7 @@ Bytecode_ptr Compiler::execute(const Module_ptr module_ast)
 		visit(statement);
 	}
 
-	Bytecode_ptr bytecode = std::make_shared<Bytecode>(instructions, constant_pool);
+	Bytecode_ptr bytecode = std::make_shared<Bytecode>(scopes.top()->instructions, constant_pool);
 	return bytecode;
 }
 
@@ -79,7 +82,7 @@ void Compiler::visit(Branching const& statement)
 		auto body = branch.second;
 		visit(body);
 
-		labels[label] = instructions.size();
+		labels[label] = scopes.top()->instructions.size();
 	}
 
 	visit(statement.else_block);
@@ -151,6 +154,14 @@ void Compiler::visit(AliasDefinition const& statement)
 
 void Compiler::visit(FunctionDefinition const& statement)
 {
+	enter_scope();
+	visit(statement.block);
+
+	auto instructions = leave_scope();
+	auto function_object = std::make_shared<Object>(FunctionObject(instructions));
+
+	int id = add_to_constant_pool(function_object);
+	emit(OpCode::CONSTANT, id);
 }
 
 void Compiler::visit(GeneratorDefinition const& statement)
@@ -390,15 +401,38 @@ void Compiler::visit(Binary const& expr)
 	}
 }
 
+// Scope
+
+void Compiler::enter_scope()
+{
+	auto scope = std::make_shared<CompilationScope>();
+	scopes.push(move(scope));
+
+	symbol_table = std::make_shared<SymbolTable>(symbol_table);
+}
+
+Instructions Compiler::leave_scope()
+{
+	auto scope = scopes.top();
+	scopes.pop();
+
+	if (symbol_table->enclosing_scope.has_value())
+	{
+		symbol_table = symbol_table->enclosing_scope.value();
+	}
+
+	return scope->instructions;
+}
+
 // Emit
 
 int Compiler::emit(OpCode opcode)
 {
 	auto instruction = make_instruction(opcode);
-	int position = instructions.size();
+	int position = scopes.top()->instructions.size();
 
-	instructions.insert(
-		std::end(instructions),
+	scopes.top()->instructions.insert(
+		std::end(scopes.top()->instructions),
 		std::begin(instruction),
 		std::end(instruction)
 	);
@@ -409,10 +443,10 @@ int Compiler::emit(OpCode opcode)
 int Compiler::emit(OpCode opcode, int operand)
 {
 	auto instruction = make_instruction(opcode, operand);
-	int position = instructions.size();
+	int position = scopes.top()->instructions.size();
 
-	instructions.insert(
-		std::end(instructions),
+	scopes.top()->instructions.insert(
+		std::end(scopes.top()->instructions),
 		std::begin(instruction),
 		std::end(instruction)
 	);
@@ -423,10 +457,10 @@ int Compiler::emit(OpCode opcode, int operand)
 int Compiler::emit(OpCode opcode, int operand_1, int operand_2)
 {
 	auto instruction = make_instruction(opcode, operand_1, operand_2);
-	int position = instructions.size();
+	int position = scopes.top()->instructions.size();
 
-	instructions.insert(
-		std::end(instructions),
+	scopes.top()->instructions.insert(
+		std::end(scopes.top()->instructions),
 		std::begin(instruction),
 		std::end(instruction)
 	);

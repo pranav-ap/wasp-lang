@@ -51,7 +51,9 @@ enum class BYTECODE_API OpCode
 	CALL_GENERATOR,
 
 	RETURN,
+	RETURN_VALUE,
 	YIELD_OP,
+	YIELD_VALUE_OP,
 
 	GET_VARIABLE,
 	SET_VARIABLE,
@@ -68,20 +70,3 @@ enum class BYTECODE_API OpCode
 
 using Instruction = BYTECODE_API std::vector<std::byte>;
 using Instructions = BYTECODE_API std::vector<std::byte>;
-
-struct BYTECODE_API OpCodeDefinition
-{
-	std::wstring name;
-	int operand_count;
-
-	OpCodeDefinition(std::wstring name, int operand_count)
-		: name(name), operand_count(operand_count) {};
-};
-
-using OpCodeDefinition_ptr = BYTECODE_API std::shared_ptr<OpCodeDefinition>;
-
-const std::map<OpCode, OpCodeDefinition_ptr> OpCodeDefinitionMap = {
-	MAKE_OPCODE_DEF(OpCode::CONSTANT, L"CONSTANT", 1)
-};
-
-BYTECODE_API OpCodeDefinition_ptr lookup_definition(OpCode opcode);

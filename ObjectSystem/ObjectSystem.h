@@ -6,6 +6,8 @@
 #define OBJECTSYSTEM_API __declspec(dllimport)
 #endif
 
+#include "OpCode.h"
+
 #include <optional>
 #include <string>
 #include <deque>
@@ -69,6 +71,14 @@ struct OBJECTSYSTEM_API ActionObject : public BaseObject
 
 struct OBJECTSYSTEM_API NoneObject : public BaseObject
 {
+};
+
+struct OBJECTSYSTEM_API FunctionObject : public BaseObject
+{
+	Instructions instructions;
+	FunctionObject() {};
+	FunctionObject(Instructions instructions)
+		: instructions(instructions) {};
 };
 
 // Scalar Objects

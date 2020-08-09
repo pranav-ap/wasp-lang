@@ -16,6 +16,12 @@ class SymbolTable
 public:
 	std::optional<SymbolTable_ptr> enclosing_scope;
 
+	SymbolTable()
+		: enclosing_scope(std::nullopt) {};
+
+	SymbolTable(SymbolTable_ptr enclosing_scope)
+		: enclosing_scope(enclosing_scope) {};
+
 	Symbol_ptr define(std::wstring name);
 	Symbol_ptr lookup(std::wstring name);
 };

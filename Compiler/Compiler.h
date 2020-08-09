@@ -16,14 +16,19 @@
 #include <vector>
 #include <memory>
 
-class COMPILER_API Compiler
+struct CompilationScope
 {
 	Instructions instructions;
+};
+
+using CompilationScope_ptr = std::shared_ptr<CompilationScope>;
+
+class COMPILER_API Compiler
+{
+	std::stack<CompilationScope_ptr> scopes;
 	std::vector<Object_ptr> constant_pool;
 
 	std::vector<int> labels;
-	int label;
-
 	SymbolTable_ptr symbol_table;
 
 	// Statement
@@ -70,11 +75,18 @@ class COMPILER_API Compiler
 	void visit(Unary const& expr);
 	void visit(Binary const& expr);
 
-	// Utils
+	// Scope
+
+	void enter_scope();
+	Instructions leave_scope();
+
+	// Emit
 
 	int emit(OpCode opcode);
 	int emit(OpCode opcode, int operand);
 	int emit(OpCode opcode, int operand_1, int operand_2);
+
+	// Utils
 
 	int add_to_constant_pool(Object_ptr constant);
 
@@ -84,7 +96,8 @@ class COMPILER_API Compiler
 
 public:
 	Compiler()
-		: label(0), symbol_table(std::make_shared<SymbolTable>()) {};
+		: scopes({ std::make_shared<CompilationScope>() }),
+		symbol_table(std::make_shared<SymbolTable>()) {};
 
 	Bytecode_ptr execute(const Module_ptr module_ast);
 };
