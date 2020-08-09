@@ -58,7 +58,12 @@ enum class BYTECODE_API OpCode
 
 	CONSTANT,
 	CONSTANT_TRUE,
-	CONSTANT_FALSE
+	CONSTANT_FALSE,
+
+	ARRAY,
+	TUPLE,
+
+	MAP
 };
 
 using Instruction = BYTECODE_API std::vector<std::byte>;

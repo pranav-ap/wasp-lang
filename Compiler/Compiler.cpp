@@ -72,15 +72,14 @@ void Compiler::visit(Branching const& statement)
 		auto condition = branch.first;
 		visit(condition);
 
-		int _label = label;
-		label++;
-
-		emit(OpCode::JUMP_IF_FALSE, _label);
+		int label = labels.size();
+		emit(OpCode::JUMP_IF_FALSE, label);
+		labels[label] = 0;
 
 		auto body = branch.second;
 		visit(body);
 
-		label_to_position[_label] = instructions.size();
+		labels[label] = instructions.size();
 	}
 
 	visit(statement.else_block);
@@ -136,8 +135,10 @@ void Compiler::visit(YieldStatement const& statement)
 
 void Compiler::visit(VariableDefinition const& statement)
 {
-	auto instruction = make_instruction(OpCode::SET_VARIABLE, 1);
-	statement.expression;
+	visit(statement.expression);
+	emit(OpCode::SET_VARIABLE);
+
+	auto symbol = symbol_table->define(statement.name);
 }
 
 void Compiler::visit(UDTDefinition const& statement)
@@ -239,11 +240,13 @@ void Compiler::visit(const bool boolean)
 void Compiler::visit(ListLiteral const& expr)
 {
 	visit(expr.expressions);
+	emit(OpCode::ARRAY, expr.expressions.size());
 }
 
 void Compiler::visit(TupleLiteral const& expr)
 {
 	visit(expr.expressions);
+	emit(OpCode::TUPLE, expr.expressions.size());
 }
 
 void Compiler::visit(MapLiteral const& expr)
@@ -253,6 +256,8 @@ void Compiler::visit(MapLiteral const& expr)
 		visit(key);
 		visit(value);
 	}
+
+	emit(OpCode::MAP, expr.pairs.size() * 2);
 }
 
 void Compiler::visit(UDTConstruct const& expr)
@@ -269,6 +274,8 @@ void Compiler::visit(EnumMember const& expr)
 
 void Compiler::visit(Identifier const& expr)
 {
+	auto symbol = symbol_table->lookup(expr.name);
+	emit(OpCode::GET_VARIABLE, symbol->id);
 }
 
 void Compiler::visit(Call const& expr)
@@ -396,8 +403,6 @@ int Compiler::emit(OpCode opcode)
 		std::end(instruction)
 	);
 
-	set_last_instruction(opcode, position);
-
 	return position;
 }
 
@@ -411,8 +416,6 @@ int Compiler::emit(OpCode opcode, int operand)
 		std::begin(instruction),
 		std::end(instruction)
 	);
-
-	set_last_instruction(opcode, position);
 
 	return position;
 }
@@ -428,39 +431,10 @@ int Compiler::emit(OpCode opcode, int operand_1, int operand_2)
 		std::end(instruction)
 	);
 
-	set_last_instruction(opcode, position);
-
 	return position;
 }
 
 // Utils
-
-void Compiler::set_last_instruction(OpCode opcode, int position)
-{
-	previous_instruction = last_instruction;
-
-	auto last = EmittedInstruction(opcode, position);
-	last_instruction = last;
-}
-
-bool Compiler::last_instruction_is_pop()
-{
-	return last_instruction.opcode == OpCode::POP;
-}
-
-void Compiler::remove_last_pop()
-{
-	instructions.pop_back();
-	last_instruction = previous_instruction;
-}
-
-void Compiler::replace_instruction(int position, Instruction new_instruction)
-{
-}
-
-void Compiler::change_operand(int position, int operand)
-{
-}
 
 int Compiler::add_to_constant_pool(Object_ptr value)
 {
