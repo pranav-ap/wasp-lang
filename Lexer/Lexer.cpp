@@ -195,7 +195,7 @@ Token_ptr Lexer::consume_number_literal(wchar_t ch)
 		previous();
 	}
 
-	return MAKE_TOKEN(WTokenType::NUMBER_LITERAL, number_literal, LINE_NUM, COL_NUM);
+	return MAKE_TOKEN(TokenType::NUMBER_LITERAL, number_literal, LINE_NUM, COL_NUM);
 }
 
 Token_ptr Lexer::consume_string_literal()
@@ -214,7 +214,7 @@ Token_ptr Lexer::consume_string_literal()
 	}
 
 	next();
-	return MAKE_TOKEN(WTokenType::STRING_LITERAL, string_literal, LINE_NUM, COL_NUM);
+	return MAKE_TOKEN(TokenType::STRING_LITERAL, string_literal, LINE_NUM, COL_NUM);
 }
 
 Token_ptr Lexer::consume_identifier(wchar_t ch)
@@ -236,55 +236,55 @@ Token_ptr Lexer::consume_identifier(wchar_t ch)
 
 	if (keyword_map.count(identifier) > 0)
 	{
-		WTokenType keyword_type = keyword_map.at(identifier);
+		TokenType keyword_type = keyword_map.at(identifier);
 		return MAKE_TOKEN(keyword_type, identifier, LINE_NUM, COL_NUM);
 	}
 
 	if (get_current_char() == '(')
 	{
-		return MAKE_TOKEN(WTokenType::CALLABLE_IDENTIFIER, identifier, LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(TokenType::CALLABLE_IDENTIFIER, identifier, LINE_NUM, COL_NUM);
 	}
 
-	return MAKE_TOKEN(WTokenType::IDENTIFIER, identifier, LINE_NUM, COL_NUM);
+	return MAKE_TOKEN(TokenType::IDENTIFIER, identifier, LINE_NUM, COL_NUM);
 }
 
 Token_ptr Lexer::consume_plus()
 {
 	if (expect_current_char('='))
-		return MAKE_TOKEN(WTokenType::PLUS_EQUAL, L"+=", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(TokenType::PLUS_EQUAL, L"+=", LINE_NUM, COL_NUM);
 
 	if (is_unary())
-		return MAKE_TOKEN(WTokenType::UNARY_PLUS, L"+", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(TokenType::UNARY_PLUS, L"+", LINE_NUM, COL_NUM);
 
-	return MAKE_TOKEN(WTokenType::PLUS, L"+", LINE_NUM, COL_NUM);
+	return MAKE_TOKEN(TokenType::PLUS, L"+", LINE_NUM, COL_NUM);
 }
 
 Token_ptr Lexer::consume_minus()
 {
 	if (expect_current_char('='))
-		return MAKE_TOKEN(WTokenType::MINUS_EQUAL, L"-=", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(TokenType::MINUS_EQUAL, L"-=", LINE_NUM, COL_NUM);
 	else if (expect_current_char('>'))
-		return MAKE_TOKEN(WTokenType::ARROW, L"->", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(TokenType::ARROW, L"->", LINE_NUM, COL_NUM);
 
 	if (is_unary())
-		return MAKE_TOKEN(WTokenType::UNARY_MINUS, L"-", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(TokenType::UNARY_MINUS, L"-", LINE_NUM, COL_NUM);
 
-	return MAKE_TOKEN(WTokenType::MINUS, L"-", LINE_NUM, COL_NUM);
+	return MAKE_TOKEN(TokenType::MINUS, L"-", LINE_NUM, COL_NUM);
 }
 
 Token_ptr Lexer::consume_star()
 {
 	if (expect_current_char('='))
-		return MAKE_TOKEN(WTokenType::STAR_EQUAL, L"*=", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(TokenType::STAR_EQUAL, L"*=", LINE_NUM, COL_NUM);
 
-	return MAKE_TOKEN(WTokenType::STAR, L"*", LINE_NUM, COL_NUM);
+	return MAKE_TOKEN(TokenType::STAR, L"*", LINE_NUM, COL_NUM);
 }
 
 Token_ptr Lexer::consume_division()
 {
 	if (expect_current_char('='))
 	{
-		return MAKE_TOKEN(WTokenType::DIVISION_EQUAL, L"/=", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(TokenType::DIVISION_EQUAL, L"/=", LINE_NUM, COL_NUM);
 	}
 	else if (expect_current_char('/'))
 	{
@@ -302,66 +302,66 @@ Token_ptr Lexer::consume_division()
 			break;
 		}
 
-		return MAKE_TOKEN(WTokenType::COMMENT, comment, LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(TokenType::COMMENT, comment, LINE_NUM, COL_NUM);
 	}
 
-	return MAKE_TOKEN(WTokenType::DIVISION, L"/", LINE_NUM, COL_NUM);
+	return MAKE_TOKEN(TokenType::DIVISION, L"/", LINE_NUM, COL_NUM);
 }
 
 Token_ptr Lexer::consume_reminder()
 {
 	if (expect_current_char('='))
-		return MAKE_TOKEN(WTokenType::REMINDER_EQUAL, L"%=", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(TokenType::REMINDER_EQUAL, L"%=", LINE_NUM, COL_NUM);
 
-	return MAKE_TOKEN(WTokenType::REMINDER, L"%", LINE_NUM, COL_NUM);
+	return MAKE_TOKEN(TokenType::REMINDER, L"%", LINE_NUM, COL_NUM);
 }
 
 Token_ptr Lexer::consume_power()
 {
 	if (expect_current_char('='))
-		return MAKE_TOKEN(WTokenType::POWER_EQUAL, L"^=", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(TokenType::POWER_EQUAL, L"^=", LINE_NUM, COL_NUM);
 
-	return MAKE_TOKEN(WTokenType::POWER, L"^", LINE_NUM, COL_NUM);
+	return MAKE_TOKEN(TokenType::POWER, L"^", LINE_NUM, COL_NUM);
 }
 
 Token_ptr Lexer::consume_bang()
 {
 	if (expect_current_char('='))
-		return MAKE_TOKEN(WTokenType::BANG_EQUAL, L"!=", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(TokenType::BANG_EQUAL, L"!=", LINE_NUM, COL_NUM);
 
-	return MAKE_TOKEN(WTokenType::BANG, L"!", LINE_NUM, COL_NUM);
+	return MAKE_TOKEN(TokenType::BANG, L"!", LINE_NUM, COL_NUM);
 }
 
 Token_ptr Lexer::consume_equal()
 {
 	if (expect_current_char('='))
-		return MAKE_TOKEN(WTokenType::EQUAL_EQUAL, L"==", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(TokenType::EQUAL_EQUAL, L"==", LINE_NUM, COL_NUM);
 
-	return MAKE_TOKEN(WTokenType::EQUAL, L"=", LINE_NUM, COL_NUM);
+	return MAKE_TOKEN(TokenType::EQUAL, L"=", LINE_NUM, COL_NUM);
 }
 
 Token_ptr Lexer::consume_greater_than()
 {
 	if (expect_current_char('='))
-		return MAKE_TOKEN(WTokenType::GREATER_THAN_EQUAL, L">=", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(TokenType::GREATER_THAN_EQUAL, L">=", LINE_NUM, COL_NUM);
 
-	return MAKE_TOKEN(WTokenType::GREATER_THAN, L">", LINE_NUM, COL_NUM);
+	return MAKE_TOKEN(TokenType::GREATER_THAN, L">", LINE_NUM, COL_NUM);
 }
 
 Token_ptr Lexer::consume_lesser_than()
 {
 	if (expect_current_char('='))
-		return MAKE_TOKEN(WTokenType::LESSER_THAN_EQUAL, L"<=", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(TokenType::LESSER_THAN_EQUAL, L"<=", LINE_NUM, COL_NUM);
 
-	return MAKE_TOKEN(WTokenType::LESSER_THAN, L"<", LINE_NUM, COL_NUM);
+	return MAKE_TOKEN(TokenType::LESSER_THAN, L"<", LINE_NUM, COL_NUM);
 }
 
 Token_ptr Lexer::consume_colon()
 {
 	if (expect_current_char(':'))
-		return MAKE_TOKEN(WTokenType::COLON_COLON, L"::", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(TokenType::COLON_COLON, L"::", LINE_NUM, COL_NUM);
 
-	return MAKE_TOKEN(WTokenType::COLON, L":", LINE_NUM, COL_NUM);
+	return MAKE_TOKEN(TokenType::COLON, L":", LINE_NUM, COL_NUM);
 }
 
 Token_ptr Lexer::consume_single_char_punctuation(wchar_t ch)
@@ -369,38 +369,38 @@ Token_ptr Lexer::consume_single_char_punctuation(wchar_t ch)
 	switch (ch)
 	{
 	case '\\':
-		return MAKE_TOKEN(WTokenType::BACKWARD_SLASH, L"\\", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(TokenType::BACKWARD_SLASH, L"\\", LINE_NUM, COL_NUM);
 
 	case ',':
-		return MAKE_TOKEN(WTokenType::COMMA, L",", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(TokenType::COMMA, L",", LINE_NUM, COL_NUM);
 	case '|':
-		return MAKE_TOKEN(WTokenType::VERTICAL_BAR, L"|", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(TokenType::VERTICAL_BAR, L"|", LINE_NUM, COL_NUM);
 	case '.':
-		return MAKE_TOKEN(WTokenType::DOT, L".", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(TokenType::DOT, L".", LINE_NUM, COL_NUM);
 
 	case '(':
-		return MAKE_TOKEN(WTokenType::OPEN_PARENTHESIS, L"(", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(TokenType::OPEN_PARENTHESIS, L"(", LINE_NUM, COL_NUM);
 	case ')':
-		return MAKE_TOKEN(WTokenType::CLOSE_PARENTHESIS, L")", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(TokenType::CLOSE_PARENTHESIS, L")", LINE_NUM, COL_NUM);
 	case '{':
-		return MAKE_TOKEN(WTokenType::OPEN_CURLY_BRACE, L"{", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(TokenType::OPEN_CURLY_BRACE, L"{", LINE_NUM, COL_NUM);
 	case '}':
-		return MAKE_TOKEN(WTokenType::CLOSE_CURLY_BRACE, L"}", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(TokenType::CLOSE_CURLY_BRACE, L"}", LINE_NUM, COL_NUM);
 	case '[':
-		return MAKE_TOKEN(WTokenType::OPEN_SQUARE_BRACKET, L"[", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(TokenType::OPEN_SQUARE_BRACKET, L"[", LINE_NUM, COL_NUM);
 	case ']':
-		return MAKE_TOKEN(WTokenType::CLOSE_SQUARE_BRACKET, L"]", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(TokenType::CLOSE_SQUARE_BRACKET, L"]", LINE_NUM, COL_NUM);
 	case LEFT_ANGLE_BRACKET:
-		return MAKE_TOKEN(WTokenType::OPEN_ANGLE_BRACKET, L"⟨", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(TokenType::OPEN_ANGLE_BRACKET, L"⟨", LINE_NUM, COL_NUM);
 	case RIGHT_ANGLE_BRACKET:
-		return MAKE_TOKEN(WTokenType::CLOSE_ANGLE_BRACKET, L"⟩", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(TokenType::CLOSE_ANGLE_BRACKET, L"⟩", LINE_NUM, COL_NUM);
 	case LEFT_FLOOR_BRACKET:
-		return MAKE_TOKEN(WTokenType::OPEN_FLOOR_BRACKET, L"⌊", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(TokenType::OPEN_FLOOR_BRACKET, L"⌊", LINE_NUM, COL_NUM);
 	case RIGHT_FLOOR_BRACKET:
-		return MAKE_TOKEN(WTokenType::CLOSE_FLOOR_BRACKET, L"⌋", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(TokenType::CLOSE_FLOOR_BRACKET, L"⌋", LINE_NUM, COL_NUM);
 
 	default:
-		return MAKE_TOKEN(WTokenType::UNKNOWN, L"", LINE_NUM, COL_NUM);
+		return MAKE_TOKEN(TokenType::UNKNOWN, L"", LINE_NUM, COL_NUM);
 	}
 }
 
@@ -412,12 +412,12 @@ Token_ptr Lexer::consume_eol()
 	position.increment_line_number();
 	position.reset_column_number();
 
-	return MAKE_TOKEN(WTokenType::EOL, L"\n", line_num, column_num);
+	return MAKE_TOKEN(TokenType::EOL, L"\n", line_num, column_num);
 }
 
 Token_ptr Lexer::consume_space()
 {
-	return MAKE_TOKEN(WTokenType::SPACE, L"SPACE", LINE_NUM, COL_NUM);
+	return MAKE_TOKEN(TokenType::SPACE, L"SPACE", LINE_NUM, COL_NUM);
 }
 
 Token_ptr Lexer::consume_unknown_token(wchar_t ch)
@@ -431,7 +431,7 @@ Token_ptr Lexer::consume_unknown_token(wchar_t ch)
 		next();
 	}
 
-	return MAKE_TOKEN(WTokenType::UNKNOWN, unknown_token, LINE_NUM, COL_NUM);
+	return MAKE_TOKEN(TokenType::UNKNOWN, unknown_token, LINE_NUM, COL_NUM);
 }
 
 // UTILS
@@ -472,7 +472,7 @@ optional<Token_ptr> Lexer::get_previous_significant_token()
 {
 	for (auto t = tokens.rbegin(); t != tokens.rend(); t++)
 	{
-		if (auto token = *t; token->type != WTokenType::EOL)
+		if (auto token = *t; token->type != TokenType::EOL)
 		{
 			return make_optional(token);
 		}
@@ -490,9 +490,9 @@ bool Lexer::is_unary()
 
 	switch (previous_token.value()->type)
 	{
-	case WTokenType::NUMBER_LITERAL:
-	case WTokenType::IDENTIFIER:
-	case WTokenType::CALLABLE_IDENTIFIER:
+	case TokenType::NUMBER_LITERAL:
+	case TokenType::IDENTIFIER:
+	case TokenType::CALLABLE_IDENTIFIER:
 	{
 		return false;
 	}

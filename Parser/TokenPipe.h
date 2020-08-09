@@ -16,22 +16,22 @@ public:
 	// Token Functions
 
 	std::optional<Token_ptr> current() const;
-	std::optional<Token_ptr> current(std::vector<WTokenType> ignorables);
+	std::optional<Token_ptr> current(std::vector<TokenType> ignorables);
 
-	std::optional<Token_ptr> optional(WTokenType token_type);
-	std::optional<Token_ptr> optional(WTokenType token_type, std::vector<WTokenType> ignorables);
+	std::optional<Token_ptr> optional(TokenType token_type);
+	std::optional<Token_ptr> optional(TokenType token_type, std::vector<TokenType> ignorables);
 
-	Token_ptr required(WTokenType token_type);
-	Token_ptr required(WTokenType token_type, std::vector<WTokenType> ignorables);
+	Token_ptr required(TokenType token_type);
+	Token_ptr required(TokenType token_type, std::vector<TokenType> ignorables);
 
-	void expect(WTokenType token_type);
-	void expect(WTokenType token_type, std::vector<WTokenType> ignorables);
+	void expect(TokenType token_type);
+	void expect(TokenType token_type, std::vector<TokenType> ignorables);
 
 	void expect_indent(const int expected_indent);
 	bool has_indent(const int expected_indent);
 
-	void ignore(WTokenType ignorable);
-	void ignore(std::vector<WTokenType> ignorables);
+	void ignore(TokenType ignorable);
+	void ignore(std::vector<TokenType> ignorables);
 
 	// Utils
 

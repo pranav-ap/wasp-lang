@@ -1,3 +1,4 @@
+#pragma once
 #include "pch.h"
 #include "SemanticAnalyzer.h"
 #include "Symbol.h"
@@ -18,23 +19,6 @@ template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
 using std::holds_alternative;
 using std::wstring;
 using std::get_if;
-
-void SemanticAnalyzer::enter_scope()
-{
-	NULL_CHECK(symbol_table);
-
-	auto child_table = std::make_shared<SymbolTable>();
-	child_table->enclosing_scope = symbol_table;
-
-	symbol_table = child_table;
-}
-
-void SemanticAnalyzer::leave_scope()
-{
-	NULL_CHECK(symbol_table);
-	OPT_CHECK(symbol_table->enclosing_scope);
-	symbol_table = symbol_table->enclosing_scope.value();
-}
 
 void SemanticAnalyzer::execute(const Module_ptr module_ast)
 {
@@ -274,9 +258,9 @@ void SemanticAnalyzer::visit(const Expression_ptr expression)
 		}, *expression);
 }
 
-void SemanticAnalyzer::visit(std::vector<Expression_ptr> const& expression_list)
+void SemanticAnalyzer::visit(std::vector<Expression_ptr> const& expressions)
 {
-	for (const auto expr : expression_list)
+	for (const auto expr : expressions)
 	{
 		visit(expr);
 	}
@@ -371,4 +355,21 @@ void SemanticAnalyzer::visit(Binary const& expr)
 {
 	visit(expr.left);
 	visit(expr.right);
+}
+
+// Utils
+
+void SemanticAnalyzer::enter_scope()
+{
+	NULL_CHECK(symbol_table);
+
+	auto child_table = std::make_shared<SymbolTable>(symbol_table);
+	symbol_table = child_table;
+}
+
+void SemanticAnalyzer::leave_scope()
+{
+	NULL_CHECK(symbol_table);
+	OPT_CHECK(symbol_table->enclosing_scope);
+	symbol_table = symbol_table->enclosing_scope.value();
 }

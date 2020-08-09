@@ -6,7 +6,7 @@
 #define TOKEN_API __declspec(dllimport)
 #endif
 
-enum class TOKEN_API WTokenType
+enum class TOKEN_API TokenType
 {
 	// Literals
 

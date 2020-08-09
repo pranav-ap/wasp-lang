@@ -25,7 +25,7 @@ optional<Token_ptr> TokenPipe::current() const
 	return make_optional(tokens[index]);
 }
 
-optional<Token_ptr> TokenPipe::current(vector<WTokenType> ignorables)
+optional<Token_ptr> TokenPipe::current(vector<TokenType> ignorables)
 {
 	ignore(ignorables);
 
@@ -35,7 +35,7 @@ optional<Token_ptr> TokenPipe::current(vector<WTokenType> ignorables)
 
 // Optional
 
-optional<Token_ptr> TokenPipe::optional(WTokenType token_type)
+optional<Token_ptr> TokenPipe::optional(TokenType token_type)
 {
 	auto token = current();
 
@@ -48,7 +48,7 @@ optional<Token_ptr> TokenPipe::optional(WTokenType token_type)
 	return nullopt;
 }
 
-optional<Token_ptr> TokenPipe::optional(WTokenType token_type, vector<WTokenType> ignorables)
+optional<Token_ptr> TokenPipe::optional(TokenType token_type, vector<TokenType> ignorables)
 {
 	ignore(ignorables);
 
@@ -58,7 +58,7 @@ optional<Token_ptr> TokenPipe::optional(WTokenType token_type, vector<WTokenType
 
 // Required
 
-Token_ptr TokenPipe::required(WTokenType token_type)
+Token_ptr TokenPipe::required(TokenType token_type)
 {
 	auto token = current();
 	OPT_CHECK(token);
@@ -68,7 +68,7 @@ Token_ptr TokenPipe::required(WTokenType token_type)
 	return token.value();
 }
 
-Token_ptr TokenPipe::required(WTokenType token_type, vector<WTokenType> ignorables)
+Token_ptr TokenPipe::required(TokenType token_type, vector<TokenType> ignorables)
 {
 	ignore(ignorables);
 
@@ -78,7 +78,7 @@ Token_ptr TokenPipe::required(WTokenType token_type, vector<WTokenType> ignorabl
 
 // Expect
 
-void TokenPipe::expect(WTokenType token_type)
+void TokenPipe::expect(TokenType token_type)
 {
 	auto token = current();
 	OPT_CHECK(token);
@@ -87,7 +87,7 @@ void TokenPipe::expect(WTokenType token_type)
 	advance_pointer();
 }
 
-void TokenPipe::expect(WTokenType token_type, vector<WTokenType> ignorables)
+void TokenPipe::expect(TokenType token_type, vector<TokenType> ignorables)
 {
 	ignore(ignorables);
 	expect(token_type);
@@ -99,13 +99,13 @@ void TokenPipe::expect_indent(const int expected_indent)
 
 	while (count < expected_indent)
 	{
-		expect(WTokenType::SPACE);
+		expect(TokenType::SPACE);
 		count++;
 	}
 
 	auto token = current();
 	OPT_CHECK(token);
-	ASSERT(token.value()->type != WTokenType::SPACE, "Incorrect Indentation");
+	ASSERT(token.value()->type != TokenType::SPACE, "Incorrect Indentation");
 }
 
 bool TokenPipe::has_indent(const int expected_indent)
@@ -118,14 +118,14 @@ bool TokenPipe::has_indent(const int expected_indent)
 
 		if (token.has_value())
 		{
-			if (token.value()->type == WTokenType::SPACE)
+			if (token.value()->type == TokenType::SPACE)
 			{
 				advance_pointer();
 				count++;
 			}
 			else
 			{
-				ASSERT(token.value()->type != WTokenType::SPACE, "Incorrect Indentation");
+				ASSERT(token.value()->type != TokenType::SPACE, "Incorrect Indentation");
 				break;
 			}
 		}
@@ -151,7 +151,7 @@ bool TokenPipe::has_indent(const int expected_indent)
 
 // Ignore
 
-void TokenPipe::ignore(WTokenType ignorable)
+void TokenPipe::ignore(TokenType ignorable)
 {
 	while (true)
 	{
@@ -167,7 +167,7 @@ void TokenPipe::ignore(WTokenType ignorable)
 	}
 }
 
-void TokenPipe::ignore(vector<WTokenType> ignorables)
+void TokenPipe::ignore(vector<TokenType> ignorables)
 {
 	while (true)
 	{

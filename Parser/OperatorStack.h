@@ -19,9 +19,9 @@ class OperatorStack
 
 	// UTILS
 
-	int get_parity(WTokenType token_type);
-	int get_precedence(WTokenType token_type);
-	bool is_left_associative(WTokenType token_type);
+	int get_parity(TokenType token_type);
+	int get_precedence(TokenType token_type);
+	bool is_left_associative(TokenType token_type);
 
 public:
 	void drain_into_ast(ExpressionStack& ast);

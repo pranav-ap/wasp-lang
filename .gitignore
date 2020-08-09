@@ -22,3 +22,5 @@
 /SemanticAnalyzer/x64/Debug
 /MemorySystem/x64/Debug
 /Interpreter/x64/Debug
+/Bytecode/x64/Debug
+/Compiler/x64/Debug

@@ -8,6 +8,7 @@
 #include "Parser.h"
 #include "SymbolTable.h"
 #include "SemanticAnalyzer.h"
+#include "Compiler.h"
 
 using namespace std::chrono;
 using std::make_unique;
@@ -29,6 +30,9 @@ int main()
 
 	SemanticAnalyzer_ptr semantic_analyser = make_unique<SemanticAnalyzer>();
 	semantic_analyser->execute(ast);
+
+	Compiler_ptr compiler = make_unique<Compiler>();
+	compiler->execute(ast);
 
 	// Calculate time taken
 
