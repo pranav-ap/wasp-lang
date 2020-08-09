@@ -67,6 +67,23 @@ void Compiler::visit(Assignment const& statement)
 
 void Compiler::visit(Branching const& statement)
 {
+	for (const auto branch : statement.branches)
+	{
+		auto condition = branch.first;
+		visit(condition);
+
+		int _label = label;
+		label++;
+
+		emit(OpCode::JUMP_IF_FALSE, _label);
+
+		auto body = branch.second;
+		visit(body);
+
+		label_to_position[_label] = instructions.size();
+	}
+
+	visit(statement.else_block);
 }
 
 void Compiler::visit(WhileLoop const& statement)
@@ -379,6 +396,8 @@ int Compiler::emit(OpCode opcode)
 		std::end(instruction)
 	);
 
+	set_last_instruction(opcode, position);
+
 	return position;
 }
 
@@ -392,6 +411,8 @@ int Compiler::emit(OpCode opcode, int operand)
 		std::begin(instruction),
 		std::end(instruction)
 	);
+
+	set_last_instruction(opcode, position);
 
 	return position;
 }
@@ -407,10 +428,39 @@ int Compiler::emit(OpCode opcode, int operand_1, int operand_2)
 		std::end(instruction)
 	);
 
+	set_last_instruction(opcode, position);
+
 	return position;
 }
 
 // Utils
+
+void Compiler::set_last_instruction(OpCode opcode, int position)
+{
+	previous_instruction = last_instruction;
+
+	auto last = EmittedInstruction(opcode, position);
+	last_instruction = last;
+}
+
+bool Compiler::last_instruction_is_pop()
+{
+	return last_instruction.opcode == OpCode::POP;
+}
+
+void Compiler::remove_last_pop()
+{
+	instructions.pop_back();
+	last_instruction = previous_instruction;
+}
+
+void Compiler::replace_instruction(int position, Instruction new_instruction)
+{
+}
+
+void Compiler::change_operand(int position, int operand)
+{
+}
 
 int Compiler::add_to_constant_pool(Object_ptr value)
 {

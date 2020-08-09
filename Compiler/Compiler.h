@@ -15,10 +15,27 @@
 #include <vector>
 #include <memory>
 
+struct EmittedInstruction
+{
+	OpCode opcode;
+	int position;
+
+	EmittedInstruction()
+		: opcode(OpCode::RETURN), position(0) {};
+	EmittedInstruction(OpCode opcode, int position)
+		: opcode(opcode), position(position) {};
+};
+
 class COMPILER_API Compiler
 {
 	Instructions instructions;
 	std::vector<Object_ptr> constant_pool;
+
+	std::map<int, int> label_to_position;
+	int label;
+
+	EmittedInstruction last_instruction; // last emitted instruction
+	EmittedInstruction previous_instruction; // the one before that
 
 	// Statement
 
@@ -76,8 +93,15 @@ class COMPILER_API Compiler
 	Instruction make_instruction(OpCode opcode, int operand);
 	Instruction make_instruction(OpCode opcode, int operand_1, int operand_2);
 
+	void set_last_instruction(OpCode opcode, int position);
+	bool last_instruction_is_pop();
+	void remove_last_pop();
+
+	void replace_instruction(int position, Instruction instruction);
+	void change_operand(int position, int operand);
+
 public:
-	Compiler() {};
+	Compiler() : label(0) {};
 	Bytecode_ptr execute(const Module_ptr module_ast);
 };
 
