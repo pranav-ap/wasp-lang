@@ -89,7 +89,7 @@ void OperatorStack::drain_into_ast_until_open_parenthesis(ExpressionStack& ast)
 		Token_ptr top_operator = move(operator_stack.top());
 		operator_stack.pop();
 
-		if (top_operator->type == TokenType::OPEN_PARENTHESIS)
+		if (top_operator->type == WTokenType::OPEN_PARENTHESIS)
 			break;
 
 		push_operator_into_ast(top_operator, ast);
@@ -121,7 +121,7 @@ void OperatorStack::smart_push(Token_ptr current_operator, ExpressionStack& ast)
 		((top_operator_precedence > current_operator_precedence) ||
 			(top_operator_precedence == current_operator_precedence && is_left_associative(current_operator_type)))
 		&&
-		(top_operator_type != TokenType::OPEN_PARENTHESIS))
+		(top_operator_type != WTokenType::OPEN_PARENTHESIS))
 	{
 		if (operator_stack.size() == 0)
 			break;
@@ -135,32 +135,32 @@ void OperatorStack::smart_push(Token_ptr current_operator, ExpressionStack& ast)
 
 // UTILS
 
-int OperatorStack::get_parity(TokenType token_type)
+int OperatorStack::get_parity(WTokenType token_type)
 {
 	switch (token_type)
 	{
-	case TokenType::BANG:
-	case TokenType::UNARY_MINUS:
-	case TokenType::UNARY_PLUS:
+	case WTokenType::BANG:
+	case WTokenType::UNARY_MINUS:
+	case WTokenType::UNARY_PLUS:
 	{
 		return 1;
 	}
-	case TokenType::POWER:
-	case TokenType::DIVISION:
-	case TokenType::STAR:
-	case TokenType::REMINDER:
-	case TokenType::PLUS:
-	case TokenType::MINUS:
-	case TokenType::GREATER_THAN:
-	case TokenType::GREATER_THAN_EQUAL:
-	case TokenType::LESSER_THAN:
-	case TokenType::LESSER_THAN_EQUAL:
-	case TokenType::EQUAL_EQUAL:
-	case TokenType::BANG_EQUAL:
-	case TokenType::EQUAL:
-	case TokenType::COMMA:
-	case TokenType::AND:
-	case TokenType::OR:
+	case WTokenType::POWER:
+	case WTokenType::DIVISION:
+	case WTokenType::STAR:
+	case WTokenType::REMINDER:
+	case WTokenType::PLUS:
+	case WTokenType::MINUS:
+	case WTokenType::GREATER_THAN:
+	case WTokenType::GREATER_THAN_EQUAL:
+	case WTokenType::LESSER_THAN:
+	case WTokenType::LESSER_THAN_EQUAL:
+	case WTokenType::EQUAL_EQUAL:
+	case WTokenType::BANG_EQUAL:
+	case WTokenType::EQUAL:
+	case WTokenType::COMMA:
+	case WTokenType::AND:
+	case WTokenType::OR:
 	{
 		return 2;
 	}
@@ -169,63 +169,63 @@ int OperatorStack::get_parity(TokenType token_type)
 	}
 }
 
-int OperatorStack::get_precedence(TokenType token_type)
+int OperatorStack::get_precedence(WTokenType token_type)
 {
 	switch (token_type)
 	{
-	case TokenType::OPEN_PARENTHESIS:
-	case TokenType::CLOSE_PARENTHESIS:
+	case WTokenType::OPEN_PARENTHESIS:
+	case WTokenType::CLOSE_PARENTHESIS:
 	{
 		return 11;
 	}
-	case TokenType::OPEN_SQUARE_BRACKET:
-	case TokenType::CLOSE_SQUARE_BRACKET:
+	case WTokenType::OPEN_SQUARE_BRACKET:
+	case WTokenType::CLOSE_SQUARE_BRACKET:
 	{
 		return 10;
 	}
-	case TokenType::BANG:
-	case TokenType::UNARY_MINUS:
-	case TokenType::UNARY_PLUS:
+	case WTokenType::BANG:
+	case WTokenType::UNARY_MINUS:
+	case WTokenType::UNARY_PLUS:
 	{
 		return 9;
 	}
-	case TokenType::POWER:
+	case WTokenType::POWER:
 	{
 		return 8;
 	}
-	case TokenType::DIVISION:
-	case TokenType::STAR:
-	case TokenType::REMINDER:
+	case WTokenType::DIVISION:
+	case WTokenType::STAR:
+	case WTokenType::REMINDER:
 	{
 		return 7;
 	}
-	case TokenType::PLUS:
-	case TokenType::MINUS:
+	case WTokenType::PLUS:
+	case WTokenType::MINUS:
 	{
 		return 6;
 	}
-	case TokenType::GREATER_THAN:
-	case TokenType::GREATER_THAN_EQUAL:
-	case TokenType::LESSER_THAN:
-	case TokenType::LESSER_THAN_EQUAL:
+	case WTokenType::GREATER_THAN:
+	case WTokenType::GREATER_THAN_EQUAL:
+	case WTokenType::LESSER_THAN:
+	case WTokenType::LESSER_THAN_EQUAL:
 	{
 		return 5;
 	}
-	case TokenType::EQUAL_EQUAL:
-	case TokenType::BANG_EQUAL:
+	case WTokenType::EQUAL_EQUAL:
+	case WTokenType::BANG_EQUAL:
 	{
 		return 4;
 	}
-	case TokenType::AND:
-	case TokenType::OR:
+	case WTokenType::AND:
+	case WTokenType::OR:
 	{
 		return 3;
 	}
-	case TokenType::EQUAL:
+	case WTokenType::EQUAL:
 	{
 		return 2;
 	}
-	case TokenType::COMMA:
+	case WTokenType::COMMA:
 	{
 		return 1;
 	}
@@ -234,15 +234,15 @@ int OperatorStack::get_precedence(TokenType token_type)
 	}
 }
 
-bool OperatorStack::is_left_associative(TokenType token_type)
+bool OperatorStack::is_left_associative(WTokenType token_type)
 {
 	switch (token_type)
 	{
-	case TokenType::POWER:
-	case TokenType::UNARY_MINUS:
-	case TokenType::UNARY_PLUS:
-	case TokenType::BANG:
-	case TokenType::EQUAL_EQUAL:
+	case WTokenType::POWER:
+	case WTokenType::UNARY_MINUS:
+	case WTokenType::UNARY_PLUS:
+	case WTokenType::BANG:
+	case WTokenType::EQUAL_EQUAL:
 	{
 		return false;
 	}

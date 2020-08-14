@@ -24,10 +24,10 @@
     <ClInclude Include="Compiler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Symbol.h">
+    <ClInclude Include="CSymbol.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SymbolTable.h">
+    <ClInclude Include="CSymbolTable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

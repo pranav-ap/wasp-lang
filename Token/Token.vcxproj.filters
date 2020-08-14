@@ -24,7 +24,7 @@
     <ClInclude Include="Token.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TokenType.h">
+    <ClInclude Include="WTokenType.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

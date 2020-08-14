@@ -160,7 +160,7 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Token.h" />
-    <ClInclude Include="TokenType.h" />
+    <ClInclude Include="WTokenType.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />

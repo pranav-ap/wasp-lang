@@ -32,7 +32,7 @@ int main()
 	semantic_analyser->execute(ast);
 
 	Compiler_ptr compiler = make_unique<Compiler>();
-	compiler->execute(ast);
+	Bytecode_ptr bytecode = compiler->execute(ast);
 
 	// Calculate time taken
 

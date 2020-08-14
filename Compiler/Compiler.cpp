@@ -3,11 +3,11 @@
 #include "Compiler.h"
 #include "Assertion.h"
 #include <memory>
+#include <variant>
 
 #define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr")
 #define OPT_CHECK(x) ASSERT(x.has_value(), "Oh shit! Option is none")
 #define MAKE_OBJECT_VARIANT(x) std::make_shared<Object>(x)
-#define VOID std::make_shared<Object>(ReturnObject())
 
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
@@ -56,6 +56,12 @@ void Compiler::visit(const Statement_ptr statement)
 
 void Compiler::visit(std::vector<Statement_ptr> const& block)
 {
+	if (block.size() == 0)
+	{
+		emit(OpCode::PASS);
+		return;
+	}
+
 	for (const auto stat : block)
 	{
 		visit(stat);
@@ -75,21 +81,63 @@ void Compiler::visit(Branching const& statement)
 		auto condition = branch.first;
 		visit(condition);
 
-		int label = labels.size();
-		emit(OpCode::JUMP_IF_FALSE, label);
-		labels[label] = 0;
+		enter_scope();
+
+		int exit_branch_label = set_exit_block_label();
+		emit(OpCode::JUMP_IF_FALSE, exit_branch_label);
 
 		auto body = branch.second;
-		visit(body);
+		visit(&body);
 
-		labels[label] = scopes.top()->instructions.size();
+		emit(OpCode::POP); // Pop condition
+
+		save_branch_size(exit_branch_label);
+
+		leave_scope();
 	}
 
-	visit(statement.else_block);
+	// Else Branch
+
+	enter_scope();
+
+	visit(&statement.else_block);
+
+	int exit_branch_label = set_exit_block_label();
+	save_branch_size(exit_branch_label);
+
+	leave_scope();
+
+	// Set On Truthy Jump labels
+
+	auto scope = scopes.top();
+
+	while (scope->branch_sizes.size() > 0)
+	{
+	}
+
+	scopes.top()->branch_sizes.empty();
 }
 
 void Compiler::visit(WhileLoop const& statement)
 {
+	auto condition = statement.condition;
+	visit(condition);
+
+	enter_scope();
+
+	int start_loop_label = set_start_block_label();
+	int exit_loop_label = set_exit_block_label();
+
+	emit(OpCode::JUMP_IF_FALSE, exit_loop_label);
+
+	auto body = statement.block;
+	visit(&body);
+
+	jump_locations[exit_loop_label] = scopes.top()->instructions.size();
+
+	emit(OpCode::JUMP, start_loop_label);
+
+	leave_scope();
 }
 
 void Compiler::visit(ForInLoop const& statement)
@@ -98,14 +146,19 @@ void Compiler::visit(ForInLoop const& statement)
 
 void Compiler::visit(Break const& statement)
 {
+	auto exit_loop_label = scopes.top()->exit_loop_label;
+	emit(OpCode::JUMP, exit_loop_label);
 }
 
 void Compiler::visit(Continue const& statement)
 {
+	auto start_loop_label = scopes.top()->start_loop_label;
+	emit(OpCode::JUMP, start_loop_label);
 }
 
 void Compiler::visit(Pass const& statement)
 {
+	emit(OpCode::PASS);
 }
 
 void Compiler::visit(Return const& statement)
@@ -113,13 +166,12 @@ void Compiler::visit(Return const& statement)
 	if (statement.expression.has_value())
 	{
 		visit(statement.expression.value());
+		emit(OpCode::RETURN_VALUE);
 	}
 	else
 	{
-		add_to_constant_pool(VOID);
+		emit(OpCode::RETURN_VOID);
 	}
-
-	emit(OpCode::RETURN);
 }
 
 void Compiler::visit(YieldStatement const& statement)
@@ -127,13 +179,12 @@ void Compiler::visit(YieldStatement const& statement)
 	if (statement.expression.has_value())
 	{
 		visit(statement.expression.value());
+		emit(OpCode::YIELD_VALUE);
 	}
 	else
 	{
-		add_to_constant_pool(VOID);
+		emit(OpCode::YIELD_VOID);
 	}
-
-	emit(OpCode::YIELD_OP);
 }
 
 void Compiler::visit(VariableDefinition const& statement)
@@ -155,10 +206,10 @@ void Compiler::visit(AliasDefinition const& statement)
 void Compiler::visit(FunctionDefinition const& statement)
 {
 	enter_scope();
-	visit(statement.block);
+	visit(&statement.block);
 
 	auto instructions = leave_scope();
-	auto function_object = std::make_shared<Object>(FunctionObject(instructions));
+	auto function_object = MAKE_OBJECT_VARIANT(FunctionObject(instructions));
 
 	int id = add_to_constant_pool(function_object);
 	emit(OpCode::CONSTANT, id);
@@ -251,7 +302,7 @@ void Compiler::visit(const bool boolean)
 void Compiler::visit(ListLiteral const& expr)
 {
 	visit(expr.expressions);
-	emit(OpCode::ARRAY, expr.expressions.size());
+	emit(OpCode::LIST, expr.expressions.size());
 }
 
 void Compiler::visit(TupleLiteral const& expr)
@@ -302,17 +353,17 @@ void Compiler::visit(Unary const& expr)
 
 	switch (expr.op->type)
 	{
-	case TokenType::BANG:
+	case WTokenType::BANG:
 	{
 		emit(OpCode::UNARY_BANG);
 		break;
 	}
-	case TokenType::UNARY_MINUS:
+	case WTokenType::UNARY_MINUS:
 	{
 		emit(OpCode::UNARY_SUBTRACT);
 		break;
 	}
-	case TokenType::UNARY_PLUS:
+	case WTokenType::UNARY_PLUS:
 	{
 		emit(OpCode::UNARY_ADD);
 		break;
@@ -330,67 +381,62 @@ void Compiler::visit(Binary const& expr)
 
 	switch (expr.op->type)
 	{
-	case TokenType::BANG:
-	{
-		emit(OpCode::UNARY_BANG);
-		break;
-	}
-	case TokenType::PLUS:
+	case WTokenType::PLUS:
 	{
 		emit(OpCode::BINARY_ADD);
 		break;
 	}
-	case TokenType::MINUS:
+	case WTokenType::MINUS:
 	{
 		emit(OpCode::BINARY_SUBTRACT);
 		break;
 	}
-	case TokenType::STAR:
+	case WTokenType::STAR:
 	{
 		emit(OpCode::BINARY_MULTIPLY);
 		break;
 	}
-	case TokenType::DIVISION:
+	case WTokenType::DIVISION:
 	{
 		emit(OpCode::BINARY_DIVISION);
 		break;
 	}
-	case TokenType::REMINDER:
+	case WTokenType::REMINDER:
 	{
 		emit(OpCode::BINARY_REMINDER);
 		break;
 	}
-	case TokenType::POWER:
+	case WTokenType::POWER:
 	{
 		emit(OpCode::BINARY_POWER);
 		break;
 	}
-	case TokenType::LESSER_THAN:
+	case WTokenType::LESSER_THAN:
 	{
 		emit(OpCode::BINARY_LESSER_THAN);
 		break;
 	}
-	case TokenType::LESSER_THAN_EQUAL:
+	case WTokenType::LESSER_THAN_EQUAL:
 	{
 		emit(OpCode::BINARY_LESSER_THAN_EQUAL);
 		break;
 	}
-	case TokenType::GREATER_THAN:
+	case WTokenType::GREATER_THAN:
 	{
 		emit(OpCode::BINARY_GREATER_THAN);
 		break;
 	}
-	case TokenType::GREATER_THAN_EQUAL:
+	case WTokenType::GREATER_THAN_EQUAL:
 	{
 		emit(OpCode::BINARY_GREATER_THAN_EQUAL);
 		break;
 	}
-	case TokenType::AND:
+	case WTokenType::AND:
 	{
 		emit(OpCode::BINARY_AND);
 		break;
 	}
-	case TokenType::OR:
+	case WTokenType::OR:
 	{
 		emit(OpCode::BINARY_OR);
 		break;
@@ -401,6 +447,32 @@ void Compiler::visit(Binary const& expr)
 	}
 }
 
+// Labels
+
+int Compiler::set_start_block_label()
+{
+	int start_label = jump_locations.size();
+	scopes.top()->start_loop_label = start_label;
+	jump_locations[start_label] = scopes.top()->instructions.size();
+
+	return start_label;
+}
+
+int Compiler::set_exit_block_label()
+{
+	int exit_label = jump_locations.size();
+	scopes.top()->exit_loop_label = exit_label;
+	jump_locations[exit_label] = -1;
+
+	return exit_label;
+}
+
+void Compiler::save_branch_size(int exit_branch_label)
+{
+	auto scope = scopes.top();
+	scope->branch_sizes.push({ exit_branch_label, scope->instructions.size() });
+}
+
 // Scope
 
 void Compiler::enter_scope()
@@ -408,7 +480,7 @@ void Compiler::enter_scope()
 	auto scope = std::make_shared<CompilationScope>();
 	scopes.push(move(scope));
 
-	symbol_table = std::make_shared<SymbolTable>(symbol_table);
+	symbol_table = std::make_shared<CSymbolTable>(symbol_table);
 }
 
 Instructions Compiler::leave_scope()

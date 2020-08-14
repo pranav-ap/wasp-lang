@@ -6,13 +6,7 @@
 #define BYTECODE_API __declspec(dllimport)
 #endif
 
-#include <string>
 #include <vector>
-#include <map>
-#include <memory>
-
-#define MAKE_OPCODE_DEF(opcode, name, operand_count) \
-	{ opcode, std::make_shared<OpCodeDefinition>(name, operand_count) }
 
 enum class BYTECODE_API OpCode
 {
@@ -47,13 +41,15 @@ enum class BYTECODE_API OpCode
 	JUMP_IF_TRUE,
 	JUMP_IF_FALSE,
 
+	PASS,
+
 	CALL_FUNCTION,
 	CALL_GENERATOR,
 
-	RETURN,
+	RETURN_VOID,
 	RETURN_VALUE,
-	YIELD_OP,
-	YIELD_VALUE_OP,
+	YIELD_VOID,
+	YIELD_VALUE,
 
 	GET_VARIABLE,
 	SET_VARIABLE,
@@ -62,7 +58,7 @@ enum class BYTECODE_API OpCode
 	CONSTANT_TRUE,
 	CONSTANT_FALSE,
 
-	ARRAY,
+	LIST,
 	TUPLE,
 
 	MAP

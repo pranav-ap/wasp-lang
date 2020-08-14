@@ -157,8 +157,8 @@
     <ClInclude Include="Compiler.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="Symbol.h" />
-    <ClInclude Include="SymbolTable.h" />
+    <ClInclude Include="CSymbol.h" />
+    <ClInclude Include="CSymbolTable.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Compiler.cpp" />

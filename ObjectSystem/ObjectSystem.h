@@ -31,6 +31,7 @@ struct BreakObject;
 struct ContinueObject;
 struct BuiltInsObject;
 struct NoneObject;
+struct FunctionObject;
 
 using Object = OBJECTSYSTEM_API std::variant<
 	std::monostate,
@@ -46,7 +47,8 @@ using Object = OBJECTSYSTEM_API std::variant<
 	BreakObject, ContinueObject,
 	BuiltInsObject,
 	// Other
-	NoneObject
+	NoneObject,
+	FunctionObject
 >;
 
 using Object_ptr = OBJECTSYSTEM_API std::shared_ptr<Object>;

@@ -10,7 +10,7 @@
 #include "Bytecode.h"
 #include "Statement.h"
 #include "ObjectSystem.h"
-#include "SymbolTable.h"
+#include "CSymbolTable.h"
 
 #include <string>
 #include <vector>
@@ -19,6 +19,11 @@
 struct CompilationScope
 {
 	Instructions instructions;
+
+	int start_loop_label;
+	int exit_loop_label;
+
+	std::stack<std::pair<int, int>> branch_sizes;
 };
 
 using CompilationScope_ptr = std::shared_ptr<CompilationScope>;
@@ -28,8 +33,9 @@ class COMPILER_API Compiler
 	std::stack<CompilationScope_ptr> scopes;
 	std::vector<Object_ptr> constant_pool;
 
-	std::vector<int> labels;
-	SymbolTable_ptr symbol_table;
+	std::vector<int> jump_locations;
+
+	CSymbolTable_ptr symbol_table;
 
 	// Statement
 
@@ -90,6 +96,11 @@ class COMPILER_API Compiler
 
 	int add_to_constant_pool(Object_ptr constant);
 
+	void save_branch_size(int exit_branch_label);
+
+	int set_start_block_label();
+	int set_exit_block_label();
+
 	Instruction make_instruction(OpCode opcode);
 	Instruction make_instruction(OpCode opcode, int operand);
 	Instruction make_instruction(OpCode opcode, int operand_1, int operand_2);
@@ -97,7 +108,7 @@ class COMPILER_API Compiler
 public:
 	Compiler()
 		: scopes({ std::make_shared<CompilationScope>() }),
-		symbol_table(std::make_shared<SymbolTable>()) {};
+		symbol_table(std::make_shared<CSymbolTable>()) {};
 
 	Bytecode_ptr execute(const Module_ptr module_ast);
 };

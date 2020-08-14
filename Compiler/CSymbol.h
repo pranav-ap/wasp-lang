@@ -4,13 +4,13 @@
 #include <string>
 #include <utility>
 
-struct Symbol
+struct CSymbol
 {
 	std::wstring name;
 	int id;
 
-	Symbol(std::wstring name, int id)
+	CSymbol(std::wstring name, int id)
 		: name(name), id(id) {};
 };
 
-using Symbol_ptr = std::shared_ptr<Symbol>;
+using CSymbol_ptr = std::shared_ptr<CSymbol>;

@@ -1,27 +1,27 @@
 #pragma once
 #include "pch.h"
-#include "SymbolTable.h"
+#include "CSymbolTable.h"
 #include "Assertion.h"
 
 #define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr")
 
-Symbol_ptr SymbolTable::define(std::wstring name)
+CSymbol_ptr CSymbolTable::define(std::wstring name)
 {
-	auto symbol = std::make_shared<Symbol>(name, store.size());
+	auto symbol_table = std::make_shared<CSymbol>(name, store.size());
 
-	auto result = store.insert({ name, symbol });
+	auto result = store.insert({ name, symbol_table });
 	ASSERT(result.second, "Name already exists in scope!");
 
-	return symbol;
+	return symbol_table;
 }
 
-Symbol_ptr SymbolTable::lookup(std::wstring name)
+CSymbol_ptr CSymbolTable::lookup(std::wstring name)
 {
 	if (store.contains(name))
 	{
-		auto symbol = store.at(name);
-		NULL_CHECK(symbol);
-		return symbol;
+		auto CSymbol = store.at(name);
+		NULL_CHECK(CSymbol);
+		return CSymbol;
 	}
 
 	if (enclosing_scope.has_value())

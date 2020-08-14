@@ -8,7 +8,7 @@
 
 #include "Token.h"
 #include "TokenPosition.h"
-#include "TokenType.h"
+#include "WTokenType.h"
 #include "Pointer.h"
 
 #include <optional>
@@ -17,51 +17,51 @@
 #include <memory>
 #include <map>
 
-const std::map<std::wstring, TokenType> keyword_map =
+const std::map<std::wstring, WTokenType> keyword_map =
 {
-	{ L"if", TokenType::IF },
-	{ L"elif", TokenType::ELIF },
-	{ L"else", TokenType::ELSE },
+	{ L"if", WTokenType::IF },
+	{ L"elif", WTokenType::ELIF },
+	{ L"else", WTokenType::ELSE },
 
-	{ L"and", TokenType::AND },
-	{ L"or", TokenType::OR },
+	{ L"and", WTokenType::AND },
+	{ L"or", WTokenType::OR },
 
-	{ L"let", TokenType::LET },
-	{ L"const", TokenType::CONST_KEYWORD },
+	{ L"let", WTokenType::LET },
+	{ L"const", WTokenType::CONST_KEYWORD },
 
-	{ L"while", TokenType::WHILE },
-	{ L"for", TokenType::FOR },
-	{ L"in", TokenType::IN_KEYWORD },
-	{ L"break", TokenType::BREAK },
-	{ L"continue", TokenType::CONTINUE },
+	{ L"while", WTokenType::WHILE },
+	{ L"for", WTokenType::FOR },
+	{ L"in", WTokenType::IN_KEYWORD },
+	{ L"break", WTokenType::BREAK },
+	{ L"continue", WTokenType::CONTINUE },
 
-	{ L"fn", TokenType::FN },
-	{ L"return", TokenType::RETURN },
-	{ L"gen", TokenType::GEN },
-	{ L"yield", TokenType::YIELD_KEYWORD },
+	{ L"fn", WTokenType::FN },
+	{ L"return", WTokenType::RETURN_VOID },
+	{ L"gen", WTokenType::GEN },
+	{ L"yield", WTokenType::YIELD_KEYWORD },
 
-	{ L"type", TokenType::TYPE },
-	{ L"num", TokenType::NUM },
-	{ L"str", TokenType::STR },
-	{ L"bool", TokenType::BOOL },
-	{ L"enum", TokenType::ENUM },
-	{ L"any", TokenType::ANY },
-	{ L"opt", TokenType::OPT },
+	{ L"type", WTokenType::TYPE },
+	{ L"num", WTokenType::NUM },
+	{ L"str", WTokenType::STR },
+	{ L"bool", WTokenType::BOOL },
+	{ L"enum", WTokenType::ENUM },
+	{ L"any", WTokenType::ANY },
+	{ L"opt", WTokenType::OPT },
 
-	{ L"none", TokenType::NONE },
+	{ L"none", WTokenType::NONE },
 
-	{ L"true", TokenType::TRUE_KEYWORD },
-	{ L"false", TokenType::FALSE_KEYWORD },
+	{ L"true", WTokenType::TRUE_KEYWORD },
+	{ L"false", WTokenType::FALSE_KEYWORD },
 
-	{ L"import", TokenType::IMPORT },
-	{ L"from", TokenType::FROM },
+	{ L"import", WTokenType::IMPORT },
+	{ L"from", WTokenType::FROM },
 
-	{ L"new", TokenType::NEW },
+	{ L"new", WTokenType::NEW },
 
-	{ L"pub", TokenType::PUB },
-	{ L"pass", TokenType::PASS },
+	{ L"pub", WTokenType::PUB },
+	{ L"pass", WTokenType::PASS },
 
-	{ L"assert", TokenType::ASSERT }
+	{ L"assert", WTokenType::ASSERT }
 };
 
 class LEXER_API Lexer

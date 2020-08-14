@@ -1,5 +1,4 @@
-﻿import { add } from 'path'
-const io = import('std/io')
+﻿const { io } = import('std/io')
 
 // Its more of a comment really
 
