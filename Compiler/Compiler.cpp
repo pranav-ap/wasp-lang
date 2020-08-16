@@ -8,6 +8,7 @@
 #define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr")
 #define OPT_CHECK(x) ASSERT(x.has_value(), "Oh shit! Option is none")
 #define MAKE_OBJECT_VARIANT(x) std::make_shared<Object>(x)
+#define SCOPED_INSTRUCTIONS_LENGTH scopes.top()->instructions.size()
 
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
@@ -21,7 +22,12 @@ Bytecode_ptr Compiler::execute(const Module_ptr module_ast)
 		visit(statement);
 	}
 
-	Bytecode_ptr bytecode = std::make_shared<Bytecode>(scopes.top()->instructions, constant_pool);
+	Bytecode_ptr bytecode = std::make_shared<Bytecode>(
+		scopes.top()->instructions,
+		constant_pool,
+		relative_jumps
+		);
+
 	return bytecode;
 }
 
@@ -70,12 +76,19 @@ void Compiler::visit(std::vector<Statement_ptr> const& block)
 
 void Compiler::visit(Assignment const& statement)
 {
-	visit(statement.lhs_expressions);
-	visit(statement.rhs_expressions);
+	int id = symbol_table->lookup(statement.name);
+	visit(statement.expression);
+
+	emit(OpCode::SET_VARIABLE, id);
 }
 
 void Compiler::visit(Branching const& statement)
 {
+	int exit_tree_label = create_label();
+	int exit_tree_relative_jump = 0;
+
+	// Conditional branches
+
 	for (const auto branch : statement.branches)
 	{
 		auto condition = branch.first;
@@ -83,39 +96,33 @@ void Compiler::visit(Branching const& statement)
 
 		enter_scope();
 
-		int exit_branch_label = set_exit_block_label();
+		int exit_branch_label = create_label();
 		emit(OpCode::JUMP_IF_FALSE, exit_branch_label);
 
 		auto body = branch.second;
 		visit(&body);
 
 		emit(OpCode::POP); // Pop condition
+		emit(OpCode::JUMP, exit_tree_label);
 
-		save_branch_size(exit_branch_label);
+		Instructions instructions = leave_scope();
 
-		leave_scope();
+		int instructions_length = instructions.size();
+		set_label(exit_branch_label, instructions_length);
+
+		exit_tree_relative_jump += instructions_length;
 	}
 
 	// Else Branch
 
 	enter_scope();
-
 	visit(&statement.else_block);
+	Instructions instructions = leave_scope();
 
-	int exit_branch_label = set_exit_block_label();
-	save_branch_size(exit_branch_label);
+	int instructions_length = instructions.size();
+	exit_tree_relative_jump += instructions_length;
 
-	leave_scope();
-
-	// Set On Truthy Jump labels
-
-	auto scope = scopes.top();
-
-	while (scope->branch_sizes.size() > 0)
-	{
-	}
-
-	scopes.top()->branch_sizes.empty();
+	relative_jumps[exit_tree_label] = exit_tree_relative_jump;
 }
 
 void Compiler::visit(WhileLoop const& statement)
@@ -125,19 +132,21 @@ void Compiler::visit(WhileLoop const& statement)
 
 	enter_scope();
 
-	int start_loop_label = set_start_block_label();
-	int exit_loop_label = set_exit_block_label();
+	int block_begin_label = create_label();
+	int block_end_label = create_label();
 
-	emit(OpCode::JUMP_IF_FALSE, exit_loop_label);
+	emit(OpCode::JUMP_IF_FALSE, block_end_label);
 
 	auto body = statement.block;
 	visit(&body);
 
-	jump_locations[exit_loop_label] = scopes.top()->instructions.size();
+	emit(OpCode::JUMP, block_begin_label);
 
-	emit(OpCode::JUMP, start_loop_label);
+	Instructions instructions = leave_scope();
+	int instructions_length = instructions.size();
 
-	leave_scope();
+	set_label(block_end_label, instructions_length);
+	set_label(block_begin_label, -instructions_length);
 }
 
 void Compiler::visit(ForInLoop const& statement)
@@ -146,14 +155,14 @@ void Compiler::visit(ForInLoop const& statement)
 
 void Compiler::visit(Break const& statement)
 {
-	auto exit_loop_label = scopes.top()->exit_loop_label;
-	emit(OpCode::JUMP, exit_loop_label);
+	auto block_skip_label = scopes.top()->break_label;
+	emit(OpCode::JUMP, block_skip_label);
 }
 
 void Compiler::visit(Continue const& statement)
 {
-	auto start_loop_label = scopes.top()->start_loop_label;
-	emit(OpCode::JUMP, start_loop_label);
+	auto block_begin_label = scopes.top()->continue_label;
+	emit(OpCode::JUMP, block_begin_label);
 }
 
 void Compiler::visit(Pass const& statement)
@@ -190,9 +199,9 @@ void Compiler::visit(YieldStatement const& statement)
 void Compiler::visit(VariableDefinition const& statement)
 {
 	visit(statement.expression);
-	emit(OpCode::SET_VARIABLE);
+	int id = symbol_table->define(statement.name);
 
-	auto symbol = symbol_table->define(statement.name);
+	emit(OpCode::SET_VARIABLE, id);
 }
 
 void Compiler::visit(UDTDefinition const& statement)
@@ -206,6 +215,13 @@ void Compiler::visit(AliasDefinition const& statement)
 void Compiler::visit(FunctionDefinition const& statement)
 {
 	enter_scope();
+
+	for (const auto [arg_name, _] : statement.arguments)
+	{
+		int id = symbol_table->define(statement.name);
+		emit(OpCode::SET_VARIABLE, id);
+	}
+
 	visit(&statement.block);
 
 	auto instructions = leave_scope();
@@ -217,6 +233,21 @@ void Compiler::visit(FunctionDefinition const& statement)
 
 void Compiler::visit(GeneratorDefinition const& statement)
 {
+	enter_scope();
+
+	for (const auto [arg_name, _] : statement.arguments)
+	{
+		int id = symbol_table->define(statement.name);
+		emit(OpCode::SET_VARIABLE, id);
+	}
+
+	visit(&statement.block);
+
+	auto instructions = leave_scope();
+	auto generator_object = MAKE_OBJECT_VARIANT(GeneratorObject(instructions));
+
+	int id = add_to_constant_pool(generator_object);
+	emit(OpCode::CONSTANT, id);
 }
 
 void Compiler::visit(EnumDefinition const& statement)
@@ -240,6 +271,7 @@ void Compiler::visit(ExpressionStatement const& statement)
 void Compiler::visit(AssertStatement const& statement)
 {
 	visit(statement.expression);
+	emit(OpCode::ASSERT);
 }
 
 // Expression
@@ -319,7 +351,7 @@ void Compiler::visit(MapLiteral const& expr)
 		visit(value);
 	}
 
-	emit(OpCode::MAP, expr.pairs.size() * 2);
+	emit(OpCode::MAP, expr.pairs.size());
 }
 
 void Compiler::visit(UDTConstruct const& expr)
@@ -336,12 +368,16 @@ void Compiler::visit(EnumMember const& expr)
 
 void Compiler::visit(Identifier const& expr)
 {
-	auto symbol = symbol_table->lookup(expr.name);
-	emit(OpCode::GET_VARIABLE, symbol->id);
+	auto id = symbol_table->lookup(expr.name);
+	emit(OpCode::GET_VARIABLE, id);
 }
 
 void Compiler::visit(Call const& expr)
 {
+	auto value = MAKE_OBJECT_VARIANT(StringObject(expr.name));
+	int id = add_to_constant_pool(value);
+	emit(OpCode::CONSTANT, id);
+
 	visit(expr.arguments);
 	int argument_count = expr.arguments.size();
 	emit(OpCode::CALL_FUNCTION, argument_count);
@@ -383,65 +419,66 @@ void Compiler::visit(Binary const& expr)
 	{
 	case WTokenType::PLUS:
 	{
-		emit(OpCode::BINARY_ADD);
+		emit(OpCode::ADD);
 		break;
 	}
 	case WTokenType::MINUS:
 	{
-		emit(OpCode::BINARY_SUBTRACT);
+		emit(OpCode::SUBTRACT);
 		break;
 	}
 	case WTokenType::STAR:
 	{
-		emit(OpCode::BINARY_MULTIPLY);
+		emit(OpCode::MULTIPLY);
 		break;
 	}
 	case WTokenType::DIVISION:
 	{
-		emit(OpCode::BINARY_DIVISION);
+		emit(OpCode::DIVISION);
 		break;
 	}
 	case WTokenType::REMINDER:
 	{
-		emit(OpCode::BINARY_REMINDER);
+		emit(OpCode::REMINDER);
 		break;
 	}
 	case WTokenType::POWER:
 	{
-		emit(OpCode::BINARY_POWER);
+		emit(OpCode::POWER);
 		break;
 	}
 	case WTokenType::LESSER_THAN:
 	{
-		emit(OpCode::BINARY_LESSER_THAN);
+		emit(OpCode::LESSER_THAN);
 		break;
 	}
 	case WTokenType::LESSER_THAN_EQUAL:
 	{
-		emit(OpCode::BINARY_LESSER_THAN_EQUAL);
+		emit(OpCode::LESSER_THAN_EQUAL);
 		break;
 	}
 	case WTokenType::GREATER_THAN:
 	{
-		emit(OpCode::BINARY_GREATER_THAN);
+		emit(OpCode::GREATER_THAN);
 		break;
 	}
 	case WTokenType::GREATER_THAN_EQUAL:
 	{
-		emit(OpCode::BINARY_GREATER_THAN_EQUAL);
+		emit(OpCode::GREATER_THAN_EQUAL);
 		break;
 	}
 	case WTokenType::AND:
 	{
-		emit(OpCode::BINARY_AND);
+		emit(OpCode::AND);
 		break;
 	}
 	case WTokenType::OR:
 	{
-		emit(OpCode::BINARY_OR);
+		emit(OpCode::OR);
 		break;
 	}
-	default: {
+	default:
+	{
 		break;
 	}
 	}
@@ -449,28 +486,17 @@ void Compiler::visit(Binary const& expr)
 
 // Labels
 
-int Compiler::set_start_block_label()
+int Compiler::create_label()
 {
-	int start_label = jump_locations.size();
-	scopes.top()->start_loop_label = start_label;
-	jump_locations[start_label] = scopes.top()->instructions.size();
+	int label = relative_jumps.size();
+	relative_jumps[label] = 0;
 
-	return start_label;
+	return label;
 }
 
-int Compiler::set_exit_block_label()
+void Compiler::set_label(int label, int relative_jump)
 {
-	int exit_label = jump_locations.size();
-	scopes.top()->exit_loop_label = exit_label;
-	jump_locations[exit_label] = -1;
-
-	return exit_label;
-}
-
-void Compiler::save_branch_size(int exit_branch_label)
-{
-	auto scope = scopes.top();
-	scope->branch_sizes.push({ exit_branch_label, scope->instructions.size() });
+	relative_jumps[label] = relative_jump;
 }
 
 // Scope
@@ -485,8 +511,12 @@ void Compiler::enter_scope()
 
 Instructions Compiler::leave_scope()
 {
+	// Pop Scope
+
 	auto scope = scopes.top();
 	scopes.pop();
+
+	// Remove associated symbol table
 
 	if (symbol_table->enclosing_scope.has_value())
 	{
@@ -498,56 +528,36 @@ Instructions Compiler::leave_scope()
 
 // Emit
 
-int Compiler::emit(OpCode opcode)
+void Compiler::emit(Instruction instruction)
 {
-	auto instruction = make_instruction(opcode);
-	int position = scopes.top()->instructions.size();
+	auto scope = scopes.top();
 
-	scopes.top()->instructions.insert(
-		std::end(scopes.top()->instructions),
+	scope->instructions.insert(
+		std::end(scope->instructions),
 		std::begin(instruction),
 		std::end(instruction)
 	);
-
-	return position;
 }
 
-int Compiler::emit(OpCode opcode, int operand)
+void Compiler::emit(OpCode opcode)
 {
-	auto instruction = make_instruction(opcode, operand);
-	int position = scopes.top()->instructions.size();
-
-	scopes.top()->instructions.insert(
-		std::end(scopes.top()->instructions),
-		std::begin(instruction),
-		std::end(instruction)
-	);
-
-	return position;
+	Instruction instruction = make_instruction(opcode);
+	emit(instruction);
 }
 
-int Compiler::emit(OpCode opcode, int operand_1, int operand_2)
+void Compiler::emit(OpCode opcode, int operand)
 {
-	auto instruction = make_instruction(opcode, operand_1, operand_2);
-	int position = scopes.top()->instructions.size();
-
-	scopes.top()->instructions.insert(
-		std::end(scopes.top()->instructions),
-		std::begin(instruction),
-		std::end(instruction)
-	);
-
-	return position;
+	Instruction instruction = make_instruction(opcode, operand);
+	emit(instruction);
 }
 
-// Utils
-
-int Compiler::add_to_constant_pool(Object_ptr value)
+void Compiler::emit(OpCode opcode, int operand_1, int operand_2)
 {
-	constant_pool.push_back(value);
-	int index = constant_pool.size() - 1;
-	return index;
+	Instruction instruction = make_instruction(opcode, operand_1, operand_2);
+	emit(instruction);
 }
+
+// Make Instruction
 
 Instruction Compiler::make_instruction(OpCode opcode)
 {
@@ -574,4 +584,13 @@ Instruction Compiler::make_instruction(OpCode opcode, int operand_1, int operand
 	instruction.push_back(static_cast<std::byte>(operand_2));
 
 	return instruction;
+}
+
+// Utils
+
+int Compiler::add_to_constant_pool(Object_ptr value)
+{
+	constant_pool.push_back(value);
+	int index = constant_pool.size() - 1;
+	return index;
 }

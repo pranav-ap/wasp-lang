@@ -32,6 +32,7 @@ struct ContinueObject;
 struct BuiltInsObject;
 struct NoneObject;
 struct FunctionObject;
+struct GeneratorObject;
 
 using Object = OBJECTSYSTEM_API std::variant<
 	std::monostate,
@@ -48,7 +49,8 @@ using Object = OBJECTSYSTEM_API std::variant<
 	BuiltInsObject,
 	// Other
 	NoneObject,
-	FunctionObject
+	FunctionObject,
+	GeneratorObject
 >;
 
 using Object_ptr = OBJECTSYSTEM_API std::shared_ptr<Object>;
@@ -80,6 +82,14 @@ struct OBJECTSYSTEM_API FunctionObject : public BaseObject
 	Instructions instructions;
 	FunctionObject() {};
 	FunctionObject(Instructions instructions)
+		: instructions(instructions) {};
+};
+
+struct OBJECTSYSTEM_API GeneratorObject : public BaseObject
+{
+	Instructions instructions;
+	GeneratorObject() {};
+	GeneratorObject(Instructions instructions)
 		: instructions(instructions) {};
 };
 

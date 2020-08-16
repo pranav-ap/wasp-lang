@@ -9,6 +9,7 @@ let x : ⌊ str ⌋ = ⌊ '1', 'hello' ⌋
 let x : ⟨ str -> str ⟩ = ⟨ 'a' : 'b', 'c' : 'd' ⟩
 
 a, b, c = 1, 2, 3
+a = 1, 2, 3
 
 if a > 3 and r == 3:
     pass

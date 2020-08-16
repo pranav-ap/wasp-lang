@@ -19,11 +19,8 @@
 struct CompilationScope
 {
 	Instructions instructions;
-
-	int start_loop_label;
-	int exit_loop_label;
-
-	std::stack<std::pair<int, int>> branch_sizes;
+	int break_label;
+	int continue_label;
 };
 
 using CompilationScope_ptr = std::shared_ptr<CompilationScope>;
@@ -32,8 +29,7 @@ class COMPILER_API Compiler
 {
 	std::stack<CompilationScope_ptr> scopes;
 	std::vector<Object_ptr> constant_pool;
-
-	std::vector<int> jump_locations;
+	std::vector<int> relative_jumps;
 
 	CSymbolTable_ptr symbol_table;
 
@@ -88,18 +84,21 @@ class COMPILER_API Compiler
 
 	// Emit
 
-	int emit(OpCode opcode);
-	int emit(OpCode opcode, int operand);
-	int emit(OpCode opcode, int operand_1, int operand_2);
+	void emit(Instruction instruction);
+	void emit(OpCode opcode);
+	void emit(OpCode opcode, int operand);
+	void emit(OpCode opcode, int operand_1, int operand_2);
 
 	// Utils
 
 	int add_to_constant_pool(Object_ptr constant);
 
-	void save_branch_size(int exit_branch_label);
+	// Labels
 
-	int set_start_block_label();
-	int set_exit_block_label();
+	int create_label();
+	void set_label(int label, int relative_jump);
+
+	// Make Instruction
 
 	Instruction make_instruction(OpCode opcode);
 	Instruction make_instruction(OpCode opcode, int operand);

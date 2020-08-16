@@ -77,11 +77,11 @@ using Module_ptr = AST_API std::shared_ptr<Module>;
 
 struct AST_API Assignment
 {
-	ExpressionVector lhs_expressions;
-	ExpressionVector rhs_expressions;
+	std::wstring name;
+	Expression_ptr expression;
 
-	Assignment(ExpressionVector lhs_expressions, ExpressionVector rhs_expressions)
-		: lhs_expressions(lhs_expressions), rhs_expressions(rhs_expressions) {};
+	Assignment(std::wstring name, Expression_ptr expression)
+		: name(name), expression(expression) {};
 };
 
 struct AST_API Branching

@@ -144,14 +144,13 @@ Statement_ptr Parser::parse_public_statement(int expected_indent)
 Statement_ptr Parser::parse_expression_statement()
 {
 	auto lhs_expressions = expr_parser->parse_expressions();
+	ASSERT(lhs_expressions.size() == 1, "Comma separted expression not yet supported");
 
 	if (token_pipe->optional(WTokenType::EQUAL))
 	{
 		auto assignment = consume_assignment(lhs_expressions);
 		return assignment;
 	}
-
-	ASSERT(lhs_expressions.size() == 1, ERROR_CODE::UNEXPECTED_TOKEN);
 
 	if (token_pipe->optional(WTokenType::EOL))
 	{
@@ -187,9 +186,22 @@ Statement_ptr Parser::parse_expression_statement()
 Statement_ptr Parser::consume_assignment(ExpressionVector lhs_expressions)
 {
 	auto rhs_expressions = expr_parser->parse_expressions();
+	ASSERT(rhs_expressions.size() == 1, "Comma separted expression not yet supported");
+
 	token_pipe->expect(WTokenType::EOL);
 
-	return MAKE_STATEMENT(Assignment(lhs_expressions, rhs_expressions));
+	Statement_ptr statement;
+
+	std::visit(overloaded{
+		[&](Identifier const& expr)
+		{
+			statement = MAKE_STATEMENT(Assignment(expr.name, move(rhs_expressions.front())));
+		},
+
+		[&](auto) { FATAL("LHS has to be an identifier!"); }
+		}, *lhs_expressions.front());
+
+	return statement;
 }
 
 Statement_ptr Parser::consume_shortcut_assignment(Expression_ptr lhs_expression, Token_ptr operator_token)
@@ -201,7 +213,18 @@ Statement_ptr Parser::consume_shortcut_assignment(Expression_ptr lhs_expression,
 	auto unshortcut_rhs_expression = MAKE_EXPRESSION(Binary(move(lhs_expression), operator_token, move(rhs_expression)));
 	token_pipe->expect(WTokenType::EOL);
 
-	return MAKE_STATEMENT(Assignment({ move(lhs_expression) }, { move(unshortcut_rhs_expression) }));
+	Statement_ptr statement;
+
+	std::visit(overloaded{
+		[&](Identifier const& expr)
+		{
+			statement = MAKE_STATEMENT(Assignment(expr.name, move(unshortcut_rhs_expression)));
+		},
+
+		[&](auto) { FATAL("LHS has to be an identifier!"); }
+		}, *lhs_expression);
+
+	return statement;
 }
 
 // Block statement parsing

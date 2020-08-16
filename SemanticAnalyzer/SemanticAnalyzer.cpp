@@ -72,8 +72,10 @@ void SemanticAnalyzer::visit(std::vector<Statement_ptr> const& block)
 
 void SemanticAnalyzer::visit(Assignment const& statement)
 {
-	visit(statement.lhs_expressions);
-	visit(statement.rhs_expressions);
+	std::optional<Symbol_ptr> symbol = symbol_table->lookup(statement.name);
+	OPT_CHECK(symbol);
+
+	visit(statement.expression);
 }
 
 void SemanticAnalyzer::visit(Branching const& statement)

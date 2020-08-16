@@ -22,6 +22,6 @@ public:
 	CSymbolTable(CSymbolTable_ptr enclosing_scope)
 		: enclosing_scope(enclosing_scope) {};
 
-	CSymbol_ptr define(std::wstring name);
-	CSymbol_ptr lookup(std::wstring name);
+	int define(std::wstring name);
+	int lookup(std::wstring name);
 };
