@@ -8,12 +8,13 @@
 #define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr")
 #define OPT_CHECK(x) ASSERT(x.has_value(), "Oh shit! Option is none")
 #define MAKE_OBJECT_VARIANT(x) std::make_shared<Object>(x)
-#define SCOPED_INSTRUCTIONS_LENGTH scopes.top()->instructions.size()
 
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
 
 using std::move;
+using std::holds_alternative;
+using std::get_if;
 
 Bytecode_ptr Compiler::execute(const Module_ptr module_ast)
 {
@@ -199,7 +200,11 @@ void Compiler::visit(YieldStatement const& statement)
 void Compiler::visit(VariableDefinition const& statement)
 {
 	visit(statement.expression);
-	int id = symbol_table->define(statement.name);
+
+	int id = next_id;
+	next_id++;
+
+	symbol_table->define(statement.name, id);
 
 	emit(OpCode::SET_VARIABLE, id);
 }
@@ -218,7 +223,8 @@ void Compiler::visit(FunctionDefinition const& statement)
 
 	for (const auto [arg_name, _] : statement.arguments)
 	{
-		int id = symbol_table->define(statement.name);
+		int id = next_id;
+		symbol_table->define(statement.name, id);
 		emit(OpCode::SET_VARIABLE, id);
 	}
 
@@ -237,7 +243,8 @@ void Compiler::visit(GeneratorDefinition const& statement)
 
 	for (const auto [arg_name, _] : statement.arguments)
 	{
-		int id = symbol_table->define(statement.name);
+		int id = next_id;
+		symbol_table->define(statement.name, id);
 		emit(OpCode::SET_VARIABLE, id);
 	}
 
@@ -307,16 +314,70 @@ void Compiler::visit(std::vector<Expression_ptr> const& expressions)
 
 void Compiler::visit(const double number)
 {
-	auto value = MAKE_OBJECT_VARIANT(NumberObject(number));
-	int id = add_to_constant_pool(value);
-	emit(OpCode::CONSTANT, id);
+	auto result = std::find_if(
+		constant_pool.begin(),
+		constant_pool.end(),
+		[number](const auto& p)
+		{
+			if (holds_alternative<NumberObject>(*p.second))
+			{
+				NumberObject* x = get_if<NumberObject>(&*p.second);
+
+				if (x->value == number)
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+	);
+
+	if (result != constant_pool.end())
+	{
+		int id = result->first;
+		emit(OpCode::CONSTANT, id);
+	}
+	else
+	{
+		auto value = MAKE_OBJECT_VARIANT(NumberObject(number));
+		int id = add_to_constant_pool(value);
+		emit(OpCode::CONSTANT, id);
+	}
 }
 
 void Compiler::visit(const std::wstring text)
 {
-	auto value = MAKE_OBJECT_VARIANT(StringObject(text));
-	int id = add_to_constant_pool(value);
-	emit(OpCode::CONSTANT, id);
+	auto result = std::find_if(
+		constant_pool.begin(),
+		constant_pool.end(),
+		[text](const auto& p)
+		{
+			if (holds_alternative<StringObject>(*p.second))
+			{
+				StringObject* x = get_if<StringObject>(&*p.second);
+
+				if (x->value == text)
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+	);
+
+	if (result != constant_pool.end())
+	{
+		int id = result->first;
+		emit(OpCode::CONSTANT, id);
+	}
+	else
+	{
+		auto value = MAKE_OBJECT_VARIANT(StringObject(text));
+		int id = add_to_constant_pool(value);
+		emit(OpCode::CONSTANT, id);
+	}
 }
 
 void Compiler::visit(const bool boolean)
@@ -590,7 +651,10 @@ Instruction Compiler::make_instruction(OpCode opcode, int operand_1, int operand
 
 int Compiler::add_to_constant_pool(Object_ptr value)
 {
-	constant_pool.push_back(value);
-	int index = constant_pool.size() - 1;
-	return index;
+	int id = next_id;
+	next_id++;
+
+	constant_pool.insert({ id, value });
+
+	return id;
 }

@@ -14,6 +14,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 #include <memory>
 
 struct CompilationScope
@@ -28,8 +29,10 @@ using CompilationScope_ptr = std::shared_ptr<CompilationScope>;
 class COMPILER_API Compiler
 {
 	std::stack<CompilationScope_ptr> scopes;
-	std::vector<Object_ptr> constant_pool;
+	std::map<int, Object_ptr> constant_pool;
 	std::vector<int> relative_jumps;
+
+	int next_id;
 
 	CSymbolTable_ptr symbol_table;
 
@@ -106,7 +109,8 @@ class COMPILER_API Compiler
 
 public:
 	Compiler()
-		: scopes({ std::make_shared<CompilationScope>() }),
+		: next_id(0),
+		scopes({ std::make_shared<CompilationScope>() }),
 		symbol_table(std::make_shared<CSymbolTable>()) {};
 
 	Bytecode_ptr execute(const Module_ptr module_ast);

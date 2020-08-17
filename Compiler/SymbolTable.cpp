@@ -5,9 +5,8 @@
 
 #define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr")
 
-int CSymbolTable::define(std::wstring name)
+int CSymbolTable::define(std::wstring name, int id)
 {
-	int id = store.size();
 	auto symbol_table = std::make_shared<CSymbol>(name, id);
 
 	auto result = store.insert({ name, symbol_table });
