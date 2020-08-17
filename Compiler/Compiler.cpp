@@ -3,16 +3,19 @@
 #include "Compiler.h"
 #include "Assertion.h"
 #include <memory>
+#include <string>
 #include <variant>
 
 #define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr")
 #define OPT_CHECK(x) ASSERT(x.has_value(), "Oh shit! Option is none")
 #define MAKE_OBJECT_VARIANT(x) std::make_shared<Object>(x)
+#define MAKE_EXPRESSION(x) std::make_shared<Expression>(x)
 
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
 
 using std::move;
+using std::wstring;
 using std::holds_alternative;
 using std::get_if;
 
@@ -152,6 +155,38 @@ void Compiler::visit(WhileLoop const& statement)
 
 void Compiler::visit(ForInLoop const& statement)
 {
+	int block_begin_label = create_label();
+	int block_end_label = create_label();
+
+	enter_scope();
+
+	Expression_ptr iterable = statement.iterable;
+	visit(iterable);
+
+	int item_id = next_id++;
+	symbol_table->define(statement.item_name, item_id);
+
+	std::visit(overloaded{
+		[&](wstring const& expr) { emit(OpCode::ITERATE_OVER_STRING, item_id); },
+		[&](ListLiteral const& expr) { emit(OpCode::ITERATE_OVER_LIST, item_id); },
+		[&](MapLiteral const& expr) { emit(OpCode::ITERATE_OVER_MAP, item_id); },
+		[&](Identifier const& expr) { emit(OpCode::ITERATE_OVER_IDENTIFIER, item_id); },
+
+		[](auto) { FATAL("Not an iterable!"); }
+		}, *iterable);
+
+	emit(OpCode::JUMP_IF_FALSE, block_end_label);
+
+	auto body = statement.block;
+	visit(&body);
+
+	emit(OpCode::JUMP, block_begin_label);
+
+	Instructions instructions = leave_scope();
+	int instructions_length = instructions.size();
+
+	set_label(block_end_label, instructions_length + 2);
+	set_label(block_begin_label, -instructions_length + 2);
 }
 
 void Compiler::visit(Break const& statement)
@@ -233,7 +268,7 @@ void Compiler::visit(FunctionDefinition const& statement)
 	auto instructions = leave_scope();
 	auto function_object = MAKE_OBJECT_VARIANT(FunctionObject(instructions));
 
-	int id = add_to_constant_pool(function_object);
+	int id = add_to_constant_pool(move(function_object));
 	emit(OpCode::CONSTANT, id);
 }
 
@@ -253,7 +288,7 @@ void Compiler::visit(GeneratorDefinition const& statement)
 	auto instructions = leave_scope();
 	auto generator_object = MAKE_OBJECT_VARIANT(GeneratorObject(instructions));
 
-	int id = add_to_constant_pool(generator_object);
+	int id = add_to_constant_pool(move(generator_object));
 	emit(OpCode::CONSTANT, id);
 }
 
@@ -341,7 +376,7 @@ void Compiler::visit(const double number)
 	else
 	{
 		auto value = MAKE_OBJECT_VARIANT(NumberObject(number));
-		int id = add_to_constant_pool(value);
+		int id = add_to_constant_pool(move(value));
 		emit(OpCode::CONSTANT, id);
 	}
 }
@@ -375,7 +410,7 @@ void Compiler::visit(const std::wstring text)
 	else
 	{
 		auto value = MAKE_OBJECT_VARIANT(StringObject(text));
-		int id = add_to_constant_pool(value);
+		int id = add_to_constant_pool(move(value));
 		emit(OpCode::CONSTANT, id);
 	}
 }
@@ -435,9 +470,38 @@ void Compiler::visit(Identifier const& expr)
 
 void Compiler::visit(Call const& expr)
 {
-	auto value = MAKE_OBJECT_VARIANT(StringObject(expr.name));
-	int id = add_to_constant_pool(value);
-	emit(OpCode::CONSTANT, id);
+	wstring function_name = expr.name;
+
+	auto result = std::find_if(
+		constant_pool.begin(),
+		constant_pool.end(),
+		[function_name](const auto& p)
+		{
+			if (holds_alternative<StringObject>(*p.second))
+			{
+				StringObject* x = get_if<StringObject>(&*p.second);
+
+				if (x->value == function_name)
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+	);
+
+	if (result != constant_pool.end())
+	{
+		int id = result->first;
+		emit(OpCode::CONSTANT, id);
+	}
+	else
+	{
+		auto value = MAKE_OBJECT_VARIANT(StringObject(function_name));
+		int id = add_to_constant_pool(move(value));
+		emit(OpCode::CONSTANT, id);
+	}
 
 	visit(expr.arguments);
 	int argument_count = expr.arguments.size();
@@ -550,7 +614,7 @@ void Compiler::visit(Binary const& expr)
 int Compiler::create_label()
 {
 	int label = relative_jumps.size();
-	relative_jumps[label] = 0;
+	relative_jumps.push_back(0);
 
 	return label;
 }
@@ -654,7 +718,7 @@ int Compiler::add_to_constant_pool(Object_ptr value)
 	int id = next_id;
 	next_id++;
 
-	constant_pool.insert({ id, value });
+	constant_pool.insert({ id, move(value) });
 
 	return id;
 }

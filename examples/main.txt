@@ -1,3 +1,2 @@
-﻿let a : num = 34
-a = 55
-a = 34
+﻿for x : num in [1, 2, 3]:
+    pass

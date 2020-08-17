@@ -56,7 +56,7 @@ void Bytecode::print()
 			INC_INDEX;
 			int operand_2 = GET_OPCODE;
 
-			std::cout << "ADD " << operand_1 << operand_2 << std::endl;
+			std::cout << "ADD " << operand_1 << " " << operand_2 << std::endl;
 			break;
 		}
 		case OpCode::SUBTRACT:
@@ -66,7 +66,7 @@ void Bytecode::print()
 			INC_INDEX;
 			int operand_2 = GET_OPCODE;
 
-			std::cout << "SUBTRACT " << operand_1 << operand_2 << std::endl;
+			std::cout << "SUBTRACT " << operand_1 << " " << operand_2 << std::endl;
 			break;
 		}
 		case OpCode::MULTIPLY:
@@ -76,7 +76,7 @@ void Bytecode::print()
 			INC_INDEX;
 			int operand_2 = GET_OPCODE;
 
-			std::cout << "MULTIPLY " << operand_1 << operand_2 << std::endl;
+			std::cout << "MULTIPLY " << operand_1 << " " << operand_2 << std::endl;
 			break;
 		}
 		case OpCode::DIVISION:
@@ -86,7 +86,7 @@ void Bytecode::print()
 			INC_INDEX;
 			int operand_2 = GET_OPCODE;
 
-			std::cout << "DIVISION " << operand_1 << operand_2 << std::endl;
+			std::cout << "DIVISION " << operand_1 << " " << operand_2 << std::endl;
 			break;
 		}
 		case OpCode::REMINDER:
@@ -96,7 +96,7 @@ void Bytecode::print()
 			INC_INDEX;
 			int operand_2 = GET_OPCODE;
 
-			std::cout << "REMINDER " << operand_1 << operand_2 << std::endl;
+			std::cout << "REMINDER " << operand_1 << " " << operand_2 << std::endl;
 			break;
 		}
 		case OpCode::POWER:
@@ -106,7 +106,7 @@ void Bytecode::print()
 			INC_INDEX;
 			int operand_2 = GET_OPCODE;
 
-			std::cout << "POWER " << operand_1 << operand_2 << std::endl;
+			std::cout << "POWER " << operand_1 << " " << operand_2 << std::endl;
 			break;
 		}
 		case OpCode::NOT_EQUAL:
@@ -116,7 +116,7 @@ void Bytecode::print()
 			INC_INDEX;
 			int operand_2 = GET_OPCODE;
 
-			std::cout << "NOT_EQUAL " << operand_1 << operand_2 << std::endl;
+			std::cout << "NOT_EQUAL " << operand_1 << " " << operand_2 << std::endl;
 			break;
 		}
 		case OpCode::EQUAL:
@@ -126,7 +126,7 @@ void Bytecode::print()
 			INC_INDEX;
 			int operand_2 = GET_OPCODE;
 
-			std::cout << "EQUAL " << operand_1 << operand_2 << std::endl;
+			std::cout << "EQUAL " << operand_1 << " " << operand_2 << std::endl;
 			break;
 		}
 
@@ -137,7 +137,7 @@ void Bytecode::print()
 			INC_INDEX;
 			int operand_2 = GET_OPCODE;
 
-			std::cout << "LESSER_THAN " << operand_1 << operand_2 << std::endl;
+			std::cout << "LESSER_THAN " << operand_1 << " " << operand_2 << std::endl;
 			break;
 		}
 
@@ -148,7 +148,7 @@ void Bytecode::print()
 			INC_INDEX;
 			int operand_2 = GET_OPCODE;
 
-			std::cout << "LESSER_THAN_EQUAL " << operand_1 << operand_2 << std::endl;
+			std::cout << "LESSER_THAN_EQUAL " << operand_1 << " " << operand_2 << std::endl;
 			break;
 		}
 
@@ -159,7 +159,7 @@ void Bytecode::print()
 			INC_INDEX;
 			int operand_2 = GET_OPCODE;
 
-			std::cout << "GREATER_THAN " << operand_1 << operand_2 << std::endl;
+			std::cout << "GREATER_THAN " << operand_1 << " " << operand_2 << std::endl;
 			break;
 		}
 
@@ -170,7 +170,7 @@ void Bytecode::print()
 			INC_INDEX;
 			int operand_2 = GET_OPCODE;
 
-			std::cout << "GREATER_THAN_EQUAL " << operand_1 << operand_2 << std::endl;
+			std::cout << "GREATER_THAN_EQUAL " << operand_1 << " " << operand_2 << std::endl;
 			break;
 		}
 		case OpCode::AND:
@@ -180,7 +180,7 @@ void Bytecode::print()
 			INC_INDEX;
 			int operand_2 = GET_OPCODE;
 
-			std::cout << "AND " << operand_1 << operand_2 << std::endl;
+			std::cout << "AND " << operand_1 << " " << operand_2 << std::endl;
 			break;
 		}
 		case OpCode::OR:
@@ -190,7 +190,7 @@ void Bytecode::print()
 			INC_INDEX;
 			int operand_2 = GET_OPCODE;
 
-			std::cout << "OR " << operand_1 << operand_2 << std::endl;
+			std::cout << "OR " << operand_1 << " " << operand_2 << std::endl;
 			break;
 		}
 		case OpCode::ASSERT:
@@ -282,6 +282,54 @@ void Bytecode::print()
 			INC_INDEX;
 			int operand = GET_OPCODE;
 			std::cout << "SET_VARIABLE " << operand << std::endl;
+			break;
+		}
+		case OpCode::GET_LIST_ELEMENT:
+		{
+			INC_INDEX;
+			int operand_1 = GET_OPCODE;
+			INC_INDEX;
+			int operand_2 = GET_OPCODE;
+
+			std::cout << "GET_LIST_ELEMENT " << operand_1 << " " << operand_2 << std::endl;
+			break;
+		}
+		case OpCode::SET_LIST_ELEMENT:
+		{
+			INC_INDEX;
+			int operand_1 = GET_OPCODE;
+			INC_INDEX;
+			int operand_2 = GET_OPCODE;
+
+			std::cout << "SET_LIST_ELEMENT " << operand_1 << " " << operand_2 << std::endl;
+			break;
+		}
+		case OpCode::ITERATE_OVER_LIST:
+		{
+			INC_INDEX;
+			int operand = GET_OPCODE;
+			std::cout << "ITERATE_OVER_LIST " << operand << std::endl;
+			break;
+		}
+		case OpCode::ITERATE_OVER_MAP:
+		{
+			INC_INDEX;
+			int operand = GET_OPCODE;
+			std::cout << "ITERATE_OVER_MAP " << operand << std::endl;
+			break;
+		}
+		case OpCode::ITERATE_OVER_IDENTIFIER:
+		{
+			INC_INDEX;
+			int operand = GET_OPCODE;
+			std::cout << "ITERATE_OVER_IDENTIFIER " << operand << std::endl;
+			break;
+		}
+		case OpCode::ITERATE_OVER_STRING:
+		{
+			INC_INDEX;
+			int operand = GET_OPCODE;
+			std::cout << "ITERATE_OVER_STRING " << operand << std::endl;
 			break;
 		}
 		case OpCode::CONSTANT:
