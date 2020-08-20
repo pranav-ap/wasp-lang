@@ -47,52 +47,39 @@ enum class BYTECODE_API OpCode
 	YIELD_VOID,
 	YIELD_VALUE,
 
-	PUSH_CONSTANT_TRUE, // PUSH Boolean Object to Stack
+	PUSH_CONSTANT_TRUE,
 	PUSH_CONSTANT_FALSE,
 
 	PUSH_CONSTANT, // constant_pool_id
 
 	STORE_LOCAL, // variable_id - TOS to Table
-	STORE_GLOBAL, // variable_id
+	STORE_GLOBAL,
 
 	LOAD_LOCAL, // variable_id - Table to TOS
-	LOAD_GLOBAL, // variable_id
+	LOAD_GLOBAL,
 
 	MAKE_LIST, // length
-	MAKE_TUPLE, // length
-	MAKE_MAP, // length
+	MAKE_TUPLE,
+	MAKE_MAP,
 
 	JUMP_ABSOLUTE, // target
-	POP_JUMP_ABSOLUTE, // target
-	JUMP_ABSOLUTE_IF_FALSE, // target
-	POP_JUMP_ABSOLUTE_IF_FALSE, // target
+	JUMP_ABSOLUTE_IF_FALSE,
 
-	JUMP_FORWARD, // skip_id
-	JUMP_FORWARD_IF_FALSE, // skip_id
-	POP_JUMP_FORWARD_IF_FALSE, // skip_id
-
-	JUMP_BACKWARD, // skip_id
-	JUMP_BACKWARD_IF_FALSE, // skip_id
-	POP_JUMP_BACKWARD_IF_FALSE, // skip_id
-
-	BREAK_LOOP, // target
-	CONTINUE_LOOP, // target
-
-	ITERATE_OVER_LIST, // skip_id
-	ITERATE_OVER_MAP, // skip_id
-	ITERATE_OVER_STRING, // skip_id
+	ITERATE_OVER_LIST, // variable_id, skip_id
+	ITERATE_OVER_MAP,
+	ITERATE_OVER_STRING,
 
 	GET_ELEMENT_FROM_LIST, // variable_id, index
-	SET_ELEMENT_IN_LIST, // variable_id, index
+	SET_ELEMENT_IN_LIST,
 
-	GET_VALUE_FROM_MAP, // variable_id, key_index
-	SET_VALUE_FROM_MAP, // variable_id, key_index
+	GET_VALUE_FROM_MAP,
+	SET_VALUE_FROM_MAP,
 
-	GET_PAIR_FROM_MAP, // variable_id, index
-	SET_PAIR_FROM_MAP, // variable_id, index
+	GET_PAIR_FROM_MAP,
+	SET_PAIR_FROM_MAP,
 
-	GET_CHAR_FROM_STRING, // variable_id, index
-	SET_CHAR_FROM_STRING, // variable_id, index
+	GET_CHAR_FROM_STRING,
+	SET_CHAR_FROM_STRING,
 
 	CALL // function or generator id, number of arguments
 };

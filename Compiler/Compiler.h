@@ -11,7 +11,7 @@
 #include "Statement.h"
 #include "ObjectSystem.h"
 #include "CSymbolTable.h"
-#include "BasicBlock.h"
+#include "CFG.h"
 
 #include <string>
 #include <vector>
@@ -20,7 +20,8 @@
 
 class COMPILER_API Compiler
 {
-	BasicBlock_ptr basic_block;
+	CFG_ptr module_cfg;
+	CFG_ptr local_cfg;
 
 	CSymbolTable_ptr symbol_table;
 	std::map<int, Object_ptr> constant_pool;
@@ -36,8 +37,6 @@ class COMPILER_API Compiler
 	void visit(Branching const& statement);
 	void visit(WhileLoop const& statement);
 	void visit(ForInLoop const& statement);
-	void visit(Break const& statement);
-	void visit(Continue const& statement);
 	void visit(Pass const& statement);
 	void visit(Return const& statement);
 	void visit(YieldStatement const& statement);
@@ -74,20 +73,16 @@ class COMPILER_API Compiler
 	// Scope
 
 	void enter_scope();
-	Instructions leave_scope();
+	void leave_scope();
 
 	// Utils
 
 	int add_to_constant_pool(Object_ptr constant);
 
-	int find_string_constant(wstring text);
+	int find_string_constant(std::wstring text);
 	int find_number_constant(int number);
 
-	void replace_byte(int position, int value);
-
 	// Emit
-
-	void emit(Instruction instruction);
 
 	void emit(OpCode opcode);
 	void emit(OpCode opcode, int operand);
@@ -102,7 +97,7 @@ class COMPILER_API Compiler
 public:
 	Compiler()
 		: next_id(0),
-		basic_block({ std::make_shared<BasicBlock>() }),
+		module_cfg({ std::make_shared<CFG>() }),
 		symbol_table(std::make_shared<CSymbolTable>()) {};
 
 	Bytecode_ptr execute(const Module_ptr module_ast);

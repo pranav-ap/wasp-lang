@@ -1,7 +1,6 @@
 #pragma once
 #include "pch.h"
 #include "ObjectSystem.h"
-#include "spdlog.h"
 #include "Assertion.h"
 
 #include <cmath>
@@ -9,6 +8,7 @@
 #include <vector>
 #include <exception>
 #include <variant>
+#include <stdexcept>
 
 #define MAKE_OBJECT_VARIANT(x) std::make_shared<Object>(x)
 #define VOID std::make_shared<Object>(ReturnObject())

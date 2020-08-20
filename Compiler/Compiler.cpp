@@ -1,6 +1,8 @@
 #pragma once
 #include "pch.h"
 #include "Compiler.h"
+#include "CFG.h"
+#include "CFG_Node.h"
 #include "Assertion.h"
 #include <memory>
 #include <string>
@@ -10,12 +12,14 @@
 #define OPT_CHECK(x) ASSERT(x.has_value(), "Oh shit! Option is none")
 #define MAKE_OBJECT_VARIANT(x) std::make_shared<Object>(x)
 #define MAKE_EXPRESSION(x) std::make_shared<Expression>(x)
+#define MAKE_CFG_NODE_VARIANT(x) std::make_shared<CFG_Node>(x)
 
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
 
 using std::move;
 using std::wstring;
+using std::make_shared;
 using std::holds_alternative;
 using std::get_if;
 
@@ -26,11 +30,7 @@ Bytecode_ptr Compiler::execute(const Module_ptr module_ast)
 		visit(statement);
 	}
 
-	Bytecode_ptr bytecode = std::make_shared<Bytecode>(
-		scopes.top()->instructions,
-		constant_pool
-		);
-
+	Bytecode_ptr bytecode;
 	return bytecode;
 }
 
@@ -40,26 +40,31 @@ void Compiler::visit(const Statement_ptr statement)
 {
 	std::visit(overloaded{
 		[&](Assignment const& stat) { visit(stat); },
+
 		[&](Branching const& stat) { visit(stat); },
+
 		[&](WhileLoop const& stat) { visit(stat); },
 		[&](ForInLoop const& stat) { visit(stat); },
-		[&](Break const& stat) { visit(stat); },
-		[&](Continue const& stat) { visit(stat); },
+
 		[&](Pass const& stat) { visit(stat); },
+
 		[&](Return const& stat) { visit(stat); },
 		[&](YieldStatement const& stat) { visit(stat); },
+
 		[&](VariableDefinition const& stat) { visit(stat); },
 		[&](UDTDefinition const& stat) { visit(stat); },
 		[&](AliasDefinition const& stat) { visit(stat); },
 		[&](FunctionDefinition const& stat) { visit(stat); },
 		[&](GeneratorDefinition const& stat) { visit(stat); },
 		[&](EnumDefinition const& stat) { visit(stat); },
+
 		[&](ImportCustom const& stat) { visit(stat); },
 		[&](ImportInBuilt const& stat) { visit(stat); },
+
 		[&](ExpressionStatement const& stat) { visit(stat); },
 		[&](AssertStatement const& stat) { visit(stat); },
 
-		[](auto) { FATAL("Never Seen this Statement before!"); }
+		[](auto) { FATAL("Unexpected statement!"); }
 		}, *statement);
 }
 
@@ -87,59 +92,71 @@ void Compiler::visit(Assignment const& statement)
 
 void Compiler::visit(Branching const& statement)
 {
-	std::vector<BasicBlock_ptr> conditional_basic_blocks;
-	BasicBlock_ptr previous_basic_block;
+	std::vector<std::pair<Condition_Node, Basic_Block_ptr>> pairs;
 
 	for (const auto branch : statement.branches)
 	{
 		auto condition = branch.first;
 		visit(condition);
 
-		emit(OpCode::POP_JUMP_ABSOLUTE_IF_FALSE, 0); // go to elif, else, after else
+		auto condition_node = make_shared<Condition_Node>();
+		condition_node->push(make_instruction(OpCode::JUMP_ABSOLUTE_IF_FALSE, 0));
 
 		enter_scope();
 
-		auto body = branch.second;
-		visit(&body);
+		auto block = branch.second;
+		auto basic_block = make_shared<Basic_Block>();
 
-		emit(OpCode::POP_JUMP_ABSOLUTE, 0); // goto after else
+		for (const auto stat : block)
+		{
+			bool skip = true;
+
+			std::visit(overloaded{
+				[&](Break const& stat) { visit(stat); },
+				[&](Continue const& stat) { visit(stat); },
+				[&](Pass const& stat) { visit(stat); },
+				[&](Return const& stat) { visit(stat); },
+				[&](YieldStatement const& stat) { visit(stat); },
+
+				[&](auto) { skip = false; }
+				}, *stat);
+
+			if (!skip)
+			{
+				visit(stat);
+			}
+		}
+
+		basic_block->push(make_instruction(OpCode::JUMP_ABSOLUTE, 0));
 
 		leave_scope();
 	}
 
-	enter_scope();
-	visit(&statement.else_block);
-	leave_scope();
+	// create unconditional block
+
+	// for each (condi, uncondi) in vector
+	//		condi.true = uncondi
+	//		condi.false = next_condi / else block / nullopt
+	//		uncondi.out = end_node
+
+	// start_node = vector[0].condi
+
+	// end_node
 }
 
 void Compiler::visit(WhileLoop const& statement)
 {
-	auto condition = statement.condition;
-	visit(condition);
-	emit(OpCode::POP_JUMP_ABSOLUTE_IF_FALSE, 0);
+	auto condition_node = make_shared<Condition_Node>();
 
-	enter_scope();
+	auto basic_block = make_shared<Basic_Block>();
+	basic_block->outgoing_link = MAKE_CFG_NODE_VARIANT(condition_node);
 
-	auto body = statement.block;
-	visit(&body);
-
-	emit(OpCode::POP_JUMP_ABSOLUTE, 0);
-
-	leave_scope();
+	auto end_node = make_shared<Terminal_Node>();
+	condition_node->false_outgoing_link = MAKE_CFG_NODE_VARIANT(end_node);
 }
 
 void Compiler::visit(ForInLoop const& statement)
 {
-}
-
-void Compiler::visit(Break const& statement)
-{
-	emit(OpCode::BREAK_LOOP, 0);
-}
-
-void Compiler::visit(Continue const& statement)
-{
-	emit(OpCode::CONTINUE_LOOP, 0);
 }
 
 void Compiler::visit(Pass const& statement)
@@ -493,45 +510,32 @@ void Compiler::enter_scope()
 	symbol_table = std::make_shared<CSymbolTable>(symbol_table);
 }
 
-Instruction Compiler::leave_scope()
+void Compiler::leave_scope()
 {
 	if (symbol_table->enclosing_scope.has_value())
 	{
 		symbol_table = symbol_table->enclosing_scope.value();
 	}
-
-	return scope->instructions;
 }
 
 // Emit
 
-void Compiler::emit(Instruction instruction)
-{
-	auto scope = scopes.top();
-
-	scope->instructions.insert(
-		std::end(scope->instructions),
-		std::begin(instruction),
-		std::end(instruction)
-	);
-}
-
 void Compiler::emit(OpCode opcode)
 {
 	Instruction instruction = make_instruction(opcode);
-	emit(instruction);
+	local_cfg->emit(instruction);
 }
 
 void Compiler::emit(OpCode opcode, int operand)
 {
 	Instruction instruction = make_instruction(opcode, operand);
-	emit(instruction);
+	local_cfg->emit(instruction);
 }
 
 void Compiler::emit(OpCode opcode, int operand_1, int operand_2)
 {
 	Instruction instruction = make_instruction(opcode, operand_1, operand_2);
-	emit(instruction);
+	local_cfg->emit(instruction);
 }
 
 // Make Instruction
@@ -621,10 +625,4 @@ int Compiler::find_number_constant(int number)
 	}
 
 	return -1;
-}
-
-void Compiler::replace_byte(int position, int value)
-{
-	auto scope = scopes.top();
-	scope->instructions.at(position) = static_cast<std::byte>(value);
 }

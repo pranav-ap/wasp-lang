@@ -30,10 +30,10 @@
     <ClInclude Include="CSymbolTable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BasicBlock.h">
+    <ClInclude Include="CFG.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CFG.h">
+    <ClInclude Include="CFG_Node.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -51,6 +51,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CFG.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CFG_Node.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
