@@ -80,17 +80,21 @@ struct OBJECTSYSTEM_API NoneObject : public BaseObject
 struct OBJECTSYSTEM_API FunctionObject : public BaseObject
 {
 	Instructions instructions;
-	FunctionObject() {};
-	FunctionObject(Instructions instructions)
-		: instructions(instructions) {};
+	int parameter_count;
+
+	FunctionObject() : parameter_count(0) {};
+	FunctionObject(Instructions instructions, int parameter_count)
+		: instructions(instructions), parameter_count(parameter_count) {};
 };
 
 struct OBJECTSYSTEM_API GeneratorObject : public BaseObject
 {
 	Instructions instructions;
-	GeneratorObject() {};
-	GeneratorObject(Instructions instructions)
-		: instructions(instructions) {};
+	int parameter_count;
+
+	GeneratorObject() : parameter_count(0) {};
+	GeneratorObject(Instructions instructions, int parameter_count)
+		: instructions(instructions), parameter_count(parameter_count) {};
 };
 
 // Scalar Objects

@@ -10,12 +10,18 @@
 
 enum class BYTECODE_API OpCode
 {
-	PUSH,
-	POP,
+	NO_OP,
+	STOP,
 
-	UNARY_ADD,
-	UNARY_SUBTRACT,
-	UNARY_BANG,
+	PUSH_TO_STACK,
+	POP_FROM_STACK,
+	POP_N_FROM_STACK,
+
+	UNARY_POSITIVE,
+	UNARY_NEGATIVE,
+	UNARY_NOT,
+
+	ASSERT,
 
 	ADD,
 	SUBTRACT,
@@ -35,41 +41,60 @@ enum class BYTECODE_API OpCode
 	AND,
 	OR,
 
-	ASSERT,
-
-	JUMP,
-	JUMP_IF_TRUE,
-	JUMP_IF_FALSE,
-
-	PASS,
-
-	CALL_FUNCTION,
-	CALL_GENERATOR,
-
 	RETURN_VOID,
 	RETURN_VALUE,
+
 	YIELD_VOID,
 	YIELD_VALUE,
 
-	GET_VARIABLE,
-	SET_VARIABLE,
+	PUSH_CONSTANT_TRUE, // PUSH Boolean Object to Stack
+	PUSH_CONSTANT_FALSE,
 
-	GET_LIST_ELEMENT,
-	SET_LIST_ELEMENT,
+	PUSH_CONSTANT, // constant_pool_id
 
-	ITERATE_OVER_LIST, // list name
-	ITERATE_OVER_MAP,
-	ITERATE_OVER_IDENTIFIER,
-	ITERATE_OVER_STRING,
+	STORE_LOCAL, // variable_id - TOS to Table
+	STORE_GLOBAL, // variable_id
 
-	CONSTANT,
-	CONSTANT_TRUE,
-	CONSTANT_FALSE,
+	LOAD_LOCAL, // variable_id - Table to TOS
+	LOAD_GLOBAL, // variable_id
 
-	LIST,
-	TUPLE,
+	MAKE_LIST, // length
+	MAKE_TUPLE, // length
+	MAKE_MAP, // length
 
-	MAP
+	JUMP_ABSOLUTE, // target
+	POP_JUMP_ABSOLUTE, // target
+	JUMP_ABSOLUTE_IF_FALSE, // target
+	POP_JUMP_ABSOLUTE_IF_FALSE, // target
+
+	JUMP_FORWARD, // skip_id
+	JUMP_FORWARD_IF_FALSE, // skip_id
+	POP_JUMP_FORWARD_IF_FALSE, // skip_id
+
+	JUMP_BACKWARD, // skip_id
+	JUMP_BACKWARD_IF_FALSE, // skip_id
+	POP_JUMP_BACKWARD_IF_FALSE, // skip_id
+
+	BREAK_LOOP, // target
+	CONTINUE_LOOP, // target
+
+	ITERATE_OVER_LIST, // skip_id
+	ITERATE_OVER_MAP, // skip_id
+	ITERATE_OVER_STRING, // skip_id
+
+	GET_ELEMENT_FROM_LIST, // variable_id, index
+	SET_ELEMENT_IN_LIST, // variable_id, index
+
+	GET_VALUE_FROM_MAP, // variable_id, key_index
+	SET_VALUE_FROM_MAP, // variable_id, key_index
+
+	GET_PAIR_FROM_MAP, // variable_id, index
+	SET_PAIR_FROM_MAP, // variable_id, index
+
+	GET_CHAR_FROM_STRING, // variable_id, index
+	SET_CHAR_FROM_STRING, // variable_id, index
+
+	CALL // function or generator id, number of arguments
 };
 
 using Instruction = BYTECODE_API std::vector<std::byte>;

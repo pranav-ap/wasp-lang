@@ -11,30 +11,21 @@
 #include "Statement.h"
 #include "ObjectSystem.h"
 #include "CSymbolTable.h"
+#include "BasicBlock.h"
 
 #include <string>
 #include <vector>
 #include <map>
 #include <memory>
 
-struct CompilationScope
-{
-	Instructions instructions;
-	int break_label;
-	int continue_label;
-};
-
-using CompilationScope_ptr = std::shared_ptr<CompilationScope>;
-
 class COMPILER_API Compiler
 {
-	std::stack<CompilationScope_ptr> scopes;
-	std::map<int, Object_ptr> constant_pool;
-	std::vector<int> relative_jumps;
-
-	int next_id;
+	BasicBlock_ptr basic_block;
 
 	CSymbolTable_ptr symbol_table;
+	std::map<int, Object_ptr> constant_pool;
+
+	int next_id;
 
 	// Statement
 
@@ -85,21 +76,22 @@ class COMPILER_API Compiler
 	void enter_scope();
 	Instructions leave_scope();
 
-	// Emit
-
-	void emit(Instruction instruction);
-	void emit(OpCode opcode);
-	void emit(OpCode opcode, int operand);
-	void emit(OpCode opcode, int operand_1, int operand_2);
-
 	// Utils
 
 	int add_to_constant_pool(Object_ptr constant);
 
-	// Labels
+	int find_string_constant(wstring text);
+	int find_number_constant(int number);
 
-	int create_label();
-	void set_label(int label, int relative_jump);
+	void replace_byte(int position, int value);
+
+	// Emit
+
+	void emit(Instruction instruction);
+
+	void emit(OpCode opcode);
+	void emit(OpCode opcode, int operand);
+	void emit(OpCode opcode, int operand_1, int operand_2);
 
 	// Make Instruction
 
@@ -110,7 +102,7 @@ class COMPILER_API Compiler
 public:
 	Compiler()
 		: next_id(0),
-		scopes({ std::make_shared<CompilationScope>() }),
+		basic_block({ std::make_shared<BasicBlock>() }),
 		symbol_table(std::make_shared<CSymbolTable>()) {};
 
 	Bytecode_ptr execute(const Module_ptr module_ast);

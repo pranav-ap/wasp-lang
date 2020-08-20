@@ -16,12 +16,10 @@ struct BYTECODE_API Bytecode
 {
 	Instructions instructions;
 	std::map<int, Object_ptr> constant_pool;
-	std::vector<int> relative_jumps;
 
-	Bytecode(Instructions instructions, std::map<int, Object_ptr> constant_pool, std::vector<int> relative_jumps)
+	Bytecode(Instructions instructions, std::map<int, Object_ptr> constant_pool)
 		: instructions(instructions),
-		constant_pool(constant_pool),
-		relative_jumps(relative_jumps) {};
+		constant_pool(constant_pool) {};
 
 	void print();
 };

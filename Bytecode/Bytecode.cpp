@@ -229,16 +229,22 @@ void Bytecode::print()
 		case OpCode::CALL_FUNCTION:
 		{
 			INC_INDEX;
-			int operand = GET_OPCODE;
-			std::cout << "CALL_FUNCTION " << operand << std::endl;
+			int operand_1 = GET_OPCODE;
+			INC_INDEX;
+			int operand_2 = GET_OPCODE;
+
+			std::cout << "CALL_FUNCTION " << operand_1 << " " << operand_2 << std::endl;
 			break;
 		}
 
 		case OpCode::CALL_GENERATOR:
 		{
 			INC_INDEX;
-			int operand = GET_OPCODE;
-			std::cout << "CALL_GENERATOR " << operand << std::endl;
+			int operand_1 = GET_OPCODE;
+			INC_INDEX;
+			int operand_2 = GET_OPCODE;
+
+			std::cout << "CALL_GENERATOR " << operand_1 << " " << operand_2 << std::endl;
 			break;
 		}
 
@@ -332,20 +338,20 @@ void Bytecode::print()
 			std::cout << "ITERATE_OVER_STRING " << operand << std::endl;
 			break;
 		}
-		case OpCode::CONSTANT:
+		case OpCode::PUSH_CONSTANT:
 		{
 			INC_INDEX;
 			int operand = GET_OPCODE;
 			std::cout << "CONSTANT " << operand << std::endl;
 			break;
 		}
-		case OpCode::CONSTANT_TRUE:
+		case OpCode::PUSH_CONSTANT_TRUE:
 		{
 			std::cout << "CONSTANT_TRUE" << std::endl;
 			break;
 		}
 
-		case OpCode::CONSTANT_FALSE:
+		case OpCode::PUSH_CONSTANT_FALSE:
 		{
 			std::cout << "CONSTANT_FALSE" << std::endl;
 			break;
