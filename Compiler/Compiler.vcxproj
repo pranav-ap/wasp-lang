@@ -154,6 +154,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="CFGBuilder.h" />
     <ClInclude Include="CFG_Node.h" />
     <ClInclude Include="CFG.h" />
     <ClInclude Include="Compiler.h" />
@@ -164,6 +165,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CFG.cpp" />
+    <ClCompile Include="CFGBuilder.cpp" />
     <ClCompile Include="CFG_Node.cpp" />
     <ClCompile Include="Compiler.cpp" />
     <ClCompile Include="dllmain.cpp" />

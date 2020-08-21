@@ -4,43 +4,30 @@
 #include <vector>
 #include <memory>
 #include <optional>
-#include <variant>
 
-struct Condition_Node;
-struct Basic_Block;
-struct Terminal_Node;
-
-using CFG_Node = std::variant<
-	std::monostate,
-	Condition_Node,
+enum class CFGNodeType
+{
+	Condition,
 	Basic_Block,
-	Terminal_Node
->;
+	Terminal
+};
 
-using CFG_Node_ptr = std::shared_ptr<CFG_Node>;
+struct CFGNode;
+using CFGNode_ptr = std::shared_ptr<CFGNode>;
 
-struct Instruction_Node
+struct CFGNode
 {
+	CFGNodeType type;
+
 	Instructions instructions;
+
+	std::optional<CFGNode_ptr> true_outgoing_link;
+	std::optional<CFGNode_ptr> false_outgoing_link;
+
+	std::optional<CFGNode_ptr> outgoing_link;
+
 	void push(Instruction instruction);
-};
 
-struct Condition_Node : public Instruction_Node
-{
-	std::optional<CFG_Node_ptr> true_outgoing_link;
-	std::optional<CFG_Node_ptr> false_outgoing_link;
+	CFGNode() : type(CFGNodeType::Terminal) {};
+	CFGNode(CFGNodeType type) : type(type) {};
 };
-
-struct Basic_Block : public Instruction_Node
-{
-	std::optional<CFG_Node_ptr> outgoing_link;
-};
-
-struct Terminal_Node
-{
-	std::optional<CFG_Node_ptr> outgoing_link;
-};
-
-using Condition_Node_ptr = std::shared_ptr<Condition_Node>;
-using Basic_Block_ptr = std::shared_ptr<Basic_Block>;
-using Terminal_Node_ptr = std::shared_ptr<Terminal_Node>;

@@ -2,7 +2,7 @@
 #include "pch.h"
 #include "CFG_Node.h"
 
-void Instruction_Node::push(Instruction instruction)
+void CFGNode::push(Instruction instruction)
 {
 	instructions.insert(
 		std::end(instructions),
