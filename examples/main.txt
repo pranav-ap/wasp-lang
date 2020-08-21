@@ -1,5 +1,8 @@
-﻿let x : num = 34
+﻿let x : num = 30
 
-if x == 0:
-	pass
+while true:
+	if x == 1:
+		x = 32
+
+x = 94
 

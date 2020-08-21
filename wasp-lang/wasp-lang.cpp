@@ -1,8 +1,8 @@
 ﻿#pragma once
 #include <string>
 #include <chrono>
+#include <iostream>
 #include <memory>
-#include "spdlog.h"
 #include "utils.h"
 #include "Lexer.h"
 #include "Parser.h"
@@ -12,11 +12,12 @@
 
 using namespace std::chrono;
 using std::make_unique;
+using std::cout;
+using std::endl;
 
 int main()
 {
-	spdlog::set_pattern("%^[%=8l]%$ %@ %v");
-	spdlog::info("Welcome to Wasp!");
+	cout << "Welcome to Wasp!" << endl;
 
 	auto start = high_resolution_clock::now();
 
@@ -40,7 +41,7 @@ int main()
 
 	auto end = high_resolution_clock::now();
 	auto execution_time = duration_cast<milliseconds>(end - start).count();
-	spdlog::info("Execution Time : {} milliseconds", execution_time);
+	cout << "Execution Time : " << execution_time << " milliseconds" << endl;
 
 	return 0;
 }

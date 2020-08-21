@@ -8,15 +8,16 @@
 
 #include "Bytecode.h"
 #include "Statement.h"
-#include "CFG.h"
-#include "CFGBuilder.h"
+#include "BytecodeGenerator.h"
 #include <memory>
 
 class COMPILER_API Compiler
 {
-	CFGBuilder_ptr cfg_builder;
+	BytecodeGenerator_ptr bytecode_generator;
 public:
-	Compiler() {};
+	Compiler()
+		: bytecode_generator(std::make_shared<BytecodeGenerator>()) {};
+
 	Bytecode_ptr execute(const Module_ptr module_ast);
 };
 

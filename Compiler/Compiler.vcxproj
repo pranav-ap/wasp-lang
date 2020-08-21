@@ -154,19 +154,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="BytecodeGenerator.h" />
+    <ClInclude Include="BasicBlock.h" />
     <ClInclude Include="CFGBuilder.h" />
-    <ClInclude Include="CFG_Node.h" />
-    <ClInclude Include="CFG.h" />
     <ClInclude Include="Compiler.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="CSymbol.h" />
     <ClInclude Include="CSymbolTable.h" />
+    <ClInclude Include="Scope.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CFG.cpp" />
     <ClCompile Include="CFGBuilder.cpp" />
-    <ClCompile Include="CFG_Node.cpp" />
+    <ClCompile Include="BytecodeGenerator.cpp" />
+    <ClCompile Include="BasicBlock.cpp" />
     <ClCompile Include="Compiler.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="pch.cpp">

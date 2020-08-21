@@ -11,6 +11,7 @@
 
 #include <memory>
 #include <vector>
+#include <map>
 
 struct BYTECODE_API Bytecode
 {
@@ -22,6 +23,13 @@ struct BYTECODE_API Bytecode
 		constant_pool(constant_pool) {};
 
 	void print();
+
+private:
+	void print_instruction(OpCode opcode);
+	void print_instruction(OpCode opcode, int operand);
+	void print_instruction(OpCode opcode, int operand_1, int operand_2);
 };
 
 using Bytecode_ptr = BYTECODE_API std::shared_ptr<Bytecode>;
+
+int BYTECODE_API get_opcode_arity(OpCode opcode);

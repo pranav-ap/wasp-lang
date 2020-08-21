@@ -57,17 +57,24 @@ enum class BYTECODE_API OpCode
 
 	LOAD_LOCAL, // variable_id - Table to TOS
 	LOAD_GLOBAL,
+	LOAD_BUILTIN,
 
 	MAKE_LIST, // length
 	MAKE_TUPLE,
 	MAKE_MAP,
 
-	JUMP_ABSOLUTE, // target
-	JUMP_ABSOLUTE_IF_FALSE,
+	JUMP, // target
+	JUMP_IF_FALSE,
 
-	ITERATE_OVER_LIST, // variable_id, skip_id
+	POP_JUMP,
+	POP_JUMP_IF_FALSE,
+
+	LABEL, // id
+
+	ITERATE_OVER_LIST, // target
 	ITERATE_OVER_MAP,
 	ITERATE_OVER_STRING,
+	ITERATE_OVER_IDENTIFIER,
 
 	GET_ELEMENT_FROM_LIST, // variable_id, index
 	SET_ELEMENT_IN_LIST,

@@ -4,7 +4,6 @@
 #include "WTokenType.h"
 #include "TokenPipe.h"
 #include "Assertion.h"
-#include "spdlog.h"
 
 #include <iostream>
 #include <vector>

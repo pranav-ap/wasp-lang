@@ -2,9 +2,8 @@
 #include "pch.h"
 #include "Assertion.h"
 #include "ErrorCode.h"
-
-#include "spdlog.h"
 #include <string>
+#include <iostream>
 
 void ASSERT(bool condition, ERROR_CODE error_code)
 {
@@ -25,12 +24,11 @@ void ASSERT(bool condition, std::string message)
 
 void FATAL(ERROR_CODE error_code)
 {
-	//spdlog::error(message);
 	exit(1);
 }
 
 void FATAL(std::string message)
 {
-	spdlog::error(message);
+	std::cout << message << std::endl;
 	exit(1);
 }

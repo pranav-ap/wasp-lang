@@ -3,7 +3,6 @@
 #include "Lexer.h"
 #include "Assertion.h"
 #include "utils.h"
-#include "spdlog.h"
 
 #include <map>
 #include <optional>

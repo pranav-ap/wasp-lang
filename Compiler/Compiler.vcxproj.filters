@@ -30,10 +30,13 @@
     <ClInclude Include="CSymbolTable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CFG.h">
+    <ClInclude Include="Scope.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CFG_Node.h">
+    <ClInclude Include="BytecodeGenerator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BasicBlock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CFGBuilder.h">
@@ -53,10 +56,10 @@
     <ClCompile Include="SymbolTable.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CFG.cpp">
+    <ClCompile Include="BytecodeGenerator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CFG_Node.cpp">
+    <ClCompile Include="BasicBlock.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CFGBuilder.cpp">
