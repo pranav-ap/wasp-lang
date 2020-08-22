@@ -11,6 +11,7 @@
 enum class BYTECODE_API OpCode
 {
 	NO_OP,
+	START,
 	STOP,
 
 	PUSH_TO_STACK,
@@ -69,7 +70,7 @@ enum class BYTECODE_API OpCode
 	POP_JUMP,
 	POP_JUMP_IF_FALSE,
 
-	LABEL, // id
+	LABEL, // label
 
 	ITERATE_OVER_LIST, // target
 	ITERATE_OVER_MAP,
@@ -88,7 +89,7 @@ enum class BYTECODE_API OpCode
 	GET_CHAR_FROM_STRING,
 	SET_CHAR_FROM_STRING,
 
-	CALL // function or generator id, number of arguments
+	CALL // function or generator label, number of arguments
 };
 
 using Instruction = BYTECODE_API std::vector<std::byte>;

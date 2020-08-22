@@ -154,9 +154,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="BytecodeGenerator.h" />
-    <ClInclude Include="BasicBlock.h" />
-    <ClInclude Include="CFGBuilder.h" />
     <ClInclude Include="Compiler.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />
@@ -165,9 +162,6 @@
     <ClInclude Include="Scope.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CFGBuilder.cpp" />
-    <ClCompile Include="BytecodeGenerator.cpp" />
-    <ClCompile Include="BasicBlock.cpp" />
     <ClCompile Include="Compiler.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="pch.cpp">
@@ -187,9 +181,6 @@
     </ProjectReference>
     <ProjectReference Include="..\ObjectSystem\ObjectSystem.vcxproj">
       <Project>{a4e80d15-9b42-464d-995b-95e51f1798e2}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\Type_System\Type_System.vcxproj">
-      <Project>{91893e84-36aa-4c0c-89a9-9c79f2c970b9}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Utils\Utils.vcxproj">
       <Project>{825d931e-a262-42d4-8af0-8e503ac06104}</Project>

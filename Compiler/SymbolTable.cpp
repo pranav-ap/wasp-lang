@@ -5,14 +5,14 @@
 
 #define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr")
 
-int CSymbolTable::define(std::wstring name, int id)
+int CSymbolTable::define(std::wstring name, int label)
 {
-	auto symbol_table = std::make_shared<CSymbol>(name, id);
+	auto symbol_table = std::make_shared<CSymbol>(name, label);
 
 	auto result = store.insert({ name, symbol_table });
 	ASSERT(result.second, "Name already exists in scope!");
 
-	return id;
+	return label;
 }
 
 int CSymbolTable::lookup(std::wstring name)
@@ -21,7 +21,7 @@ int CSymbolTable::lookup(std::wstring name)
 	{
 		auto symbol = store.at(name);
 		NULL_CHECK(symbol);
-		return symbol->id;
+		return symbol->label;
 	}
 
 	if (enclosing_scope.has_value())

@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{8c31aa36-36b6-4439-8545-0793a6656d84}</ProjectGuid>
-    <RootNamespace>Interpreter</RootNamespace>
+    <ProjectGuid>{26ce324f-4414-4df2-8007-df72a3580d9a}</ProjectGuid>
+    <RootNamespace>ControlFlowGraph</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -86,7 +86,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;INTERPRETER_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;CONTROLFLOWGRAPH_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -103,7 +103,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;INTERPRETER_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;CONTROLFLOWGRAPH_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -120,12 +120,12 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;INTERPRETER_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;CONTROLFLOWGRAPH_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>..\AST;..\include;..\MemorySystem;..\ObjectSystem;..\SymbolTable;..\Type_system;..\Utils;..\Token;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include;..\Bytecode;..\utils;..\ObjectSystem;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -140,7 +140,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;INTERPRETER_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;CONTROLFLOWGRAPH_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -154,13 +154,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="BasicBlock.h" />
+    <ClInclude Include="CFGBuilder.h" />
     <ClInclude Include="framework.h" />
-    <ClInclude Include="Interpreter.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BasicBlock.cpp" />
+    <ClCompile Include="CFGBuilder.cpp" />
     <ClCompile Include="dllmain.cpp" />
-    <ClCompile Include="Interpreter.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -169,23 +171,8 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AST\AST.vcxproj">
-      <Project>{a287f968-bd00-4267-9ab3-115e709bccf0}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\MemorySystem\MemorySystem.vcxproj">
-      <Project>{d4bb2018-2f1a-4438-900b-81fbf984a35a}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\ObjectSystem\ObjectSystem.vcxproj">
-      <Project>{a4e80d15-9b42-464d-995b-95e51f1798e2}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\SymbolTable\SymbolTable.vcxproj">
-      <Project>{067444ca-cf8e-43f5-89c9-93721db7d3d2}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\Token\Token.vcxproj">
-      <Project>{abf81544-54c4-45e3-a502-383e2ef061af}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\Type_System\Type_System.vcxproj">
-      <Project>{91893e84-36aa-4c0c-89a9-9c79f2c970b9}</Project>
+    <ProjectReference Include="..\Bytecode\Bytecode.vcxproj">
+      <Project>{bacc46eb-33e0-4414-9c3c-2096c57503bb}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Utils\Utils.vcxproj">
       <Project>{825d931e-a262-42d4-8af0-8e503ac06104}</Project>

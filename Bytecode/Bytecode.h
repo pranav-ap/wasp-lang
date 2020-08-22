@@ -12,15 +12,21 @@
 #include <memory>
 #include <vector>
 #include <map>
+#include <string>
 
 struct BYTECODE_API Bytecode
 {
 	Instructions instructions;
 	std::map<int, Object_ptr> constant_pool;
+	std::map<int, std::wstring> id_to_name;
 
-	Bytecode(Instructions instructions, std::map<int, Object_ptr> constant_pool)
+	Bytecode(
+		Instructions instructions,
+		std::map<int, Object_ptr> constant_pool,
+		std::map<int, std::wstring> id_to_name)
 		: instructions(instructions),
-		constant_pool(constant_pool) {};
+		constant_pool(constant_pool),
+		id_to_name(id_to_name) {};
 
 	void print();
 
@@ -32,4 +38,5 @@ private:
 
 using Bytecode_ptr = BYTECODE_API std::shared_ptr<Bytecode>;
 
+int BYTECODE_API get_opcode_arity(std::byte opcode);
 int BYTECODE_API get_opcode_arity(OpCode opcode);

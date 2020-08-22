@@ -30,7 +30,7 @@ for x : num in [1, 2, 3]:
 for i : num in 1..8 step 2:
     pass
 
-fn add(a : num, b : num) -> num :
+fn add(a : num, b : num) -> num
     if a > b:
         return a + b + 4
     return a + b
@@ -49,12 +49,15 @@ NAME::ID1
 
 type length = num
 
-type Person extends Bird impl IAnimal :
+type Person extends Bird imp IAnimal :
     name: str
     foo: bool
 
     fn init():
         pass
+
+method Person SayHello() -> str
+    pass
 
 operator [Person + X] -> Person :
     pass
@@ -65,8 +68,10 @@ operator [- Person] -> Person :
 interface IAnimal:
     alive : bool
 
-    fn get_name():
-        pass
+    fn get_name()
+    fn check_is_alive()
+
+
 
 let x : Person = new Person('john', false)
 

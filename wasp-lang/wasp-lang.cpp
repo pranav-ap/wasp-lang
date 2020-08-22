@@ -34,7 +34,6 @@ int main()
 
 	Compiler_ptr compiler = make_unique<Compiler>();
 	Bytecode_ptr bytecode = compiler->execute(ast);
-
 	bytecode->print();
 
 	// Calculate time taken

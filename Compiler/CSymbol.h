@@ -7,10 +7,10 @@
 struct CSymbol
 {
 	std::wstring name;
-	int id;
+	int label;
 
-	CSymbol(std::wstring name, int id)
-		: name(name), id(id) {};
+	CSymbol(std::wstring name, int label)
+		: name(name), label(label) {};
 };
 
 using CSymbol_ptr = std::shared_ptr<CSymbol>;
