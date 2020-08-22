@@ -1,8 +1,9 @@
 ﻿let x : num = 30
 
-while true:
-	if x == 1:
-		x = 32
+if x == 1:
+	x = 32
+else:
+	x = 44
 
 x = 94
 

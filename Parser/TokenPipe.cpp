@@ -149,6 +149,57 @@ bool TokenPipe::has_indent(const int expected_indent)
 	return false;
 }
 
+bool TokenPipe::has_indent_and_followed_by(const int expected_indent, WTokenType tail_token)
+{
+	int count = 0;
+
+	while (count <= expected_indent)
+	{
+		auto token = current();
+
+		if (token.has_value())
+		{
+			if (token.value()->type == WTokenType::SPACE)
+			{
+				advance_pointer();
+				count++;
+			}
+			else
+			{
+				ASSERT(token.value()->type != WTokenType::SPACE, "Incorrect Indentation");
+				break;
+			}
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	if (count == expected_indent)
+	{
+		auto token = current();
+
+		if (token.has_value())
+		{
+			if (token.value()->type == tail_token)
+			{
+				advance_pointer();
+				count++;
+				return true;
+			}
+		}
+	}
+
+	while (count > 0)
+	{
+		retreat_pointer();
+		count--;
+	}
+
+	return false;
+}
+
 // Ignore
 
 void TokenPipe::ignore(WTokenType ignorable)

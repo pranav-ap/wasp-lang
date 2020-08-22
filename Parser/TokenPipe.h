@@ -30,6 +30,8 @@ public:
 	void expect_indent(const int expected_indent);
 	bool has_indent(const int expected_indent);
 
+	bool has_indent_and_followed_by(const int expected_indent, WTokenType token);
+
 	void ignore(WTokenType ignorable);
 	void ignore(std::vector<WTokenType> ignorables);
 

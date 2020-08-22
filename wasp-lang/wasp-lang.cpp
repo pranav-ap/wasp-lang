@@ -9,6 +9,7 @@
 #include "SymbolTable.h"
 #include "SemanticAnalyzer.h"
 #include "Compiler.h"
+#include "CFGBuilder.h"
 
 using namespace std::chrono;
 using std::make_unique;
@@ -35,6 +36,10 @@ int main()
 	Compiler_ptr compiler = make_unique<Compiler>();
 	Bytecode_ptr bytecode = compiler->execute(ast);
 	bytecode->print();
+
+	CFGBuilder_ptr cfg_builder = make_unique<CFGBuilder>();
+	CFG_ptr cfg = cfg_builder->execute(bytecode);
+	cfg->print();
 
 	// Calculate time taken
 

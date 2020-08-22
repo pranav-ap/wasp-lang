@@ -1,23 +1,31 @@
 #pragma once
+
+#ifdef CONTROLFLOWGRAPH_EXPORTS
+#define CONTROLFLOWGRAPH_API __declspec(dllexport)
+#else
+#define CONTROLFLOWGRAPH_API __declspec(dllimport)
+#endif
+
 #include "Bytecode.h"
 #include "BasicBlock.h"
+#include "CFG.h"
 #include <memory>
-#include <vector>
+#include <map>
 
-class CFGBuilder
+class CONTROLFLOWGRAPH_API CFGBuilder
 {
 	Bytecode_ptr bytecode;
+	CFG_ptr cfg;
 
-	BasicBlock_ptr start_node;
 	BasicBlock_ptr current_node;
-
-	std::vector<BasicBlock_ptr> basic_blocks;
-
-	bool previous_instruction_was_leader;
+	int next_node_id;
 
 	void split_into_basic_blocks();
+	void connect_basic_blocks();
 
 	void enter_empty_node();
+	void mark_node_as_conditional();
+	void mark_node_as_unconditional();
 
 	// Emit
 
@@ -26,10 +34,8 @@ class CFGBuilder
 	void emit(std::byte opcode, std::byte operand_1, std::byte operand_2);
 
 public:
-	CFGBuilder() :
-		previous_instruction_was_leader(false) {};
-
-	BasicBlock_ptr execute(Bytecode_ptr bytecode);
+	CFGBuilder() : next_node_id(0) {};
+	CFG_ptr execute(Bytecode_ptr bytecode);
 };
 
-using CFGBuilder_ptr = std::shared_ptr<CFGBuilder>;
+using CFGBuilder_ptr = CONTROLFLOWGRAPH_API std::unique_ptr<CFGBuilder>;

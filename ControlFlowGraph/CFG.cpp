@@ -1,70 +1,78 @@
 #pragma once
 #include "pch.h"
+#include "CFG.h"
+#include "Bytecode.h"
 #include "Bytecode.h"
 #include <iostream>
 #include <string>
 
-#define GET_OPCODE (OpCode) std::to_integer<int>(instructions.at(index))
+#define GET_OPCODE (OpCode) std::to_integer<int>(block->instructions.at(index))
 #define INC_INDEX index++
 
 using std::wcout;
+using std::endl;
 using std::wstring;
 using std::to_wstring;
 
-void Bytecode::print()
+void CFG::print()
 {
-	int length = instructions.size();
-	int number_of_digits = std::to_string(length).size();
-
-	for (int index = 0; index < length; index++)
+	for (auto const& [key, block] : basic_blocks)
 	{
-		OpCode opcode = GET_OPCODE;
+		wcout << "\n == BLOCK : " << key << std::endl;
 
-		int arity = get_opcode_arity(opcode);
+		int length = block->instructions.size();
+		int number_of_digits = std::to_string(length).size();
 
-		switch (arity)
+		for (int index = 0; index < length; index++)
 		{
-		case 0:
-		{
-			wcout << index << " ";
-			print_instruction(opcode);
-			wcout << std::endl;
+			OpCode opcode = GET_OPCODE;
 
-			break;
-		}
-		case 1:
-		{
-			INC_INDEX;
-			OpCode operand = GET_OPCODE;
+			int arity = get_opcode_arity(opcode);
 
-			wcout << index << " ";
-			print_instruction(opcode, static_cast<int>(operand));
-			wcout << std::endl;
+			switch (arity)
+			{
+			case 0:
+			{
+				wcout << index << " ";
+				print_instruction(opcode);
+				wcout << std::endl;
 
-			break;
-		}
-		case 2:
-		{
-			INC_INDEX;
-			OpCode operand_1 = GET_OPCODE;
-			INC_INDEX;
-			OpCode operand_2 = GET_OPCODE;
+				break;
+			}
+			case 1:
+			{
+				INC_INDEX;
+				OpCode operand = GET_OPCODE;
 
-			wcout << index << " ";
-			print_instruction(opcode, static_cast<int>(operand_1), static_cast<int>(operand_2));
-			wcout << std::endl;
+				wcout << index << " ";
+				print_instruction(opcode, static_cast<int>(operand));
+				wcout << std::endl;
 
-			break;
-		}
-		default:
-		{
-			break;
-		}
+				break;
+			}
+			case 2:
+			{
+				INC_INDEX;
+				OpCode operand_1 = GET_OPCODE;
+				INC_INDEX;
+				OpCode operand_2 = GET_OPCODE;
+
+				wcout << index << " ";
+				print_instruction(opcode, static_cast<int>(operand_1), static_cast<int>(operand_2));
+				wcout << std::endl;
+
+				break;
+			}
+			default:
+			{
+				break;
+			}
+			}
 		}
 	}
 }
 
-void Bytecode::print_instruction(OpCode opcode)
+void CFG::print_instruction(OpCode opcode)
 {
 	switch ((OpCode)opcode)
 	{
@@ -225,7 +233,7 @@ void Bytecode::print_instruction(OpCode opcode)
 	}
 }
 
-void Bytecode::print_instruction(OpCode opcode, int operand)
+void CFG::print_instruction(OpCode opcode, int operand)
 {
 	switch ((OpCode)opcode)
 	{
@@ -329,7 +337,7 @@ void Bytecode::print_instruction(OpCode opcode, int operand)
 	}
 }
 
-void Bytecode::print_instruction(OpCode opcode, int operand_1, int operand_2)
+void CFG::print_instruction(OpCode opcode, int operand_1, int operand_2)
 {
 	switch ((OpCode)opcode)
 	{
@@ -381,91 +389,6 @@ void Bytecode::print_instruction(OpCode opcode, int operand_1, int operand_2)
 	default:
 	{
 		break;
-	}
-	}
-}
-
-int get_opcode_arity(std::byte opcode)
-{
-	return get_opcode_arity((OpCode)opcode);
-}
-
-int get_opcode_arity(OpCode opcode)
-{
-	switch (opcode)
-	{
-	case OpCode::NO_OP:
-	case OpCode::START:
-	case OpCode::STOP:
-	case OpCode::PUSH_TO_STACK:
-	case OpCode::POP_FROM_STACK:
-	case OpCode::POP_N_FROM_STACK:
-	case OpCode::UNARY_POSITIVE:
-	case OpCode::UNARY_NEGATIVE:
-	case OpCode::UNARY_NOT:
-	case OpCode::ASSERT:
-	case OpCode::ADD:
-	case OpCode::SUBTRACT:
-	case OpCode::MULTIPLY:
-	case OpCode::DIVISION:
-	case OpCode::REMINDER:
-	case OpCode::POWER:
-	case OpCode::NOT_EQUAL:
-	case OpCode::EQUAL:
-	case OpCode::LESSER_THAN:
-	case OpCode::LESSER_THAN_EQUAL:
-	case OpCode::GREATER_THAN:
-	case OpCode::GREATER_THAN_EQUAL:
-	case OpCode::AND:
-	case OpCode::OR:
-	case OpCode::RETURN_VOID:
-	case OpCode::RETURN_VALUE:
-	case OpCode::YIELD_VOID:
-	case OpCode::YIELD_VALUE:
-	case OpCode::PUSH_CONSTANT_TRUE:
-	case OpCode::PUSH_CONSTANT_FALSE:
-	{
-		return 0;
-	}
-
-	case OpCode::PUSH_CONSTANT:
-	case OpCode::STORE_LOCAL:
-	case OpCode::STORE_GLOBAL:
-	case OpCode::LOAD_LOCAL:
-	case OpCode::LOAD_GLOBAL:
-	case OpCode::LOAD_BUILTIN:
-	case OpCode::MAKE_LIST:
-	case OpCode::MAKE_TUPLE:
-	case OpCode::MAKE_MAP:
-	case OpCode::JUMP:
-	case OpCode::JUMP_IF_FALSE:
-	case OpCode::POP_JUMP:
-	case OpCode::POP_JUMP_IF_FALSE:
-	case OpCode::LABEL:
-	case OpCode::ITERATE_OVER_LIST:
-	case OpCode::ITERATE_OVER_MAP:
-	case OpCode::ITERATE_OVER_STRING:
-	case OpCode::ITERATE_OVER_IDENTIFIER:
-	{
-		return 1;
-	}
-
-	case OpCode::GET_ELEMENT_FROM_LIST:
-	case OpCode::SET_ELEMENT_IN_LIST:
-	case OpCode::GET_VALUE_FROM_MAP:
-	case OpCode::SET_VALUE_FROM_MAP:
-	case OpCode::GET_PAIR_FROM_MAP:
-	case OpCode::SET_PAIR_FROM_MAP:
-	case OpCode::GET_CHAR_FROM_STRING:
-	case OpCode::SET_CHAR_FROM_STRING:
-	case OpCode::CALL:
-	{
-		return 2;
-	}
-
-	default:
-	{
-		return -1;
 	}
 	}
 }

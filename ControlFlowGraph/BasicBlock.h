@@ -1,27 +1,31 @@
 #pragma once
+
+#ifdef CONTROLFLOWGRAPH_EXPORTS
+#define CONTROLFLOWGRAPH_API __declspec(dllexport)
+#else
+#define CONTROLFLOWGRAPH_API __declspec(dllimport)
+#endif
+
 #include "Bytecode.h"
 #include <memory>
 
-enum class BlockType
+enum class CONTROLFLOWGRAPH_API BlockType
 {
 	Unknown,
-	ConditionalBasicBlock,
-	UnconditionalBasicBlock
+	Conditional,
+	Unconditional
 };
 
 struct BasicBlock;
-using BasicBlock_ptr = std::shared_ptr<BasicBlock>;
+using BasicBlock_ptr = CONTROLFLOWGRAPH_API std::shared_ptr<BasicBlock>;
 
-struct BasicBlock
+struct CONTROLFLOWGRAPH_API BasicBlock
 {
-	int label;
-	int outgoing_id;
-
 	BlockType type;
 	Instructions instructions;
 
-	BasicBlock() : label(0), type(BlockType::Unknown) {};
-	BasicBlock(int label, BlockType type) : label(label), outgoing_id(-1), type(type) {};
+	BasicBlock() : type(BlockType::Unknown) {};
+	BasicBlock(BlockType type) : type(type) {};
 
 	void push(Instruction instruction);
 };
