@@ -6,14 +6,16 @@
 #define CONTROLFLOWGRAPH_API __declspec(dllimport)
 #endif
 
+#include "Bytecode.h"
 #include "BasicBlock.h"
 #include <memory>
 #include <map>
 #include <vector>
 #include <utility>
 
-struct CONTROLFLOWGRAPH_API CFG
+class CONTROLFLOWGRAPH_API CFG
 {
+	Instructions instructions;
 	BasicBlock_ptr start_node;
 
 	// block id -> (true path, false path)

@@ -29,11 +29,16 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SemanticAnalyzer", "Semanti
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Compiler", "Compiler\Compiler.vcxproj", "{E6D9A4A7-F218-46A7-B832-80742621E27F}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Bytecode", "Bytecode\Bytecode.vcxproj", "{BACC46EB-33E0-4414-9C3C-2096C57503BB}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VM", "VM\VM.vcxproj", "{220E7A4B-F388-4474-ADD7-2958B9350791}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ControlFlowGraph", "ControlFlowGraph\ControlFlowGraph.vcxproj", "{26CE324F-4414-4DF2-8007-DF72A3580D9A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MemorySystem", "MemorySystem\MemorySystem.vcxproj", "{20F70ED3-FD8E-4DF0-B96A-A7BC28800FE9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{63618117-BF52-4645-BDD6-3FC03F202232}"
+	ProjectSection(SolutionItems) = preProject
+		SharedPropertySheet.props = SharedPropertySheet.props
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -123,14 +128,6 @@ Global
 		{E6D9A4A7-F218-46A7-B832-80742621E27F}.Release|x64.Build.0 = Release|x64
 		{E6D9A4A7-F218-46A7-B832-80742621E27F}.Release|x86.ActiveCfg = Release|Win32
 		{E6D9A4A7-F218-46A7-B832-80742621E27F}.Release|x86.Build.0 = Release|Win32
-		{BACC46EB-33E0-4414-9C3C-2096C57503BB}.Debug|x64.ActiveCfg = Debug|x64
-		{BACC46EB-33E0-4414-9C3C-2096C57503BB}.Debug|x64.Build.0 = Debug|x64
-		{BACC46EB-33E0-4414-9C3C-2096C57503BB}.Debug|x86.ActiveCfg = Debug|Win32
-		{BACC46EB-33E0-4414-9C3C-2096C57503BB}.Debug|x86.Build.0 = Debug|Win32
-		{BACC46EB-33E0-4414-9C3C-2096C57503BB}.Release|x64.ActiveCfg = Release|x64
-		{BACC46EB-33E0-4414-9C3C-2096C57503BB}.Release|x64.Build.0 = Release|x64
-		{BACC46EB-33E0-4414-9C3C-2096C57503BB}.Release|x86.ActiveCfg = Release|Win32
-		{BACC46EB-33E0-4414-9C3C-2096C57503BB}.Release|x86.Build.0 = Release|Win32
 		{220E7A4B-F388-4474-ADD7-2958B9350791}.Debug|x64.ActiveCfg = Debug|x64
 		{220E7A4B-F388-4474-ADD7-2958B9350791}.Debug|x64.Build.0 = Debug|x64
 		{220E7A4B-F388-4474-ADD7-2958B9350791}.Debug|x86.ActiveCfg = Debug|Win32
@@ -147,6 +144,14 @@ Global
 		{26CE324F-4414-4DF2-8007-DF72A3580D9A}.Release|x64.Build.0 = Release|x64
 		{26CE324F-4414-4DF2-8007-DF72A3580D9A}.Release|x86.ActiveCfg = Release|Win32
 		{26CE324F-4414-4DF2-8007-DF72A3580D9A}.Release|x86.Build.0 = Release|Win32
+		{20F70ED3-FD8E-4DF0-B96A-A7BC28800FE9}.Debug|x64.ActiveCfg = Debug|x64
+		{20F70ED3-FD8E-4DF0-B96A-A7BC28800FE9}.Debug|x64.Build.0 = Debug|x64
+		{20F70ED3-FD8E-4DF0-B96A-A7BC28800FE9}.Debug|x86.ActiveCfg = Debug|Win32
+		{20F70ED3-FD8E-4DF0-B96A-A7BC28800FE9}.Debug|x86.Build.0 = Debug|Win32
+		{20F70ED3-FD8E-4DF0-B96A-A7BC28800FE9}.Release|x64.ActiveCfg = Release|x64
+		{20F70ED3-FD8E-4DF0-B96A-A7BC28800FE9}.Release|x64.Build.0 = Release|x64
+		{20F70ED3-FD8E-4DF0-B96A-A7BC28800FE9}.Release|x86.ActiveCfg = Release|Win32
+		{20F70ED3-FD8E-4DF0-B96A-A7BC28800FE9}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -16,12 +16,9 @@ class CSymbolTable
 public:
 	std::optional<CSymbolTable_ptr> enclosing_scope;
 
-	CSymbolTable()
-		: enclosing_scope(std::nullopt) {};
+	CSymbolTable() : enclosing_scope(std::nullopt) {};
+	CSymbolTable(CSymbolTable_ptr enclosing_scope) : enclosing_scope(enclosing_scope) {};
 
-	CSymbolTable(CSymbolTable_ptr enclosing_scope)
-		: enclosing_scope(enclosing_scope) {};
-
-	int define(std::wstring name, int label);
+	void define(std::wstring name, int label);
 	int lookup(std::wstring name);
 };

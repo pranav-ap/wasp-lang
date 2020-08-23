@@ -6,8 +6,6 @@
 #define OBJECTSYSTEM_API __declspec(dllimport)
 #endif
 
-#include "OpCode.h"
-
 #include <optional>
 #include <string>
 #include <deque>
@@ -79,21 +77,21 @@ struct OBJECTSYSTEM_API NoneObject : public BaseObject
 
 struct OBJECTSYSTEM_API FunctionObject : public BaseObject
 {
-	Instructions instructions;
+	std::vector<std::byte> instructions;
 	int parameter_count;
 
 	FunctionObject() : parameter_count(0) {};
-	FunctionObject(Instructions instructions, int parameter_count)
+	FunctionObject(std::vector<std::byte> instructions, int parameter_count)
 		: instructions(instructions), parameter_count(parameter_count) {};
 };
 
 struct OBJECTSYSTEM_API GeneratorObject : public BaseObject
 {
-	Instructions instructions;
+	std::vector<std::byte> instructions;
 	int parameter_count;
 
 	GeneratorObject() : parameter_count(0) {};
-	GeneratorObject(Instructions instructions, int parameter_count)
+	GeneratorObject(std::vector<std::byte> instructions, int parameter_count)
 		: instructions(instructions), parameter_count(parameter_count) {};
 };
 

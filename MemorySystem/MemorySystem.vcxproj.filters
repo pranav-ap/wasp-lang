@@ -21,6 +21,12 @@
     <ClInclude Include="pch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="MemorySystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Bytecode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="OpCode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -32,10 +38,10 @@
     <ClCompile Include="pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source.cpp">
+    <ClCompile Include="Bytecode.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Bytecode.cpp">
+    <ClCompile Include="MemorySystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

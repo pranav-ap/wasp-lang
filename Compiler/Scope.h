@@ -7,8 +7,7 @@
 struct Scope
 {
 	CSymbolTable_ptr symbol_table;
-
-	Instructions instructions;
+	std::vector<std::byte> instructions;
 
 	int break_label;
 	int continue_label;

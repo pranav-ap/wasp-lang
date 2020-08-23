@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <WaspAdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)Utils;$(SolutionDir)Type_System;$(SolutionDir)Token;$(SolutionDir)SemanticAnalyzer;$(SolutionDir)Parser;$(SolutionDir)ObjectSystem;$(SolutionDir)MemorySystem;$(SolutionDir)Lexer;$(SolutionDir)ControlFlowGraph;$(SolutionDir)Compiler;$(SolutionDir)Bytecode;$(SolutionDir)AST;</WaspAdditionalIncludeDirectories>
+  </PropertyGroup>
+  <PropertyGroup />
+  <ItemDefinitionGroup />
+  <ItemGroup>
+    <BuildMacro Include="WaspAdditionalIncludeDirectories">
+      <Value>$(WaspAdditionalIncludeDirectories)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+  </ItemGroup>
+</Project>

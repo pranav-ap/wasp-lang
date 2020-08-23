@@ -25,10 +25,15 @@ struct CONTROLFLOWGRAPH_API BasicBlock
 	int label;
 
 	BlockType type;
-	Instructions instructions;
 
-	BasicBlock() : id(-1), label(-1), type(BlockType::Unknown) {};
-	BasicBlock(int id, BlockType type) : id(id), label(-1), type(type) {};
+	int begin;
+	int end;
+
+	BasicBlock() = default;
+	BasicBlock(int id, BlockType type, int begin)
+		: id(id), label(-1),
+		type(type),
+		begin(begin), end(0) {};
 
 	void push(Instruction instruction);
 };

@@ -12,6 +12,7 @@
 #include "Scope.h"
 #include "ObjectSystem.h"
 #include "CSymbolTable.h"
+#include "MemorySystem.h"
 
 #include <string>
 #include <vector>
@@ -21,15 +22,11 @@
 
 class COMPILER_API Compiler
 {
+	MemorySystem_ptr memory;
 	std::stack<Scope_ptr> scope_stack;
 
-	std::map<int, Object_ptr> constant_pool;
-	int next_id;
-
-	std::map<int, int> targets;
 	int next_label;
-
-	std::map<int, std::wstring> id_to_name;
+	int next_memory_id;
 
 	// Statement
 
@@ -78,38 +75,21 @@ class COMPILER_API Compiler
 	// Scope
 
 	Scope_ptr enter_scope();
-	Instructions leave_scope();
+	std::vector<std::byte> leave_scope();
+
+	// Utils
 
 	int define_variable(std::wstring name);
-
-	// Constant Pool
-
-	int add_to_constant_pool(Object_ptr constant);
-
-	int find_string_constant(std::wstring text);
-	int find_number_constant(int number);
-
-	// Emit
-
-	void emit(Instruction instruction);
-
-	void emit(OpCode opcode);
-	void emit(OpCode opcode, int operand);
-	void emit(OpCode opcode, int operand_1, int operand_2);
-
-	// Make Instruction
-
-	Instruction make_instruction(OpCode opcode);
-	Instruction make_instruction(OpCode opcode, int operand);
-	Instruction make_instruction(OpCode opcode, int operand_1, int operand_2);
-
-	// Label
+	int add_to_constant_pool(Object_ptr value);
 
 	int create_label();
 
 public:
-	Compiler() : next_id(0), next_label(0) {};
-	Bytecode_ptr execute(const Module_ptr module_ast);
+	Compiler(MemorySystem_ptr memory)
+		: next_label(0), next_memory_id(0),
+		memory(memory) {};
+
+	void execute(const Module_ptr module_ast);
 };
 
 using Compiler_ptr = std::shared_ptr<Compiler>;

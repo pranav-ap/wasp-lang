@@ -2,18 +2,19 @@
 #include "utils.h"
 #include "Lexer.h"
 #include "Parser.h"
+#include "Statement.h"
 #include "SymbolTable.h"
 #include "SemanticAnalyzer.h"
+#include "MemorySystem.h"
 #include "Compiler.h"
-#include "CFGBuilder.h"
+//#include "CFGBuilder.h"
 #include <string>
-#include <chrono>
 #include <iostream>
 #include <memory>
 #include <vector>
 
-using namespace std::chrono;
 using std::make_unique;
+using std::make_shared;
 using std::cout;
 using std::endl;
 using std::vector;
@@ -21,8 +22,6 @@ using std::wstring;
 
 int main()
 {
-	//auto start = high_resolution_clock::now();
-
 	wstring raw_source = read_source("../examples/main.txt");
 
 	Lexer_ptr lexer = make_unique<Lexer>();
@@ -34,19 +33,16 @@ int main()
 	SemanticAnalyzer_ptr semantic_analyser = make_unique<SemanticAnalyzer>();
 	semantic_analyser->execute(ast);
 
-	Compiler_ptr compiler = make_unique<Compiler>();
-	Bytecode_ptr bytecode = compiler->execute(ast);
-	//bytecode->print();
+	MemorySystem_ptr memory = make_shared<MemorySystem>();
 
-	CFGBuilder_ptr cfg_builder = make_unique<CFGBuilder>();
+	Compiler_ptr compiler = make_unique<Compiler>(memory);
+	compiler->execute(ast);
+
+	memory->print();
+
+	/*CFGBuilder_ptr cfg_builder = make_unique<CFGBuilder>();
 	CFG_ptr cfg = cfg_builder->execute(bytecode);
-	cfg->print();
+	cfg->print();*/
 
-	// Calculate time taken
-
-	/*auto end = high_resolution_clock::now();
-	auto execution_time = duration_cast<milliseconds>(end - start).count();
-	cout << "Execution Time : " << execution_time << " milliseconds" << endl;
-	*/
 	return 0;
 }

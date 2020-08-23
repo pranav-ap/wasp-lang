@@ -2,15 +2,14 @@
 
 #include <memory>
 #include <string>
-#include <utility>
 
 struct CSymbol
 {
 	std::wstring name;
-	int label;
+	int id;
 
-	CSymbol(std::wstring name, int label)
-		: name(name), label(label) {};
+	CSymbol(std::wstring name, int id)
+		: name(name), id(id) {};
 };
 
 using CSymbol_ptr = std::shared_ptr<CSymbol>;
