@@ -1,8 +1,4 @@
 ﻿#pragma once
-#include <string>
-#include <chrono>
-#include <iostream>
-#include <memory>
 #include "utils.h"
 #include "Lexer.h"
 #include "Parser.h"
@@ -10,22 +6,27 @@
 #include "SemanticAnalyzer.h"
 #include "Compiler.h"
 #include "CFGBuilder.h"
+#include <string>
+#include <chrono>
+#include <iostream>
+#include <memory>
+#include <vector>
 
 using namespace std::chrono;
 using std::make_unique;
 using std::cout;
 using std::endl;
+using std::vector;
+using std::wstring;
 
 int main()
 {
-	cout << "Welcome to Wasp!" << endl;
+	//auto start = high_resolution_clock::now();
 
-	auto start = high_resolution_clock::now();
-
-	std::wstring raw_source = read_source("../examples/main.txt");
+	wstring raw_source = read_source("../examples/main.txt");
 
 	Lexer_ptr lexer = make_unique<Lexer>();
-	std::vector<Token_ptr> tokens = lexer->execute(raw_source);
+	vector<Token_ptr> tokens = lexer->execute(raw_source);
 
 	Parser_ptr parser = make_unique<Parser>();
 	Module_ptr ast = parser->execute(tokens);
@@ -35,7 +36,7 @@ int main()
 
 	Compiler_ptr compiler = make_unique<Compiler>();
 	Bytecode_ptr bytecode = compiler->execute(ast);
-	bytecode->print();
+	//bytecode->print();
 
 	CFGBuilder_ptr cfg_builder = make_unique<CFGBuilder>();
 	CFG_ptr cfg = cfg_builder->execute(bytecode);
@@ -43,9 +44,9 @@ int main()
 
 	// Calculate time taken
 
-	auto end = high_resolution_clock::now();
+	/*auto end = high_resolution_clock::now();
 	auto execution_time = duration_cast<milliseconds>(end - start).count();
 	cout << "Execution Time : " << execution_time << " milliseconds" << endl;
-
+	*/
 	return 0;
 }

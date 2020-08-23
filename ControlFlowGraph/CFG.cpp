@@ -5,20 +5,30 @@
 #include "Bytecode.h"
 #include <iostream>
 #include <string>
+#include <iomanip>
 
 #define GET_OPCODE (OpCode) std::to_integer<int>(block->instructions.at(index))
 #define INC_INDEX index++
 
 using std::wcout;
+using std::cout;
 using std::endl;
+using std::setw;
 using std::wstring;
 using std::to_wstring;
 
 void CFG::print()
 {
-	for (auto const& [key, block] : basic_blocks)
+	for (auto const& [key, block] : node_id_to_basic_blocks)
 	{
-		wcout << "\n == BLOCK : " << key << std::endl;
+		wcout << "\n == BLOCK " << key;
+
+		if (block->label != -1)
+		{
+			wcout << " [ Label : " << block->label << " ]";
+		}
+
+		wcout << std::endl;
 
 		int length = block->instructions.size();
 		int number_of_digits = std::to_string(length).size();
@@ -33,7 +43,7 @@ void CFG::print()
 			{
 			case 0:
 			{
-				wcout << index << " ";
+				cout << setw(number_of_digits + 2) << index << " ";
 				print_instruction(opcode);
 				wcout << std::endl;
 
@@ -44,7 +54,7 @@ void CFG::print()
 				INC_INDEX;
 				OpCode operand = GET_OPCODE;
 
-				wcout << index << " ";
+				cout << setw(number_of_digits + 2) << index << " ";
 				print_instruction(opcode, static_cast<int>(operand));
 				wcout << std::endl;
 
@@ -57,7 +67,7 @@ void CFG::print()
 				INC_INDEX;
 				OpCode operand_2 = GET_OPCODE;
 
-				wcout << index << " ";
+				cout << setw(number_of_digits + 2) << index << " ";
 				print_instruction(opcode, static_cast<int>(operand_1), static_cast<int>(operand_2));
 				wcout << std::endl;
 

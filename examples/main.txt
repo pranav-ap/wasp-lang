@@ -1,9 +1,12 @@
-﻿let x : num = 30
+﻿let x : num = 1
 
-if x == 1:
-	x = 32
-else:
-	x = 44
+while true:
+	if x == 2:
+		x = 3
+	elif x == 4:
+		x = 5 
+	else:
+		x = 6
 
-x = 94
+x = 7
 

@@ -17,7 +17,6 @@ CFG_ptr CFGBuilder::execute(Bytecode_ptr bytecode)
 {
 	this->bytecode = bytecode;
 	cfg = make_shared<CFG>(bytecode->constant_pool, bytecode->id_to_name);
-	next_node_id = 0;
 
 	split_into_basic_blocks();
 
@@ -86,8 +85,8 @@ void CFGBuilder::split_into_basic_blocks()
 				enter_empty_node();
 			}
 
-			emit(opcode, operand);
-			cfg->label_to_node_id[label] = next_node_id - 1;
+			current_node->label = label;
+			cfg->label_to_basic_blocks[label] = current_node;
 
 			IS_A_LEADER;
 
@@ -183,8 +182,10 @@ void CFGBuilder::connect_basic_blocks()
 
 void CFGBuilder::enter_empty_node()
 {
-	current_node = make_shared<BasicBlock>();
-	cfg->basic_blocks[next_node_id++] = current_node;
+	int node_id = cfg->node_id_to_basic_blocks.size();
+
+	current_node = make_shared<BasicBlock>(node_id, BlockType::Unknown);
+	cfg->node_id_to_basic_blocks[node_id] = current_node;
 }
 
 void CFGBuilder::mark_node_as_conditional()

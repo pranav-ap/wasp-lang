@@ -18,7 +18,6 @@ class CONTROLFLOWGRAPH_API CFGBuilder
 	CFG_ptr cfg;
 
 	BasicBlock_ptr current_node;
-	int next_node_id;
 
 	void split_into_basic_blocks();
 	void connect_basic_blocks();
@@ -34,7 +33,7 @@ class CONTROLFLOWGRAPH_API CFGBuilder
 	void emit(std::byte opcode, std::byte operand_1, std::byte operand_2);
 
 public:
-	CFGBuilder() : next_node_id(0) {};
+	CFGBuilder() {};
 	CFG_ptr execute(Bytecode_ptr bytecode);
 };
 

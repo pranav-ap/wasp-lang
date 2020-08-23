@@ -21,11 +21,14 @@ using BasicBlock_ptr = CONTROLFLOWGRAPH_API std::shared_ptr<BasicBlock>;
 
 struct CONTROLFLOWGRAPH_API BasicBlock
 {
+	int id;
+	int label;
+
 	BlockType type;
 	Instructions instructions;
 
-	BasicBlock() : type(BlockType::Unknown) {};
-	BasicBlock(BlockType type) : type(type) {};
+	BasicBlock() : id(-1), label(-1), type(BlockType::Unknown) {};
+	BasicBlock(int id, BlockType type) : id(id), label(-1), type(type) {};
 
 	void push(Instruction instruction);
 };

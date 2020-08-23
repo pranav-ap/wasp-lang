@@ -9,17 +9,25 @@
 #include "BasicBlock.h"
 #include <memory>
 #include <map>
+#include <vector>
+#include <utility>
 
 struct CONTROLFLOWGRAPH_API CFG
 {
 	BasicBlock_ptr start_node;
 
-	std::map<int, int> label_to_node_id;
-	std::map<int, BasicBlock_ptr> basic_blocks;
+	// block id -> (true path, false path)
+	// block id -> (-1, only path)
+	std::map<int, std::pair<int, int>> adjacency_list;
+
+	std::map<int, BasicBlock_ptr> node_id_to_basic_blocks;
+	std::map<int, BasicBlock_ptr> label_to_basic_blocks;
 
 	std::map<int, Object_ptr> constant_pool;
-	std::map<int, std::wstring> id_to_name;
 
+	// Print
+
+	std::map<int, std::wstring> id_to_name;
 	void print();
 
 	CFG() = default;
