@@ -293,7 +293,7 @@ void Compiler::visit(FunctionDefinition const& statement)
 	auto instructions = leave_scope();
 	int parameter_count = statement.arguments.size();
 
-	auto function_object = MAKE_OBJECT_VARIANT(FunctionObject(instructions, parameter_count));
+	auto function_object = MAKE_OBJECT_VARIANT(FunctionObject(statement.name, instructions, parameter_count));
 
 	int label = add_to_constant_pool(move(function_object));
 	memory->emit(OpCode::PUSH_CONSTANT, label);
@@ -610,12 +610,14 @@ ByteVector Compiler::leave_scope()
 
 int Compiler::define_variable(wstring name)
 {
-	int label = next_memory_id++;
+	int id = next_memory_id++;
 
 	auto scope = scope_stack.top();
-	scope->symbol_table->define(name, label);
+	scope->symbol_table->define(name, id);
 
-	return label;
+	memory->bind_name_to_id(id, name);
+
+	return id;
 }
 
 int Compiler::add_to_constant_pool(Object_ptr value)

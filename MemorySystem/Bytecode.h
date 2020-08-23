@@ -15,10 +15,11 @@
 
 class MEMORYSYSTEM_API Bytecode
 {
+public:
 	std::vector<std::byte> instructions;
 
-public:
 	void push(std::vector<std::byte> instruction);
+	void replace(int index, std::byte replacement);
 
 	// static utils
 

@@ -20,8 +20,12 @@ template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
 
 using std::string;
+using std::wstring;
 using std::vector;
 using std::get;
+using std::to_wstring;
+
+// ListObject
 
 Object_ptr ListObject::append(Object_ptr value)
 {
@@ -126,6 +130,13 @@ int ListObject::get_length()
 	return values.size();
 }
 
+std::wstring ListObject::stringify() const
+{
+	return L"VariantObject";
+}
+
+// MapObject
+
 Object_ptr MapObject::insert(Object_ptr key, Object_ptr value)
 {
 	NULL_CHECK(key);
@@ -185,6 +196,8 @@ Object_ptr MapObject::get(Object_ptr key)
 	}
 }
 
+// TupleObject
+
 Object_ptr TupleObject::get(Object_ptr index_object)
 {
 	try
@@ -242,7 +255,119 @@ int TupleObject::get_length()
 	return values.size();
 }
 
+// VariantObject
+
 bool VariantObject::has_value()
 {
 	return value->index() != 0;
+}
+
+// Stringify
+
+std::wstring VariantObject::stringify() const const
+{
+	return L"VariantObject";
+}
+
+std::wstring NoneObject::stringify() const
+{
+	return L"NoneObject";
+}
+
+std::wstring TupleObject::stringify() const
+{
+	return L"TupleObject";
+}
+
+std::wstring MapObject::stringify() const
+{
+	return L"MapObject";
+}
+
+std::wstring FunctionObject::stringify() const
+{
+	return L"FunctionObject : " + this->name;
+}
+
+std::wstring GeneratorObject::stringify() const
+{
+	return L"GeneratorObject : " + this->name;
+}
+
+std::wstring NumberObject::stringify() const
+{
+	return to_wstring(this->value);
+}
+
+std::wstring StringObject::stringify() const
+{
+	return this->value;
+}
+
+std::wstring BooleanObject::stringify() const
+{
+	return to_wstring(this->value);
+}
+
+std::wstring EnumMemberObject::stringify() const
+{
+	return L"EnumMemberObject";
+}
+
+std::wstring BreakObject::stringify() const
+{
+	return L"BreakObject";
+}
+
+std::wstring ContinueObject::stringify() const
+{
+	return L"ContinueObject";
+}
+
+std::wstring BuiltInsObject::stringify() const
+{
+	return L"BuiltInsObject";
+}
+
+std::wstring ReturnObject::stringify() const
+{
+	return L"ReturnObject";
+}
+
+std::wstring ErrorObject::stringify() const
+{
+	return L"ErrorObject";
+}
+
+// Utils
+
+std::wstring stringify_object(Object_ptr value)
+{
+	return std::visit(overloaded{
+		[&](NumberObject const& obj) { return obj.stringify(); },
+		[&](StringObject const& obj) { return obj.stringify(); },
+		[&](BooleanObject const& obj) { return obj.stringify(); },
+
+		[&](ListObject const& obj) { return obj.stringify(); },
+		[&](TupleObject const& obj) { return obj.stringify(); },
+		[&](MapObject const& obj) { return obj.stringify(); },
+		[&](EnumMemberObject const& obj) { return obj.stringify(); },
+		[&](VariantObject const& obj) { return obj.stringify(); },
+
+		[&](FunctionObject const& obj) { return obj.stringify(); },
+		[&](GeneratorObject const& obj) { return obj.stringify(); },
+
+		[&](ReturnObject const& obj) { return obj.stringify(); },
+		[&](ErrorObject const& obj) { return obj.stringify(); },
+		[&](BreakObject const& obj) { return obj.stringify(); },
+		[&](ContinueObject const& obj) { return obj.stringify(); },
+		[&](BuiltInsObject const& obj) { return obj.stringify(); },
+		[&](NoneObject const& obj) { return obj.stringify(); },
+
+		[](auto)
+		{
+			wstring empty = L"";
+			return empty;
+		}
+		}, *value);
 }

@@ -57,42 +57,53 @@ using Object_ptr = OBJECTSYSTEM_API std::shared_ptr<Object>;
 
 struct OBJECTSYSTEM_API BaseObject
 {
+	virtual std::wstring stringify() const = 0;
 };
 
 struct OBJECTSYSTEM_API ScalarObject : public BaseObject
 {
+	virtual std::wstring stringify() const = 0;
 };
 
 struct OBJECTSYSTEM_API CompositeObject : public BaseObject
 {
+	virtual std::wstring stringify() const = 0;
 };
 
 struct OBJECTSYSTEM_API ActionObject : public BaseObject
 {
+	virtual std::wstring stringify() const = 0;
 };
 
 struct OBJECTSYSTEM_API NoneObject : public BaseObject
 {
+	std::wstring stringify() const override;
 };
 
 struct OBJECTSYSTEM_API FunctionObject : public BaseObject
 {
+	std::wstring name;
 	std::vector<std::byte> instructions;
 	int parameter_count;
 
 	FunctionObject() : parameter_count(0) {};
-	FunctionObject(std::vector<std::byte> instructions, int parameter_count)
-		: instructions(instructions), parameter_count(parameter_count) {};
+	FunctionObject(std::wstring name, std::vector<std::byte> instructions, int parameter_count)
+		: name(name), instructions(instructions), parameter_count(parameter_count) {};
+
+	std::wstring stringify() const override;
 };
 
 struct OBJECTSYSTEM_API GeneratorObject : public BaseObject
 {
+	std::wstring name;
 	std::vector<std::byte> instructions;
 	int parameter_count;
 
 	GeneratorObject() : parameter_count(0) {};
-	GeneratorObject(std::vector<std::byte> instructions, int parameter_count)
-		: instructions(instructions), parameter_count(parameter_count) {};
+	GeneratorObject(std::wstring name, std::vector<std::byte> instructions, int parameter_count)
+		: name(name), instructions(instructions), parameter_count(parameter_count) {};
+
+	std::wstring stringify() const override;
 };
 
 // Scalar Objects
@@ -101,18 +112,24 @@ struct OBJECTSYSTEM_API NumberObject : public ScalarObject
 {
 	double value;
 	NumberObject(double value) : value(value) {};
+
+	std::wstring stringify() const override;
 };
 
 struct OBJECTSYSTEM_API StringObject : public ScalarObject
 {
 	std::wstring value;
 	StringObject(std::wstring value) : value(value) {};
+
+	std::wstring stringify() const override;
 };
 
 struct OBJECTSYSTEM_API BooleanObject : public ScalarObject
 {
 	bool value;
 	BooleanObject(bool value) : value(value) {};
+
+	std::wstring stringify() const override;
 };
 
 // Composite Objects
@@ -135,6 +152,8 @@ struct OBJECTSYSTEM_API ListObject : public CompositeObject
 	void clear();
 	bool is_empty();
 	int get_length();
+
+	std::wstring stringify() const override;
 };
 
 struct OBJECTSYSTEM_API TupleObject : public CompositeObject
@@ -148,6 +167,8 @@ struct OBJECTSYSTEM_API TupleObject : public CompositeObject
 	Object_ptr set(std::vector<Object_ptr> values);
 
 	int get_length();
+
+	std::wstring stringify() const override;
 };
 
 struct OBJECTSYSTEM_API MapObject : public CompositeObject
@@ -162,6 +183,8 @@ struct OBJECTSYSTEM_API MapObject : public CompositeObject
 	Object_ptr set(Object_ptr key, Object_ptr value);
 
 	int get_size();
+
+	std::wstring stringify() const override;
 };
 
 struct OBJECTSYSTEM_API EnumMemberObject : public CompositeObject
@@ -171,6 +194,8 @@ struct OBJECTSYSTEM_API EnumMemberObject : public CompositeObject
 
 	EnumMemberObject(std::wstring enum_name, std::vector<std::wstring> member_names)
 		: enum_name(enum_name), member_names(member_names) {};
+
+	std::wstring stringify() const override;
 };
 
 struct OBJECTSYSTEM_API VariantObject : public CompositeObject
@@ -179,21 +204,26 @@ struct OBJECTSYSTEM_API VariantObject : public CompositeObject
 
 	VariantObject(Object_ptr value)
 		: value(std::move(value)) {};
+
 	bool has_value();
+	std::wstring stringify() const override;
 };
 
 // Action Objects
 
 struct OBJECTSYSTEM_API BreakObject : public ActionObject
 {
+	std::wstring stringify() const override;
 };
 
 struct OBJECTSYSTEM_API ContinueObject : public ActionObject
 {
+	std::wstring stringify() const override;
 };
 
 struct OBJECTSYSTEM_API BuiltInsObject : public ActionObject
 {
+	std::wstring stringify() const override;
 };
 
 struct OBJECTSYSTEM_API ReturnObject : public ActionObject
@@ -204,6 +234,8 @@ struct OBJECTSYSTEM_API ReturnObject : public ActionObject
 		: value(std::nullopt) {};
 	ReturnObject(Object_ptr value)
 		: value(std::optional(std::move(value))) {};
+
+	std::wstring stringify() const override;
 };
 
 struct OBJECTSYSTEM_API ErrorObject : public ActionObject
@@ -214,4 +246,10 @@ struct OBJECTSYSTEM_API ErrorObject : public ActionObject
 		: message(L"") {};
 	ErrorObject(std::wstring message)
 		: message(message) {};
+
+	std::wstring stringify() const override;
 };
+
+// Utils
+
+OBJECTSYSTEM_API std::wstring stringify_object(Object_ptr value);

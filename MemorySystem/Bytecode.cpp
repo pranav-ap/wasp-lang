@@ -12,6 +12,11 @@ void Bytecode::push(std::vector<std::byte> instruction)
 	);
 }
 
+void Bytecode::replace(int index, std::byte replacement)
+{
+	instructions.at(index) = replacement;
+}
+
 int Bytecode::get_opcode_arity(std::byte opcode)
 {
 	return get_opcode_arity((OpCode)opcode);
