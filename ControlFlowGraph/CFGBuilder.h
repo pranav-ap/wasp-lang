@@ -9,15 +9,17 @@
 #include "Bytecode.h"
 #include "BasicBlock.h"
 #include "CFG.h"
+#include "MemorySystem.h"
 #include <memory>
 #include <map>
 
 class CONTROLFLOWGRAPH_API CFGBuilder
 {
-	Bytecode_ptr bytecode;
+	MemorySystem_ptr memory;
 	CFG_ptr cfg;
 
 	BasicBlock_ptr current_node;
+	int current_node_id;
 
 	void split_into_basic_blocks();
 	void connect_basic_blocks();
@@ -33,8 +35,11 @@ class CONTROLFLOWGRAPH_API CFGBuilder
 	void emit(std::byte opcode, std::byte operand_1, std::byte operand_2);
 
 public:
-	CFGBuilder() {};
-	CFG_ptr execute(Bytecode_ptr bytecode);
+	CFGBuilder() : current_node_id(0), memory(std::make_shared<MemorySystem>()) {};
+	CFGBuilder(MemorySystem_ptr memory) : current_node_id(0), memory(memory) {};
+	CFG_ptr execute();
+
+	ByteVector assemble();
 };
 
 using CFGBuilder_ptr = CONTROLFLOWGRAPH_API std::unique_ptr<CFGBuilder>;

@@ -38,10 +38,10 @@
     <ClCompile Include="pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="BasicBlock.cpp">
+    <ClCompile Include="CFGBuilder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CFGBuilder.cpp">
+    <ClCompile Include="BasicBlock.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CFG.cpp">

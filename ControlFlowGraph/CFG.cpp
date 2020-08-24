@@ -1,4 +1,3 @@
-#pragma once
 #include "pch.h"
 #include "CFG.h"
 #include "Bytecode.h"
@@ -14,63 +13,375 @@ using std::wcout;
 using std::cout;
 using std::endl;
 using std::setw;
+using std::byte;
 using std::wstring;
 using std::to_wstring;
+using std::to_string;
+
+wstring CFG::stringify_instruction(std::byte opcode)
+{
+	switch ((OpCode)opcode)
+	{
+	case OpCode::NO_OP:
+	{
+		return L"NO_OP";
+	}
+	case OpCode::START:
+	{
+		return L"START";
+	}
+	case OpCode::STOP:
+	{
+		return L"STOP";
+	}
+	case OpCode::PUSH_TO_STACK:
+	{
+		return L"PUSH_TO_STACK";
+	}
+	case OpCode::POP_FROM_STACK:
+	{
+		return L"POP_FROM_STACK";
+	}
+	case OpCode::POP_N_FROM_STACK:
+	{
+		return L"POP_N_FROM_STACK";
+	}
+	case OpCode::UNARY_POSITIVE:
+	{
+		return L"UNARY_POSITIVE";
+	}
+	case OpCode::UNARY_NEGATIVE:
+	{
+		return L"UNARY_NEGATIVE";
+	}
+	case OpCode::UNARY_NOT:
+	{
+		return L"UNARY_NOT";
+	}
+	case OpCode::ASSERT:
+	{
+		return L"ASSERT";
+	}
+	case OpCode::ADD:
+	{
+		return L"ADD";
+	}
+	case OpCode::SUBTRACT:
+	{
+		return L"SUBTRACT";
+	}
+	case OpCode::MULTIPLY:
+	{
+		return L"MULTIPLY";
+	}
+	case OpCode::DIVISION:
+	{
+		return L"DIVISION";
+	}
+	case OpCode::REMINDER:
+	{
+		return L"REMINDER";
+	}
+	case OpCode::POWER:
+	{
+		return L"POWER";
+	}
+	case OpCode::NOT_EQUAL:
+	{
+		return L"NOT_EQUAL";
+	}
+	case OpCode::EQUAL:
+	{
+		return L"EQUAL";
+	}
+	case OpCode::LESSER_THAN:
+	{
+		return L"LESSER_THAN";
+	}
+	case OpCode::LESSER_THAN_EQUAL:
+	{
+		return L"LESSER_THAN_EQUAL";
+	}
+	case OpCode::GREATER_THAN:
+	{
+		return L"GREATER_THAN";
+	}
+	case OpCode::GREATER_THAN_EQUAL:
+	{
+		return L"GREATER_THAN_EQUAL";
+	}
+	case OpCode::AND:
+	{
+		return L"AND";
+	}
+	case OpCode::OR:
+	{
+		return L"OR";
+	}
+	case OpCode::RETURN_VOID:
+	{
+		return L"RETURN_VOID";
+	}
+	case OpCode::RETURN_VALUE:
+	{
+		return L"RETURN_VALUE";
+	}
+	case OpCode::YIELD_VOID:
+	{
+		return L"YIELD_VOID";
+	}
+	case OpCode::YIELD_VALUE:
+	{
+		return L"YIELD_VALUE";
+	}
+	case OpCode::PUSH_CONSTANT_TRUE:
+	{
+		return L"PUSH_CONSTANT_TRUE";
+	}
+	case OpCode::PUSH_CONSTANT_FALSE:
+	{
+		return L"PUSH_CONSTANT_FALSE";
+	}
+	default:
+	{
+		wstring empty = L"";
+		return empty;
+	}
+	}
+}
+
+wstring CFG::stringify_instruction(std::byte opcode, std::byte operand)
+{
+	int operand_int = to_integer<int>(operand);
+	wstring operand_str = to_wstring(operand_int);
+
+	wstring readable_str = id_to_text[operand_int];
+
+	if (readable_str.size() != 0)
+	{
+		readable_str = L" (" + readable_str + L")";
+	}
+
+	switch ((OpCode)opcode)
+	{
+	case OpCode::PUSH_CONSTANT:
+	{
+		return L"PUSH_CONSTANT " + operand_str + readable_str;
+	}
+	case OpCode::STORE_LOCAL:
+	{
+		return L"STORE_LOCAL " + operand_str + readable_str;
+	}
+	case OpCode::STORE_GLOBAL:
+	{
+		return L"STORE_GLOBAL " + operand_str + readable_str;
+	}
+	case OpCode::LOAD_LOCAL:
+	{
+		return L"LOAD_LOCAL " + operand_str + readable_str;
+	}
+	case OpCode::LOAD_GLOBAL:
+	{
+		return L"LOAD_GLOBAL " + operand_str + readable_str;
+	}
+	case OpCode::LOAD_BUILTIN:
+	{
+		return L"LOAD_BUILTIN " + operand_str;
+	}
+	case OpCode::MAKE_LIST:
+	{
+		return L"MAKE_LIST " + operand_str;
+	}
+	case OpCode::MAKE_TUPLE:
+	{
+		return L"MAKE_TUPLE " + operand_str;
+	}
+	case OpCode::MAKE_MAP:
+	{
+		return L"MAKE_MAP " + operand_str;
+	}
+	case OpCode::JUMP:
+	{
+		return L"JUMP " + operand_str;
+	}
+	case OpCode::JUMP_IF_FALSE:
+	{
+		return L"JUMP_IF_FALSE " + operand_str;
+	}
+	case OpCode::POP_JUMP:
+	{
+		return L"POP_JUMP " + operand_str;
+	}
+	case OpCode::POP_JUMP_IF_FALSE:
+	{
+		return L"POP_JUMP_IF_FALSE " + operand_str;
+	}
+	case OpCode::LABEL:
+	{
+		return L"LABEL " + operand_str;
+	}
+	case OpCode::ITERATE_OVER_LIST:
+	{
+		return L"ITERATE_OVER_LIST " + operand_str;
+	}
+	case OpCode::ITERATE_OVER_MAP:
+	{
+		return L"ITERATE_OVER_MAP " + operand_str;
+	}
+	case OpCode::ITERATE_OVER_STRING:
+	{
+		return L"ITERATE_OVER_STRING " + operand_str;
+	}
+	case OpCode::ITERATE_OVER_IDENTIFIER:
+	{
+		return L"ITERATE_OVER_IDENTIFIER " + operand_str;
+	}
+	default:
+	{
+		wstring empty = L"";
+		return empty;
+	}
+	}
+}
+
+wstring CFG::stringify_instruction(std::byte opcode, std::byte operand_1, std::byte operand_2)
+{
+	int operand_1_int = to_integer<int>(operand_1);
+	wstring operand_1_str = to_wstring(operand_1_int);
+
+	int operand_2_int = to_integer<int>(operand_2);
+	wstring operand_2_str = to_wstring(operand_2_int);
+
+	switch ((OpCode)opcode)
+	{
+	case OpCode::GET_ELEMENT_FROM_LIST:
+	{
+		return L"GET_ELEMENT_FROM_LIST " + operand_1_str + L" " + operand_2_str;
+	}
+	case OpCode::SET_ELEMENT_IN_LIST:
+	{
+		return L"SET_ELEMENT_IN_LIST " + operand_1_str + L" " + operand_2_str;
+	}
+	case OpCode::GET_VALUE_FROM_MAP:
+	{
+		return L"GET_VALUE_FROM_MAP " + operand_1_str + L" " + operand_2_str;
+	}
+	case OpCode::SET_VALUE_FROM_MAP:
+	{
+		return L"SET_VALUE_FROM_MAP " + operand_1_str + L" " + operand_2_str;
+	}
+	case OpCode::GET_PAIR_FROM_MAP:
+	{
+		return L"GET_PAIR_FROM_MAP " + operand_1_str + L" " + operand_2_str;
+	}
+	case OpCode::SET_PAIR_FROM_MAP:
+	{
+		return L"SET_PAIR_FROM_MAP " + operand_1_str + L" " + operand_2_str;
+	}
+	case OpCode::GET_CHAR_FROM_STRING:
+	{
+		return L"GET_CHAR_FROM_STRING " + operand_1_str + L" " + operand_2_str;
+	}
+	case OpCode::SET_CHAR_FROM_STRING:
+	{
+		return L"SET_CHAR_FROM_STRING " + operand_1_str + L" " + operand_2_str;
+	}
+	case OpCode::CALL:
+	{
+		return L"CALL " + operand_1_str + L" " + operand_2_str;
+	}
+	default:
+	{
+		wstring empty = L"";
+		return empty;
+	}
+	}
+}
+
+ByteVector CFG::instruction_at(int index)
+{
+	byte opcode = current_block->instructions.at(index);
+	ByteVector operands = operands_of(index);
+
+	ByteVector instruction{ opcode };
+	instruction.insert(
+		end(instruction),
+		begin(operands),
+		end(operands));
+
+	return instruction;
+}
+
+ByteVector CFG::operands_of(int opcode_index)
+{
+	byte opcode = current_block->instructions.at(opcode_index);
+	int arity = Bytecode::get_opcode_arity(opcode);
+
+	switch (arity)
+	{
+	case 0:
+	{
+		return {};
+	}
+	case 1:
+	{
+		byte operand = current_block->instructions.at(++opcode_index);
+		return { operand };
+	}
+	case 2:
+	{
+		byte operand_1 = current_block->instructions.at(++opcode_index);
+		byte operand_2 = current_block->instructions.at(++opcode_index);
+		return { operand_1, operand_2 };
+	}
+	default:
+	{
+		return {};
+	}
+	}return ByteVector();
+}
 
 void CFG::print()
 {
-	for (auto const& [key, block] : node_id_to_basic_blocks)
+	for (auto const& [id, block] : node_id_to_basic_blocks)
 	{
-		wcout << "\n == BLOCK " << key;
+		wcout << L"\n == BLOCK " << id;
 
 		if (block->label != -1)
 		{
-			wcout << " [ Label : " << block->label << " ]";
+			wcout << L" [ Label : " << block->label << " ]";
 		}
 
-		wcout << std::endl;
+		wcout << endl;
 
-		int length = block->instructions.size();
-		int number_of_digits = std::to_string(length).size();
+		current_block = block;
+
+		int length = current_block->instructions.size();
+		int width = to_string(length).size() + 2;
 
 		for (int index = 0; index < length; index++)
 		{
-			OpCode opcode = GET_OPCODE;
+			ByteVector instruction = instruction_at(index);
 
-			int arity = get_opcode_arity(opcode);
+			int arity = instruction.size() - 1;
 
 			switch (arity)
 			{
 			case 0:
 			{
-				cout << setw(number_of_digits + 2) << index << " ";
-				print_instruction(opcode);
-				wcout << std::endl;
-
+				wcout << setw(width) << index << " " << stringify_instruction(instruction.at(0)) << std::endl;
 				break;
 			}
 			case 1:
 			{
-				INC_INDEX;
-				OpCode operand = GET_OPCODE;
-
-				cout << setw(number_of_digits + 2) << index << " ";
-				print_instruction(opcode, static_cast<int>(operand));
-				wcout << std::endl;
-
+				wcout << setw(width) << index << " " << stringify_instruction(instruction.at(0), instruction.at(1)) << std::endl;
+				index++;
 				break;
 			}
 			case 2:
 			{
-				INC_INDEX;
-				OpCode operand_1 = GET_OPCODE;
-				INC_INDEX;
-				OpCode operand_2 = GET_OPCODE;
-
-				cout << setw(number_of_digits + 2) << index << " ";
-				print_instruction(opcode, static_cast<int>(operand_1), static_cast<int>(operand_2));
-				wcout << std::endl;
-
+				wcout << setw(width) << index << " " << stringify_instruction(instruction.at(0), instruction.at(1), instruction.at(2)) << std::endl;
+				index += 2;
 				break;
 			}
 			default:
@@ -79,326 +390,34 @@ void CFG::print()
 			}
 			}
 		}
-	}
-}
 
-void CFG::print_instruction(OpCode opcode)
-{
-	switch ((OpCode)opcode)
-	{
-	case OpCode::NO_OP:
-	{
-		wcout << L"NO_OP";
-		break;
-	}
-	case OpCode::START:
-	{
-		wcout << L"START";
-		break;
-	}
-	case OpCode::STOP:
-	{
-		wcout << L"STOP";
-		break;
-	}
-	case OpCode::PUSH_TO_STACK:
-	{
-		wcout << L"PUSH_TO_STACK";
-		break;
-	}
-	case OpCode::POP_FROM_STACK:
-	{
-		wcout << L"POP_FROM_STACK";
-		break;
-	}
-	case OpCode::POP_N_FROM_STACK:
-	{
-		wcout << L"POP_N_FROM_STACK";
-		break;
-	}
-	case OpCode::UNARY_POSITIVE:
-	{
-		wcout << L"UNARY_POSITIVE";
-		break;
-	}
-	case OpCode::UNARY_NEGATIVE:
-	{
-		wcout << L"UNARY_NEGATIVE";
-		break;
-	}
-	case OpCode::UNARY_NOT:
-	{
-		wcout << L"UNARY_NOT";
-		break;
-	}
-	case OpCode::ASSERT:
-	{
-		wcout << L"ASSERT";
-		break;
-	}
-	case OpCode::ADD:
-	{
-		wcout << L"ADD";
-		break;
-	}
-	case OpCode::SUBTRACT:
-	{
-		wcout << L"SUBTRACT";
-		break;
-	}
-	case OpCode::MULTIPLY:
-	{
-		wcout << L"MULTIPLY";
-		break;
-	}
-	case OpCode::DIVISION:
-	{
-		wcout << L"DIVISION";
-		break;
-	}
-	case OpCode::REMINDER:
-	{
-		wcout << L"REMINDER";
-		break;
-	}
-	case OpCode::POWER:
-	{
-		wcout << L"POWER";
-		break;
-	}
-	case OpCode::NOT_EQUAL:
-	{
-		wcout << L"NOT_EQUAL";
-		break;
-	}
-	case OpCode::EQUAL:
-	{
-		wcout << L"EQUAL";
-		break;
-	}
-	case OpCode::LESSER_THAN:
-	{
-		wcout << L"LESSER_THAN";
-		break;
-	}
-	case OpCode::LESSER_THAN_EQUAL:
-	{
-		wcout << L"LESSER_THAN_EQUAL";
-		break;
-	}
-	case OpCode::GREATER_THAN:
-	{
-		wcout << L"GREATER_THAN";
-		break;
-	}
-	case OpCode::GREATER_THAN_EQUAL:
-	{
-		wcout << L"GREATER_THAN_EQUAL";
-		break;
-	}
-	case OpCode::AND:
-	{
-		wcout << L"AND";
-		break;
-	}
-	case OpCode::OR:
-	{
-		wcout << L"OR";
-		break;
-	}
-	case OpCode::RETURN_VOID:
-	{
-		wcout << L"RETURN_VOID";
-		break;
-	}
-	case OpCode::RETURN_VALUE:
-	{
-		wcout << L"RETURN_VALUE";
-		break;
-	}
-	case OpCode::YIELD_VOID:
-	{
-		wcout << L"YIELD_VOID";
-		break;
-	}
-	case OpCode::YIELD_VALUE:
-	{
-		wcout << L"YIELD_VALUE";
-		break;
-	}
-	case OpCode::PUSH_CONSTANT_TRUE:
-	{
-		wcout << L"PUSH_CONSTANT_TRUE";
-		break;
-	}
-	case OpCode::PUSH_CONSTANT_FALSE:
-	{
-		wcout << L"PUSH_CONSTANT_FALSE";
-		break;
-	}
-	default:
-	{
-		break;
-	}
-	}
-}
+		if (block->type == BlockType::Conditional)
+		{
+			int to_label = to_integer<int>(block->instructions.back());
 
-void CFG::print_instruction(OpCode opcode, int operand)
-{
-	switch ((OpCode)opcode)
-	{
-	case OpCode::PUSH_CONSTANT:
-	{
-		wcout << L"PUSH_CONSTANT " << operand << L" (" << id_to_name.at(operand) << L")";
+			int true_successor_id = adjacency_list[id].first;
+			int false_successor_id = adjacency_list[id].second;
 
-		break;
-	}
-	case OpCode::STORE_LOCAL:
-	{
-		wcout << L"STORE_LOCAL " << operand << L" (" << id_to_name.at(operand) << L")";
+			wcout << L"\n > true_successor_id :  " << true_successor_id;
+			wcout << L"\n > false_successor_id :  " << false_successor_id
+				<< L" [ Label : " << to_label << " ]" << endl;
+		}
+		else if (block->type == BlockType::Unconditional)
+		{
+			int unique_successor_id = adjacency_list[id].first;
+			wcout << L"\n > unique_successor_id :  " << unique_successor_id << endl;;
+		}
+		else if (block->type == BlockType::UnconditionalJump)
+		{
+			int to_label = to_integer<int>(block->instructions.back());
 
-		break;
-	}
-	case OpCode::STORE_GLOBAL:
-	{
-		wcout << L"STORE_GLOBAL " << operand << L" (" << id_to_name.at(operand) << L")";
-		break;
-	}
-	case OpCode::LOAD_LOCAL:
-	{
-		wcout << L"LOAD_LOCAL " << operand << L" (" << id_to_name.at(operand) << L")";
-		break;
-	}
-	case OpCode::LOAD_GLOBAL:
-	{
-		wcout << L"LOAD_GLOBAL " << operand << L" (" << id_to_name.at(operand) << L")";
-		break;
-	}
-	case OpCode::LOAD_BUILTIN:
-	{
-		wcout << L"LOAD_BUILTIN " << operand;
-		break;
-	}
-	case OpCode::MAKE_LIST:
-	{
-		wcout << L"MAKE_LIST " << operand;
-		break;
-	}
-	case OpCode::MAKE_TUPLE:
-	{
-		wcout << L"MAKE_TUPLE " << operand;
-		break;
-	}
-	case OpCode::MAKE_MAP:
-	{
-		wcout << L"MAKE_MAP " << operand;
-		break;
-	}
-	case OpCode::JUMP:
-	{
-		wcout << L"JUMP " << operand;
-		break;
-	}
-	case OpCode::JUMP_IF_FALSE:
-	{
-		wcout << L"JUMP_IF_FALSE " << operand;
-		break;
-	}
-	case OpCode::POP_JUMP:
-	{
-		wcout << L"POP_JUMP " << operand;
-		break;
-	}
-	case OpCode::POP_JUMP_IF_FALSE:
-	{
-		wcout << L"POP_JUMP_IF_FALSE " << operand;
-		break;
-	}
-	case OpCode::LABEL:
-	{
-		wcout << L"LABEL " << operand;
-		break;
-	}
-
-	case OpCode::ITERATE_OVER_LIST:
-	{
-		wcout << L"ITERATE_OVER_LIST " << operand;
-		break;
-	}
-	case OpCode::ITERATE_OVER_MAP:
-	{
-		wcout << L"ITERATE_OVER_MAP " << operand;
-		break;
-	}
-	case OpCode::ITERATE_OVER_STRING:
-	{
-		wcout << L"ITERATE_OVER_STRING " << operand;
-		break;
-	}
-	case OpCode::ITERATE_OVER_IDENTIFIER:
-	{
-		wcout << L"ITERATE_OVER_IDENTIFIER " << operand;
-		break;
-	}
-	default:
-	{
-		break;
-	}
-	}
-}
-
-void CFG::print_instruction(OpCode opcode, int operand_1, int operand_2)
-{
-	switch ((OpCode)opcode)
-	{
-	case OpCode::GET_ELEMENT_FROM_LIST:
-	{
-		wcout << L"GET_ELEMENT_FROM_LIST " << operand_1 << L" " << operand_2;
-		break;
-	}
-	case OpCode::SET_ELEMENT_IN_LIST:
-	{
-		wcout << L"SET_ELEMENT_IN_LIST " << operand_1 << L" " << operand_2;
-		break;
-	}
-	case OpCode::GET_VALUE_FROM_MAP:
-	{
-		wcout << L"GET_VALUE_FROM_MAP " << operand_1 << L" " << operand_2;
-		break;
-	}
-	case OpCode::SET_VALUE_FROM_MAP:
-	{
-		wcout << L"SET_VALUE_FROM_MAP " << operand_1 << L" " << operand_2;
-		break;
-	}
-	case OpCode::GET_PAIR_FROM_MAP:
-	{
-		wcout << L"GET_PAIR_FROM_MAP " << operand_1 << L" " << operand_2;
-		break;
-	}
-	case OpCode::SET_PAIR_FROM_MAP:
-	{
-		wcout << L"SET_PAIR_FROM_MAP " << operand_1 << L" " << operand_2;
-		break;
-	}
-	case OpCode::GET_CHAR_FROM_STRING:
-	{
-		wcout << L"GET_CHAR_FROM_STRING " << operand_1 << L" " << operand_2;
-		break;
-	}
-	case OpCode::SET_CHAR_FROM_STRING:
-	{
-		wcout << L"SET_CHAR_FROM_STRING " << operand_1 << L" " << operand_2;
-		break;
-	}
-	case OpCode::CALL:
-	{
-		wcout << L"CALL " << operand_1 << L" " << operand_2;
-		break;
-	}
-	default:
-	{
-		break;
-	}
+			int unique_successor_id = adjacency_list[id].first;
+			wcout << L"\n > unique_successor_id :  " << unique_successor_id
+				<< L" [ Label : " << to_label << " ]" << endl;;
+		}
+		else if (block->type == BlockType::Stop)
+		{
+			break;
+		}
 	}
 }

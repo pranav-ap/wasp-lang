@@ -1,8 +1,7 @@
-#pragma once
 #include "pch.h"
 #include "BasicBlock.h"
 
-void BasicBlock::push(Instruction instruction)
+void BasicBlock::push(ByteVector instruction)
 {
 	instructions.insert(
 		std::end(instructions),

@@ -13,27 +13,22 @@ enum class CONTROLFLOWGRAPH_API BlockType
 {
 	Unknown,
 	Conditional,
-	Unconditional
+	Unconditional,
+	UnconditionalJump,
+	Start,
+	Stop
 };
-
-struct BasicBlock;
-using BasicBlock_ptr = CONTROLFLOWGRAPH_API std::shared_ptr<BasicBlock>;
 
 struct CONTROLFLOWGRAPH_API BasicBlock
 {
-	int id;
 	int label;
 
 	BlockType type;
+	ByteVector instructions;
 
-	int begin;
-	int end;
+	BasicBlock() : label(-1), type(BlockType::Unknown) {};
 
-	BasicBlock() = default;
-	BasicBlock(int id, BlockType type, int begin)
-		: id(id), label(-1),
-		type(type),
-		begin(begin), end(0) {};
-
-	void push(Instruction instruction);
+	void push(ByteVector instruction);
 };
+
+using BasicBlock_ptr = CONTROLFLOWGRAPH_API std::shared_ptr<BasicBlock>;

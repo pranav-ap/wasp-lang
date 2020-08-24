@@ -17,6 +17,11 @@ void Bytecode::replace(int index, std::byte replacement)
 	instructions.at(index) = replacement;
 }
 
+int Bytecode::length()
+{
+	return instructions.size();
+}
+
 int Bytecode::get_opcode_arity(std::byte opcode)
 {
 	return get_opcode_arity((OpCode)opcode);

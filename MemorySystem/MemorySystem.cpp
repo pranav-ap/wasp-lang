@@ -104,10 +104,28 @@ int MemorySystem::find_number_constant(int number)
 
 // Utils
 
+const Bytecode_ptr MemorySystem::get_bytecode()
+{
+	return bytecode;
+}
+
+std::map<int, std::wstring> MemorySystem::get_id_to_printable_map()
+{
+	std::map<int, std::wstring> id_to_printable = id_to_name;
+
+	for (auto const& [id, value] : constant_pool)
+	{
+		auto printable = stringify_object(value);
+		id_to_printable[id] = printable;
+	}
+
+	return id_to_printable;
+}
+
 void MemorySystem::print()
 {
 	int length = bytecode->instructions.size();
-	int number_of_digits = to_string(length).size();
+	int width = to_string(length).size() + 2;
 
 	for (int index = 0; index < length; index++)
 	{
@@ -119,18 +137,18 @@ void MemorySystem::print()
 		{
 		case 0:
 		{
-			wcout << setw(number_of_digits) << index << " " << stringify_instruction(instruction.at(0)) << std::endl;
+			wcout << setw(width) << index << " " << stringify_instruction(instruction.at(0)) << std::endl;
 			break;
 		}
 		case 1:
 		{
-			wcout << setw(number_of_digits) << index << " " << stringify_instruction(instruction.at(0), instruction.at(1)) << std::endl;
+			wcout << setw(width) << index << " " << stringify_instruction(instruction.at(0), instruction.at(1)) << std::endl;
 			index++;
 			break;
 		}
 		case 2:
 		{
-			wcout << setw(number_of_digits) << index << " " << stringify_instruction(instruction.at(0), instruction.at(1), instruction.at(2)) << std::endl;
+			wcout << setw(width) << index << " " << stringify_instruction(instruction.at(0), instruction.at(1), instruction.at(2)) << std::endl;
 			index += 2;
 			break;
 		}
@@ -306,27 +324,34 @@ wstring MemorySystem::stringify_instruction(byte opcode, byte operand)
 	int operand_int = to_integer<int>(operand);
 	wstring operand_str = to_wstring(operand_int);
 
+	wstring readable_str = get_name_or_value(operand_int);
+
+	if (readable_str.size() != 0)
+	{
+		readable_str = L" (" + readable_str + L")";
+	}
+
 	switch ((OpCode)opcode)
 	{
 	case OpCode::PUSH_CONSTANT:
 	{
-		return L"PUSH_CONSTANT " + operand_str + L" (" + stringify_object(constant_pool.at(operand_int)) + L")";
+		return L"PUSH_CONSTANT " + operand_str + readable_str;
 	}
 	case OpCode::STORE_LOCAL:
 	{
-		return L"STORE_LOCAL " + operand_str + L" (" + id_to_name.at(operand_int) + L")";
+		return L"STORE_LOCAL " + operand_str + readable_str;
 	}
 	case OpCode::STORE_GLOBAL:
 	{
-		return L"STORE_GLOBAL " + operand_str + L" (" + id_to_name.at(operand_int) + L")";
+		return L"STORE_GLOBAL " + operand_str + readable_str;
 	}
 	case OpCode::LOAD_LOCAL:
 	{
-		return L"LOAD_LOCAL " + operand_str + L" (" + id_to_name.at(operand_int) + L")";
+		return L"LOAD_LOCAL " + operand_str + readable_str;
 	}
 	case OpCode::LOAD_GLOBAL:
 	{
-		return L"LOAD_GLOBAL " + operand_str + L" (" + id_to_name.at(operand_int) + L")";
+		return L"LOAD_GLOBAL " + operand_str + readable_str;
 	}
 	case OpCode::LOAD_BUILTIN:
 	{
@@ -364,7 +389,6 @@ wstring MemorySystem::stringify_instruction(byte opcode, byte operand)
 	{
 		return L"LABEL " + operand_str;
 	}
-
 	case OpCode::ITERATE_OVER_LIST:
 	{
 		return L"ITERATE_OVER_LIST " + operand_str;
@@ -484,4 +508,20 @@ ByteVector MemorySystem::operands_of(int opcode_index)
 		return {};
 	}
 	}
+}
+
+wstring MemorySystem::get_name_or_value(int id)
+{
+	if (constant_pool.contains(id))
+	{
+		Object_ptr value = constant_pool.at(id);
+		return stringify_object(value);
+	}
+	else if (id_to_name.contains(id))
+	{
+		return id_to_name.at(id);
+	}
+
+	wstring empty = L"";
+	return empty;
 }

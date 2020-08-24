@@ -7,7 +7,7 @@
 #include "SemanticAnalyzer.h"
 #include "MemorySystem.h"
 #include "Compiler.h"
-//#include "CFGBuilder.h"
+#include "CFGBuilder.h"
 #include <string>
 #include <iostream>
 #include <memory>
@@ -37,12 +37,11 @@ int main()
 
 	Compiler_ptr compiler = make_unique<Compiler>(memory);
 	compiler->execute(ast);
+	//memory->print();
 
-	memory->print();
-
-	/*CFGBuilder_ptr cfg_builder = make_unique<CFGBuilder>();
-	CFG_ptr cfg = cfg_builder->execute(bytecode);
-	cfg->print();*/
+	CFGBuilder_ptr cfg_builder = make_unique<CFGBuilder>(memory);
+	CFG_ptr cfg = cfg_builder->execute();
+	cfg->print();
 
 	return 0;
 }

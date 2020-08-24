@@ -17,9 +17,9 @@
 
 class MEMORYSYSTEM_API MemorySystem
 {
-	std::map<int, Object_ptr> constant_pool;
 	Bytecode_ptr bytecode;
 
+	std::map<int, Object_ptr> constant_pool;
 	std::map<int, std::wstring> id_to_name;
 
 	std::wstring stringify_instruction(std::byte opcode);
@@ -27,6 +27,7 @@ class MEMORYSYSTEM_API MemorySystem
 	std::wstring stringify_instruction(std::byte opcode, std::byte operand_1, std::byte operand_2);
 
 	std::wstring stringify_instruction_at(int index);
+	std::wstring get_name_or_value(int id);
 
 	ByteVector instruction_at(int index);
 	ByteVector operands_of(int opcode_index);
@@ -48,6 +49,11 @@ public:
 	int find_string_constant(std::wstring text);
 	int find_number_constant(int number);
 
+	// Utils
+
+	const Bytecode_ptr get_bytecode();
+
+	std::map<int, std::wstring> get_id_to_printable_map();
 	void print();
 };
 

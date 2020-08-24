@@ -20,6 +20,7 @@ public:
 
 	void push(std::vector<std::byte> instruction);
 	void replace(int index, std::byte replacement);
+	int length();
 
 	// static utils
 
