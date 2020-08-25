@@ -6,7 +6,7 @@
 #define CONTROLFLOWGRAPH_API __declspec(dllimport)
 #endif
 
-#include "Bytecode.h"
+#include "OpCode.h"
 #include <memory>
 
 enum class CONTROLFLOWGRAPH_API BlockType

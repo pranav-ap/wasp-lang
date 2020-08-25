@@ -8,53 +8,56 @@
 
 #include "OpCode.h"
 #include "ObjectSystem.h"
-#include "Bytecode.h"
 
 #include <memory>
 #include <vector>
 #include <map>
 #include <string>
 
-class MEMORYSYSTEM_API MemorySystem
+// ConstantPool
+
+class MEMORYSYSTEM_API ConstantPool
 {
-	Bytecode_ptr bytecode;
-
-	std::map<int, Object_ptr> constant_pool;
-	std::map<int, std::wstring> id_to_name;
-
-	std::wstring stringify_instruction(std::byte opcode);
-	std::wstring stringify_instruction(std::byte opcode, std::byte operand);
-	std::wstring stringify_instruction(std::byte opcode, std::byte operand_1, std::byte operand_2);
-
-	std::wstring stringify_instruction_at(int index);
-	std::wstring get_name_or_value(int id);
-
-	ByteVector instruction_at(int index);
-	ByteVector operands_of(int opcode_index);
+	std::map<int, Object_ptr> pool;
 
 public:
-	MemorySystem() : bytecode(std::make_shared<Bytecode>()) {};
+	int allocate(int value);
+	int allocate(std::wstring value);
 
-	// Emit
+	Object_ptr get(int id);
+};
+
+using ConstantPool_ptr = MEMORYSYSTEM_API std::shared_ptr<ConstantPool>;
+
+// CodeSection
+
+class MEMORYSYSTEM_API CodeSection
+{
+	ByteVector instructions;
+
+public:
+	int length();
+
+	void push(ByteVector instruction);
+	void replace(int index, std::byte replacement);
 
 	void emit(OpCode opcode);
 	void emit(OpCode opcode, int operand);
 	void emit(OpCode opcode, int operand_1, int operand_2);
+};
 
-	// Constant Pool
+using CodeSection_ptr = MEMORYSYSTEM_API std::shared_ptr<CodeSection>;
 
-	void add_to_constant_pool(int id, Object_ptr constant);
-	void bind_name_to_id(int id, std::wstring name);
+// MemorySystem
 
-	int find_string_constant(std::wstring text);
-	int find_number_constant(int number);
+class MEMORYSYSTEM_API MemorySystem
+{
+	ConstantPool_ptr constant_pool;
+	CodeSection_ptr code_section;
 
-	// Utils
-
-	const Bytecode_ptr get_bytecode();
-
-	std::map<int, std::wstring> get_id_to_printable_map();
-	void print();
+public:
+	ConstantPool_ptr get_constant_pool();
+	CodeSection_ptr get_code_section();
 };
 
 using MemorySystem_ptr = MEMORYSYSTEM_API std::shared_ptr<MemorySystem>;

@@ -6,7 +6,6 @@
 #define CONTROLFLOWGRAPH_API __declspec(dllimport)
 #endif
 
-#include "Bytecode.h"
 #include "BasicBlock.h"
 #include "CFG.h"
 #include "MemorySystem.h"

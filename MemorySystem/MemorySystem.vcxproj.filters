@@ -24,10 +24,10 @@
     <ClInclude Include="MemorySystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Bytecode.h">
+    <ClInclude Include="OpCode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="OpCode.h">
+    <ClInclude Include="ObjectSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -38,10 +38,13 @@
     <ClCompile Include="pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Bytecode.cpp">
+    <ClCompile Include="MemorySystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MemorySystem.cpp">
+    <ClCompile Include="OpCode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

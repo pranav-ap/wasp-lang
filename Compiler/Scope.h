@@ -1,10 +1,9 @@
 #pragma once
 #include "OpCode.h"
-#include "Bytecode.h"
 #include "CSymbolTable.h"
 #include <memory>
 
-struct Scope
+struct CScope
 {
 	CSymbolTable_ptr symbol_table;
 	std::vector<std::byte> instructions;
@@ -12,15 +11,15 @@ struct Scope
 	int break_label;
 	int continue_label;
 
-	Scope()
+	CScope()
 		: break_label(0),
 		continue_label(0),
 		symbol_table(std::make_shared<CSymbolTable>()) {};
 
-	Scope(CSymbolTable_ptr enclosing_symbol_table)
+	CScope(CSymbolTable_ptr enclosing_symbol_table)
 		: break_label(0),
 		continue_label(0),
 		symbol_table(std::make_shared<CSymbolTable>(enclosing_symbol_table)) {};
 };
 
-using Scope_ptr = std::shared_ptr<Scope>;
+using CScope_ptr = std::shared_ptr<CScope>;

@@ -6,6 +6,8 @@
 #define SEMANTICANALYZER_API __declspec(dllimport)
 #endif
 
+#include "Type.h"
+#include "TypeSystem.h"
 #include "SymbolTable.h"
 #include "Statement.h"
 #include <memory>
@@ -13,7 +15,7 @@
 
 class SEMANTICANALYZER_API SemanticAnalyzer
 {
-	SymbolTable_ptr symbol_table;
+	Scope_ptr symbol_table;
 
 	// Statement
 
@@ -42,22 +44,21 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 
 	// Expression
 
-	void visit(const Expression_ptr expr);
-	void visit(std::vector<Expression_ptr> const& expressions);
+	Type_ptr visit(const Expression_ptr expr);
 
-	void visit(const double expr);
-	void visit(const std::wstring expr);
-	void visit(const bool expr);
-	void visit(ListLiteral const& expr);
-	void visit(TupleLiteral const& expr);
-	void visit(MapLiteral const& expr);
-	void visit(UDTConstruct const& expr);
-	void visit(UDTMemberAccess const& expr);
-	void visit(EnumMember const& expr);
-	void visit(Identifier const& expr);
-	void visit(Call const& expr);
-	void visit(Unary const& expr);
-	void visit(Binary const& expr);
+	Type_ptr visit(const double expr);
+	Type_ptr visit(const std::wstring expr);
+	Type_ptr visit(const bool expr);
+	Type_ptr visit(ListLiteral const& expr);
+	Type_ptr visit(TupleLiteral const& expr);
+	Type_ptr visit(MapLiteral const& expr);
+	Type_ptr visit(UDTConstruct const& expr);
+	Type_ptr visit(UDTMemberAccess const& expr);
+	Type_ptr visit(EnumMember const& expr);
+	Type_ptr visit(Identifier const& expr);
+	Type_ptr visit(Call const& expr);
+	Type_ptr visit(Unary const& expr);
+	Type_ptr visit(Binary const& expr);
 
 	// Utils
 

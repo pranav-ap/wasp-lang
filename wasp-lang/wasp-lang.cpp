@@ -3,11 +3,10 @@
 #include "Lexer.h"
 #include "Parser.h"
 #include "Statement.h"
-#include "SymbolTable.h"
 #include "SemanticAnalyzer.h"
-#include "MemorySystem.h"
+/*#include "MemorySystem.h"
 #include "Compiler.h"
-#include "CFGBuilder.h"
+#include "CFGBuilder.h"*/
 #include <string>
 #include <iostream>
 #include <memory>
@@ -33,15 +32,13 @@ int main()
 	SemanticAnalyzer_ptr semantic_analyser = make_unique<SemanticAnalyzer>();
 	semantic_analyser->execute(ast);
 
-	MemorySystem_ptr memory = make_shared<MemorySystem>();
+	//MemorySystem_ptr memory = make_shared<MemorySystem>();
 
-	Compiler_ptr compiler = make_unique<Compiler>(memory);
-	compiler->execute(ast);
-	//memory->print();
+	//Compiler_ptr compiler = make_unique<Compiler>(memory);
+	//compiler->execute(ast);
 
-	CFGBuilder_ptr cfg_builder = make_unique<CFGBuilder>(memory);
-	CFG_ptr cfg = cfg_builder->execute();
-	cfg->print();
+	//CFGBuilder_ptr cfg_builder = make_unique<CFGBuilder>(memory);
+	//CFG_ptr cfg = cfg_builder->execute();
 
 	return 0;
 }

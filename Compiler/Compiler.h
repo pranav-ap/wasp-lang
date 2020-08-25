@@ -7,7 +7,6 @@
 #endif
 
 #include "OpCode.h"
-#include "Bytecode.h"
 #include "Statement.h"
 #include "Scope.h"
 #include "ObjectSystem.h"

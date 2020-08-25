@@ -6,8 +6,10 @@
 #define CONTROLFLOWGRAPH_API __declspec(dllimport)
 #endif
 
+#include "OpCode.h"
 #include "BasicBlock.h"
 #include <memory>
+#include <string>
 #include <map>
 
 class CONTROLFLOWGRAPH_API CFG

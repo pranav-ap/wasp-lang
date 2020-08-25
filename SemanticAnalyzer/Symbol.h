@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Type_System.h"
+#include "Type.h"
 #include <map>
 #include <memory>
 #include <string>
@@ -42,7 +42,7 @@ struct VariableSymbol : public SymbolBase
 	Type_ptr type;
 
 	VariableSymbol(std::wstring name, bool is_public, bool is_mutable, Type_ptr type)
-		: SymbolBase(name, is_public), is_mutable(is_mutable), type(std::move(type)) {};
+		: SymbolBase(name, is_public), is_mutable(is_mutable), type(type) {};
 };
 
 struct FunctionSymbol : public SymbolBase

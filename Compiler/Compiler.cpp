@@ -1,7 +1,6 @@
 #pragma once
 #include "pch.h"
 #include "Compiler.h"
-#include "Bytecode.h"
 #include "Assertion.h"
 
 #include <memory>

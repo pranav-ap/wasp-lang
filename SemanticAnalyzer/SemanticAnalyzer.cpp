@@ -19,10 +19,11 @@ template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
 using std::holds_alternative;
 using std::wstring;
 using std::get_if;
+using std::make_shared;
 
 void SemanticAnalyzer::execute(const Module_ptr module_ast)
 {
-	symbol_table = std::make_shared<SymbolTable>();
+	symbol_table = std::make_shared<SemanticAnalyzerScope>();
 	enter_scope();
 
 	for (auto statement : module_ast->statements)
@@ -72,6 +73,8 @@ void SemanticAnalyzer::visit(std::vector<Statement_ptr> const& block)
 
 void SemanticAnalyzer::visit(Assignment const& statement)
 {
+	// Check LHS
+
 	std::optional<Symbol_ptr> symbol = symbol_table->lookup(statement.name);
 	OPT_CHECK(symbol);
 
@@ -239,58 +242,60 @@ void SemanticAnalyzer::visit(AssertStatement const& statement)
 
 // Expression
 
-void SemanticAnalyzer::visit(const Expression_ptr expression)
+Type_ptr SemanticAnalyzer::visit(const Expression_ptr expression)
 {
-	std::visit(overloaded{
-		[&](double expr) { visit(expr); },
-		[&](std::wstring expr) { visit(expr); },
-		[&](bool expr) { visit(expr); },
-		[&](ListLiteral const& expr) { visit(expr); },
-		[&](TupleLiteral const& expr) { visit(expr); },
-		[&](MapLiteral const& expr) { visit(expr); },
-		[&](UDTConstruct const& expr) { visit(expr); },
-		[&](UDTMemberAccess const& expr) { visit(expr); },
-		[&](EnumMember const& expr) { visit(expr); },
-		[&](Identifier const& expr) { visit(expr); },
-		[&](Call const& expr) { visit(expr); },
-		[&](Unary const& expr) { visit(expr); },
-		[&](Binary const& expr) { visit(expr); },
+	return std::visit(overloaded{
+		[&](double expr) { return visit(expr); },
+		[&](std::wstring expr) { return visit(expr); },
+		[&](bool expr) { return visit(expr); },
+		[&](ListLiteral const& expr) { return visit(expr); },
+		[&](TupleLiteral const& expr) {return  visit(expr); },
+		[&](MapLiteral const& expr) { return visit(expr); },
+		[&](UDTConstruct const& expr) { return visit(expr); },
+		[&](UDTMemberAccess const& expr) { return visit(expr); },
+		[&](EnumMember const& expr) { return visit(expr); },
+		[&](Identifier const& expr) { return visit(expr); },
+		[&](Call const& expr) { return visit(expr); },
+		[&](Unary const& expr) { return visit(expr); },
+		[&](Binary const& expr) { return visit(expr); },
 
-		[](auto) { FATAL("Never Seen this Statement before!"); }
+		[](auto)
+		{
+			FATAL("Never Seen this Statement before!");
+			return make_shared<Type>(NoneType());
+		}
 		}, *expression);
 }
 
-void SemanticAnalyzer::visit(std::vector<Expression_ptr> const& expressions)
+Type_ptr SemanticAnalyzer::visit(const double expr)
 {
-	for (const auto expr : expressions)
+}
+
+Type_ptr SemanticAnalyzer::visit(const std::wstring expr)
+{
+}
+
+Type_ptr SemanticAnalyzer::visit(const bool expr)
+{
+}
+
+Type_ptr SemanticAnalyzer::visit(ListLiteral const& expr)
+{
+	for (auto const term : expr.expressions)
 	{
-		visit(expr);
+		visit(term);
 	}
 }
 
-void SemanticAnalyzer::visit(const double expr)
+Type_ptr SemanticAnalyzer::visit(TupleLiteral const& expr)
 {
+	for (auto const term : expr.expressions)
+	{
+		visit(term);
+	}
 }
 
-void SemanticAnalyzer::visit(const std::wstring expr)
-{
-}
-
-void SemanticAnalyzer::visit(const bool expr)
-{
-}
-
-void SemanticAnalyzer::visit(ListLiteral const& expr)
-{
-	visit(expr.expressions);
-}
-
-void SemanticAnalyzer::visit(TupleLiteral const& expr)
-{
-	visit(expr.expressions);
-}
-
-void SemanticAnalyzer::visit(MapLiteral const& expr)
+Type_ptr SemanticAnalyzer::visit(MapLiteral const& expr)
 {
 	for (const auto [key, value] : expr.pairs)
 	{
@@ -299,18 +304,18 @@ void SemanticAnalyzer::visit(MapLiteral const& expr)
 	}
 }
 
-void SemanticAnalyzer::visit(UDTConstruct const& expr)
+Type_ptr SemanticAnalyzer::visit(UDTConstruct const& expr)
 {
 	std::optional<Symbol_ptr> symbol = symbol_table->lookup(expr.UDT_name);
 	OPT_CHECK(symbol);
 	ASSERT(holds_alternative<UDTSymbol>(*symbol.value()), "This is not a UDT!");
 }
 
-void SemanticAnalyzer::visit(UDTMemberAccess const& expr)
+Type_ptr SemanticAnalyzer::visit(UDTMemberAccess const& expr)
 {
 }
 
-void SemanticAnalyzer::visit(EnumMember const& expr)
+Type_ptr SemanticAnalyzer::visit(EnumMember const& expr)
 {
 	std::optional<Symbol_ptr> symbol = symbol_table->lookup(expr.enum_name);
 	OPT_CHECK(symbol);
@@ -333,13 +338,13 @@ void SemanticAnalyzer::visit(EnumMember const& expr)
 	);
 }
 
-void SemanticAnalyzer::visit(Identifier const& expr)
+Type_ptr SemanticAnalyzer::visit(Identifier const& expr)
 {
 	std::optional<Symbol_ptr> symbol = symbol_table->lookup(expr.name);
 	OPT_CHECK(symbol);
 }
 
-void SemanticAnalyzer::visit(Call const& expr)
+Type_ptr SemanticAnalyzer::visit(Call const& expr)
 {
 	std::optional<Symbol_ptr> symbol = symbol_table->lookup(expr.name);
 	OPT_CHECK(symbol);
@@ -348,12 +353,12 @@ void SemanticAnalyzer::visit(Call const& expr)
 	auto function_symbol = get_if<FunctionSymbol>(&*symbol.value());
 }
 
-void SemanticAnalyzer::visit(Unary const& expr)
+Type_ptr SemanticAnalyzer::visit(Unary const& expr)
 {
 	visit(expr.operand);
 }
 
-void SemanticAnalyzer::visit(Binary const& expr)
+Type_ptr SemanticAnalyzer::visit(Binary const& expr)
 {
 	visit(expr.left);
 	visit(expr.right);
@@ -365,7 +370,7 @@ void SemanticAnalyzer::enter_scope()
 {
 	NULL_CHECK(symbol_table);
 
-	auto child_table = std::make_shared<SymbolTable>(symbol_table);
+	auto child_table = std::make_shared<SemanticAnalyzerScope>(symbol_table);
 	symbol_table = child_table;
 }
 

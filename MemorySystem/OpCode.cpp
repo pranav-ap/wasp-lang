@@ -1,33 +1,13 @@
 #pragma once
-
 #include "pch.h"
-#include "Bytecode.h"
+#include "OpCode.h"
 
-void Bytecode::push(std::vector<std::byte> instruction)
-{
-	instructions.insert(
-		std::end(instructions),
-		std::begin(instruction),
-		std::end(instruction)
-	);
-}
-
-void Bytecode::replace(int index, std::byte replacement)
-{
-	instructions.at(index) = replacement;
-}
-
-int Bytecode::length()
-{
-	return instructions.size();
-}
-
-int Bytecode::get_opcode_arity(std::byte opcode)
+MEMORYSYSTEM_API int get_opcode_arity(std::byte opcode)
 {
 	return get_opcode_arity((OpCode)opcode);
 }
 
-int Bytecode::get_opcode_arity(OpCode opcode)
+MEMORYSYSTEM_API int get_opcode_arity(OpCode opcode)
 {
 	switch (opcode)
 	{
@@ -95,7 +75,8 @@ int Bytecode::get_opcode_arity(OpCode opcode)
 	case OpCode::SET_PAIR_FROM_MAP:
 	case OpCode::GET_CHAR_FROM_STRING:
 	case OpCode::SET_CHAR_FROM_STRING:
-	case OpCode::CALL:
+	case OpCode::CALL_FUNCTION:
+	case OpCode::CALL_GENERATOR:
 	{
 		return 2;
 	}

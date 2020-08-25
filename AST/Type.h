@@ -1,9 +1,9 @@
 #pragma once
 
-#ifdef TYPESYSTEM_EXPORTS
-#define TYPESYSTEM_API __declspec(dllexport)
+#ifdef AST_EXPORTS
+#define AST_API __declspec(dllexport)
 #else
-#define TYPESYSTEM_API __declspec(dllimport)
+#define AST_API __declspec(dllimport)
 #endif
 
 #include <string>
@@ -23,7 +23,7 @@ struct EnumType;
 struct VariantType;
 struct NoneType;
 
-using Type = TYPESYSTEM_API std::variant<
+using Type = AST_API std::variant<
 	std::monostate,
 	NumberType, StringType, BooleanType,
 	ListType, TupleType,
@@ -34,56 +34,56 @@ using Type = TYPESYSTEM_API std::variant<
 	AnyType
 >;
 
-using Type_ptr = TYPESYSTEM_API std::shared_ptr<Type>;
-using TypeVector = TYPESYSTEM_API std::vector<Type_ptr>;
+using Type_ptr = AST_API std::shared_ptr<Type>;
+using TypeVector = AST_API std::vector<Type_ptr>;
 
 // Type Base
 
-struct TYPESYSTEM_API AnyType
+struct AST_API AnyType
 {
 };
 
-struct TYPESYSTEM_API ScalarType : public AnyType
+struct AST_API ScalarType : public AnyType
 {
 };
 
-struct TYPESYSTEM_API CompositeType : public AnyType
+struct AST_API CompositeType : public AnyType
 {
 };
 
-struct TYPESYSTEM_API NoneType : public AnyType
+struct AST_API NoneType : public AnyType
 {
 };
 
 // Scalar Types
 
-struct TYPESYSTEM_API NumberType : public ScalarType
+struct AST_API NumberType : public ScalarType
 {
 };
 
-struct TYPESYSTEM_API StringType : public ScalarType
+struct AST_API StringType : public ScalarType
 {
 };
 
-struct TYPESYSTEM_API BooleanType : public ScalarType
+struct AST_API BooleanType : public ScalarType
 {
 };
 
 // Composite Types
 
-struct TYPESYSTEM_API ListType : public CompositeType
+struct AST_API ListType : public CompositeType
 {
 	Type_ptr element_type;
 	ListType(Type_ptr element_type) : element_type(std::move(element_type)) {};
 };
 
-struct TYPESYSTEM_API TupleType : public CompositeType
+struct AST_API TupleType : public CompositeType
 {
 	TypeVector element_types;
 	TupleType(TypeVector element_types) : element_types(element_types) {};
 };
 
-struct TYPESYSTEM_API MapType : public CompositeType
+struct AST_API MapType : public CompositeType
 {
 	Type_ptr key_type;
 	Type_ptr value_type;
@@ -92,19 +92,19 @@ struct TYPESYSTEM_API MapType : public CompositeType
 		: key_type(std::move(key_type)), value_type(std::move(value_type)) {};
 };
 
-struct TYPESYSTEM_API UDTType : public CompositeType
+struct AST_API UDTType : public CompositeType
 {
 	std::wstring name;
 	UDTType(std::wstring name) : name(name) {};
 };
 
-struct TYPESYSTEM_API EnumType : public CompositeType
+struct AST_API EnumType : public CompositeType
 {
 	std::wstring enum_name;
 	EnumType(std::wstring enum_name) : enum_name(enum_name) {};
 };
 
-struct TYPESYSTEM_API VariantType : public CompositeType
+struct AST_API VariantType : public CompositeType
 {
 	TypeVector types;
 	VariantType(TypeVector types) : types(types) {};

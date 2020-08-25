@@ -89,7 +89,11 @@ enum class MEMORYSYSTEM_API OpCode
 	GET_CHAR_FROM_STRING,
 	SET_CHAR_FROM_STRING,
 
-	CALL // function or generator label, number of arguments
+	CALL_FUNCTION, // id, number of arguments
+	CALL_GENERATOR
 };
 
 using ByteVector = MEMORYSYSTEM_API std::vector<std::byte>;
+
+MEMORYSYSTEM_API int get_opcode_arity(std::byte opcode);
+MEMORYSYSTEM_API int get_opcode_arity(OpCode opcode);
