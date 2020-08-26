@@ -427,7 +427,7 @@ Statement_ptr Parser::parse_type_definition(bool is_public, int current_indent)
 	return MAKE_STATEMENT(UDTDefinition(is_public, name->value, member_types, is_public_member_map));
 }
 
-tuple<wstring, identifier_type_pair_vector, optional<Type_ptr>, Block> Parser::parse_callable_definition(int current_indent)
+tuple<wstring, identifier_type_pair_vector, Type_ptr, Block> Parser::parse_callable_definition(int current_indent)
 {
 	auto identifier = token_pipe->required(WTokenType::CALLABLE_IDENTIFIER);
 	token_pipe->expect(WTokenType::OPEN_PARENTHESIS);
@@ -467,14 +467,14 @@ tuple<wstring, identifier_type_pair_vector, optional<Type_ptr>, Block> Parser::p
 
 Statement_ptr Parser::parse_function_definition(bool is_public, int current_indent)
 {
-	auto [identifier, arguments, optional_return_type, Block] = parse_callable_definition(current_indent);
-	return MAKE_STATEMENT(FunctionDefinition(is_public, identifier, arguments, optional_return_type, Block));
+	auto [identifier, arguments, optional_return_type, block] = parse_callable_definition(current_indent);
+	return MAKE_STATEMENT(FunctionDefinition(is_public, identifier, arguments, optional_return_type, block));
 }
 
 Statement_ptr Parser::parse_generator_definition(bool is_public, int current_indent)
 {
-	auto [identifier, arguments, optional_return_type, Block] = parse_callable_definition(current_indent);
-	return MAKE_STATEMENT(GeneratorDefinition(is_public, identifier, arguments, optional_return_type, Block));
+	auto [identifier, arguments, optional_return_type, block] = parse_callable_definition(current_indent);
+	return MAKE_STATEMENT(GeneratorDefinition(is_public, identifier, arguments, optional_return_type, block));
 }
 
 Statement_ptr Parser::parse_enum_definition(bool is_public, int current_indent)

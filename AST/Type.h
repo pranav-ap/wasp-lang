@@ -22,6 +22,8 @@ struct MapType;
 struct EnumType;
 struct VariantType;
 struct NoneType;
+struct FunctionType;
+struct GeneratorType;
 
 using Type = AST_API std::variant<
 	std::monostate,
@@ -31,7 +33,8 @@ using Type = AST_API std::variant<
 	EnumType,
 	VariantType,
 	NoneType,
-	AnyType
+	AnyType,
+	FunctionType, GeneratorType
 >;
 
 using Type_ptr = AST_API std::shared_ptr<Type>;
@@ -53,6 +56,15 @@ struct AST_API CompositeType : public AnyType
 
 struct AST_API NoneType : public AnyType
 {
+};
+
+struct AST_API CallableType : public AnyType
+{
+	TypeVector input_types;
+	std::optional<Type_ptr> return_type;
+
+	CallableType(TypeVector input_types, std::optional<Type_ptr> return_type)
+		: input_types(input_types), return_type(return_type) {};
 };
 
 // Scalar Types
@@ -108,4 +120,18 @@ struct AST_API VariantType : public CompositeType
 {
 	TypeVector types;
 	VariantType(TypeVector types) : types(types) {};
+};
+
+// Callable Type
+
+struct AST_API FunctionType : public CallableType
+{
+	FunctionType(TypeVector input_types, std::optional<Type_ptr> return_type)
+		: CallableType(input_types, return_type) {};
+};
+
+struct AST_API GeneratorType : public CallableType
+{
+	GeneratorType(TypeVector input_types, std::optional<Type_ptr> return_type)
+		: CallableType(input_types, return_type) {};
 };

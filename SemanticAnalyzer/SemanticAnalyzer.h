@@ -8,14 +8,16 @@
 
 #include "Type.h"
 #include "TypeSystem.h"
-#include "SymbolTable.h"
+#include "SymbolScope.h"
 #include "Statement.h"
 #include <memory>
+#include <stack>
 #include <optional>
 
 class SEMANTICANALYZER_API SemanticAnalyzer
 {
-	Scope_ptr symbol_table;
+	SymbolScope_ptr current_scope;
+	TypeSystem_ptr type_system;
 
 	// Statement
 
@@ -55,14 +57,15 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 	Type_ptr visit(UDTConstruct const& expr);
 	Type_ptr visit(UDTMemberAccess const& expr);
 	Type_ptr visit(EnumMember const& expr);
-	Type_ptr visit(Identifier const& expr);
 	Type_ptr visit(Call const& expr);
 	Type_ptr visit(Unary const& expr);
 	Type_ptr visit(Binary const& expr);
 
+	Symbol_ptr visit(Identifier const& expr);
+
 	// Utils
 
-	void enter_scope();
+	void enter_scope(ScopeType scope_type);
 	void leave_scope();
 
 public:

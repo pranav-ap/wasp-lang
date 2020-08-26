@@ -167,23 +167,23 @@ struct AST_API AliasDefinition : public Definition
 struct AST_API CallableDefinition : public Definition
 {
 	NameTypePairs arguments;
-	std::optional<Type_ptr> return_type;
+	Type_ptr return_type;
 	Block block;
 
-	CallableDefinition(bool is_public, std::wstring name, NameTypePairs arguments, std::optional<Type_ptr> return_type, Block body)
-		: Definition(is_public, name), block(body), arguments(arguments), return_type(return_type) {};
+	CallableDefinition(bool is_public, std::wstring name, NameTypePairs arguments, Type_ptr type, Block body)
+		: Definition(is_public, name), block(body), arguments(arguments), return_type(type) {};
 };
 
 struct AST_API FunctionDefinition : public CallableDefinition
 {
-	FunctionDefinition(bool is_public, std::wstring name, NameTypePairs arguments, std::optional<Type_ptr> return_type, Block body)
-		: CallableDefinition(is_public, name, arguments, return_type, body) {};
+	FunctionDefinition(bool is_public, std::wstring name, NameTypePairs arguments, Type_ptr type, Block body)
+		: CallableDefinition(is_public, name, arguments, type, body) {};
 };
 
 struct AST_API GeneratorDefinition : public CallableDefinition
 {
-	GeneratorDefinition(bool is_public, std::wstring name, NameTypePairs arguments, std::optional<Type_ptr> return_type, Block body)
-		: CallableDefinition(is_public, name, arguments, return_type, body) {};
+	GeneratorDefinition(bool is_public, std::wstring name, NameTypePairs arguments, Type_ptr type, Block body)
+		: CallableDefinition(is_public, name, arguments, type, body) {};
 };
 
 struct AST_API EnumDefinition : public Definition

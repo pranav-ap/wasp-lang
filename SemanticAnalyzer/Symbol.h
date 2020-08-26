@@ -9,7 +9,7 @@
 #include <utility>
 
 struct VariableSymbol;
-struct FunctionSymbol;
+struct CallableSymbol;
 struct EnumSymbol;
 struct UDTSymbol;
 struct AliasSymbol;
@@ -17,7 +17,7 @@ struct AliasSymbol;
 using Symbol = std::variant<
 	std::monostate,
 	VariableSymbol,
-	FunctionSymbol,
+	CallableSymbol,
 	EnumSymbol,
 	UDTSymbol,
 	AliasSymbol
@@ -30,36 +30,35 @@ using StringVector = std::vector<std::wstring>;
 struct SymbolBase
 {
 	std::wstring name;
+	Type_ptr type;
 	bool is_public;
 
-	SymbolBase(std::wstring name, bool is_public)
-		: name(name), is_public(is_public) {};
+	SymbolBase(std::wstring name, bool is_public, Type_ptr type)
+		: name(name), is_public(is_public), type(type) {};
 };
 
 struct VariableSymbol : public SymbolBase
 {
 	bool is_mutable;
-	Type_ptr type;
 
 	VariableSymbol(std::wstring name, bool is_public, bool is_mutable, Type_ptr type)
-		: SymbolBase(name, is_public), is_mutable(is_mutable), type(type) {};
+		: SymbolBase(name, is_public, type), is_mutable(is_mutable) {};
 };
 
-struct FunctionSymbol : public SymbolBase
+struct CallableSymbol : public SymbolBase
 {
 	NameTypePairs argument_types;
-	std::optional<Type_ptr> return_type;
 
-	FunctionSymbol(std::wstring name, bool is_public, NameTypePairs argument_types, std::optional<Type_ptr> return_type)
-		: SymbolBase(name, is_public), argument_types(argument_types), return_type(return_type) {};
+	CallableSymbol(std::wstring name, bool is_public, NameTypePairs argument_types, Type_ptr type)
+		: SymbolBase(name, is_public, type), argument_types(argument_types) {};
 };
 
 struct EnumSymbol : public SymbolBase
 {
 	StringVector members;
 
-	EnumSymbol(std::wstring name, bool is_public, StringVector members)
-		: SymbolBase(name, is_public), members(members) {};
+	EnumSymbol(std::wstring name, bool is_public, StringVector members, Type_ptr type)
+		: SymbolBase(name, is_public, type), members(members) {};
 };
 
 struct UDTSymbol : public SymbolBase
@@ -67,20 +66,18 @@ struct UDTSymbol : public SymbolBase
 	std::map<std::wstring, Type_ptr> member_types;
 	std::map<std::wstring, bool> is_public_member;
 
-	UDTSymbol(std::wstring name, bool is_public, std::map<std::wstring, Type_ptr> member_types, std::map<std::wstring, bool> is_public_member)
-		: SymbolBase(name, is_public), member_types(member_types), is_public_member(is_public_member) {};
+	UDTSymbol(std::wstring name, bool is_public, std::map<std::wstring, Type_ptr> member_types, std::map<std::wstring, bool> is_public_member, Type_ptr type)
+		: SymbolBase(name, is_public, type), member_types(member_types), is_public_member(is_public_member) {};
 };
 
 struct AliasSymbol : public SymbolBase
 {
-	Type_ptr type;
-
 	AliasSymbol(std::wstring name, bool is_public, Type_ptr type)
-		: SymbolBase(name, is_public), type(type) {};
+		: SymbolBase(name, is_public, type) {};
 };
 
 using VariableSymbol_ptr = std::shared_ptr<VariableSymbol>;
-using FunctionSymbol_ptr = std::shared_ptr<FunctionSymbol>;
+using CallableSymbol_ptr = std::shared_ptr<CallableSymbol>;
 using EnumSymbol_ptr = std::shared_ptr<EnumSymbol>;
 using UDTSymbol_ptr = std::shared_ptr<UDTSymbol>;
 using AliasSymbol_ptr = std::shared_ptr<AliasSymbol>;

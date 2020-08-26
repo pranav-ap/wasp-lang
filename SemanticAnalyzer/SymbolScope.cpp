@@ -1,11 +1,12 @@
 #pragma once
 #include "pch.h"
-#include "SymbolTable.h"
+#include "Symbol.h"
+#include "SymbolScope.h"
 #include "Assertion.h"
 
 #define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr")
 
-void SemanticAnalyzerScope::define(std::wstring name, Symbol_ptr symbol)
+void SymbolScope::define(std::wstring name, Symbol_ptr symbol)
 {
 	NULL_CHECK(symbol);
 
@@ -13,7 +14,7 @@ void SemanticAnalyzerScope::define(std::wstring name, Symbol_ptr symbol)
 	ASSERT(result.second, "Name already exists in scope!");
 }
 
-std::optional<Symbol_ptr> SemanticAnalyzerScope::lookup(std::wstring name)
+std::optional<Symbol_ptr> SymbolScope::lookup(std::wstring name)
 {
 	if (store.contains(name))
 	{
