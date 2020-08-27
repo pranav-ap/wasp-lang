@@ -33,8 +33,6 @@ struct AliasDefinition;
 struct FunctionDefinition;
 struct GeneratorDefinition;
 struct EnumDefinition;
-struct ImportCustom;
-struct ImportInBuilt;
 struct ExpressionStatement;
 struct AssertStatement;
 
@@ -55,15 +53,12 @@ using Statement = AST_API std::variant <
 	FunctionDefinition, GeneratorDefinition,
 	EnumDefinition,
 
-	ImportCustom, ImportInBuilt,
-
 	ExpressionStatement,
 	AssertStatement
-> ;
+>;
 
 using Statement_ptr = AST_API std::shared_ptr<Statement>;
 using Block = AST_API std::vector<Statement_ptr>;
-using NameTypePairs = AST_API std::vector<std::pair<std::wstring, Type_ptr>>;
 using ConditionBlockPairs = AST_API std::vector<std::pair<Expression_ptr, Block>>;
 using StringVector = AST_API std::vector<std::wstring>;
 
@@ -150,10 +145,10 @@ struct AST_API VariableDefinition : public Definition
 struct AST_API UDTDefinition : public Definition
 {
 	std::map<std::wstring, Type_ptr> member_types;
-	std::map<std::wstring, bool> is_public_member;
+	StringVector public_members;
 
-	UDTDefinition(bool is_public, std::wstring name, std::map<std::wstring, Type_ptr> member_types, std::map<std::wstring, bool> is_public_member)
-		: Definition(is_public, name), member_types(member_types), is_public_member(is_public_member) {};
+	UDTDefinition(bool is_public, std::wstring name, std::map<std::wstring, Type_ptr> member_types, StringVector public_members)
+		: Definition(is_public, name), member_types(member_types), public_members(public_members) {};
 };
 
 struct AST_API AliasDefinition : public Definition
@@ -166,23 +161,23 @@ struct AST_API AliasDefinition : public Definition
 
 struct AST_API CallableDefinition : public Definition
 {
-	NameTypePairs arguments;
+	StringVector arguments;
 	Type_ptr type;
 	Block block;
 
-	CallableDefinition(bool is_public, std::wstring name, NameTypePairs arguments, Type_ptr type, Block body)
-		: Definition(is_public, name), block(body), arguments(arguments), type(type) {};
+	CallableDefinition(bool is_public, std::wstring name, StringVector arguments, Type_ptr type, Block body)
+		: Definition(is_public, name), arguments(arguments), type(type), block(body) {};
 };
 
 struct AST_API FunctionDefinition : public CallableDefinition
 {
-	FunctionDefinition(bool is_public, std::wstring name, NameTypePairs arguments, Type_ptr type, Block body)
+	FunctionDefinition(bool is_public, std::wstring name, StringVector arguments, Type_ptr type, Block body)
 		: CallableDefinition(is_public, name, arguments, type, body) {};
 };
 
 struct AST_API GeneratorDefinition : public CallableDefinition
 {
-	GeneratorDefinition(bool is_public, std::wstring name, NameTypePairs arguments, Type_ptr type, Block body)
+	GeneratorDefinition(bool is_public, std::wstring name, StringVector arguments, Type_ptr type, Block body)
 		: CallableDefinition(is_public, name, arguments, type, body) {};
 };
 
@@ -192,31 +187,6 @@ struct AST_API EnumDefinition : public Definition
 
 	EnumDefinition(bool is_public, std::wstring name, StringVector members)
 		: Definition(is_public, name), members(members) {};
-};
-
-// Import
-
-struct AST_API Import
-{
-	StringVector goods;
-
-	Import(StringVector goods) : goods(goods) {};
-};
-
-struct AST_API ImportCustom : public Import
-{
-	std::wstring path;
-
-	ImportCustom(std::wstring path, StringVector goods)
-		: Import(goods), path(path) {};
-};
-
-struct AST_API ImportInBuilt : public Import
-{
-	std::wstring module_name;
-
-	ImportInBuilt(std::wstring module_name, StringVector goods)
-		: Import(goods), module_name(module_name) {};
 };
 
 // Other

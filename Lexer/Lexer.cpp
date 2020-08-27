@@ -43,6 +43,8 @@ using std::vector;
 void Lexer::init(std::wstring raw_source)
 {
 	this->raw_source = raw_source;
+	tokens.clear();
+
 	position = TokenPosition();
 	pointer = Pointer();
 }

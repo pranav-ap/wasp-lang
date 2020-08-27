@@ -43,8 +43,6 @@ using std::optional;
 using std::make_optional;
 using std::holds_alternative;
 
-using identifier_type_pair_vector = std::vector<std::pair<std::wstring, Type_ptr>>;
-
 Module_ptr Parser::execute(std::vector<Token_ptr>& tokens)
 {
 	init(tokens);
@@ -88,8 +86,6 @@ Statement_ptr Parser::parse_statement(bool is_public, int current_indent)
 
 	switch (token.value()->type)
 	{
-		CASE(WTokenType::IMPORT, parse_import());
-
 		CASE(WTokenType::IF, parse_branching(current_indent));
 		CASE(WTokenType::FOR, parse_for_in_loop(current_indent));
 		CASE(WTokenType::WHILE, parse_while_loop(current_indent));
@@ -104,7 +100,7 @@ Statement_ptr Parser::parse_statement(bool is_public, int current_indent)
 
 		CASE(WTokenType::PASS, parse_pass());
 		CASE(WTokenType::BREAK, parse_break());
-		CASE(WTokenType::RETURN_VOID, parse_return());
+		CASE(WTokenType::RETURN_KEYWORD, parse_return());
 		CASE(WTokenType::YIELD_KEYWORD, parse_yield());
 		CASE(WTokenType::CONTINUE, parse_continue());
 
@@ -135,7 +131,7 @@ Statement_ptr Parser::parse_public_statement(int current_indent)
 		CASE(WTokenType::ENUM, parse_enum_definition(is_public, current_indent));
 	default:
 	{
-		FATAL(ERROR_CODE::UNEXPECTED_KEYWORD);
+		FATAL("UNEXPECTED_KEYWORD");
 	}
 	}
 }
@@ -175,7 +171,7 @@ Statement_ptr Parser::parse_expression_statement()
 	}
 	default:
 	{
-		FATAL(ERROR_CODE::MALFORMED_STATEMENT);
+		FATAL("MALFORMED_STATEMENT");
 	}
 	}
 }
@@ -294,9 +290,9 @@ Statement_ptr Parser::parse_while_loop(int current_indent)
 	token_pipe->expect(WTokenType::COLON);
 	token_pipe->expect(WTokenType::EOL);
 
-	auto Block = parse_block(current_indent + 4);
+	auto block = parse_block(current_indent + 4);
 
-	return MAKE_STATEMENT(WhileLoop(condition, Block));
+	return MAKE_STATEMENT(WhileLoop(condition, block));
 }
 
 Statement_ptr Parser::parse_for_in_loop(int current_indent)
@@ -311,9 +307,9 @@ Statement_ptr Parser::parse_for_in_loop(int current_indent)
 	token_pipe->expect(WTokenType::COLON);
 	token_pipe->expect(WTokenType::EOL);
 
-	auto Block = parse_block(current_indent + 4);
+	auto block = parse_block(current_indent + 4);
 
-	return MAKE_STATEMENT(ForInLoop(item_type, identifier, iterable_expression, Block));
+	return MAKE_STATEMENT(ForInLoop(item_type, identifier, iterable_expression, block));
 }
 
 Statement_ptr Parser::parse_return()
@@ -397,14 +393,14 @@ Statement_ptr Parser::parse_type_definition(bool is_public, int current_indent)
 	token_pipe->expect(WTokenType::EOL);
 
 	map<wstring, Type_ptr> member_types;
-	map<wstring, bool> is_public_member_map;
+	StringVector public_members;
 
 	token_pipe->expect_indent(current_indent + 4);
 
 	if (token_pipe->optional(WTokenType::PASS))
 	{
 		token_pipe->expect(WTokenType::EOL);
-		return MAKE_STATEMENT(UDTDefinition(is_public, name->value, member_types, is_public_member_map));
+		return MAKE_STATEMENT(UDTDefinition(is_public, name->value, member_types, public_members));
 	}
 
 	while (true)
@@ -416,7 +412,11 @@ Statement_ptr Parser::parse_type_definition(bool is_public, int current_indent)
 
 		auto [identifier, type] = consume_identifier_type_pair();
 		member_types.insert_or_assign(identifier, type);
-		is_public_member_map.insert_or_assign(identifier, is_public_member);
+
+		if (is_public_member)
+		{
+			public_members.push_back(identifier);
+		}
 
 		token_pipe->expect(WTokenType::EOL);
 
@@ -424,22 +424,24 @@ Statement_ptr Parser::parse_type_definition(bool is_public, int current_indent)
 			break;
 	}
 
-	return MAKE_STATEMENT(UDTDefinition(is_public, name->value, member_types, is_public_member_map));
+	return MAKE_STATEMENT(UDTDefinition(is_public, name->value, member_types, public_members));
 }
 
-tuple<wstring, identifier_type_pair_vector, TypeVector, optional<Type_ptr>, Block> Parser::parse_callable_definition(int current_indent)
+tuple<wstring, StringVector, TypeVector, optional<Type_ptr>, Block> Parser::parse_callable_definition(int current_indent)
 {
 	auto identifier = token_pipe->required(WTokenType::CALLABLE_IDENTIFIER);
 	token_pipe->expect(WTokenType::OPEN_PARENTHESIS);
 
-	identifier_type_pair_vector arguments;
+	StringVector arguments;
+	TypeVector argument_types;
 
 	if (!token_pipe->optional(WTokenType::CLOSE_PARENTHESIS))
 	{
 		while (true)
 		{
-			auto identifier_type_pair = consume_identifier_type_pair();
-			arguments.push_back(identifier_type_pair);
+			auto [identifier, type] = consume_identifier_type_pair();
+			arguments.push_back(identifier);
+			argument_types.push_back(type);
 
 			if (token_pipe->optional(WTokenType::COMMA))
 				continue;
@@ -447,13 +449,6 @@ tuple<wstring, identifier_type_pair_vector, TypeVector, optional<Type_ptr>, Bloc
 			token_pipe->expect(WTokenType::CLOSE_PARENTHESIS);
 			break;
 		}
-	}
-
-	TypeVector argument_types;
-
-	for (auto const& [_, arg_type] : arguments)
-	{
-		argument_types.push_back(arg_type);
 	}
 
 	optional<Type_ptr> optional_return_type = std::nullopt;
@@ -672,7 +667,7 @@ Type_ptr Parser::consume_datatype_word(bool is_optional)
 	}
 	}
 
-	FATAL(ERROR_CODE::EXPECTED_DATATYPE);
+	FATAL("EXPECTED_DATATYPE");
 }
 
 pair<wstring, Type_ptr>  Parser::consume_identifier_type_pair()
@@ -682,39 +677,6 @@ pair<wstring, Type_ptr>  Parser::consume_identifier_type_pair()
 	auto type = parse_type();
 
 	return make_pair(identifier->value, move(type));
-}
-
-// Other
-
-Statement_ptr Parser::parse_import()
-{
-	token_pipe->expect(WTokenType::OPEN_CURLY_BRACE);
-
-	StringVector goods;
-
-	while (true)
-	{
-		auto identifier = token_pipe->required(WTokenType::IDENTIFIER);
-		goods.push_back(identifier->value);
-
-		if (token_pipe->optional(WTokenType::CLOSE_CURLY_BRACE))
-			break;
-
-		token_pipe->expect(WTokenType::COMMA);
-	}
-
-	token_pipe->expect(WTokenType::FROM);
-
-	if (auto current = token_pipe->optional(WTokenType::IDENTIFIER))
-	{
-		token_pipe->expect(WTokenType::EOL);
-		return MAKE_STATEMENT(ImportInBuilt(current.value()->value, goods));
-	}
-
-	auto path_token = token_pipe->required(WTokenType::STRING_LITERAL);
-	token_pipe->expect(WTokenType::EOL);
-
-	return MAKE_STATEMENT(ImportCustom(path_token->value, goods));
 }
 
 // Utils
@@ -760,5 +722,5 @@ void Parser::convert_shortcut_token(Token_ptr token)
 	}
 	}
 
-	FATAL(ERROR_CODE::UNEXPECTED_TOKEN);
+	FATAL("UNEXPECTED_TOKEN");
 }

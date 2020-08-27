@@ -347,7 +347,7 @@ std::vector<std::wstring> ExpressionParser::parse_enum_member_chain()
 
 Expression_ptr ExpressionParser::parse_member_access()
 {
-	ASSERT(ast.size() > 0, ERROR_CODE::UNEXPECTED_TOKEN);
+	ASSERT(ast.size() > 0, "UNEXPECTED_TOKEN");
 
 	auto container = move(ast.top());
 	ast.pop();
@@ -389,7 +389,7 @@ Expression_ptr ExpressionParser::finish_parsing()
 {
 	operator_stack->drain_into_ast(ast);
 
-	ASSERT(ast.size() == 1, ERROR_CODE::MALFORMED_EXPRESSION);
+	ASSERT(ast.size() == 1, "MALFORMED_EXPRESSION");
 
 	auto result = move(ast.top());
 	ast.pop();
@@ -426,7 +426,7 @@ Expression_ptr ExpressionParser::consume_valid_map_key()
 	}
 	}
 
-	FATAL(ERROR_CODE::INVALID_MAP_KEY);
+	FATAL("INVALID_MAP_KEY");
 }
 
 Expression_ptr ExpressionParser::consume_valid_UDT_key()
@@ -443,7 +443,7 @@ Expression_ptr ExpressionParser::consume_valid_UDT_key()
 	}
 	}
 
-	FATAL(ERROR_CODE::INVALID_MAP_KEY);
+	FATAL("INVALID_MAP_KEY");
 }
 
 void ExpressionParser::push_context(ExpressionContext context)
@@ -453,6 +453,6 @@ void ExpressionParser::push_context(ExpressionContext context)
 
 void ExpressionParser::pop_context(ExpressionContext context)
 {
-	ASSERT(context_stack.top() == context, ERROR_CODE::EXPRESSION_PARSER_CONTEXT_MISMATCH);
+	ASSERT(context_stack.top() == context, "EXPRESSION_PARSER_CONTEXT_MISMATCH");
 	context_stack.pop();
 }

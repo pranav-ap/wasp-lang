@@ -37,8 +37,6 @@ class PARSER_API Parser
 	Statement_ptr consume_assignment(ExpressionVector lhs_expressions);
 	Statement_ptr consume_shortcut_assignment(Expression_ptr lhs_expression, Token_ptr shortcut_operator);
 
-	Statement_ptr parse_import();
-
 	// Block statement parsing
 
 	Statement_ptr parse_branching(int expected_indent = 0);
@@ -63,7 +61,7 @@ class PARSER_API Parser
 	Statement_ptr parse_enum_definition(bool is_public, int expected_indent);
 	std::vector<std::wstring> parse_enum_members(int expected_indent);
 
-	std::tuple<std::wstring, std::vector<std::pair<std::wstring, Type_ptr>>, TypeVector, std::optional<Type_ptr>, Block> parse_callable_definition(int expected_indent);
+	std::tuple<std::wstring, std::vector<std::wstring>, TypeVector, std::optional<Type_ptr>, Block> parse_callable_definition(int expected_indent);
 	Statement_ptr parse_function_definition(bool is_public, int expected_indent);
 	Statement_ptr parse_generator_definition(bool is_public, int expected_indent);
 

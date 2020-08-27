@@ -32,14 +32,14 @@ void OperatorStack::push_operator_into_ast(Token_ptr operator_token, ExpressionS
 	}
 	default:
 	{
-		FATAL(ERROR_CODE::ARITY_ERROR);
+		FATAL("ARITY_ERROR");
 	}
 	}
 }
 
 void OperatorStack::push_unary_operator_to_ast(Token_ptr operator_token, ExpressionStack& ast)
 {
-	ASSERT(ast.size() > 0, ERROR_CODE::ARITY_ERROR);
+	ASSERT(ast.size() > 0, "ARITY_ERROR");
 
 	Expression_ptr expression = move(ast.top());
 	ast.pop();
@@ -54,7 +54,7 @@ void OperatorStack::push_unary_operator_to_ast(Token_ptr operator_token, Express
 
 void OperatorStack::push_binary_operator_to_ast(Token_ptr operator_token, ExpressionStack& ast)
 {
-	ASSERT(ast.size() >= 2, ERROR_CODE::ARITY_ERROR);
+	ASSERT(ast.size() >= 2, "ARITY_ERROR");
 
 	Expression_ptr rhs = move(ast.top());
 	ast.pop();

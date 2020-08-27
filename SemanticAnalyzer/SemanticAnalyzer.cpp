@@ -58,8 +58,6 @@ void SemanticAnalyzer::visit(const Statement_ptr statement)
 		[&](FunctionDefinition const& stat) { visit(stat); },
 		[&](GeneratorDefinition const& stat) { visit(stat); },
 		[&](EnumDefinition const& stat) { visit(stat); },
-		[&](ImportCustom const& stat) { visit(stat); },
-		[&](ImportInBuilt const& stat) { visit(stat); },
 		[&](ExpressionStatement const& stat) { visit(stat); },
 		[&](AssertStatement const& stat) { visit(stat); },
 
@@ -95,7 +93,7 @@ void SemanticAnalyzer::visit(Assignment const& statement)
 		}, *symbol.value());
 
 	Type_ptr rhs_type = visit(statement.expression);
-	ASSERT(type_system->assignable(lhs_type, rhs_type), "Type mismatch in assignment");
+	ASSERT(type_system->assignable(current_scope, lhs_type, rhs_type), "Type mismatch in assignment");
 }
 
 void SemanticAnalyzer::visit(Branching const& statement)
@@ -213,7 +211,7 @@ void SemanticAnalyzer::visit(UDTDefinition const& statement)
 		statement.name,
 		statement.is_public,
 		statement.member_types,
-		statement.is_public_member,
+		statement.public_members,
 		type
 	));
 
@@ -277,14 +275,6 @@ void SemanticAnalyzer::visit(EnumDefinition const& statement)
 	current_scope->define(statement.name, symbol);
 }
 
-void SemanticAnalyzer::visit(ImportCustom const& statement)
-{
-}
-
-void SemanticAnalyzer::visit(ImportInBuilt const& statement)
-{
-}
-
 void SemanticAnalyzer::visit(ExpressionStatement const& statement)
 {
 	visit(statement.expression);
@@ -300,31 +290,27 @@ void SemanticAnalyzer::visit(AssertStatement const& statement)
 
 Type_ptr SemanticAnalyzer::visit(const Expression_ptr expression)
 {
-	/*
-		return std::visit(overloaded{
-			[&](double expr) { return visit(expr); },
-			[&](std::wstring expr) { return visit(expr); },
-			[&](bool expr) { return visit(expr); },
-			[&](ListLiteral const& expr) { return visit(expr); },
-			[&](TupleLiteral const& expr) {return  visit(expr); },
-			[&](MapLiteral const& expr) { return visit(expr); },
-			[&](UDTConstruct const& expr) { return visit(expr); },
-			[&](UDTMemberAccess const& expr) { return visit(expr); },
-			[&](EnumMember const& expr) { return visit(expr); },
-			[&](Identifier const& expr) { return visit(expr); },
-			[&](Call const& expr) { return visit(expr); },
-			[&](Unary const& expr) { return visit(expr); },
-			[&](Binary const& expr) { return visit(expr); },
+	return std::visit(overloaded{
+		[&](double expr) { return visit(expr); },
+		[&](std::wstring expr) { return visit(expr); },
+		[&](bool expr) { return visit(expr); },
+		[&](ListLiteral const& expr) { return visit(expr); },
+		[&](TupleLiteral const& expr) {return  visit(expr); },
+		[&](MapLiteral const& expr) { return visit(expr); },
+		[&](UDTConstruct const& expr) { return visit(expr); },
+		[&](UDTMemberAccess const& expr) { return visit(expr); },
+		[&](EnumMember const& expr) { return visit(expr); },
+		[&](Identifier const& expr) { return visit(expr); },
+		[&](Unary const& expr) { return visit(expr); },
+		[&](Binary const& expr) { return visit(expr); },
+		[&](Call const& expr) { return visit(expr); },
 
-			[](auto)
-			{
-				FATAL("Never Seen this Statement before!");
-				return MAKE_TYPE(NoneType());
-			}
-			}, *expression);
-	*/
-
-	return MAKE_TYPE(NoneType());
+		[&](auto)
+		{
+			FATAL("Never Seen this Statement before!");
+			return MAKE_TYPE(NoneType());
+		}
+		}, *expression);
 }
 
 Type_ptr SemanticAnalyzer::visit(const double expr)
@@ -440,11 +426,15 @@ Type_ptr SemanticAnalyzer::visit(EnumMember const& expr)
 
 Type_ptr SemanticAnalyzer::visit(Call const& expr)
 {
+	// does function with name exit
+
 	std::optional<Symbol_ptr> symbol = current_scope->lookup(expr.name);
 	OPT_CHECK(symbol);
 	ASSERT(holds_alternative<CallableSymbol>(*symbol.value()), "This is not a Callable!");
 
-	auto function_symbol = get_if<CallableSymbol>(&*symbol.value());
+	auto callable_symbol = get_if<CallableSymbol>(&*symbol.value());
+
+	// infer types from arguments
 
 	TypeVector actual_argument_types;
 
@@ -454,22 +444,30 @@ Type_ptr SemanticAnalyzer::visit(Call const& expr)
 		actual_argument_types.push_back(argument_type);
 	}
 
-	Type_ptr return_type = std::visit(overloaded{
-		[&](FunctionType const& type)
+	// compare to expected
+
+	std::optional<Type_ptr> return_type = std::visit(overloaded{
+		[&](FunctionType const& type) -> std::optional<Type_ptr>
 		{
-			ASSERT(type_system->equal(actual_argument_types, type.input_types), "Argument mismatch in call");
+			ASSERT(type_system->equal(current_scope, actual_argument_types, type.input_types), "Argument mismatch in call");
 			return type.return_type;
 		},
-		[&](GeneratorType const& type)
+		[&](GeneratorType const& type) -> std::optional<Type_ptr>
 		{
-			ASSERT(type_system->equal(actual_argument_types, type.input_types), "Argument mismatch in call");
+			ASSERT(type_system->equal(current_scope, actual_argument_types, type.input_types), "Argument mismatch in call");
 			return type.return_type;
 		},
 
-		[](auto) { return MAKE_TYPE(NoneType()); }
-		}, *function_symbol->type);
+		[](auto) -> std::optional<Type_ptr>
+		{ return std::nullopt; }
+		}, *callable_symbol->type);
 
-	return return_type;
+	if (return_type.has_value())
+	{
+		return return_type.value();
+	}
+
+	return type_system->get_none_type();
 }
 
 Type_ptr SemanticAnalyzer::visit(Unary const& expr)
@@ -482,7 +480,7 @@ Type_ptr SemanticAnalyzer::visit(Unary const& expr)
 	case WTokenType::UNARY_MINUS:
 	{
 		ASSERT(type_system->is_number_type(operand_type), "Number operand is expected");
-		return MAKE_TYPE(NumberType());
+		return type_system->get_number_type();
 	}
 	case WTokenType::BANG:
 	{
@@ -512,8 +510,8 @@ Type_ptr SemanticAnalyzer::visit(Binary const& expr)
 	{
 		if (type_system->is_number_type(lhs_operand_type))
 		{
-			ASSERT(type_system->is_number_type(rhs_operand_type), "String operand is expected");
-			return MAKE_TYPE(NumberType());
+			ASSERT(type_system->is_number_type(rhs_operand_type), "Number operand is expected");
+			return type_system->get_number_type();
 		}
 		else if (type_system->is_string_type(lhs_operand_type))
 		{
@@ -522,7 +520,7 @@ Type_ptr SemanticAnalyzer::visit(Binary const& expr)
 				type_system->is_string_type(rhs_operand_type),
 				"Number or string operand is expected");
 
-			return MAKE_TYPE(StringType());
+			return type_system->get_string_type();
 		}
 		else
 		{
@@ -541,11 +539,36 @@ Type_ptr SemanticAnalyzer::visit(Binary const& expr)
 	{
 		ASSERT(type_system->is_number_type(lhs_operand_type), "Number operand is expected");
 		ASSERT(type_system->is_number_type(rhs_operand_type), "Number operand is expected");
-		return MAKE_TYPE(NumberType());
+		return type_system->get_number_type();
+	}
+	case WTokenType::EQUAL_EQUAL:
+	case WTokenType::BANG_EQUAL:
+	{
+		if (type_system->is_number_type(lhs_operand_type))
+		{
+			ASSERT(type_system->is_number_type(rhs_operand_type), "Number operand is expected");
+			return type_system->get_boolean_type();
+		}
+		else if (type_system->is_string_type(lhs_operand_type))
+		{
+			ASSERT(type_system->is_string_type(rhs_operand_type), "String operand is expected");
+			return type_system->get_boolean_type();
+		}
+		else if (type_system->is_boolean_type(lhs_operand_type))
+		{
+			ASSERT(type_system->is_boolean_type(rhs_operand_type), "String operand is expected");
+			return type_system->get_boolean_type();
+		}
+		else
+		{
+			FATAL("Number or string or boolean operand is expected");
+		}
+
+		break;
 	}
 	default:
 	{
-		FATAL("What the hell is this unary statement?");
+		FATAL("What the hell is this Binary statement?");
 		break;
 	}
 	}
@@ -553,11 +576,20 @@ Type_ptr SemanticAnalyzer::visit(Binary const& expr)
 	return MAKE_TYPE(NoneType());
 }
 
-Symbol_ptr SemanticAnalyzer::visit(Identifier const& expr)
+Type_ptr SemanticAnalyzer::visit(Identifier const& expr)
 {
 	std::optional<Symbol_ptr> symbol = current_scope->lookup(expr.name);
 	OPT_CHECK(symbol);
-	return symbol.value();
+
+	return std::visit(overloaded{
+		[&](VariableSymbol const& sym) { return sym.type; },
+		[&](CallableSymbol const& sym) { return sym.type; },
+		[&](EnumSymbol const& sym) { return sym.type; },
+		[&](UDTSymbol const& sym) { return sym.type; },
+		[&](AliasSymbol const& sym) { return sym.type; },
+
+		[&](auto) { return type_system->get_none_type(); }
+		}, *symbol.value());
 }
 
 // Utils

@@ -1,4 +1,4 @@
-﻿const { io } = import('std/io')
+﻿let { io } = import('std/io')
 
 // Its more of a comment really
 
@@ -8,7 +8,6 @@ let x : [num] = [ 1, 2, 3 ]
 let x : ⌊ str ⌋ = ⌊ '1', 'hello' ⌋
 let x : ⟨ str -> str ⟩ = ⟨ 'a' : 'b', 'c' : 'd' ⟩
 
-a, b, c = 1, 2, 3
 a = 1, 2, 3
 
 if a > 3 and r == 3:
@@ -35,8 +34,6 @@ fn add(a : num, b : num) -> num
         return a + b + 4
     return a + b
 
-// add_num_num_return_num
-
 enum NAME :
     ID1
     ID2
@@ -49,28 +46,9 @@ NAME::ID1
 
 type length = num
 
-type Person extends Bird imp IAnimal :
+type Person:
     name: str
     foo: bool
-
-    fn init():
-        pass
-
-method Person SayHello() -> str
-    pass
-
-operator [Person + X] -> Person :
-    pass
-
-operator [- Person] -> Person :
-    pass
-
-interface IAnimal:
-    alive : bool
-
-    fn get_name()
-    fn check_is_alive()
-
 
 
 let x : Person = new Person('john', false)
@@ -79,24 +57,3 @@ x.foo.age
 x(123).foo(36, gg).age
 
 new Person('john', false).text
-
-
-
-
-
-
-
-$(SolutionDir)include;
-$(SolutionDir)Utils;
-$(SolutionDir)Type_System;
-$(SolutionDir)Token;
-$(SolutionDir)SemanticAnalyzer;
-$(SolutionDir)Parser;
-$(SolutionDir)ObjectSystem;
-$(SolutionDir)MemorySystem;
-$(SolutionDir)Lexer;
-$(SolutionDir)ControlFlowGraph;
-$(SolutionDir)Compiler;
-$(SolutionDir)Bytecode;
-$(SolutionDir)AST;
-

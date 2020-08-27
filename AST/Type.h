@@ -28,13 +28,12 @@ struct GeneratorType;
 
 using Type = AST_API std::variant<
 	std::monostate,
+	AnyType,
 	NumberType, StringType, BooleanType,
 	ListType, TupleType,
 	UDTType, MapType,
 	EnumType,
-	VariantType,
-	NoneType,
-	AnyType,
+	VariantType, NoneType,
 	FunctionType, GeneratorType
 >;
 

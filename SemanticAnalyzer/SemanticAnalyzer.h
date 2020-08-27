@@ -39,8 +39,6 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 	void visit(FunctionDefinition const& statement);
 	void visit(GeneratorDefinition const& statement);
 	void visit(EnumDefinition const& statement);
-	void visit(ImportCustom const& statement);
-	void visit(ImportInBuilt const& statement);
 	void visit(ExpressionStatement const& statement);
 	void visit(AssertStatement const& statement);
 
@@ -60,8 +58,7 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 	Type_ptr visit(Call const& expr);
 	Type_ptr visit(Unary const& expr);
 	Type_ptr visit(Binary const& expr);
-
-	Symbol_ptr visit(Identifier const& expr);
+	Type_ptr visit(Identifier const& expr);
 
 	// Utils
 

@@ -47,10 +47,11 @@ struct VariableSymbol : public SymbolBase
 
 struct CallableSymbol : public SymbolBase
 {
-	NameTypePairs argument_types;
+	StringVector arguments;
+	Type_ptr type;
 
-	CallableSymbol(std::wstring name, bool is_public, NameTypePairs argument_types, Type_ptr type)
-		: SymbolBase(name, is_public, type), argument_types(argument_types) {};
+	CallableSymbol(std::wstring name, bool is_public, StringVector arguments, Type_ptr type)
+		: SymbolBase(name, is_public, type), arguments(arguments), type(type) {};
 };
 
 struct EnumSymbol : public SymbolBase
@@ -64,10 +65,10 @@ struct EnumSymbol : public SymbolBase
 struct UDTSymbol : public SymbolBase
 {
 	std::map<std::wstring, Type_ptr> member_types;
-	std::map<std::wstring, bool> is_public_member;
+	StringVector public_members;
 
-	UDTSymbol(std::wstring name, bool is_public, std::map<std::wstring, Type_ptr> member_types, std::map<std::wstring, bool> is_public_member, Type_ptr type)
-		: SymbolBase(name, is_public, type), member_types(member_types), is_public_member(is_public_member) {};
+	UDTSymbol(std::wstring name, bool is_public, std::map<std::wstring, Type_ptr> member_types, StringVector public_members, Type_ptr type)
+		: SymbolBase(name, is_public, type), member_types(member_types), public_members(public_members) {};
 };
 
 struct AliasSymbol : public SymbolBase

@@ -90,7 +90,7 @@ enum class TOKEN_API WTokenType
 	IN_KEYWORD,
 
 	FN,
-	RETURN_VOID,
+	RETURN_KEYWORD,
 	GEN,
 	YIELD_KEYWORD,
 
@@ -106,9 +106,6 @@ enum class TOKEN_API WTokenType
 
 	TRUE_KEYWORD,
 	FALSE_KEYWORD,
-
-	IMPORT,
-	FROM,
 
 	NEW,
 
