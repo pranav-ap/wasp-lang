@@ -10,6 +10,8 @@ class TypeSystem
 	std::map<int, Type_ptr> type_pool;
 
 public:
+	TypeSystem();
+
 	bool is_boolean_type(const Type_ptr type) const;
 	bool is_number_type(const Type_ptr type) const;
 	bool is_string_type(const Type_ptr type) const;

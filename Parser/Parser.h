@@ -63,7 +63,7 @@ class PARSER_API Parser
 	Statement_ptr parse_enum_definition(bool is_public, int expected_indent);
 	std::vector<std::wstring> parse_enum_members(int expected_indent);
 
-	std::tuple<std::wstring, std::vector<std::pair<std::wstring, Type_ptr>>, Type_ptr, Block> parse_callable_definition(int expected_indent);
+	std::tuple<std::wstring, std::vector<std::pair<std::wstring, Type_ptr>>, TypeVector, std::optional<Type_ptr>, Block> parse_callable_definition(int expected_indent);
 	Statement_ptr parse_function_definition(bool is_public, int expected_indent);
 	Statement_ptr parse_generator_definition(bool is_public, int expected_indent);
 

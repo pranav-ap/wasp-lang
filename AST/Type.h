@@ -10,6 +10,7 @@
 #include <memory>
 #include <vector>
 #include <variant>
+#include <optional>
 
 struct AnyType;
 struct NumberType;

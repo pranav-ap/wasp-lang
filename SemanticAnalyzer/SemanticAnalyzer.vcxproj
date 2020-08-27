@@ -180,9 +180,6 @@
     <ProjectReference Include="..\AST\AST.vcxproj">
       <Project>{a287f968-bd00-4267-9ab3-115e709bccf0}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\Type_System\Type_System.vcxproj">
-      <Project>{91893e84-36aa-4c0c-89a9-9c79f2c970b9}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\Utils\Utils.vcxproj">
       <Project>{825d931e-a262-42d4-8af0-8e503ac06104}</Project>
     </ProjectReference>

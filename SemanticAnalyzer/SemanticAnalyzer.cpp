@@ -90,7 +90,7 @@ void SemanticAnalyzer::visit(Assignment const& statement)
 		[](auto)
 		{
 			FATAL("Never Seen this Statement before!");
-			return MAKE_TYPE();
+			return MAKE_TYPE(NoneType());
 		}
 		}, *symbol.value());
 
@@ -149,18 +149,31 @@ void SemanticAnalyzer::visit(ForInLoop const& statement)
 
 void SemanticAnalyzer::visit(Break const& statement)
 {
+	ASSERT(current_scope->enclosed_in(ScopeType::LOOP), "Break is not expected in this block");
 }
 
 void SemanticAnalyzer::visit(Continue const& statement)
 {
+	ASSERT(current_scope->enclosed_in(ScopeType::LOOP), "Continue is not expected in this block");
 }
 
 void SemanticAnalyzer::visit(Pass const& statement)
 {
+	ASSERT(current_scope->enclosed_in({
+		ScopeType::CONDITIONAL,
+		ScopeType::FUNCTION,
+		ScopeType::GENERATOR,
+		ScopeType::LOOP,
+		}), "Pass is not expected in this block");
 }
 
 void SemanticAnalyzer::visit(Return const& statement)
 {
+	ASSERT(current_scope->enclosed_in({
+		ScopeType::FUNCTION,
+		ScopeType::GENERATOR
+		}), "Return is not expected in this block");
+
 	if (statement.expression.has_value())
 	{
 		visit(statement.expression.value());
@@ -169,6 +182,11 @@ void SemanticAnalyzer::visit(Return const& statement)
 
 void SemanticAnalyzer::visit(YieldStatement const& statement)
 {
+	ASSERT(current_scope->enclosed_in({
+		   ScopeType::FUNCTION,
+		   ScopeType::GENERATOR
+		}), "Yield is not expected in this block");
+
 	if (statement.expression.has_value())
 	{
 		visit(statement.expression.value());
@@ -219,7 +237,7 @@ void SemanticAnalyzer::visit(FunctionDefinition const& statement)
 		statement.name,
 		statement.is_public,
 		statement.arguments,
-		statement.return_type
+		statement.type
 	));
 
 	current_scope->define(statement.name, symbol);
@@ -231,6 +249,18 @@ void SemanticAnalyzer::visit(FunctionDefinition const& statement)
 
 void SemanticAnalyzer::visit(GeneratorDefinition const& statement)
 {
+	auto symbol = MAKE_SYMBOL(CallableSymbol(
+		statement.name,
+		statement.is_public,
+		statement.arguments,
+		statement.type
+	));
+
+	current_scope->define(statement.name, symbol);
+
+	enter_scope(ScopeType::GENERATOR);
+	visit(statement.block);
+	leave_scope();
 }
 
 void SemanticAnalyzer::visit(EnumDefinition const& statement)
@@ -270,27 +300,31 @@ void SemanticAnalyzer::visit(AssertStatement const& statement)
 
 Type_ptr SemanticAnalyzer::visit(const Expression_ptr expression)
 {
-	return std::visit(overloaded{
-		[&](double expr) { return visit(expr); },
-		[&](std::wstring expr) { return visit(expr); },
-		[&](bool expr) { return visit(expr); },
-		[&](ListLiteral const& expr) { return visit(expr); },
-		[&](TupleLiteral const& expr) {return  visit(expr); },
-		[&](MapLiteral const& expr) { return visit(expr); },
-		[&](UDTConstruct const& expr) { return visit(expr); },
-		[&](UDTMemberAccess const& expr) { return visit(expr); },
-		[&](EnumMember const& expr) { return visit(expr); },
-		[&](Identifier const& expr) { return visit(expr); },
-		[&](Call const& expr) { return visit(expr); },
-		[&](Unary const& expr) { return visit(expr); },
-		[&](Binary const& expr) { return visit(expr); },
+	/*
+		return std::visit(overloaded{
+			[&](double expr) { return visit(expr); },
+			[&](std::wstring expr) { return visit(expr); },
+			[&](bool expr) { return visit(expr); },
+			[&](ListLiteral const& expr) { return visit(expr); },
+			[&](TupleLiteral const& expr) {return  visit(expr); },
+			[&](MapLiteral const& expr) { return visit(expr); },
+			[&](UDTConstruct const& expr) { return visit(expr); },
+			[&](UDTMemberAccess const& expr) { return visit(expr); },
+			[&](EnumMember const& expr) { return visit(expr); },
+			[&](Identifier const& expr) { return visit(expr); },
+			[&](Call const& expr) { return visit(expr); },
+			[&](Unary const& expr) { return visit(expr); },
+			[&](Binary const& expr) { return visit(expr); },
 
-		[](auto)
-		{
-			FATAL("Never Seen this Statement before!");
-			return make_shared<Type>(NoneType());
-		}
-		}, *expression);
+			[](auto)
+			{
+				FATAL("Never Seen this Statement before!");
+				return MAKE_TYPE(NoneType());
+			}
+			}, *expression);
+	*/
+
+	return MAKE_TYPE(NoneType());
 }
 
 Type_ptr SemanticAnalyzer::visit(const double expr)
@@ -371,10 +405,12 @@ Type_ptr SemanticAnalyzer::visit(UDTConstruct const& expr)
 	ASSERT(holds_alternative<UDTSymbol>(*symbol.value()), "This is not a UDT!");
 
 	// must check args
+	return MAKE_TYPE(NoneType());
 }
 
 Type_ptr SemanticAnalyzer::visit(UDTMemberAccess const& expr)
 {
+	return MAKE_TYPE(NoneType());
 }
 
 Type_ptr SemanticAnalyzer::visit(EnumMember const& expr)
@@ -430,7 +466,7 @@ Type_ptr SemanticAnalyzer::visit(Call const& expr)
 			return type.return_type;
 		},
 
-		[](auto) { return MAKE_TYPE(); }
+		[](auto) { return MAKE_TYPE(NoneType()); }
 		}, *function_symbol->type);
 
 	return return_type;
@@ -446,12 +482,12 @@ Type_ptr SemanticAnalyzer::visit(Unary const& expr)
 	case WTokenType::UNARY_MINUS:
 	{
 		ASSERT(type_system->is_number_type(operand_type), "Number operand is expected");
-		break;
+		return MAKE_TYPE(NumberType());
 	}
 	case WTokenType::BANG:
 	{
 		ASSERT(type_system->is_boolean_type(operand_type), "Boolean operand is expected");
-		break;
+		return MAKE_TYPE(BooleanType());
 	}
 	default:
 	{
@@ -459,6 +495,8 @@ Type_ptr SemanticAnalyzer::visit(Unary const& expr)
 		break;
 	}
 	}
+
+	return MAKE_TYPE(NoneType());
 }
 
 Type_ptr SemanticAnalyzer::visit(Binary const& expr)
@@ -475,6 +513,7 @@ Type_ptr SemanticAnalyzer::visit(Binary const& expr)
 		if (type_system->is_number_type(lhs_operand_type))
 		{
 			ASSERT(type_system->is_number_type(rhs_operand_type), "String operand is expected");
+			return MAKE_TYPE(NumberType());
 		}
 		else if (type_system->is_string_type(lhs_operand_type))
 		{
@@ -482,6 +521,8 @@ Type_ptr SemanticAnalyzer::visit(Binary const& expr)
 				type_system->is_number_type(rhs_operand_type) ||
 				type_system->is_string_type(rhs_operand_type),
 				"Number or string operand is expected");
+
+			return MAKE_TYPE(StringType());
 		}
 		else
 		{
@@ -500,7 +541,7 @@ Type_ptr SemanticAnalyzer::visit(Binary const& expr)
 	{
 		ASSERT(type_system->is_number_type(lhs_operand_type), "Number operand is expected");
 		ASSERT(type_system->is_number_type(rhs_operand_type), "Number operand is expected");
-		break;
+		return MAKE_TYPE(NumberType());
 	}
 	default:
 	{
@@ -508,6 +549,8 @@ Type_ptr SemanticAnalyzer::visit(Binary const& expr)
 		break;
 	}
 	}
+
+	return MAKE_TYPE(NoneType());
 }
 
 Symbol_ptr SemanticAnalyzer::visit(Identifier const& expr)

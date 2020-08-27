@@ -427,7 +427,7 @@ Statement_ptr Parser::parse_type_definition(bool is_public, int current_indent)
 	return MAKE_STATEMENT(UDTDefinition(is_public, name->value, member_types, is_public_member_map));
 }
 
-tuple<wstring, identifier_type_pair_vector, Type_ptr, Block> Parser::parse_callable_definition(int current_indent)
+tuple<wstring, identifier_type_pair_vector, TypeVector, optional<Type_ptr>, Block> Parser::parse_callable_definition(int current_indent)
 {
 	auto identifier = token_pipe->required(WTokenType::CALLABLE_IDENTIFIER);
 	token_pipe->expect(WTokenType::OPEN_PARENTHESIS);
@@ -449,6 +449,13 @@ tuple<wstring, identifier_type_pair_vector, Type_ptr, Block> Parser::parse_calla
 		}
 	}
 
+	TypeVector argument_types;
+
+	for (auto const& [_, arg_type] : arguments)
+	{
+		argument_types.push_back(arg_type);
+	}
+
 	optional<Type_ptr> optional_return_type = std::nullopt;
 
 	if (token_pipe->optional(WTokenType::ARROW))
@@ -462,19 +469,23 @@ tuple<wstring, identifier_type_pair_vector, Type_ptr, Block> Parser::parse_calla
 
 	Block block = parse_block(current_indent + 4);
 
-	return make_tuple(identifier->value, arguments, optional_return_type, block);
+	return make_tuple(identifier->value, arguments, argument_types, optional_return_type, block);
 }
 
 Statement_ptr Parser::parse_function_definition(bool is_public, int current_indent)
 {
-	auto [identifier, arguments, optional_return_type, block] = parse_callable_definition(current_indent);
-	return MAKE_STATEMENT(FunctionDefinition(is_public, identifier, arguments, optional_return_type, block));
+	auto [identifier, arguments, argument_types, optional_return_type, block] = parse_callable_definition(current_indent);
+	Type_ptr function_type = std::make_shared<Type>(FunctionType(argument_types, optional_return_type));
+
+	return MAKE_STATEMENT(FunctionDefinition(is_public, identifier, arguments, function_type, block));
 }
 
 Statement_ptr Parser::parse_generator_definition(bool is_public, int current_indent)
 {
-	auto [identifier, arguments, optional_return_type, block] = parse_callable_definition(current_indent);
-	return MAKE_STATEMENT(GeneratorDefinition(is_public, identifier, arguments, optional_return_type, block));
+	auto [identifier, arguments, argument_types, optional_return_type, block] = parse_callable_definition(current_indent);
+	Type_ptr generator_type = std::make_shared<Type>(GeneratorType(argument_types, optional_return_type));
+
+	return MAKE_STATEMENT(GeneratorDefinition(is_public, identifier, arguments, generator_type, block));
 }
 
 Statement_ptr Parser::parse_enum_definition(bool is_public, int current_indent)

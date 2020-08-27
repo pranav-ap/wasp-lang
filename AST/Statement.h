@@ -167,11 +167,11 @@ struct AST_API AliasDefinition : public Definition
 struct AST_API CallableDefinition : public Definition
 {
 	NameTypePairs arguments;
-	Type_ptr return_type;
+	Type_ptr type;
 	Block block;
 
 	CallableDefinition(bool is_public, std::wstring name, NameTypePairs arguments, Type_ptr type, Block body)
-		: Definition(is_public, name), block(body), arguments(arguments), return_type(type) {};
+		: Definition(is_public, name), block(body), arguments(arguments), type(type) {};
 };
 
 struct AST_API FunctionDefinition : public CallableDefinition

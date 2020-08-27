@@ -31,3 +31,31 @@ std::optional<Symbol_ptr> SymbolScope::lookup(std::wstring name)
 
 	FATAL("Name does not exist!");
 }
+
+bool SymbolScope::enclosed_in(ScopeType type)
+{
+	if (scope_type == type)
+	{
+		return true;
+	}
+
+	if (enclosing_scope.has_value())
+	{
+		return enclosing_scope.value()->enclosed_in(type);
+	}
+
+	return false;
+}
+
+bool SymbolScope::enclosed_in(std::vector<ScopeType> types)
+{
+	for (auto const type : types)
+	{
+		if (enclosed_in(type))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
