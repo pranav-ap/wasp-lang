@@ -23,6 +23,7 @@ class MEMORYSYSTEM_API ConstantPool
 public:
 	int allocate(int value);
 	int allocate(std::wstring value);
+	int allocate(Object_ptr value);
 
 	Object_ptr get(int id);
 };

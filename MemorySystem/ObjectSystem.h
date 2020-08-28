@@ -1,9 +1,9 @@
 #pragma once
 
-#ifdef OBJECTSYSTEM_EXPORTS
-#define OBJECTSYSTEM_API __declspec(dllexport)
+#ifdef MEMORYSYSTEM_EXPORTS
+#define MEMORYSYSTEM_API __declspec(dllexport)
 #else
-#define OBJECTSYSTEM_API __declspec(dllimport)
+#define MEMORYSYSTEM_API __declspec(dllimport)
 #endif
 
 #include <optional>
@@ -32,7 +32,7 @@ struct NoneObject;
 struct FunctionObject;
 struct GeneratorObject;
 
-using Object = OBJECTSYSTEM_API std::variant<
+using Object = MEMORYSYSTEM_API std::variant<
 	std::monostate,
 	// Scalar Objects
 	NumberObject, StringObject, BooleanObject,
@@ -51,36 +51,36 @@ using Object = OBJECTSYSTEM_API std::variant<
 	GeneratorObject
 >;
 
-using Object_ptr = OBJECTSYSTEM_API std::shared_ptr<Object>;
+using Object_ptr = MEMORYSYSTEM_API std::shared_ptr<Object>;
 
 // Defining Objects
 
-struct OBJECTSYSTEM_API BaseObject
+struct MEMORYSYSTEM_API BaseObject
 {
 	virtual std::wstring stringify() const = 0;
 };
 
-struct OBJECTSYSTEM_API ScalarObject : public BaseObject
+struct MEMORYSYSTEM_API ScalarObject : public BaseObject
 {
 	virtual std::wstring stringify() const = 0;
 };
 
-struct OBJECTSYSTEM_API CompositeObject : public BaseObject
+struct MEMORYSYSTEM_API CompositeObject : public BaseObject
 {
 	virtual std::wstring stringify() const = 0;
 };
 
-struct OBJECTSYSTEM_API ActionObject : public BaseObject
+struct MEMORYSYSTEM_API ActionObject : public BaseObject
 {
 	virtual std::wstring stringify() const = 0;
 };
 
-struct OBJECTSYSTEM_API NoneObject : public BaseObject
+struct MEMORYSYSTEM_API NoneObject : public BaseObject
 {
 	std::wstring stringify() const override;
 };
 
-struct OBJECTSYSTEM_API FunctionObject : public BaseObject
+struct MEMORYSYSTEM_API FunctionObject : public BaseObject
 {
 	std::wstring name;
 	std::vector<std::byte> instructions;
@@ -93,7 +93,7 @@ struct OBJECTSYSTEM_API FunctionObject : public BaseObject
 	std::wstring stringify() const override;
 };
 
-struct OBJECTSYSTEM_API GeneratorObject : public BaseObject
+struct MEMORYSYSTEM_API GeneratorObject : public BaseObject
 {
 	std::wstring name;
 	std::vector<std::byte> instructions;
@@ -108,7 +108,7 @@ struct OBJECTSYSTEM_API GeneratorObject : public BaseObject
 
 // Scalar Objects
 
-struct OBJECTSYSTEM_API NumberObject : public ScalarObject
+struct MEMORYSYSTEM_API NumberObject : public ScalarObject
 {
 	double value;
 	NumberObject(double value) : value(value) {};
@@ -116,7 +116,7 @@ struct OBJECTSYSTEM_API NumberObject : public ScalarObject
 	std::wstring stringify() const override;
 };
 
-struct OBJECTSYSTEM_API StringObject : public ScalarObject
+struct MEMORYSYSTEM_API StringObject : public ScalarObject
 {
 	std::wstring value;
 	StringObject(std::wstring value) : value(value) {};
@@ -124,7 +124,7 @@ struct OBJECTSYSTEM_API StringObject : public ScalarObject
 	std::wstring stringify() const override;
 };
 
-struct OBJECTSYSTEM_API BooleanObject : public ScalarObject
+struct MEMORYSYSTEM_API BooleanObject : public ScalarObject
 {
 	bool value;
 	BooleanObject(bool value) : value(value) {};
@@ -134,7 +134,7 @@ struct OBJECTSYSTEM_API BooleanObject : public ScalarObject
 
 // Composite Objects
 
-struct OBJECTSYSTEM_API ListObject : public CompositeObject
+struct MEMORYSYSTEM_API ListObject : public CompositeObject
 {
 	std::deque<Object_ptr> values;
 
@@ -156,7 +156,7 @@ struct OBJECTSYSTEM_API ListObject : public CompositeObject
 	std::wstring stringify() const override;
 };
 
-struct OBJECTSYSTEM_API TupleObject : public CompositeObject
+struct MEMORYSYSTEM_API TupleObject : public CompositeObject
 {
 	std::vector<Object_ptr> values;
 
@@ -171,7 +171,7 @@ struct OBJECTSYSTEM_API TupleObject : public CompositeObject
 	std::wstring stringify() const override;
 };
 
-struct OBJECTSYSTEM_API MapObject : public CompositeObject
+struct MEMORYSYSTEM_API MapObject : public CompositeObject
 {
 	std::map<Object_ptr, Object_ptr> pairs;
 
@@ -187,7 +187,7 @@ struct OBJECTSYSTEM_API MapObject : public CompositeObject
 	std::wstring stringify() const override;
 };
 
-struct OBJECTSYSTEM_API EnumMemberObject : public CompositeObject
+struct MEMORYSYSTEM_API EnumMemberObject : public CompositeObject
 {
 	std::wstring enum_name;
 	std::vector<std::wstring> member_names;
@@ -198,7 +198,7 @@ struct OBJECTSYSTEM_API EnumMemberObject : public CompositeObject
 	std::wstring stringify() const override;
 };
 
-struct OBJECTSYSTEM_API VariantObject : public CompositeObject
+struct MEMORYSYSTEM_API VariantObject : public CompositeObject
 {
 	Object_ptr value;
 
@@ -211,22 +211,22 @@ struct OBJECTSYSTEM_API VariantObject : public CompositeObject
 
 // Action Objects
 
-struct OBJECTSYSTEM_API BreakObject : public ActionObject
+struct MEMORYSYSTEM_API BreakObject : public ActionObject
 {
 	std::wstring stringify() const override;
 };
 
-struct OBJECTSYSTEM_API ContinueObject : public ActionObject
+struct MEMORYSYSTEM_API ContinueObject : public ActionObject
 {
 	std::wstring stringify() const override;
 };
 
-struct OBJECTSYSTEM_API BuiltInsObject : public ActionObject
+struct MEMORYSYSTEM_API BuiltInsObject : public ActionObject
 {
 	std::wstring stringify() const override;
 };
 
-struct OBJECTSYSTEM_API ReturnObject : public ActionObject
+struct MEMORYSYSTEM_API ReturnObject : public ActionObject
 {
 	std::optional<Object_ptr> value;
 
@@ -238,7 +238,7 @@ struct OBJECTSYSTEM_API ReturnObject : public ActionObject
 	std::wstring stringify() const override;
 };
 
-struct OBJECTSYSTEM_API ErrorObject : public ActionObject
+struct MEMORYSYSTEM_API ErrorObject : public ActionObject
 {
 	std::wstring message;
 
@@ -252,4 +252,4 @@ struct OBJECTSYSTEM_API ErrorObject : public ActionObject
 
 // Utils
 
-OBJECTSYSTEM_API std::wstring stringify_object(Object_ptr value);
+MEMORYSYSTEM_API std::wstring stringify_object(Object_ptr value);

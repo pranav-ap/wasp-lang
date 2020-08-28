@@ -30,7 +30,7 @@
     <ClInclude Include="CSymbolTable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Scope.h">
+    <ClInclude Include="CScope.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

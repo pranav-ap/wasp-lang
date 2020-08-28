@@ -13,6 +13,7 @@
 
 using std::byte;
 using std::vector;
+using std::move;
 
 // MemorySystem
 
@@ -126,6 +127,14 @@ int ConstantPool::allocate(std::wstring text)
 	int id = pool.size();
 	auto value = MAKE_OBJECT_VARIANT(StringObject(text));
 	pool.insert({ id, value });
+
+	return id;
+}
+
+int ConstantPool::allocate(Object_ptr value)
+{
+	int id = pool.size();
+	pool.insert({ id, move(value) });
 
 	return id;
 }

@@ -8,7 +8,7 @@
 
 #include "OpCode.h"
 #include "Statement.h"
-#include "Scope.h"
+#include "CScope.h"
 #include "ObjectSystem.h"
 #include "CSymbolTable.h"
 #include "MemorySystem.h"
@@ -22,10 +22,9 @@
 class COMPILER_API Compiler
 {
 	MemorySystem_ptr memory;
-	std::stack<Scope_ptr> scope_stack;
+	std::stack<CScope_ptr> scope_stack;
 
 	int next_label;
-	int next_memory_id;
 
 	// Statement
 
@@ -47,8 +46,6 @@ class COMPILER_API Compiler
 	void visit(FunctionDefinition const& statement);
 	void visit(GeneratorDefinition const& statement);
 	void visit(EnumDefinition const& statement);
-	void visit(ImportCustom const& statement);
-	void visit(ImportInBuilt const& statement);
 	void visit(ExpressionStatement const& statement);
 	void visit(AssertStatement const& statement);
 
@@ -73,20 +70,17 @@ class COMPILER_API Compiler
 
 	// Scope
 
-	Scope_ptr enter_scope();
-	std::vector<std::byte> leave_scope();
+	CScope_ptr enter_scope();
+	ByteVector leave_scope();
 
 	// Utils
 
 	int define_variable(std::wstring name);
-	int add_to_constant_pool(Object_ptr value);
-
 	int create_label();
 
 public:
 	Compiler(MemorySystem_ptr memory)
-		: next_label(0), next_memory_id(0),
-		memory(memory) {};
+		: next_label(0), memory(memory) {};
 
 	void execute(const Module_ptr module_ast);
 };
