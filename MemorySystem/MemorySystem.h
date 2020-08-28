@@ -45,6 +45,8 @@ public:
 	void emit(OpCode opcode);
 	void emit(OpCode opcode, int operand);
 	void emit(OpCode opcode, int operand_1, int operand_2);
+
+	ByteVector get_instructions();
 };
 
 using CodeSection_ptr = MEMORYSYSTEM_API std::shared_ptr<CodeSection>;
@@ -57,8 +59,37 @@ class MEMORYSYSTEM_API MemorySystem
 	CodeSection_ptr code_section;
 
 public:
+	MemorySystem()
+		: constant_pool(std::make_shared<ConstantPool>()),
+		code_section(std::make_shared<CodeSection>()) {};
+
 	ConstantPool_ptr get_constant_pool();
 	CodeSection_ptr get_code_section();
 };
 
 using MemorySystem_ptr = MEMORYSYSTEM_API std::shared_ptr<MemorySystem>;
+
+// InstructionPrinter
+
+class MEMORYSYSTEM_API InstructionPrinter
+{
+	ConstantPool_ptr constant_pool;
+	CodeSection_ptr code_section;
+
+	ByteVector instruction_at(int index);
+	ByteVector operands_of(int opcode_index);
+
+	std::wstring stringify_instruction(std::byte opcode, std::byte operand);
+	std::wstring stringify_instruction(std::byte opcode, std::byte operand_1, std::byte operand_2);
+
+public:
+	InstructionPrinter() :
+		constant_pool(std::make_shared<ConstantPool>()) {};
+
+	InstructionPrinter(ConstantPool_ptr constant_pool)
+		: constant_pool(constant_pool) {};
+
+	void print(CodeSection_ptr code_section);
+};
+
+using InstructionPrinter_ptr = MEMORYSYSTEM_API std::shared_ptr<InstructionPrinter>;

@@ -37,6 +37,9 @@ int main()
 	Compiler_ptr compiler = make_unique<Compiler>(memory);
 	compiler->execute(ast);
 
+	InstructionPrinter_ptr printer = make_shared<InstructionPrinter>(memory->get_constant_pool());
+	printer->print(memory->get_code_section());
+
 	//CFGBuilder_ptr cfg_builder = make_unique<CFGBuilder>(memory);
 	//CFG_ptr cfg = cfg_builder->execute();
 

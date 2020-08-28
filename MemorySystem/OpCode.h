@@ -7,6 +7,7 @@
 #endif
 
 #include <vector>
+#include <string>
 
 enum class MEMORYSYSTEM_API OpCode
 {
@@ -97,3 +98,6 @@ using ByteVector = MEMORYSYSTEM_API std::vector<std::byte>;
 
 MEMORYSYSTEM_API int get_opcode_arity(std::byte opcode);
 MEMORYSYSTEM_API int get_opcode_arity(OpCode opcode);
+
+MEMORYSYSTEM_API std::wstring stringify_opcode(std::byte  opcode);
+MEMORYSYSTEM_API std::wstring stringify_opcode(OpCode opcode);
