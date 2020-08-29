@@ -8,7 +8,7 @@ void VM::execute()
 {
 	int length = code_section->length();
 
-	for (int index = 0; index < length; index++)
+	/*for (int index = 0; index < length; index++)
 	{
 		byte opcode = code_section->instructions.at(index);
 		ByteVector instruction = code_section->operands_of(index);
@@ -94,7 +94,7 @@ void VM::execute()
 		default:
 			break;
 		}
-	}
+	}*/
 }
 
 void VM::eval_stack_push(int value)
