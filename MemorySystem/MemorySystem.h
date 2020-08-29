@@ -41,6 +41,7 @@ public:
 
 	void push(ByteVector instruction);
 	void replace(int index, std::byte replacement);
+	void set(ByteVector instructions);
 
 	void emit(OpCode opcode);
 	void emit(OpCode opcode, int operand);
@@ -65,6 +66,8 @@ public:
 
 	ConstantPool_ptr get_constant_pool();
 	CodeSection_ptr get_code_section();
+
+	void print();
 };
 
 using MemorySystem_ptr = MEMORYSYSTEM_API std::shared_ptr<MemorySystem>;
@@ -74,7 +77,7 @@ using MemorySystem_ptr = MEMORYSYSTEM_API std::shared_ptr<MemorySystem>;
 class MEMORYSYSTEM_API InstructionPrinter
 {
 	ConstantPool_ptr constant_pool;
-	CodeSection_ptr code_section;
+	ByteVector instructions;
 
 	ByteVector instruction_at(int index);
 	ByteVector operands_of(int opcode_index);
@@ -89,7 +92,7 @@ public:
 	InstructionPrinter(ConstantPool_ptr constant_pool)
 		: constant_pool(constant_pool) {};
 
-	void print(CodeSection_ptr code_section);
+	void print(ByteVector instructions);
 };
 
 using InstructionPrinter_ptr = MEMORYSYSTEM_API std::shared_ptr<InstructionPrinter>;

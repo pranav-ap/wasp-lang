@@ -98,7 +98,7 @@ void Compiler::visit(Branching const& statement)
 	int exit_tree_label = create_label();
 	int	branch_label = create_label();
 
-	// Conditional branches
+	// ConditionalJump branches
 
 	int branch_index = 0;
 	int last_branch_index = statement.branches.size() - 1;
@@ -162,7 +162,7 @@ void Compiler::visit(WhileLoop const& statement)
 	scope->continue_label = condition_label;
 
 	int block_end_label = create_label();
-	memory->get_code_section()->emit(OpCode::JUMP_IF_FALSE, block_end_label);
+	memory->get_code_section()->emit(OpCode::POP_JUMP_IF_FALSE, block_end_label);
 	scope->break_label = block_end_label;
 
 	auto body = statement.block;

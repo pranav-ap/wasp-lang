@@ -3,7 +3,6 @@
 #include "ObjectSystem.h"
 #include "Assertion.h"
 
-#include <cmath>
 #include <string>
 #include <vector>
 #include <exception>

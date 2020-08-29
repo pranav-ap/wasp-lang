@@ -6,7 +6,7 @@
 #include "SemanticAnalyzer.h"
 #include "MemorySystem.h"
 #include "Compiler.h"
-//#include "CFGBuilder.h"
+#include "CFGBuilder.h"
 #include <string>
 #include <iostream>
 #include <memory>
@@ -37,11 +37,13 @@ int main()
 	Compiler_ptr compiler = make_unique<Compiler>(memory);
 	compiler->execute(ast);
 
-	InstructionPrinter_ptr printer = make_shared<InstructionPrinter>(memory->get_constant_pool());
-	printer->print(memory->get_code_section());
+	CFGBuilder_ptr cfg_builder = make_unique<CFGBuilder>(memory);
+	CFG_ptr cfg = cfg_builder->execute();
 
-	//CFGBuilder_ptr cfg_builder = make_unique<CFGBuilder>(memory);
-	//CFG_ptr cfg = cfg_builder->execute();
+	ByteVector instructions = cfg_builder->assemble();
+	memory->get_code_section()->set(instructions);
+
+	memory->print();
 
 	return 0;
 }

@@ -12,10 +12,9 @@
 enum class CONTROLFLOWGRAPH_API BlockType
 {
 	Unknown,
-	Conditional,
+	ConditionalJump,
 	Unconditional,
 	UnconditionalJump,
-	Start,
 	Stop
 };
 

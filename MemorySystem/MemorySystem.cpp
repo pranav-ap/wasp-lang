@@ -8,16 +8,18 @@
 #include <algorithm>
 #include <iostream>
 #include <iomanip>
+#include <sstream>
 
 #define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr")
 #define OPT_CHECK(x) ASSERT(x.has_value(), "Oh shit! Option is none")
 #define MAKE_OBJECT_VARIANT(x) std::make_shared<Object>(x)
+#define OPCODE_WIDTH 23
+#define OPERAND_WIDTH 8
 
 using std::byte;
 using std::vector;
 using std::move;
 using std::wcout;
-using std::cout;
 using std::endl;
 using std::setw;
 using std::wstring;
@@ -34,6 +36,12 @@ ConstantPool_ptr MemorySystem::get_constant_pool()
 CodeSection_ptr MemorySystem::get_code_section()
 {
 	return code_section;
+}
+
+void MemorySystem::print()
+{
+	InstructionPrinter_ptr printer = make_shared<InstructionPrinter>(constant_pool);
+	printer->print(code_section->get_instructions());
 }
 
 // CodeSection
@@ -55,6 +63,11 @@ void CodeSection::push(ByteVector instruction)
 void CodeSection::replace(int index, std::byte replacement)
 {
 	instructions.at(index) = replacement;
+}
+
+void CodeSection::set(ByteVector instructions)
+{
+	this->instructions = instructions;
 }
 
 void CodeSection::emit(OpCode opcode)
@@ -169,7 +182,9 @@ Object_ptr ConstantPool::get(int id)
 std::wstring InstructionPrinter::stringify_instruction(std::byte opcode, std::byte operand)
 {
 	int operand_int = to_integer<int>(operand);
-	wstring operand_str = to_wstring(operand_int);
+
+	std::wstringstream str_stream;
+	str_stream << std::left << setw(OPCODE_WIDTH) << stringify_opcode(opcode) << L" " << operand_int;
 
 	switch ((OpCode)opcode)
 	{
@@ -180,38 +195,25 @@ std::wstring InstructionPrinter::stringify_instruction(std::byte opcode, std::by
 	case OpCode::LOAD_GLOBAL:
 	case OpCode::LOAD_BUILTIN:
 	{
-		wstring readable_str = stringify_object(constant_pool->get(operand_int));
+		wstring comment = stringify_object(constant_pool->get(operand_int));
+		str_stream << std::right << setw(OPERAND_WIDTH) << L" (" << comment << L")";
 
-		if (readable_str.size() != 0)
-		{
-			return stringify_opcode(opcode) + L" " + operand_str + L" (" + readable_str + L")";
-		}
-
-		return stringify_opcode(opcode) + L" " + operand_str;
+		return str_stream.str();
 	}
 	case OpCode::MAKE_LIST:
 	case OpCode::MAKE_TUPLE:
 	case OpCode::MAKE_MAP:
-	{
-		return stringify_opcode(opcode) + L" " + operand_str;
-	}
 	case OpCode::JUMP:
 	case OpCode::JUMP_IF_FALSE:
 	case OpCode::POP_JUMP:
 	case OpCode::POP_JUMP_IF_FALSE:
-	{
-		return stringify_opcode(opcode) + L" " + operand_str;
-	}
 	case OpCode::LABEL:
-	{
-		return stringify_opcode(opcode) + L" " + operand_str;
-	}
 	case OpCode::ITERATE_OVER_LIST:
 	case OpCode::ITERATE_OVER_MAP:
 	case OpCode::ITERATE_OVER_STRING:
 	case OpCode::ITERATE_OVER_IDENTIFIER:
 	{
-		return stringify_opcode(opcode) + L" " + operand_str;
+		return str_stream.str();
 	}
 	default:
 	{
@@ -224,10 +226,10 @@ std::wstring InstructionPrinter::stringify_instruction(std::byte opcode, std::by
 std::wstring InstructionPrinter::stringify_instruction(std::byte opcode, std::byte operand_1, std::byte operand_2)
 {
 	int operand_1_int = to_integer<int>(operand_1);
-	wstring operand_1_str = to_wstring(operand_1_int);
-
 	int operand_2_int = to_integer<int>(operand_2);
-	wstring operand_2_str = to_wstring(operand_2_int);
+
+	std::wstringstream str_stream;
+	str_stream << std::left << setw(OPCODE_WIDTH) << stringify_opcode(opcode) << L" " << operand_1_int << L" " << operand_2_int;
 
 	switch ((OpCode)opcode)
 	{
@@ -240,26 +242,18 @@ std::wstring InstructionPrinter::stringify_instruction(std::byte opcode, std::by
 	case OpCode::GET_CHAR_FROM_STRING:
 	case OpCode::SET_CHAR_FROM_STRING:
 	{
-		wstring readable_str = stringify_object(constant_pool->get(operand_1_int));
+		wstring variable_name = stringify_object(constant_pool->get(operand_1_int));
+		str_stream << std::right << setw(OPERAND_WIDTH) << L" (" << variable_name << L" ," << operand_2_int << L")";
 
-		if (readable_str.size() != 0)
-		{
-			return stringify_opcode(opcode) + operand_1_str + L" " + operand_2_str + L" (" + readable_str + L")";
-		}
-
-		return stringify_opcode(opcode) + operand_1_str + L" " + operand_2_str;
+		return str_stream.str();
 	}
 	case OpCode::CALL_FUNCTION:
 	case OpCode::CALL_GENERATOR:
 	{
-		wstring readable_str = stringify_object(constant_pool->get(operand_1_int));
+		wstring function_name = stringify_object(constant_pool->get(operand_1_int));
+		str_stream << std::right << setw(OPERAND_WIDTH) << L" (" << function_name << L" ," << operand_2_int << L")";
 
-		if (readable_str.size() != 0)
-		{
-			return stringify_opcode(opcode) + operand_1_str + L" " + operand_2_str + L" (" + readable_str + L")";
-		}
-
-		return stringify_opcode(opcode) + operand_1_str + L" " + operand_2_str;
+		return str_stream.str();
 	}
 	default:
 	{
@@ -271,7 +265,7 @@ std::wstring InstructionPrinter::stringify_instruction(std::byte opcode, std::by
 
 ByteVector InstructionPrinter::instruction_at(int index)
 {
-	byte opcode = code_section->get_instructions().at(index);
+	byte opcode = instructions.at(index);
 	ByteVector operands = operands_of(index);
 
 	ByteVector instruction{ opcode };
@@ -285,7 +279,7 @@ ByteVector InstructionPrinter::instruction_at(int index)
 
 ByteVector InstructionPrinter::operands_of(int opcode_index)
 {
-	byte opcode = code_section->get_instructions().at(opcode_index);
+	byte opcode = instructions.at(opcode_index);
 	int arity = get_opcode_arity(opcode);
 
 	switch (arity)
@@ -296,13 +290,13 @@ ByteVector InstructionPrinter::operands_of(int opcode_index)
 	}
 	case 1:
 	{
-		byte operand = code_section->get_instructions().at(++opcode_index);
+		byte operand = instructions.at(++opcode_index);
 		return { operand };
 	}
 	case 2:
 	{
-		byte operand_1 = code_section->get_instructions().at(++opcode_index);
-		byte operand_2 = code_section->get_instructions().at(++opcode_index);
+		byte operand_1 = instructions.at(++opcode_index);
+		byte operand_2 = instructions.at(++opcode_index);
 		return { operand_1, operand_2 };
 	}
 	default:
@@ -312,14 +306,12 @@ ByteVector InstructionPrinter::operands_of(int opcode_index)
 	}
 }
 
-void InstructionPrinter::print(CodeSection_ptr code_section)
+void InstructionPrinter::print(ByteVector instructions)
 {
-	this->code_section = code_section;
-
-	ByteVector instructions = code_section->get_instructions();
+	this->instructions = instructions;
 
 	int length = instructions.size();
-	int width = to_string(length).size() + 2;
+	int index_width = to_string(length).size() + 2;
 
 	for (int index = 0; index < length; index++)
 	{
@@ -331,18 +323,18 @@ void InstructionPrinter::print(CodeSection_ptr code_section)
 		{
 		case 0:
 		{
-			wcout << setw(width) << index << " " << stringify_opcode(instruction.at(0)) << std::endl;
+			wcout << setw(index_width) << index << " " << stringify_opcode(instruction.at(0)) << std::endl;
 			break;
 		}
 		case 1:
 		{
-			wcout << setw(width) << index << " " << stringify_instruction(instruction.at(0), instruction.at(1)) << std::endl;
+			wcout << setw(index_width) << index << " " << stringify_instruction(instruction.at(0), instruction.at(1)) << std::endl;
 			index++;
 			break;
 		}
 		case 2:
 		{
-			wcout << setw(width) << index << " " << stringify_instruction(instruction.at(0), instruction.at(1), instruction.at(2)) << std::endl;
+			wcout << setw(index_width) << index << " " << stringify_instruction(instruction.at(0), instruction.at(1), instruction.at(2)) << std::endl;
 			index += 2;
 			break;
 		}

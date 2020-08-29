@@ -6,9 +6,9 @@
 #define CONTROLFLOWGRAPH_API __declspec(dllimport)
 #endif
 
+#include "MemorySystem.h"
 #include "BasicBlock.h"
 #include "CFG.h"
-#include "MemorySystem.h"
 #include <memory>
 #include <map>
 
@@ -19,6 +19,8 @@ class CONTROLFLOWGRAPH_API CFGBuilder
 
 	BasicBlock_ptr current_node;
 	int current_node_id;
+
+	std::map<int, int> label_to_node_id;
 
 	void split_into_basic_blocks();
 	void connect_basic_blocks();

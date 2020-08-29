@@ -179,9 +179,6 @@
     <ProjectReference Include="..\MemorySystem\MemorySystem.vcxproj">
       <Project>{20f70ed3-fd8e-4df0-b96a-a7bc28800fe9}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\ObjectSystem\ObjectSystem.vcxproj">
-      <Project>{a4e80d15-9b42-464d-995b-95e51f1798e2}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\Utils\Utils.vcxproj">
       <Project>{825d931e-a262-42d4-8af0-8e503ac06104}</Project>
     </ProjectReference>

@@ -8,29 +8,28 @@
 
 #include "OpCode.h"
 #include "BasicBlock.h"
+#include "MemorySystem.h"
 #include <memory>
 #include <string>
 #include <map>
 
 class CONTROLFLOWGRAPH_API CFG
 {
-	std::wstring stringify_instruction(std::byte opcode);
-	std::wstring stringify_instruction(std::byte opcode, std::byte operand);
-	std::wstring stringify_instruction(std::byte opcode, std::byte operand_1, std::byte operand_2);
-
-	BasicBlock_ptr current_block;
-
-	ByteVector instruction_at(int index);
-	ByteVector operands_of(int opcode_index);
+	ConstantPool_ptr constant_pool;
 
 public:
-	BasicBlock_ptr start_node;
+	int start_node_id;
 
 	std::map<int, std::pair<int, int>> adjacency_list; // id -> (id, id)
 	std::map<int, BasicBlock_ptr> node_id_to_basic_blocks;
-	std::map<int, int> label_to_node_id;
 
-	std::map<int, std::wstring> id_to_text;
+	CFG()
+		: start_node_id(0),
+		constant_pool(std::make_shared<ConstantPool>()) {};
+
+	CFG(ConstantPool_ptr constant_pool)
+		: start_node_id(0),
+		constant_pool(constant_pool) {};
 
 	void print();
 };
