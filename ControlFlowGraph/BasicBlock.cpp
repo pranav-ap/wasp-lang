@@ -3,8 +3,8 @@
 
 void BasicBlock::push(ByteVector instruction)
 {
-	instructions.insert(
-		std::end(instructions),
+	code_section->instructions.insert(
+		std::end(code_section->instructions),
 		std::begin(instruction),
 		std::end(instruction)
 	);

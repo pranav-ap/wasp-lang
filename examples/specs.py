@@ -29,7 +29,7 @@ for x : num in [1, 2, 3]:
 for i : num in 1..8 step 2:
     pass
 
-fn add(a : num, b : num) -> num
+fn add(a : num, b : num) => num
     if a > b:
         return a + b + 4
     return a + b
@@ -40,7 +40,7 @@ enum NAME :
     LASTNAME :
         ID3
         ID4
-	
+
 NAME::LASTNAME::ID3
 NAME::ID1
 
@@ -50,6 +50,11 @@ type Person:
     name: str
     foo: bool
 
+interface Castle:
+    name: str
+
+    fn open_gates(speed: num) => bool
+    fn close_gates(speed: num) => bool
 
 let x : Person = new Person('john', false)
 

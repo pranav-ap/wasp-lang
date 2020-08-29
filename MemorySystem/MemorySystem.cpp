@@ -41,7 +41,7 @@ CodeSection_ptr MemorySystem::get_code_section()
 void MemorySystem::print()
 {
 	InstructionPrinter_ptr printer = make_shared<InstructionPrinter>(constant_pool);
-	printer->print(code_section->get_instructions());
+	printer->print(code_section);
 }
 
 // CodeSection
@@ -97,9 +97,47 @@ void CodeSection::emit(OpCode opcode, int operand_1, int operand_2)
 	push(instruction);
 }
 
-ByteVector CodeSection::get_instructions()
+ByteVector CodeSection::instruction_at(int index)
 {
-	return instructions;
+	byte opcode = instructions.at(index);
+	ByteVector operands = operands_of(index);
+
+	ByteVector instruction{ opcode };
+	instruction.insert(
+		end(instruction),
+		begin(operands),
+		end(operands));
+
+	return instruction;
+}
+
+ByteVector CodeSection::operands_of(int opcode_index)
+{
+	byte opcode = instructions.at(opcode_index);
+	int arity = get_opcode_arity(opcode);
+
+	switch (arity)
+	{
+	case 0:
+	{
+		return {};
+	}
+	case 1:
+	{
+		byte operand = instructions.at(++opcode_index);
+		return { operand };
+	}
+	case 2:
+	{
+		byte operand_1 = instructions.at(++opcode_index);
+		byte operand_2 = instructions.at(++opcode_index);
+		return { operand_1, operand_2 };
+	}
+	default:
+	{
+		return {};
+	}
+	}
 }
 
 // ConstantPool
@@ -263,59 +301,14 @@ std::wstring InstructionPrinter::stringify_instruction(std::byte opcode, std::by
 	}
 }
 
-ByteVector InstructionPrinter::instruction_at(int index)
+void InstructionPrinter::print(CodeSection_ptr code_section)
 {
-	byte opcode = instructions.at(index);
-	ByteVector operands = operands_of(index);
-
-	ByteVector instruction{ opcode };
-	instruction.insert(
-		end(instruction),
-		begin(operands),
-		end(operands));
-
-	return instruction;
-}
-
-ByteVector InstructionPrinter::operands_of(int opcode_index)
-{
-	byte opcode = instructions.at(opcode_index);
-	int arity = get_opcode_arity(opcode);
-
-	switch (arity)
-	{
-	case 0:
-	{
-		return {};
-	}
-	case 1:
-	{
-		byte operand = instructions.at(++opcode_index);
-		return { operand };
-	}
-	case 2:
-	{
-		byte operand_1 = instructions.at(++opcode_index);
-		byte operand_2 = instructions.at(++opcode_index);
-		return { operand_1, operand_2 };
-	}
-	default:
-	{
-		return {};
-	}
-	}
-}
-
-void InstructionPrinter::print(ByteVector instructions)
-{
-	this->instructions = instructions;
-
-	int length = instructions.size();
+	int length = code_section->length();
 	int index_width = to_string(length).size() + 2;
 
 	for (int index = 0; index < length; index++)
 	{
-		ByteVector instruction = instruction_at(index);
+		ByteVector instruction = code_section->instruction_at(index);
 
 		int arity = instruction.size() - 1;
 

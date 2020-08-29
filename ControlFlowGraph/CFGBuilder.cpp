@@ -36,14 +36,14 @@ ByteVector CFGBuilder::assemble()
 	for (auto const& [id, block] : cfg->node_id_to_basic_blocks)
 	{
 		int start = instructions.size();
-		int end = start + block->instructions.size();
+		int end = start + block->code_section->instructions.size();
 
 		block_locations[id] = { start, end };
 
 		instructions.insert(
 			std::end(instructions),
-			std::begin(block->instructions),
-			std::end(block->instructions)
+			std::begin(block->code_section->instructions),
+			std::end(block->code_section->instructions)
 		);
 	}
 
@@ -88,7 +88,7 @@ ByteVector CFGBuilder::assemble()
 
 void CFGBuilder::split_into_basic_blocks()
 {
-	ByteVector instructions = memory->get_code_section()->get_instructions();
+	ByteVector instructions = memory->get_code_section()->instructions;
 	int length = instructions.size();
 
 	bool previous_instruction_was_leader = false;
@@ -253,7 +253,7 @@ void CFGBuilder::connect_basic_blocks()
 	{
 		if (block->type == BlockType::ConditionalJump)
 		{
-			int to_label = to_integer<int>(block->instructions.back());
+			int to_label = to_integer<int>(block->code_section->instructions.back());
 
 			int true_successor_id = id + 1;
 			int false_successor_id = label_to_node_id[to_label];
@@ -268,7 +268,7 @@ void CFGBuilder::connect_basic_blocks()
 		}
 		else if (block->type == BlockType::UnconditionalJump)
 		{
-			int to_label = to_integer<int>(block->instructions.back());
+			int to_label = to_integer<int>(block->code_section->instructions.back());
 			int unique_successor_id = label_to_node_id[to_label];
 
 			cfg->adjacency_list[id] = { unique_successor_id, -1 };

@@ -27,11 +27,11 @@ void CFG::print()
 	{
 		wcout << L"\n == BLOCK " << id << endl;
 
-		printer->print(block->instructions);
+		printer->print(block->code_section);
 
 		if (block->type == BlockType::ConditionalJump)
 		{
-			int to_label = to_integer<int>(block->instructions.back());
+			int to_label = to_integer<int>(block->code_section->instructions.back());
 
 			int true_successor_id = adjacency_list[id].first;
 			int false_successor_id = adjacency_list[id].second;
@@ -46,7 +46,7 @@ void CFG::print()
 		}
 		else if (block->type == BlockType::UnconditionalJump)
 		{
-			int to_label = to_integer<int>(block->instructions.back());
+			int to_label = to_integer<int>(block->code_section->instructions.back());
 
 			int unique_successor_id = adjacency_list[id].first;
 			wcout << L"\n > Go to :  " << unique_successor_id << endl;;

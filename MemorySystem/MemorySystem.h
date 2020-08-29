@@ -32,11 +32,10 @@ using ConstantPool_ptr = MEMORYSYSTEM_API std::shared_ptr<ConstantPool>;
 
 // CodeSection
 
-class MEMORYSYSTEM_API CodeSection
+struct MEMORYSYSTEM_API CodeSection
 {
 	ByteVector instructions;
 
-public:
 	int length();
 
 	void push(ByteVector instruction);
@@ -47,7 +46,8 @@ public:
 	void emit(OpCode opcode, int operand);
 	void emit(OpCode opcode, int operand_1, int operand_2);
 
-	ByteVector get_instructions();
+	ByteVector instruction_at(int index);
+	ByteVector operands_of(int opcode_index);
 };
 
 using CodeSection_ptr = MEMORYSYSTEM_API std::shared_ptr<CodeSection>;
@@ -77,10 +77,6 @@ using MemorySystem_ptr = MEMORYSYSTEM_API std::shared_ptr<MemorySystem>;
 class MEMORYSYSTEM_API InstructionPrinter
 {
 	ConstantPool_ptr constant_pool;
-	ByteVector instructions;
-
-	ByteVector instruction_at(int index);
-	ByteVector operands_of(int opcode_index);
 
 	std::wstring stringify_instruction(std::byte opcode, std::byte operand);
 	std::wstring stringify_instruction(std::byte opcode, std::byte operand_1, std::byte operand_2);
@@ -92,7 +88,7 @@ public:
 	InstructionPrinter(ConstantPool_ptr constant_pool)
 		: constant_pool(constant_pool) {};
 
-	void print(ByteVector instructions);
+	void print(CodeSection_ptr code_section);
 };
 
 using InstructionPrinter_ptr = MEMORYSYSTEM_API std::shared_ptr<InstructionPrinter>;
