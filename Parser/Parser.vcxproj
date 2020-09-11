@@ -160,18 +160,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="ExpressionContext.h" />
-    <ClInclude Include="ExpressionParser.h" />
     <ClInclude Include="framework.h" />
-    <ClInclude Include="OperatorStack.h" />
+    <ClInclude Include="ExpressionParselets.h" />
     <ClInclude Include="Parser.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="Precedence.h" />
+    <ClInclude Include="StatementParselets.cpp" />
     <ClInclude Include="TokenPipe.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
-    <ClCompile Include="ExpressionParser.cpp" />
-    <ClCompile Include="OperatorStack.cpp" />
+    <ClCompile Include="ExpressionParselets.cpp" />
     <ClCompile Include="Parser.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

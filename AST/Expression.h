@@ -15,25 +15,32 @@
 #include <memory>
 #include <variant>
 
+class ExpressionVisualizer;
+using ExpressionVisualizer_ptr = std::shared_ptr<ExpressionVisualizer>;
+
 struct ListLiteral;
 struct TupleLiteral;
+struct SetLiteral;
 struct MapLiteral;
 struct UDTConstruct;
 struct UDTMemberAccess;
 struct EnumMember;
 struct Identifier;
 struct Call;
-struct Unary;
-struct Binary;
+struct Prefix;
+struct Infix;
+struct Postfix;
+struct Conditional;
 
 using Expression = AST_API std::variant<
 	std::monostate,
-	double, std::wstring, bool,
-	ListLiteral, TupleLiteral,
+	int, double, std::wstring, bool,
+	ListLiteral, TupleLiteral, SetLiteral,
 	MapLiteral, UDTConstruct,
 	UDTMemberAccess, EnumMember,
 	Identifier, Call,
-	Unary, Binary
+	Prefix, Infix, Postfix,
+	Conditional
 >;
 
 using Expression_ptr = AST_API std::shared_ptr<Expression>;
@@ -62,6 +69,12 @@ struct AST_API ListLiteral : public SequenceLiteral
 struct AST_API TupleLiteral : public SequenceLiteral
 {
 	TupleLiteral(ExpressionVector expressions)
+		: SequenceLiteral(expressions) {};
+};
+
+struct AST_API SetLiteral : public SequenceLiteral
+{
+	SetLiteral(ExpressionVector expressions)
 		: SequenceLiteral(expressions) {};
 };
 
@@ -94,11 +107,10 @@ struct AST_API UDTMemberAccess
 
 struct AST_API EnumMember
 {
-	std::wstring enum_name;
 	std::vector<std::wstring> member_chain;
 
-	EnumMember(std::wstring enum_name, std::vector<std::wstring> member_chain)
-		: enum_name(enum_name), member_chain(member_chain) {};
+	EnumMember(std::vector<std::wstring> member_chain)
+		: member_chain(member_chain) {};
 };
 
 struct AST_API Call
@@ -112,21 +124,40 @@ struct AST_API Call
 		: name(name), arguments(arguments) {};
 };
 
-struct AST_API Unary
+struct AST_API Prefix
 {
 	Token_ptr op;
 	Expression_ptr operand;
 
-	Unary(Token_ptr op, Expression_ptr operand)
+	Prefix(Token_ptr op, Expression_ptr operand)
 		: op(std::move(op)), operand(std::move(operand)) {};
 };
 
-struct AST_API Binary
+struct AST_API Infix
 {
 	Expression_ptr left;
 	Token_ptr op;
 	Expression_ptr right;
 
-	Binary(Expression_ptr left, Token_ptr op, Expression_ptr right)
+	Infix(Expression_ptr left, Token_ptr op, Expression_ptr right)
 		: left(std::move(left)), op(std::move(op)), right(std::move(right)) {};
+};
+
+struct AST_API Postfix
+{
+	Token_ptr op;
+	Expression_ptr operand;
+
+	Postfix(Expression_ptr operand, Token_ptr op)
+		: operand(std::move(operand)), op(std::move(op)) {};
+};
+
+struct AST_API Conditional
+{
+	Expression_ptr condition;
+	Expression_ptr then_arm;
+	Expression_ptr else_arm;
+
+	Conditional(Expression_ptr condition, Expression_ptr then_arm, Expression_ptr else_arm)
+		: condition(std::move(condition)), then_arm(std::move(then_arm)), else_arm(std::move(else_arm)) {};
 };

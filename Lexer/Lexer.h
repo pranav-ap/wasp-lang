@@ -35,20 +35,28 @@ const std::map<std::wstring, WTokenType> keyword_map =
 	{ L"break", WTokenType::BREAK },
 	{ L"continue", WTokenType::CONTINUE },
 
+	{ L"interface", WTokenType::INTERFACE },
 	{ L"fn", WTokenType::FN },
 	{ L"return", WTokenType::RETURN_KEYWORD },
 	{ L"gen", WTokenType::GEN },
 	{ L"yield", WTokenType::YIELD_KEYWORD },
 
 	{ L"type", WTokenType::TYPE },
-	{ L"num", WTokenType::NUM },
-	{ L"str", WTokenType::STR },
+	{ L"int", WTokenType::INT },
+	{ L"float", WTokenType::FLOAT },
+	{ L"string", WTokenType::STRING_KEYWORD },
 	{ L"bool", WTokenType::BOOL },
 	{ L"enum", WTokenType::ENUM },
 	{ L"any", WTokenType::ANY },
 	{ L"opt", WTokenType::OPT },
-
 	{ L"none", WTokenType::NONE },
+
+	{ L"match", WTokenType::MATCH },
+	{ L"case", WTokenType::CASE },
+	{ L"end", WTokenType::END },
+
+	{ L"then", WTokenType::THEN },
+	{ L"do", WTokenType::DO },
 
 	{ L"true", WTokenType::TRUE_KEYWORD },
 	{ L"false", WTokenType::FALSE_KEYWORD },
@@ -90,8 +98,6 @@ class LEXER_API Lexer
 	Token_ptr consume_single_char_punctuation(wchar_t ch);
 
 	Token_ptr consume_eol();
-	Token_ptr consume_space();
-
 	Token_ptr consume_unknown_token(wchar_t ch);
 
 	// Utils
@@ -99,9 +105,6 @@ class LEXER_API Lexer
 	wchar_t get_char_at(int index) const;
 	wchar_t get_current_char() const;
 	wchar_t get_right_char() const;
-
-	std::optional<Token_ptr> get_previous_significant_token();
-	bool is_unary();
 
 	bool expect_current_char(wchar_t ch);
 	void next();

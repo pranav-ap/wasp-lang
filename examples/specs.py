@@ -1,61 +1,69 @@
-﻿let { io } = import('std/io')
+﻿let { io } = import("std/io") // UNS
 
 // Its more of a comment really
 
-let x : number = 34
-let x : string = 'hello'
-let x : [number] = [ 1, 2, 3 ]
-let x : ⌊ string ⌋ = ⌊ '1', 'hello' ⌋
-let x : { string } = { '1', 'hello' }
-let x : ⟨ string => string ⟩ = ⟨ 'a': 'b', 'c': 'd' ⟩
-let x : Person = new Person('john', false)
+let x : int = 34
+let x : string = "hello"
+let x : [int] = [ 1, 2, 3 ]
+let x : ⌊ string ⌋ = ⌊ "1", "hello" ⌋
+let x : { string } = { "1", "hello" }
+let x : ⟨ string => string ⟩ = ⟨ "a": "b", "c": "d" ⟩
+let x : Person = new Person("john", false)
 
 a = 1
-x.at(32) = 323524
+x.at(32) = 323524 // UNS
 
 x.foo.age
 x(123).foo(36, gg).age
 
 
-let [a : number, b : string] = c
-[a, b] = c
+let [a : int, b : string] = c  // UNS
+[a, b] = c  // UNS
 
-let [a : number, ...b : string, c : string] = some_list
-[a, ...b, c] = some_list
+let [a : int, ...b : string, c : string] = some_list  // UNS
+[a, ...b, c] = some_list  // UNS
 
 
-if a > 3 and r == 3
+if a > 3 and r == 3 then
     pass
-elif a > 3
-    pass
-else
-    pass
-end
-
-
-if let x : number = call()
+elif a > 3  then
     pass
 else
     pass
 end
 
 
-for x : number in [1, 2, 3]
+if let x : int = call() :
+    pass
+else :
     pass
 end
 
 
-for id : number in [1, 2, 3]
+for x : int in [1, 2, 3] do
+    pass
+end
+
+
+for id : int in [1, 2, 3] :
     pass
 
 
-for i : number in 1 to 8 step 2 // to, downto
+for i : int in 1 to 8 step 2 do // to, downto
     print(i)
 end
 
+while expr do
+    a = a + 4
+end
 
-fn add(a : number, b : number) => number
-    if a > b
+while expr do
+    a = a + 4
+end
+
+
+fn add(a : mut int, b : mut int) => int
+    if a > b :
         return a + b + 4
     end
 
@@ -63,13 +71,13 @@ fn add(a : number, b : number) => number
 end
 
 
-enum NAME
+enum NAME :
     ID1
     ID2
-    enum LASTNAME
+    enum LASTNAME :
         ID3
         ID4
-    enum FIRSTNAME
+    enum FIRSTNAME :
         ID5
         ID6
 end
@@ -80,35 +88,35 @@ NAME::LASTNAME
 NAME::LASTNAME::ID3
 
 
-type length = number
-type length = number | string
+type length = int
+type length = int | string
 type WindowStates = "open" | "closed" | "minimized"
 
 
-match thing
-    case "open"
+match thing :
+    case "open" of string then
         echo "open"
-    case "closed"
+    case "closed" :
         echo "closed"
 end
 
 
-interface ICastle
-    lng: number const
-    lat: number const
+interface ICastle :
+    lng: int const
+    lat: int const
 
     tileSize: 8 | 16 | 32
 
-    open_gates: (speed: number) => bool
-    close_gates: (speed: number) => bool
+    open_gates: (speed: int) => bool
+    close_gates: (speed: int) => bool
 end
 
 
-type Castle ~ ICastle, Building
+type Castle ~ ICastle, Building :
     name: string
 
     fn constructor()
-        self.name = ''
+        self.name = "
     end
 
     fn constructor(name: string)
@@ -121,17 +129,11 @@ type Castle ~ ICastle, Building
 end
 
 
-operator a : num + b : num => num
+operator a : num + b : num => num :
     return a + b
 end
 
 
-module Hello
+module Hello :
 
 end
-
-
-A is B
-
-
-

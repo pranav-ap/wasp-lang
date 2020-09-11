@@ -1,9 +1,9 @@
 #pragma once
 
+#include "Token.h"
 #include <vector>
 #include <memory>
 #include <optional>
-#include "Token.h"
 
 class TokenPipe
 {
@@ -13,27 +13,14 @@ class TokenPipe
 public:
 	TokenPipe(std::vector<Token_ptr> tokens) : tokens(tokens), index(0) {};
 
-	// Token Functions
-
 	std::optional<Token_ptr> current() const;
-	std::optional<Token_ptr> current(std::vector<WTokenType> ignorables);
+	std::optional<Token_ptr> lookahead() const;
 
 	std::optional<Token_ptr> optional(WTokenType token_type);
-	std::optional<Token_ptr> optional(WTokenType token_type, std::vector<WTokenType> ignorables);
-
-	Token_ptr required(WTokenType token_type);
-	Token_ptr required(WTokenType token_type, std::vector<WTokenType> ignorables);
-
+	Token_ptr require(WTokenType token_type);
 	void expect(WTokenType token_type);
-	void expect(WTokenType token_type, std::vector<WTokenType> ignorables);
 
-	void expect_indent(const int expected_indent);
-	bool has_indent(const int expected_indent);
-
-	bool has_indent_and_followed_by(const int expected_indent, WTokenType token);
-
-	void ignore(WTokenType ignorable);
-	void ignore(std::vector<WTokenType> ignorables);
+	void ignore_whitespace();
 
 	// Utils
 

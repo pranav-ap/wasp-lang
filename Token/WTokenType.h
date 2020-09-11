@@ -8,15 +8,10 @@
 
 enum class TOKEN_API WTokenType
 {
-	// Literals
-
 	NUMBER_LITERAL,
 	STRING_LITERAL,
 
-	// Identifiers
-
 	IDENTIFIER,
-	CALLABLE_IDENTIFIER,
 
 	// Punctuations
 
@@ -38,13 +33,13 @@ enum class TOKEN_API WTokenType
 	COLON,
 	COLON_COLON,
 	VERTICAL_BAR,
+	DOLLAR,
+	QUESTION,
 
 	PLUS,
-	UNARY_PLUS,
 	PLUS_EQUAL,
 
 	MINUS,
-	UNARY_MINUS,
 	MINUS_EQUAL,
 
 	STAR,
@@ -77,8 +72,13 @@ enum class TOKEN_API WTokenType
 	ELIF,
 	ELSE,
 
+	THEN,
+	DO,
+
 	AND,
 	OR,
+
+	TILDE,
 
 	LET,
 	CONST_KEYWORD,
@@ -88,6 +88,9 @@ enum class TOKEN_API WTokenType
 	BREAK,
 	CONTINUE,
 	IN_KEYWORD,
+	MATCH,
+	CASE,
+	END,
 
 	FN,
 	RETURN_KEYWORD,
@@ -95,29 +98,28 @@ enum class TOKEN_API WTokenType
 	YIELD_KEYWORD,
 
 	TYPE,
-	NUM,
-	STR,
+	NONE,
+	INT,
+	FLOAT,
+	STRING_KEYWORD,
 	BOOL,
 	ENUM,
 	ANY,
 	OPT,
 
-	NONE,
+	INTERFACE,
 
 	TRUE_KEYWORD,
 	FALSE_KEYWORD,
 
 	NEW,
-
 	PUB,
 	PASS,
-
 	ASSERT,
 
 	// Whitespace
 
 	EOL,
-	SPACE,
 
 	// Other
 

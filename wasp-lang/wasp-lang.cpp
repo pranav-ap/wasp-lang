@@ -3,10 +3,10 @@
 #include "Lexer.h"
 #include "Parser.h"
 #include "Statement.h"
-#include "SemanticAnalyzer.h"
-#include "MemorySystem.h"
-#include "Compiler.h"
-#include "CFGBuilder.h"
+//#include "SemanticAnalyzer.h"
+//#include "MemorySystem.h"
+//#include "Compiler.h"
+//#include "CFGBuilder.h"
 #include <string>
 #include <iostream>
 #include <memory>
@@ -26,24 +26,24 @@ int main()
 	Lexer_ptr lexer = make_unique<Lexer>();
 	vector<Token_ptr> tokens = lexer->execute(raw_source);
 
-	Parser_ptr parser = make_unique<Parser>();
+	Parser_ptr parser = new Parser();
 	Module_ptr ast = parser->execute(tokens);
 
-	SemanticAnalyzer_ptr semantic_analyser = make_unique<SemanticAnalyzer>();
-	semantic_analyser->execute(ast);
+	//SemanticAnalyzer_ptr semantic_analyser = make_unique<SemanticAnalyzer>();
+	//semantic_analyser->execute(ast);
 
-	MemorySystem_ptr memory = make_shared<MemorySystem>();
+	//MemorySystem_ptr memory = make_shared<MemorySystem>();
 
-	Compiler_ptr compiler = make_unique<Compiler>(memory);
-	compiler->execute(ast);
+	//Compiler_ptr compiler = make_unique<Compiler>(memory);
+	//compiler->execute(ast);
 
-	CFGBuilder_ptr cfg_builder = make_unique<CFGBuilder>(memory);
-	CFG_ptr cfg = cfg_builder->execute();
+	//CFGBuilder_ptr cfg_builder = make_unique<CFGBuilder>(memory);
+	//CFG_ptr cfg = cfg_builder->execute();
 
-	ByteVector instructions = cfg_builder->assemble();
-	memory->get_code_section()->set(instructions);
+	//ByteVector instructions = cfg_builder->assemble();
+	//memory->get_code_section()->set(instructions);
 
-	memory->print();
+	//memory->print();
 
 	return 0;
 }

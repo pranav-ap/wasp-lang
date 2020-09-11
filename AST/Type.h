@@ -13,11 +13,13 @@
 #include <optional>
 
 struct AnyType;
-struct NumberType;
+struct IntType;
+struct FloatType;
 struct StringType;
 struct BooleanType;
 struct ListType;
 struct TupleType;
+struct SetType;
 struct UDTType;
 struct MapType;
 struct EnumType;
@@ -29,8 +31,8 @@ struct GeneratorType;
 using Type = AST_API std::variant<
 	std::monostate,
 	AnyType,
-	NumberType, StringType, BooleanType,
-	ListType, TupleType,
+	IntType, FloatType, StringType, BooleanType,
+	ListType, TupleType, SetType,
 	UDTType, MapType,
 	EnumType,
 	VariantType, NoneType,
@@ -69,7 +71,11 @@ struct AST_API CallableType : public AnyType
 
 // Scalar Types
 
-struct AST_API NumberType : public ScalarType
+struct AST_API IntType : public ScalarType
+{
+};
+
+struct AST_API FloatType : public ScalarType
 {
 };
 
@@ -93,6 +99,12 @@ struct AST_API TupleType : public CompositeType
 {
 	TypeVector element_types;
 	TupleType(TypeVector element_types) : element_types(element_types) {};
+};
+
+struct AST_API SetType : public CompositeType
+{
+	TypeVector element_types;
+	SetType(TypeVector element_types) : element_types(element_types) {};
 };
 
 struct AST_API MapType : public CompositeType

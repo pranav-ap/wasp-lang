@@ -69,12 +69,7 @@ vector<Token_ptr> Lexer::execute(std::wstring raw_source)
 
 		Token_ptr token;
 
-		if (!found_statement && current_char == ' ')
-		{
-			next();
-			token = consume_space();
-		}
-		else if (found_statement && current_char == ' ')
+		if (current_char == ' ')
 		{
 			next();
 			continue;
@@ -105,6 +100,9 @@ vector<Token_ptr> Lexer::execute(std::wstring raw_source)
 			switch (current_char)
 			{
 			case '\\':
+			case '$':
+			case '~':
+			case '?':
 
 			case ',':
 			case '|':
@@ -241,11 +239,6 @@ Token_ptr Lexer::consume_identifier(wchar_t ch)
 		return MAKE_TOKEN(keyword_type, identifier, LINE_NUM, COL_NUM);
 	}
 
-	if (get_current_char() == '(')
-	{
-		return MAKE_TOKEN(WTokenType::CALLABLE_IDENTIFIER, identifier, LINE_NUM, COL_NUM);
-	}
-
 	return MAKE_TOKEN(WTokenType::IDENTIFIER, identifier, LINE_NUM, COL_NUM);
 }
 
@@ -254,9 +247,6 @@ Token_ptr Lexer::consume_plus()
 	if (expect_current_char('='))
 		return MAKE_TOKEN(WTokenType::PLUS_EQUAL, L"+=", LINE_NUM, COL_NUM);
 
-	if (is_unary())
-		return MAKE_TOKEN(WTokenType::UNARY_PLUS, L"+", LINE_NUM, COL_NUM);
-
 	return MAKE_TOKEN(WTokenType::PLUS, L"+", LINE_NUM, COL_NUM);
 }
 
@@ -264,11 +254,6 @@ Token_ptr Lexer::consume_minus()
 {
 	if (expect_current_char('='))
 		return MAKE_TOKEN(WTokenType::MINUS_EQUAL, L"-=", LINE_NUM, COL_NUM);
-	else if (expect_current_char('>'))
-		return MAKE_TOKEN(WTokenType::ARROW, L"->", LINE_NUM, COL_NUM);
-
-	if (is_unary())
-		return MAKE_TOKEN(WTokenType::UNARY_MINUS, L"-", LINE_NUM, COL_NUM);
 
 	return MAKE_TOKEN(WTokenType::MINUS, L"-", LINE_NUM, COL_NUM);
 }
@@ -337,6 +322,8 @@ Token_ptr Lexer::consume_equal()
 {
 	if (expect_current_char('='))
 		return MAKE_TOKEN(WTokenType::EQUAL_EQUAL, L"==", LINE_NUM, COL_NUM);
+	else if (expect_current_char('>'))
+		return MAKE_TOKEN(WTokenType::ARROW, L"=>", LINE_NUM, COL_NUM);
 
 	return MAKE_TOKEN(WTokenType::EQUAL, L"=", LINE_NUM, COL_NUM);
 }
@@ -371,6 +358,13 @@ Token_ptr Lexer::consume_single_char_punctuation(wchar_t ch)
 	{
 	case '\\':
 		return MAKE_TOKEN(WTokenType::BACKWARD_SLASH, L"\\", LINE_NUM, COL_NUM);
+
+	case '$':
+		return MAKE_TOKEN(WTokenType::DOLLAR, L"$", LINE_NUM, COL_NUM);
+	case '~':
+		return MAKE_TOKEN(WTokenType::TILDE, L"~", LINE_NUM, COL_NUM);
+	case '?':
+		return MAKE_TOKEN(WTokenType::QUESTION, L"?", LINE_NUM, COL_NUM);
 
 	case ',':
 		return MAKE_TOKEN(WTokenType::COMMA, L",", LINE_NUM, COL_NUM);
@@ -414,11 +408,6 @@ Token_ptr Lexer::consume_eol()
 	position.reset_column_number();
 
 	return MAKE_TOKEN(WTokenType::EOL, L"\n", line_num, column_num);
-}
-
-Token_ptr Lexer::consume_space()
-{
-	return MAKE_TOKEN(WTokenType::SPACE, L"SPACE", LINE_NUM, COL_NUM);
 }
 
 Token_ptr Lexer::consume_unknown_token(wchar_t ch)
@@ -467,42 +456,6 @@ wchar_t Lexer::get_right_char() const
 {
 	int index = pointer.get_index();
 	return get_char_at(index + 1);
-}
-
-optional<Token_ptr> Lexer::get_previous_significant_token()
-{
-	for (auto t = tokens.rbegin(); t != tokens.rend(); t++)
-	{
-		if (auto token = *t; token->type != WTokenType::EOL)
-		{
-			return make_optional(token);
-		}
-	}
-
-	return nullopt;
-}
-
-bool Lexer::is_unary()
-{
-	auto previous_token = get_previous_significant_token();
-
-	if (!previous_token.has_value())
-		return true;
-
-	switch (previous_token.value()->type)
-	{
-	case WTokenType::NUMBER_LITERAL:
-	case WTokenType::IDENTIFIER:
-	case WTokenType::CALLABLE_IDENTIFIER:
-	{
-		return false;
-	}
-
-	default:
-	{
-		return true;
-	}
-	}
 }
 
 void Lexer::next()

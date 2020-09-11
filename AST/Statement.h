@@ -36,7 +36,7 @@ struct EnumDefinition;
 struct ExpressionStatement;
 struct AssertStatement;
 
-using Statement = AST_API std::variant <
+using Statement = AST_API std::variant<
 	std::monostate,
 
 	Module,
