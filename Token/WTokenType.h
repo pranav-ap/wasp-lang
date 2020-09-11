@@ -92,6 +92,11 @@ enum class TOKEN_API WTokenType
 	CASE,
 	END,
 
+	IMPLORE,
+	SWEAR,
+
+	TYPE_OF,
+
 	FN,
 	RETURN_KEYWORD,
 	GEN,

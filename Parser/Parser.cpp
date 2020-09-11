@@ -44,6 +44,8 @@ using std::holds_alternative;
 
 Parser::Parser()
 {
+	register_parselet(WTokenType::EQUAL, make_shared<AssignmentParselet>());
+
 	register_parselet(WTokenType::IDENTIFIER, make_shared<IdentifierParselet>());
 	register_parselet(WTokenType::STRING_LITERAL, make_shared<StringParselet>());
 	register_parselet(WTokenType::NUMBER_LITERAL, make_shared<NumberParselet>());
@@ -52,7 +54,7 @@ Parser::Parser()
 	register_parselet(WTokenType::FALSE_KEYWORD, make_shared<BooleanParselet>());
 
 	register_parselet(WTokenType::OPEN_PARENTHESIS, make_shared<CallParselet>());
-	register_parselet(WTokenType::OPEN_PARENTHESIS, make_shared<SetParselet>());
+	register_parselet(WTokenType::OPEN_PARENTHESIS, make_shared<GroupParselet>());
 	register_parselet(WTokenType::OPEN_SQUARE_BRACKET, make_shared<ListParselet>());
 	register_parselet(WTokenType::OPEN_ANGLE_BRACKET, make_shared<MapParselet>());
 	register_parselet(WTokenType::OPEN_FLOOR_BRACKET, make_shared<TupleParselet>());
@@ -82,10 +84,14 @@ Parser::Parser()
 	register_infix_left(WTokenType::GREATER_THAN, Precedence::COMPARISON);
 	register_infix_left(WTokenType::GREATER_THAN_EQUAL, Precedence::COMPARISON);
 
+	register_infix_left(WTokenType::IN_KEYWORD, Precedence::COMPARISON);
+	register_infix_left(WTokenType::TYPE_OF, Precedence::COMPARISON);
+
 	register_infix_left(WTokenType::AND, Precedence::LOGICAL);
 	register_infix_left(WTokenType::OR, Precedence::LOGICAL);
 
 	register_infix_right(WTokenType::POWER, Precedence::EXPONENT);
+	register_infix_right(WTokenType::EQUAL, Precedence::ASSIGNMENT);
 }
 
 // Expression Parser
@@ -223,6 +229,7 @@ Statement_ptr Parser::parse_statement(bool is_public)
 		CASE(WTokenType::FN, parse_function_definition(is_public));
 		CASE(WTokenType::GEN, parse_generator_definition(is_public));
 
+		CASE(WTokenType::IF, parse_branching());
 		CASE(WTokenType::WHILE, parse_while_loop());
 		CASE(WTokenType::FOR, parse_for_in_loop());
 
@@ -232,6 +239,8 @@ Statement_ptr Parser::parse_statement(bool is_public)
 		CASE(WTokenType::RETURN_KEYWORD, parse_return());
 		CASE(WTokenType::YIELD_KEYWORD, parse_yield());
 		CASE(WTokenType::ASSERT, parse_assert());
+		CASE(WTokenType::IMPLORE, parse_implore());
+		CASE(WTokenType::SWEAR, parse_swear());
 		CASE(WTokenType::BREAK, parse_break());
 		CASE(WTokenType::CONTINUE, parse_continue());
 
@@ -280,9 +289,11 @@ Statement_ptr Parser::parse_non_block_statement()
 	{
 		CASE(WTokenType::RETURN_KEYWORD, parse_return());
 		CASE(WTokenType::YIELD_KEYWORD, parse_yield());
-		CASE(WTokenType::ASSERT, parse_assert());
 		CASE(WTokenType::BREAK, parse_break());
 		CASE(WTokenType::CONTINUE, parse_continue());
+		CASE(WTokenType::ASSERT, parse_assert());
+		CASE(WTokenType::IMPLORE, parse_implore());
+		CASE(WTokenType::SWEAR, parse_swear());
 
 	default:
 	{
@@ -336,6 +347,26 @@ Statement_ptr Parser::parse_assert()
 	return MAKE_STATEMENT(AssertStatement(move(expression)));
 }
 
+Statement_ptr Parser::parse_implore()
+{
+	auto expression = parse_expression();
+	NULL_CHECK(expression);
+
+	token_pipe->expect(WTokenType::EOL);
+
+	return MAKE_STATEMENT(AssertStatement(move(expression)));
+}
+
+Statement_ptr Parser::parse_swear()
+{
+	auto expression = parse_expression();
+	NULL_CHECK(expression);
+
+	token_pipe->expect(WTokenType::EOL);
+
+	return MAKE_STATEMENT(AssertStatement(move(expression)));
+}
+
 Statement_ptr Parser::parse_break()
 {
 	token_pipe->expect(WTokenType::EOL);
@@ -376,6 +407,84 @@ Block Parser::parse_block()
 	}
 
 	return statements;
+}
+
+Block Parser::parse_conditional_block()
+{
+	Block statements;
+
+	while (true)
+	{
+		token_pipe->ignore_whitespace();
+
+		auto token = token_pipe->current();
+		OPT_CHECK(token);
+
+		auto token_type = token.value()->type;
+
+		switch (token_type)
+		{
+		case WTokenType::END:
+		case WTokenType::ELIF:
+		case WTokenType::ELSE:
+		{
+			return statements;
+		}
+		}
+
+		auto statement = parse_statement(false);
+
+		if (!statement)
+			break;
+
+		statements.push_back(move(statement));
+	}
+
+	return statements;
+}
+
+pair<Expression_ptr, Block> Parser::parse_condition_and_consequence()
+{
+	auto condition = parse_expression();
+	token_pipe->expect(WTokenType::THEN);
+
+	if (token_pipe->optional(WTokenType::EOL))
+	{
+		auto block = parse_conditional_block();
+		return make_pair(condition, block);
+	}
+
+	auto statement = parse_non_block_statement();
+	Block block = { move(statement) };
+	return make_pair(condition, block);
+}
+
+Statement_ptr Parser::parse_branching()
+{
+	std::vector<std::pair<Expression_ptr, Block>> branches;
+
+	while (true)
+	{
+		auto condition_consequence_pair = parse_condition_and_consequence();
+		branches.push_back(condition_consequence_pair);
+
+		if (token_pipe->optional(WTokenType::ELIF))
+			continue;
+
+		break;
+	}
+
+	Block else_block;
+
+	if (token_pipe->optional(WTokenType::ELSE))
+	{
+		token_pipe->expect(WTokenType::EOL);
+		else_block = parse_conditional_block();
+	}
+
+	token_pipe->expect(WTokenType::END);
+
+	return MAKE_STATEMENT(Branching(branches, else_block));
 }
 
 Statement_ptr Parser::parse_while_loop()

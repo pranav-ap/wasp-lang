@@ -18,7 +18,6 @@
 #include <utility>
 
 struct Module;
-struct Assignment;
 struct Branching;
 struct WhileLoop;
 struct ForInLoop;
@@ -36,13 +35,13 @@ struct InterfaceDefinition;
 struct EnumDefinition;
 struct ExpressionStatement;
 struct AssertStatement;
+struct ImploreStatement;
+struct SwearStatement;
 
 using Statement = AST_API std::variant<
 	std::monostate,
 
 	Module,
-
-	Assignment,
 
 	Branching,
 	WhileLoop, ForInLoop,
@@ -55,7 +54,8 @@ using Statement = AST_API std::variant<
 	InterfaceDefinition, EnumDefinition,
 
 	ExpressionStatement,
-	AssertStatement
+	AssertStatement,
+	ImploreStatement, SwearStatement
 >;
 
 using Statement_ptr = AST_API std::shared_ptr<Statement>;
@@ -70,15 +70,6 @@ struct AST_API Module
 };
 
 using Module_ptr = AST_API std::shared_ptr<Module>;
-
-struct AST_API Assignment
-{
-	std::wstring name;
-	Expression_ptr expression;
-
-	Assignment(std::wstring name, Expression_ptr expression)
-		: name(name), expression(expression) {};
-};
 
 struct AST_API Branching
 {
@@ -231,5 +222,21 @@ struct AST_API AssertStatement
 	Expression_ptr expression;
 
 	AssertStatement(Expression_ptr expression)
+		: expression(std::move(expression)) {};
+};
+
+struct AST_API ImploreStatement
+{
+	Expression_ptr expression;
+
+	ImploreStatement(Expression_ptr expression)
+		: expression(std::move(expression)) {};
+};
+
+struct AST_API SwearStatement
+{
+	Expression_ptr expression;
+
+	SwearStatement(Expression_ptr expression)
 		: expression(std::move(expression)) {};
 };

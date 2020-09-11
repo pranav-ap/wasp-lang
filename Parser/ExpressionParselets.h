@@ -156,3 +156,10 @@ public:
 	Expression_ptr parse(Parser_ptr parser, Expression_ptr left, Token_ptr token);
 	int get_precedence();
 };
+
+class AssignmentParselet : public IInfixParselet
+{
+public:
+	Expression_ptr parse(Parser_ptr parser, Expression_ptr left, Token_ptr token);
+	int get_precedence();
+};

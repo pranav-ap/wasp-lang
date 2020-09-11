@@ -15,9 +15,7 @@
 #include <memory>
 #include <variant>
 
-class ExpressionVisualizer;
-using ExpressionVisualizer_ptr = std::shared_ptr<ExpressionVisualizer>;
-
+struct Assignment;
 struct ListLiteral;
 struct TupleLiteral;
 struct SetLiteral;
@@ -39,6 +37,7 @@ using Expression = AST_API std::variant<
 	MapLiteral, UDTConstruct,
 	UDTMemberAccess, EnumMember,
 	Identifier, Call,
+	Assignment,
 	Prefix, Infix, Postfix,
 	Conditional
 >;
@@ -51,6 +50,15 @@ struct AST_API Identifier
 {
 	std::wstring name;
 	Identifier(std::wstring name) : name(name) {};
+};
+
+struct AST_API Assignment
+{
+	Expression_ptr lhs_expression;
+	Expression_ptr rhs_expression;
+
+	Assignment(Expression_ptr lhs_expression, Expression_ptr rhs_expression)
+		: lhs_expression(lhs_expression), rhs_expression(rhs_expression) {};
 };
 
 struct AST_API SequenceLiteral

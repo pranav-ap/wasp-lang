@@ -35,13 +35,18 @@ class PARSER_API Parser
 	Statement_ptr parse_return();
 	Statement_ptr parse_yield();
 	Statement_ptr parse_assert();
+	Statement_ptr parse_implore();
+	Statement_ptr parse_swear();
 	Statement_ptr parse_break();
 	Statement_ptr parse_continue();
 
 	// Blocks
 
 	Block parse_block();
+	Block parse_conditional_block();
+	std::pair<Expression_ptr, Block> parse_condition_and_consequence();
 
+	Statement_ptr parse_branching();
 	Statement_ptr parse_while_loop();
 	Statement_ptr parse_for_in_loop();
 

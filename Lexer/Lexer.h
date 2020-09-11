@@ -41,6 +41,8 @@ const std::map<std::wstring, WTokenType> keyword_map =
 	{ L"gen", WTokenType::GEN },
 	{ L"yield", WTokenType::YIELD_KEYWORD },
 
+	{ L"typeof", WTokenType::TYPE_OF },
+
 	{ L"type", WTokenType::TYPE },
 	{ L"int", WTokenType::INT },
 	{ L"float", WTokenType::FLOAT },
@@ -54,6 +56,9 @@ const std::map<std::wstring, WTokenType> keyword_map =
 	{ L"match", WTokenType::MATCH },
 	{ L"case", WTokenType::CASE },
 	{ L"end", WTokenType::END },
+
+	{ L"implore", WTokenType::IMPLORE },
+	{ L"swear", WTokenType::SWEAR },
 
 	{ L"then", WTokenType::THEN },
 	{ L"do", WTokenType::DO },

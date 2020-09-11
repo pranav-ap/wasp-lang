@@ -237,6 +237,12 @@ Expression_ptr EnumMemberParselet::parse(Parser_ptr parser, Expression_ptr left,
 	return MAKE_EXPRESSION(EnumMember(chain));
 }
 
+Expression_ptr AssignmentParselet::parse(Parser_ptr parser, Expression_ptr left, Token_ptr token)
+{
+	Expression_ptr right = parser->parse_expression((int)Precedence::ASSIGNMENT - 1);
+	return MAKE_EXPRESSION(Assignment(left, right));
+}
+
 // get_precedence
 
 int PrefixOperatorParselet::get_precedence()
@@ -277,4 +283,9 @@ int EnumMemberParselet::get_precedence()
 int UDTCreationParselet::get_precedence()
 {
 	return (int)Precedence::CALL;
+}
+
+int AssignmentParselet::get_precedence()
+{
+	return (int)Precedence::ASSIGNMENT;
 }

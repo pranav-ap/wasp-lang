@@ -2,10 +2,11 @@
 
 enum class Precedence : int
 {
-	TERNARY_CONDITION = 1, // ? :
+	ASSIGNMENT = 1,
+	TERNARY_CONDITION, // ? :
 	LOGICAL, // and or
 	EQUALITY, // == !=
-	COMPARISON, // < > <= >=
+	COMPARISON, // < > <= >= in typeof
 	TERM, // + -
 	PRODUCT, // * / %
 	EXPONENT, // ^

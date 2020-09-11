@@ -33,6 +33,9 @@ else
 end
 
 
+if a > 3 then call() else 4
+
+
 if let x : int = call() :
     pass
 else :
