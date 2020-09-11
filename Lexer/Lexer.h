@@ -62,10 +62,7 @@ const std::map<std::wstring, WTokenType> keyword_map =
 	{ L"false", WTokenType::FALSE_KEYWORD },
 
 	{ L"new", WTokenType::NEW },
-
 	{ L"pub", WTokenType::PUB },
-	{ L"pass", WTokenType::PASS },
-
 	{ L"assert", WTokenType::ASSERT }
 };
 

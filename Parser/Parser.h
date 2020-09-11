@@ -28,13 +28,39 @@ class PARSER_API Parser
 
 	Statement_ptr parse_statement(bool is_public = false);
 	Statement_ptr parse_public_statement();
+	Statement_ptr parse_non_block_statement();
 
 	Statement_ptr parse_expression_statement();
+
+	Statement_ptr parse_return();
+	Statement_ptr parse_yield();
+	Statement_ptr parse_assert();
+	Statement_ptr parse_break();
+	Statement_ptr parse_continue();
+
+	// Blocks
+
+	Block parse_loop_block();
+	Statement_ptr parse_while_loop();
+	Statement_ptr parse_for_in_loop();
+
+	// Type parsers
+
+	Type_ptr parse_type(bool is_optional = false);
+	Type_ptr parse_list_type(bool is_optional);
+	Type_ptr parse_set_type(bool is_optional);
+	Type_ptr parse_tuple_type(bool is_optional);
+	Type_ptr parse_map_type(bool is_optional);
+	Type_ptr consume_datatype_word(bool is_optional);
+
+	std::pair<std::wstring, Type_ptr> consume_identifier_type_pair();
 
 	// Definition Parsers
 
 	Statement_ptr parse_enum_definition(bool is_public);
 	std::vector<std::wstring> parse_enum_members(std::wstring stem);
+
+	Statement_ptr parse_interface_definition(bool is_public);
 
 	// Pratt Parser
 

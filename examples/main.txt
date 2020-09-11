@@ -1,11 +1,4 @@
--34
-
-enum Animal
-	DOG
-	CAT
-	enum Bird
-		CROW
-		PIGEON
-	end
+interface ICastle
+    lng: int
+    lat: int
 end
-

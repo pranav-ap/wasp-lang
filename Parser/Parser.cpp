@@ -217,6 +217,16 @@ Statement_ptr Parser::parse_statement(bool is_public)
 	{
 		CASE(WTokenType::PUB, parse_public_statement());
 		CASE(WTokenType::ENUM, parse_enum_definition(is_public));
+		CASE(WTokenType::INTERFACE, parse_interface_definition(is_public));
+
+		CASE(WTokenType::WHILE, parse_while_loop());
+		CASE(WTokenType::FOR, parse_for_in_loop());
+
+		CASE(WTokenType::RETURN_KEYWORD, parse_return());
+		CASE(WTokenType::YIELD_KEYWORD, parse_yield());
+		CASE(WTokenType::ASSERT, parse_assert());
+		CASE(WTokenType::BREAK, parse_break());
+		CASE(WTokenType::CONTINUE, parse_continue());
 
 	default:
 	{
@@ -245,6 +255,29 @@ Statement_ptr Parser::parse_public_statement()
 	}
 }
 
+Statement_ptr Parser::parse_non_block_statement()
+{
+	auto token = token_pipe->current();
+	OPT_CHECK(token);
+
+	ADVANCE_PTR;
+
+	switch (token.value()->type)
+	{
+		CASE(WTokenType::RETURN_KEYWORD, parse_return());
+		CASE(WTokenType::YIELD_KEYWORD, parse_yield());
+		CASE(WTokenType::ASSERT, parse_assert());
+		CASE(WTokenType::BREAK, parse_break());
+		CASE(WTokenType::CONTINUE, parse_continue());
+
+	default:
+	{
+		RETREAT_PTR;
+		return parse_expression_statement();
+	}
+	}
+}
+
 Statement_ptr Parser::parse_expression_statement()
 {
 	auto expression = parse_expression();
@@ -252,6 +285,311 @@ Statement_ptr Parser::parse_expression_statement()
 
 	return MAKE_STATEMENT(ExpressionStatement(move(expression)));
 }
+
+Statement_ptr Parser::parse_return()
+{
+	if (auto expression = parse_expression())
+	{
+		token_pipe->expect(WTokenType::EOL);
+		return MAKE_STATEMENT(Return(move(expression)));
+	}
+
+	token_pipe->expect(WTokenType::EOL);
+
+	return MAKE_STATEMENT(Return());
+}
+
+Statement_ptr Parser::parse_yield()
+{
+	if (auto expression = parse_expression())
+	{
+		token_pipe->expect(WTokenType::EOL);
+		return MAKE_STATEMENT(YieldStatement(move(expression)));
+	}
+
+	token_pipe->expect(WTokenType::EOL);
+
+	return MAKE_STATEMENT(YieldStatement());
+}
+
+Statement_ptr Parser::parse_assert()
+{
+	auto expression = parse_expression();
+	NULL_CHECK(expression);
+
+	token_pipe->expect(WTokenType::EOL);
+
+	return MAKE_STATEMENT(AssertStatement(move(expression)));
+}
+
+Statement_ptr Parser::parse_break()
+{
+	token_pipe->expect(WTokenType::EOL);
+	return MAKE_STATEMENT(Break());
+}
+
+Statement_ptr Parser::parse_continue()
+{
+	token_pipe->expect(WTokenType::EOL);
+	return MAKE_STATEMENT(Continue());
+}
+
+// Blocks
+
+Block Parser::parse_loop_block()
+{
+	Block statements;
+
+	while (true)
+	{
+		token_pipe->ignore_whitespace();
+
+		auto token = token_pipe->current();
+		OPT_CHECK(token);
+
+		if (token.value()->type == WTokenType::END)
+		{
+			token_pipe->advance_pointer();
+			break;
+		}
+
+		auto statement = parse_statement(false);
+
+		if (!statement)
+			break;
+
+		statements.push_back(move(statement));
+	}
+
+	return statements;
+}
+
+Statement_ptr Parser::parse_while_loop()
+{
+	auto condition = parse_expression();
+	NULL_CHECK(condition);
+
+	token_pipe->expect(WTokenType::DO);
+
+	if (token_pipe->optional(WTokenType::EOL))
+	{
+		auto block = parse_loop_block();
+		return MAKE_STATEMENT(WhileLoop(condition, block));
+	}
+
+	auto statement = parse_statement();
+	return MAKE_STATEMENT(WhileLoop(condition, { statement }));
+}
+
+Statement_ptr Parser::parse_for_in_loop()
+{
+	auto [identifier, item_type] = consume_identifier_type_pair();
+
+	token_pipe->expect(WTokenType::IN_KEYWORD);
+
+	auto iterable_expression = parse_expression();
+	NULL_CHECK(iterable_expression);
+
+	token_pipe->expect(WTokenType::DO);
+
+	if (token_pipe->optional(WTokenType::EOL))
+	{
+		auto block = parse_loop_block();
+		return MAKE_STATEMENT(ForInLoop(item_type, identifier, iterable_expression, block));
+	}
+
+	auto statement = parse_statement();
+	return MAKE_STATEMENT(ForInLoop(item_type, identifier, iterable_expression, { statement }));
+}
+
+// Type Parsers
+
+Type_ptr Parser::parse_type(bool is_optional)
+{
+	if (token_pipe->optional(WTokenType::OPT))
+		is_optional = true;
+
+	vector<Type_ptr> types;
+
+	while (true)
+	{
+		Type_ptr type;
+
+		if (token_pipe->optional(WTokenType::OPEN_SQUARE_BRACKET))
+		{
+			type = parse_list_type(is_optional);
+		}
+		else if (token_pipe->optional(WTokenType::OPEN_ANGLE_BRACKET))
+		{
+			type = parse_map_type(is_optional);
+		}
+		else if (token_pipe->optional(WTokenType::OPEN_CURLY_BRACE))
+		{
+			type = parse_set_type(is_optional);
+		}
+		else if (token_pipe->optional(WTokenType::OPEN_FLOOR_BRACKET))
+		{
+			type = parse_tuple_type(is_optional);
+		}
+		else
+		{
+			type = consume_datatype_word(is_optional);
+		}
+
+		types.push_back(type);
+
+		if (token_pipe->optional(WTokenType::VERTICAL_BAR))
+		{
+			continue;
+		}
+
+		if (types.size() > 1)
+			return MAKE_TYPE(VariantType(types));
+
+		return move(types.front());
+	}
+}
+
+Type_ptr Parser::parse_list_type(bool is_optional)
+{
+	vector<Type_ptr> types;
+
+	while (true)
+	{
+		auto type = parse_type();
+		types.push_back(type);
+
+		if (token_pipe->optional(WTokenType::COMMA))
+			continue;
+
+		token_pipe->expect(WTokenType::CLOSE_SQUARE_BRACKET);
+		break;
+	}
+
+	if (is_optional)
+	{
+		return MAKE_OPTIONAL_TYPE(ListType(move(types.front())));
+	}
+
+	return MAKE_TYPE(ListType(move(types.front())));
+}
+
+Type_ptr Parser::parse_set_type(bool is_optional)
+{
+	vector<Type_ptr> types;
+
+	while (true)
+	{
+		auto type = parse_type();
+		types.push_back(type);
+
+		if (token_pipe->optional(WTokenType::COMMA))
+			continue;
+
+		token_pipe->expect(WTokenType::CLOSE_CURLY_BRACE);
+		break;
+	}
+
+	if (is_optional)
+	{
+		return MAKE_OPTIONAL_TYPE(ListType(move(types.front())));
+	}
+
+	return MAKE_TYPE(ListType(move(types.front())));
+}
+
+Type_ptr Parser::parse_tuple_type(bool is_optional)
+{
+	vector<Type_ptr> types;
+
+	while (true)
+	{
+		auto type = parse_type();
+		types.push_back(type);
+
+		if (token_pipe->optional(WTokenType::COMMA))
+			continue;
+
+		token_pipe->expect(WTokenType::CLOSE_FLOOR_BRACKET);
+		break;
+	}
+
+	if (is_optional)
+	{
+		return MAKE_OPTIONAL_TYPE(TupleType(types));
+	}
+
+	return MAKE_TYPE(TupleType(types));
+}
+
+Type_ptr Parser::parse_map_type(bool is_optional)
+{
+	auto key_type = parse_type();
+	token_pipe->expect(WTokenType::ARROW);
+
+	auto value_type = parse_type();
+	token_pipe->expect(WTokenType::CLOSE_ANGLE_BRACKET);
+
+	if (is_optional)
+	{
+		return MAKE_OPTIONAL_TYPE(MapType(move(key_type), move(value_type)));
+	}
+
+	return MAKE_TYPE(MapType(move(key_type), move(value_type)));
+}
+
+Type_ptr Parser::consume_datatype_word(bool is_optional)
+{
+	auto token = token_pipe->current();
+	OPT_CHECK(token);
+
+	switch (token.value()->type)
+	{
+	case WTokenType::INT:
+	{
+		ADVANCE_PTR;
+		return is_optional ? MAKE_OPTIONAL_TYPE(IntType()) : MAKE_TYPE(IntType());
+	}
+	case WTokenType::FLOAT:
+	{
+		ADVANCE_PTR;
+		return is_optional ? MAKE_OPTIONAL_TYPE(FloatType()) : MAKE_TYPE(FloatType());
+	}
+	case WTokenType::STRING_KEYWORD:
+	{
+		ADVANCE_PTR;
+		return is_optional ? MAKE_OPTIONAL_TYPE(StringType()) : MAKE_TYPE(StringType());
+	}
+	case WTokenType::BOOL:
+	{
+		ADVANCE_PTR;
+		return is_optional ? MAKE_OPTIONAL_TYPE(BooleanType()) : MAKE_TYPE(BooleanType());
+	}
+	case WTokenType::ANY:
+	{
+		ADVANCE_PTR;
+		return is_optional ? MAKE_OPTIONAL_TYPE(AnyType()) : MAKE_TYPE(AnyType());
+	}
+	case WTokenType::IDENTIFIER:
+	{
+		ADVANCE_PTR;
+		return is_optional ? MAKE_OPTIONAL_TYPE(UDTType(token.value()->value)) : MAKE_TYPE(UDTType(token.value()->value));
+	}
+	}
+
+	FATAL("EXPECTED_DATATYPE");
+}
+
+pair<wstring, Type_ptr> Parser::consume_identifier_type_pair()
+{
+	auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
+	token_pipe->expect(WTokenType::COLON);
+	auto type = parse_type();
+
+	return make_pair(identifier->value, move(type));
+}
+
+// Definition Parsers
 
 Statement_ptr Parser::parse_enum_definition(bool is_public)
 {
@@ -276,6 +614,7 @@ vector<wstring> Parser::parse_enum_members(wstring stem)
 		{
 			auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
 			token_pipe->expect(WTokenType::EOL);
+			members.push_back(stem + L"::" + identifier->value);
 
 			auto children = parse_enum_members(stem + L"::" + identifier->value);
 			members.insert(end(members), begin(children), end(children));
@@ -290,4 +629,25 @@ vector<wstring> Parser::parse_enum_members(wstring stem)
 	}
 
 	return members;
+}
+
+Statement_ptr Parser::parse_interface_definition(bool is_public)
+{
+	auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
+	token_pipe->expect(WTokenType::EOL);
+
+	std::map<std::wstring, Type_ptr> member_types;
+
+	while (true)
+	{
+		token_pipe->ignore_whitespace();
+
+		if (token_pipe->optional(WTokenType::END))
+			break;
+
+		auto [identifier, type] = consume_identifier_type_pair();
+		member_types.insert({ identifier, type });
+	}
+
+	return MAKE_STATEMENT(InterfaceDefinition(is_public, identifier->value, member_types));
 }

@@ -40,14 +40,7 @@ else :
 end
 
 
-for x : int in [1, 2, 3] do
-    pass
-end
-
-
-for id : int in [1, 2, 3] :
-    pass
-
+for x : int in [1, 2, 3] do call(x)
 
 for i : int in 1 to 8 step 2 do // to, downto
     print(i)
@@ -57,9 +50,7 @@ while expr do
     a = a + 4
 end
 
-while expr do
-    a = a + 4
-end
+while expr do a = a + 4
 
 
 fn add(a : mut int, b : mut int) => int
@@ -71,16 +62,15 @@ fn add(a : mut int, b : mut int) => int
 end
 
 
-enum NAME :
-    ID1
-    ID2
-    enum LASTNAME :
-        ID3
-        ID4
-    enum FIRSTNAME :
-        ID5
-        ID6
+enum Animal
+	DOG
+	CAT
+	enum Bird
+		CROW
+		PIGEON
+	end
 end
+
 
 
 NAME::ID1
@@ -112,7 +102,7 @@ interface ICastle :
 end
 
 
-type Castle ~ ICastle, Building :
+type Castle ~ ICastle < Building :
     name: string
 
     fn constructor()

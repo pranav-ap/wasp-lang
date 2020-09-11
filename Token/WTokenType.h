@@ -114,7 +114,6 @@ enum class TOKEN_API WTokenType
 
 	NEW,
 	PUB,
-	PASS,
 	ASSERT,
 
 	// Whitespace

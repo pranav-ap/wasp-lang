@@ -32,6 +32,7 @@ struct UDTDefinition;
 struct AliasDefinition;
 struct FunctionDefinition;
 struct GeneratorDefinition;
+struct InterfaceDefinition;
 struct EnumDefinition;
 struct ExpressionStatement;
 struct AssertStatement;
@@ -51,7 +52,7 @@ using Statement = AST_API std::variant<
 	VariableDefinition,
 	UDTDefinition, AliasDefinition,
 	FunctionDefinition, GeneratorDefinition,
-	EnumDefinition,
+	InterfaceDefinition, EnumDefinition,
 
 	ExpressionStatement,
 	AssertStatement
@@ -149,6 +150,14 @@ struct AST_API UDTDefinition : public Definition
 
 	UDTDefinition(bool is_public, std::wstring name, std::map<std::wstring, Type_ptr> member_types, StringVector public_members)
 		: Definition(is_public, name), member_types(member_types), public_members(public_members) {};
+};
+
+struct AST_API InterfaceDefinition : public Definition
+{
+	std::map<std::wstring, Type_ptr> member_types;
+
+	InterfaceDefinition(bool is_public, std::wstring name, std::map<std::wstring, Type_ptr> member_types)
+		: Definition(is_public, name), member_types(member_types) {};
 };
 
 struct AST_API AliasDefinition : public Definition
