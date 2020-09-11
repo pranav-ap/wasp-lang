@@ -56,6 +56,7 @@ Parser::Parser()
 	register_parselet(WTokenType::OPEN_SQUARE_BRACKET, make_shared<ListParselet>());
 	register_parselet(WTokenType::OPEN_ANGLE_BRACKET, make_shared<MapParselet>());
 	register_parselet(WTokenType::OPEN_FLOOR_BRACKET, make_shared<TupleParselet>());
+	register_parselet(WTokenType::OPEN_CURLY_BRACE, make_shared<SetParselet>());
 
 	register_parselet(WTokenType::NEW, make_shared<UDTCreationParselet>());
 
@@ -218,9 +219,15 @@ Statement_ptr Parser::parse_statement(bool is_public)
 		CASE(WTokenType::PUB, parse_public_statement());
 		CASE(WTokenType::ENUM, parse_enum_definition(is_public));
 		CASE(WTokenType::INTERFACE, parse_interface_definition(is_public));
+		CASE(WTokenType::TYPE, parse_type_definition(is_public));
+		CASE(WTokenType::FN, parse_function_definition(is_public));
+		CASE(WTokenType::GEN, parse_generator_definition(is_public));
 
 		CASE(WTokenType::WHILE, parse_while_loop());
 		CASE(WTokenType::FOR, parse_for_in_loop());
+
+		CASE(WTokenType::LET, parse_variable_definition(is_public, true));
+		CASE(WTokenType::CONST_KEYWORD, parse_variable_definition(is_public, false));
 
 		CASE(WTokenType::RETURN_KEYWORD, parse_return());
 		CASE(WTokenType::YIELD_KEYWORD, parse_yield());
@@ -247,7 +254,14 @@ Statement_ptr Parser::parse_public_statement()
 
 	switch (token.value()->type)
 	{
+		CASE(WTokenType::INTERFACE, parse_interface_definition(is_public));
 		CASE(WTokenType::ENUM, parse_enum_definition(is_public));
+		CASE(WTokenType::TYPE, parse_type_definition(is_public));
+		CASE(WTokenType::FN, parse_function_definition(is_public));
+		CASE(WTokenType::GEN, parse_generator_definition(is_public));
+
+		CASE(WTokenType::LET, parse_variable_definition(is_public, true));
+		CASE(WTokenType::CONST_KEYWORD, parse_variable_definition(is_public, false));
 	default:
 	{
 		FATAL("UNEXPECTED_KEYWORD");
@@ -336,7 +350,7 @@ Statement_ptr Parser::parse_continue()
 
 // Blocks
 
-Block Parser::parse_loop_block()
+Block Parser::parse_block()
 {
 	Block statements;
 
@@ -373,11 +387,11 @@ Statement_ptr Parser::parse_while_loop()
 
 	if (token_pipe->optional(WTokenType::EOL))
 	{
-		auto block = parse_loop_block();
+		auto block = parse_block();
 		return MAKE_STATEMENT(WhileLoop(condition, block));
 	}
 
-	auto statement = parse_statement();
+	auto statement = parse_non_block_statement();
 	return MAKE_STATEMENT(WhileLoop(condition, { statement }));
 }
 
@@ -394,11 +408,11 @@ Statement_ptr Parser::parse_for_in_loop()
 
 	if (token_pipe->optional(WTokenType::EOL))
 	{
-		auto block = parse_loop_block();
+		auto block = parse_block();
 		return MAKE_STATEMENT(ForInLoop(item_type, identifier, iterable_expression, block));
 	}
 
-	auto statement = parse_statement();
+	auto statement = parse_non_block_statement();
 	return MAKE_STATEMENT(ForInLoop(item_type, identifier, iterable_expression, { statement }));
 }
 
@@ -631,6 +645,16 @@ vector<wstring> Parser::parse_enum_members(wstring stem)
 	return members;
 }
 
+Statement_ptr Parser::parse_variable_definition(bool is_public, bool is_mutable)
+{
+	auto [identifier, type] = consume_identifier_type_pair();
+	token_pipe->expect(WTokenType::EQUAL);
+	auto expression = parse_expression();
+	token_pipe->expect(WTokenType::EOL);
+
+	return MAKE_STATEMENT(VariableDefinition(is_public, is_mutable, identifier, move(type), move(expression)));
+}
+
 Statement_ptr Parser::parse_interface_definition(bool is_public)
 {
 	auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
@@ -646,8 +670,113 @@ Statement_ptr Parser::parse_interface_definition(bool is_public)
 			break;
 
 		auto [identifier, type] = consume_identifier_type_pair();
-		member_types.insert({ identifier, type });
+		member_types.insert_or_assign(identifier, type);
 	}
 
 	return MAKE_STATEMENT(InterfaceDefinition(is_public, identifier->value, member_types));
+}
+
+Statement_ptr Parser::parse_type_definition(bool is_public)
+{
+	auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
+
+	if (token_pipe->optional(WTokenType::EQUAL))
+	{
+		auto type = parse_type();
+		token_pipe->expect(WTokenType::EOL);
+		return MAKE_STATEMENT(AliasDefinition(is_public, identifier->value, move(type)));
+	}
+
+	token_pipe->expect(WTokenType::EOL);
+
+	map<wstring, Type_ptr> member_types;
+	StringVector public_members;
+
+	while (true)
+	{
+		token_pipe->ignore_whitespace();
+
+		if (token_pipe->optional(WTokenType::END))
+		{
+			token_pipe->expect(WTokenType::EOL);
+			return MAKE_STATEMENT(UDTDefinition(is_public, identifier->value, member_types, public_members));
+		}
+
+		/*if (token_pipe->optional(WTokenType::FN))
+		{
+			return MAKE_STATEMENT(UDTDefinition(is_public, identifier->value, member_types, public_members));
+		}*/
+
+		bool is_public_member = false;
+
+		if (token_pipe->optional(WTokenType::PUB))
+			is_public_member = true;
+
+		auto [identifier, type] = consume_identifier_type_pair();
+		member_types.insert_or_assign(identifier, type);
+
+		if (is_public_member)
+		{
+			public_members.push_back(identifier);
+		}
+
+		token_pipe->expect(WTokenType::EOL);
+	}
+
+	return MAKE_STATEMENT(UDTDefinition(is_public, identifier->value, member_types, public_members));
+}
+
+tuple<wstring, StringVector, TypeVector, optional<Type_ptr>, Block> Parser::parse_callable_definition()
+{
+	auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
+	token_pipe->expect(WTokenType::OPEN_PARENTHESIS);
+
+	StringVector arguments;
+	TypeVector argument_types;
+
+	if (!token_pipe->optional(WTokenType::CLOSE_PARENTHESIS))
+	{
+		while (true)
+		{
+			auto [identifier, type] = consume_identifier_type_pair();
+			arguments.push_back(identifier);
+			argument_types.push_back(type);
+
+			if (token_pipe->optional(WTokenType::COMMA))
+				continue;
+
+			token_pipe->expect(WTokenType::CLOSE_PARENTHESIS);
+			break;
+		}
+	}
+
+	optional<Type_ptr> optional_return_type = std::nullopt;
+
+	if (token_pipe->optional(WTokenType::ARROW))
+	{
+		auto return_type = parse_type();
+		optional_return_type = std::make_optional(return_type);
+	}
+
+	token_pipe->expect(WTokenType::EOL);
+
+	Block block = parse_block();
+
+	return make_tuple(identifier->value, arguments, argument_types, optional_return_type, block);
+}
+
+Statement_ptr Parser::parse_function_definition(bool is_public)
+{
+	auto [identifier, arguments, argument_types, optional_return_type, block] = parse_callable_definition();
+	Type_ptr function_type = std::make_shared<Type>(FunctionType(argument_types, optional_return_type));
+
+	return MAKE_STATEMENT(FunctionDefinition(is_public, identifier, arguments, function_type, block));
+}
+
+Statement_ptr Parser::parse_generator_definition(bool is_public)
+{
+	auto [identifier, arguments, argument_types, optional_return_type, block] = parse_callable_definition();
+	Type_ptr generator_type = std::make_shared<Type>(GeneratorType(argument_types, optional_return_type));
+
+	return MAKE_STATEMENT(GeneratorDefinition(is_public, identifier, arguments, generator_type, block));
 }

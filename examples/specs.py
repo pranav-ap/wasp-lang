@@ -52,7 +52,6 @@ end
 
 while expr do a = a + 4
 
-
 fn add(a : mut int, b : mut int) => int
     if a > b :
         return a + b + 4
@@ -70,7 +69,6 @@ enum Animal
 		PIGEON
 	end
 end
-
 
 
 NAME::ID1
@@ -102,11 +100,11 @@ interface ICastle :
 end
 
 
-type Castle ~ ICastle < Building :
+type Castle ~ ICastle < Building
     name: string
 
     fn constructor()
-        self.name = "
+        self.name = ""
     end
 
     fn constructor(name: string)
