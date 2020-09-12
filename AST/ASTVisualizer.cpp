@@ -235,7 +235,7 @@ void ASTVisualizer::visit(const Expression_ptr expression, int parent_id)
 		[&](Prefix const& expr) { visit(expr, parent_id); },
 		[&](Infix const& expr) { visit(expr, parent_id); },
 		[&](Postfix const& expr) { visit(expr, parent_id); },
-		[&](TernaryCondition const& expr) { visit(expr, parent_id); },
+		[&](TypePattern const& expr) { visit(expr, parent_id); },
 		[&](Assignment const& expr) { visit(expr, parent_id); },
 
 		[](auto) {FATAL("Never seen this Expression before! So I cannot print it!"); }
@@ -367,17 +367,13 @@ void ASTVisualizer::visit(Postfix const& expr, int parent_id)
 	visit(expr.operand, id);
 }
 
-void ASTVisualizer::visit(TernaryCondition const& expr, int parent_id)
+void ASTVisualizer::visit(TypePattern const& expr, int parent_id)
 {
-	const int question_id = id_counter++;
-	save(question_id, parent_id, L"?");
-
-	visit(expr.condition, question_id);
 	const int colon_id = id_counter++;
-	save(colon_id, question_id, L":");
+	save(colon_id, parent_id, L":");
 
-	visit(expr.then_arm, colon_id);
-	visit(expr.else_arm, colon_id);
+	visit(expr.expression, colon_id);
+	visit(expr.type, colon_id);
 }
 
 void ASTVisualizer::visit(Assignment const& expr, int parent_id)
@@ -387,6 +383,149 @@ void ASTVisualizer::visit(Assignment const& expr, int parent_id)
 
 	visit(expr.lhs_expression, equal_id);
 	visit(expr.rhs_expression, equal_id);
+}
+
+// Type
+
+void ASTVisualizer::visit(const Type_ptr type, int parent_id)
+{
+	std::visit(overloaded{
+		   [&](AnyType const& ty) { visit(ty, parent_id); },
+		   [&](IntType const& ty) { visit(ty, parent_id); },
+		   [&](FloatType const& ty) { visit(ty, parent_id); },
+		   [&](StringType const& ty) { visit(ty, parent_id); },
+		   [&](BooleanType const& ty) { visit(ty, parent_id); },
+		   [&](ListType const& ty) { visit(ty, parent_id); },
+		   [&](TupleType const& ty) { visit(ty, parent_id); },
+		   [&](SetType const& ty) { visit(ty, parent_id); },
+		   [&](UDTType const& ty) { visit(ty, parent_id); },
+		   [&](MapType const& ty) { visit(ty, parent_id); },
+		   [&](EnumType const& ty) { visit(ty, parent_id); },
+		   [&](VariantType const& ty) { visit(ty, parent_id); },
+		   [&](NoneType const& ty) { visit(ty, parent_id); },
+		   [&](FunctionType const& ty) { visit(ty, parent_id); },
+		   [&](GeneratorType const& ty) { visit(ty, parent_id); },
+
+		   [](auto) {FATAL("Never seen this Type before! So I cannot print it!"); }
+		}, *type);
+}
+
+void ASTVisualizer::visit(std::vector<Type_ptr> const& types, int parent_id)
+{
+	for (const auto type : types)
+	{
+		visit(type, parent_id);
+	}
+}
+
+void ASTVisualizer::visit(AnyType const& type, int parent_id)
+{
+	const int id = id_counter++;
+	save(id, parent_id, L"any");
+}
+
+void ASTVisualizer::visit(IntType const& type, int parent_id)
+{
+	const int id = id_counter++;
+	save(id, parent_id, L"int");
+}
+
+void ASTVisualizer::visit(FloatType const& type, int parent_id)
+{
+	const int id = id_counter++;
+	save(id, parent_id, L"float");
+}
+
+void ASTVisualizer::visit(StringType const& type, int parent_id)
+{
+	const int id = id_counter++;
+	save(id, parent_id, L"string");
+}
+
+void ASTVisualizer::visit(BooleanType const& type, int parent_id)
+{
+	const int id = id_counter++;
+	save(id, parent_id, L"bool");
+}
+
+void ASTVisualizer::visit(ListType const& type, int parent_id)
+{
+	const int id = id_counter++;
+	save(id, parent_id, L"List Type");
+	visit(type.element_type, id);
+}
+
+void ASTVisualizer::visit(TupleType const& type, int parent_id)
+{
+	const int id = id_counter++;
+	save(id, parent_id, L"Tuple Type");
+	visit(type.element_types, id);
+}
+
+void ASTVisualizer::visit(SetType const& type, int parent_id)
+{
+	const int id = id_counter++;
+	save(id, parent_id, L"Set Type");
+	visit(type.element_types, id);
+}
+
+void ASTVisualizer::visit(UDTType const& type, int parent_id)
+{
+	const int id = id_counter++;
+	save(id, parent_id, L"UDT Type");
+	visit(type.name, id);
+}
+
+void ASTVisualizer::visit(MapType const& type, int parent_id)
+{
+	const int id = id_counter++;
+	save(id, parent_id, L"Map Type");
+	visit(type.key_type, id);
+	visit(type.value_type, id);
+}
+
+void ASTVisualizer::visit(EnumType const& type, int parent_id)
+{
+	const int id = id_counter++;
+	save(id, parent_id, L"Enum Type");
+	visit(type.enum_name, id);
+}
+
+void ASTVisualizer::visit(VariantType const& type, int parent_id)
+{
+	const int id = id_counter++;
+	save(id, parent_id, L"Variant Type");
+	visit(type.types, id);
+}
+
+void ASTVisualizer::visit(NoneType const& type, int parent_id)
+{
+	const int id = id_counter++;
+	save(id, parent_id, L"None Type");
+}
+
+void ASTVisualizer::visit(FunctionType const& type, int parent_id)
+{
+	const int id = id_counter++;
+	save(id, parent_id, L"Function Type");
+	visit(type.input_types, id);
+
+	if (type.return_type.has_value())
+	{
+		visit(type.return_type.value(), id);
+	}
+}
+
+void ASTVisualizer::visit(GeneratorType const& type, int parent_id)
+{
+	const int id = id_counter++;
+	save(id, parent_id, L"Generator Type");
+	visit(type.input_types, id);
+
+	if (type.return_type.has_value())
+	{
+		visit(type.return_type.value(), id);
+	}
 }
 
 // Generate

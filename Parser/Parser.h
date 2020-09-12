@@ -37,6 +37,14 @@ class PARSER_API Parser
 	Statement_ptr parse_break();
 	Statement_ptr parse_continue();
 
+	// Type parsers
+
+	Type_ptr parse_list_type(bool is_optional);
+	Type_ptr parse_set_type(bool is_optional);
+	Type_ptr parse_tuple_type(bool is_optional);
+	Type_ptr parse_map_type(bool is_optional);
+	Type_ptr consume_datatype_word(bool is_optional);
+
 	// Blocks
 
 	Block parse_block();
@@ -46,15 +54,6 @@ class PARSER_API Parser
 	Statement_ptr parse_branching();
 	Statement_ptr parse_while_loop();
 	Statement_ptr parse_for_in_loop();
-
-	// Type parsers
-
-	Type_ptr parse_type(bool is_optional = false);
-	Type_ptr parse_list_type(bool is_optional);
-	Type_ptr parse_set_type(bool is_optional);
-	Type_ptr parse_tuple_type(bool is_optional);
-	Type_ptr parse_map_type(bool is_optional);
-	Type_ptr consume_datatype_word(bool is_optional);
 
 	std::pair<std::wstring, Type_ptr> consume_identifier_type_pair();
 
@@ -88,6 +87,8 @@ class PARSER_API Parser
 
 public:
 	TokenPipe_ptr token_pipe;
+
+	Type_ptr parse_type(bool is_optional = false);
 
 	Expression_ptr parse_expression();
 	Expression_ptr parse_expression(int precedence);

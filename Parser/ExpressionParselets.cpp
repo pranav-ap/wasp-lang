@@ -111,15 +111,6 @@ Expression_ptr PostfixOperatorParselet::parse(Parser_ptr parser, Expression_ptr 
 	return MAKE_EXPRESSION(Postfix(left, token));
 }
 
-Expression_ptr TernaryConditionParselet::parse(Parser_ptr parser, Expression_ptr condition, Token_ptr token)
-{
-	Expression_ptr then_arm = parser->parse_expression();
-	parser->token_pipe->expect(WTokenType::COLON);
-	Expression_ptr else_arm = parser->parse_expression((int)Precedence::TERNARY_CONDITION - 1);
-
-	return MAKE_EXPRESSION(TernaryCondition(condition, then_arm, else_arm));
-}
-
 Expression_ptr CallParselet::parse(Parser_ptr parser, Expression_ptr left, Token_ptr token)
 {
 	ASSERT(holds_alternative<Identifier>(*left), "Function name is supposed to be an identifier");
@@ -243,6 +234,12 @@ Expression_ptr AssignmentParselet::parse(Parser_ptr parser, Expression_ptr left,
 	return MAKE_EXPRESSION(Assignment(left, right));
 }
 
+Expression_ptr TypePatternParselet::parse(Parser_ptr parser, Expression_ptr left, Token_ptr token)
+{
+	Type_ptr type = parser->parse_type();
+	return MAKE_EXPRESSION(TypePattern(left, type));
+}
+
 // get_precedence
 
 int PrefixOperatorParselet::get_precedence()
@@ -258,11 +255,6 @@ int BinaryOperatorParselet::get_precedence()
 int PostfixOperatorParselet::get_precedence()
 {
 	return precedence;
-}
-
-int TernaryConditionParselet::get_precedence()
-{
-	return (int)Precedence::TERNARY_CONDITION;
 }
 
 int CallParselet::get_precedence()
@@ -288,4 +280,9 @@ int UDTCreationParselet::get_precedence()
 int AssignmentParselet::get_precedence()
 {
 	return (int)Precedence::ASSIGNMENT;
+}
+
+int TypePatternParselet::get_precedence()
+{
+	return (int)Precedence::TYPE_PATTERN;
 }

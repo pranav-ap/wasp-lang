@@ -7,6 +7,7 @@
 #endif
 
 #include "Statement.h"
+#include "Type.h"
 #include "Expression.h"
 #include <string>
 #include <memory>
@@ -65,8 +66,29 @@ class AST_API ASTVisualizer
 	void visit(Prefix const& expr, int parent_id);
 	void visit(Infix const& expr, int parent_id);
 	void visit(Postfix const& expr, int parent_id);
-	void visit(TernaryCondition const& expr, int parent_id);
+	void visit(TypePattern const& expr, int parent_id);
 	void visit(Assignment const& expr, int parent_id);
+
+	// Types
+
+	void visit(const Type_ptr type, int parent_id);
+	void visit(std::vector<Type_ptr> const& types, int parent_id);
+
+	void visit(AnyType const& expr, int parent_id);
+	void visit(IntType const& expr, int parent_id);
+	void visit(FloatType const& expr, int parent_id);
+	void visit(StringType const& expr, int parent_id);
+	void visit(BooleanType const& expr, int parent_id);
+	void visit(ListType const& expr, int parent_id);
+	void visit(TupleType const& expr, int parent_id);
+	void visit(SetType const& expr, int parent_id);
+	void visit(UDTType const& expr, int parent_id);
+	void visit(MapType const& expr, int parent_id);
+	void visit(EnumType const& expr, int parent_id);
+	void visit(VariantType const& expr, int parent_id);
+	void visit(NoneType const& expr, int parent_id);
+	void visit(FunctionType const& expr, int parent_id);
+	void visit(GeneratorType const& expr, int parent_id);
 
 public:
 	ASTVisualizer()

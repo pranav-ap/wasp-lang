@@ -7,6 +7,7 @@
 #endif
 
 #include "Token.h"
+#include "Type.h"
 
 #include <string>
 #include <vector>
@@ -15,6 +16,7 @@
 #include <memory>
 #include <variant>
 
+struct TypePattern;
 struct Assignment;
 struct ListLiteral;
 struct TupleLiteral;
@@ -28,7 +30,6 @@ struct Call;
 struct Prefix;
 struct Infix;
 struct Postfix;
-struct TernaryCondition;
 
 using Expression = AST_API std::variant<
 	std::monostate,
@@ -39,7 +40,7 @@ using Expression = AST_API std::variant<
 	Identifier, Call,
 	Assignment,
 	Prefix, Infix, Postfix,
-	TernaryCondition
+	TypePattern
 >;
 
 using Expression_ptr = AST_API std::shared_ptr<Expression>;
@@ -160,12 +161,13 @@ struct AST_API Postfix
 		: operand(std::move(operand)), op(std::move(op)) {};
 };
 
-struct AST_API TernaryCondition
+struct AST_API TypePattern
 {
-	Expression_ptr condition;
-	Expression_ptr then_arm;
-	Expression_ptr else_arm;
+	Expression_ptr expression;
+	Type_ptr type;
 
-	TernaryCondition(Expression_ptr condition, Expression_ptr then_arm, Expression_ptr else_arm)
-		: condition(std::move(condition)), then_arm(std::move(then_arm)), else_arm(std::move(else_arm)) {};
+	TypePattern(Expression_ptr expression, Type_ptr type)
+		: expression(std::move(expression)), type(std::move(type)) {};
 };
+
+using TypePattern_ptr = AST_API std::shared_ptr<TypePattern>;
