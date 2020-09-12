@@ -165,7 +165,6 @@
     <ClInclude Include="Parser.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Precedence.h" />
-    <ClInclude Include="StatementParselets.cpp" />
     <ClInclude Include="TokenPipe.h" />
   </ItemGroup>
   <ItemGroup>

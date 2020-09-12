@@ -33,9 +33,6 @@
     <ClInclude Include="ExpressionParselets.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="StatementParselets.cpp">
-      <Filter>Source Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">

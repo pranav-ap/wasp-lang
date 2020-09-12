@@ -15,12 +15,9 @@
 
 #include <vector>
 #include <tuple>
-#include <stack>
 #include <map>
 #include <memory>
 #include <utility>
-
-// Parser
 
 class PARSER_API Parser
 {

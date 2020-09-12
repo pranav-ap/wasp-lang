@@ -3,6 +3,7 @@
 #include "Lexer.h"
 #include "Parser.h"
 #include "Statement.h"
+#include "ASTVisualizer.h"
 //#include "SemanticAnalyzer.h"
 //#include "MemorySystem.h"
 //#include "Compiler.h"
@@ -28,6 +29,9 @@ int main()
 
 	Parser_ptr parser = new Parser();
 	Module_ptr ast = parser->execute(tokens);
+
+	ASTVisualizer_ptr vis = make_unique<ASTVisualizer>();
+	vis->generate_dot_file(ast);
 
 	//SemanticAnalyzer_ptr semantic_analyser = make_unique<SemanticAnalyzer>();
 	//semantic_analyser->execute(ast);

@@ -23,7 +23,6 @@ struct WhileLoop;
 struct ForInLoop;
 struct Break;
 struct Continue;
-struct Pass;
 struct Return;
 struct YieldStatement;
 struct VariableDefinition;
@@ -45,7 +44,7 @@ using Statement = AST_API std::variant<
 
 	Branching,
 	WhileLoop, ForInLoop,
-	Break, Continue, Pass,
+	Break, Continue,
 	Return, YieldStatement,
 
 	VariableDefinition,
