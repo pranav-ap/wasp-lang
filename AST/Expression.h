@@ -16,6 +16,7 @@
 #include <memory>
 #include <variant>
 
+struct SpreadExpression;
 struct TypePattern;
 struct Assignment;
 struct ListLiteral;
@@ -40,7 +41,7 @@ using Expression = AST_API std::variant<
 	Identifier, Call,
 	Assignment,
 	Prefix, Infix, Postfix,
-	TypePattern
+	TypePattern, SpreadExpression
 >;
 
 using Expression_ptr = AST_API std::shared_ptr<Expression>;
@@ -172,3 +173,11 @@ struct AST_API TypePattern
 };
 
 using TypePattern_ptr = AST_API std::shared_ptr<TypePattern>;
+
+struct AST_API SpreadExpression
+{
+	Expression_ptr expression;
+
+	SpreadExpression(Expression_ptr expression)
+		: expression(std::move(expression)) {};
+};

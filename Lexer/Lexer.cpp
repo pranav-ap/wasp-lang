@@ -102,11 +102,7 @@ vector<Token_ptr> Lexer::execute(std::wstring raw_source)
 			case '\\':
 			case '$':
 			case '~':
-
 			case ',':
-			case '|':
-			case '.':
-
 			case '(':
 			case ')':
 			case '{':
@@ -136,8 +132,12 @@ vector<Token_ptr> Lexer::execute(std::wstring raw_source)
 				CASE_BODY(consume_equal());
 			case '!':
 				CASE_BODY(consume_bang());
+			case '.':
+				CASE_BODY(consume_dot());
 			case '?':
 				CASE_BODY(consume_question());
+			case '|':
+				CASE_BODY(consume_vertical_bar());
 			case '<':
 				CASE_BODY(consume_lesser_than());
 			case '>':
@@ -361,25 +361,46 @@ Token_ptr Lexer::consume_colon()
 	return MAKE_TOKEN(WTokenType::COLON, L":", LINE_NUM, COL_NUM);
 }
 
+Token_ptr Lexer::consume_dot()
+{
+	if (expect_current_char('.'))
+		if (expect_current_char('.'))
+			return MAKE_TOKEN(WTokenType::DOT_DOT_DOT, L"...", LINE_NUM, COL_NUM);
+
+	return MAKE_TOKEN(WTokenType::DOT, L".", LINE_NUM, COL_NUM);
+}
+
+Token_ptr Lexer::consume_vertical_bar()
+{
+	if (expect_current_char('>'))
+		return MAKE_TOKEN(WTokenType::VERTICAL_BAR_GREATER_THAN, L"|>", LINE_NUM, COL_NUM);
+
+	return MAKE_TOKEN(WTokenType::VERTICAL_BAR, L"|", LINE_NUM, COL_NUM);
+}
+
+Token_ptr Lexer::consume_eol()
+{
+	int line_num = LINE_NUM;
+	int column_num = COL_NUM + 1;
+
+	position.increment_line_number();
+	position.reset_column_number();
+
+	return MAKE_TOKEN(WTokenType::EOL, L"\n", line_num, column_num);
+}
+
 Token_ptr Lexer::consume_single_char_punctuation(wchar_t ch)
 {
 	switch (ch)
 	{
 	case '\\':
 		return MAKE_TOKEN(WTokenType::BACKWARD_SLASH, L"\\", LINE_NUM, COL_NUM);
-
 	case '$':
 		return MAKE_TOKEN(WTokenType::DOLLAR, L"$", LINE_NUM, COL_NUM);
 	case '~':
 		return MAKE_TOKEN(WTokenType::TILDE, L"~", LINE_NUM, COL_NUM);
-
 	case ',':
 		return MAKE_TOKEN(WTokenType::COMMA, L",", LINE_NUM, COL_NUM);
-	case '|':
-		return MAKE_TOKEN(WTokenType::VERTICAL_BAR, L"|", LINE_NUM, COL_NUM);
-	case '.':
-		return MAKE_TOKEN(WTokenType::DOT, L".", LINE_NUM, COL_NUM);
-
 	case '(':
 		return MAKE_TOKEN(WTokenType::OPEN_PARENTHESIS, L"(", LINE_NUM, COL_NUM);
 	case ')':
@@ -404,17 +425,6 @@ Token_ptr Lexer::consume_single_char_punctuation(wchar_t ch)
 	default:
 		return MAKE_TOKEN(WTokenType::UNKNOWN, L"", LINE_NUM, COL_NUM);
 	}
-}
-
-Token_ptr Lexer::consume_eol()
-{
-	int line_num = LINE_NUM;
-	int column_num = COL_NUM + 1;
-
-	position.increment_line_number();
-	position.reset_column_number();
-
-	return MAKE_TOKEN(WTokenType::EOL, L"\n", line_num, column_num);
 }
 
 Token_ptr Lexer::consume_unknown_token(wchar_t ch)

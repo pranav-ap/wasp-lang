@@ -156,6 +156,7 @@ void ASTVisualizer::visit(VariableDefinition const& statement, int parent_id)
 {
 	const int id = id_counter++;
 	save(id, parent_id, L"VariableDefinition");
+	visit(statement.expression, id);
 }
 
 void ASTVisualizer::visit(UDTDefinition const& statement, int parent_id)

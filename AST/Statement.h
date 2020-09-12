@@ -123,14 +123,14 @@ struct AST_API Definition
 		: is_public(is_public), name(name) {};
 };
 
-struct AST_API VariableDefinition : public Definition
+struct AST_API VariableDefinition
 {
+	bool is_public;
 	bool is_mutable;
-	Type_ptr type;
 	Expression_ptr expression;
 
-	VariableDefinition(bool is_public, bool is_mutable, std::wstring name, Type_ptr type, Expression_ptr expression)
-		: Definition(is_public, name), is_mutable(is_mutable), type(std::move(type)), expression(std::move(expression)) {};
+	VariableDefinition(bool is_public, bool is_mutable, Expression_ptr expression)
+		: is_public(is_public), is_mutable(is_mutable), expression(std::move(expression)) {};
 };
 
 struct AST_API UDTDefinition : public Definition

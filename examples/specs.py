@@ -84,7 +84,7 @@ type WindowStates = "open" | "closed" | "minimized"
 
 
 match thing :
-    case "open" of string then
+    case "open" : string then
         echo "open"
     case "closed" :
         echo "closed"

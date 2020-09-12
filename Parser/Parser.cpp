@@ -65,6 +65,7 @@ Parser::Parser()
 	register_prefix(WTokenType::MINUS, Precedence::PREFIX);
 	register_prefix(WTokenType::BANG, Precedence::PREFIX);
 	register_prefix(WTokenType::TYPE_OF, Precedence::PREFIX);
+	register_prefix(WTokenType::DOT_DOT_DOT, Precedence::PREFIX);
 
 	register_infix_left(WTokenType::PLUS, Precedence::TERM);
 	register_infix_left(WTokenType::MINUS, Precedence::TERM);
@@ -748,12 +749,10 @@ vector<wstring> Parser::parse_enum_members(wstring stem)
 
 Statement_ptr Parser::parse_variable_definition(bool is_public, bool is_mutable)
 {
-	auto [identifier, type] = consume_identifier_type_pair();
-	token_pipe->expect(WTokenType::EQUAL);
 	auto expression = parse_expression();
 	token_pipe->expect(WTokenType::EOL);
 
-	return MAKE_STATEMENT(VariableDefinition(is_public, is_mutable, identifier, move(type), move(expression)));
+	return MAKE_STATEMENT(VariableDefinition(is_public, is_mutable, move(expression)));
 }
 
 Statement_ptr Parser::parse_interface_definition(bool is_public)
