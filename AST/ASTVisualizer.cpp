@@ -312,7 +312,8 @@ void ASTVisualizer::visit(UDTConstruct const& expr, int parent_id)
 void ASTVisualizer::visit(UDTMemberAccess const& expr, int parent_id)
 {
 	const int id = id_counter++;
-	save(id, parent_id, L"UDT member access");
+	const std::wstring tag = expr.must_check_optional ? L"? " : L"";
+	save(id, parent_id, L"UDT member access " + tag);
 	visit(expr.chain, id);
 }
 
@@ -340,7 +341,7 @@ void ASTVisualizer::visit(Identifier const& expr, int parent_id)
 void ASTVisualizer::visit(Call const& expr, int parent_id)
 {
 	const int id = id_counter++;
-	save(id, parent_id, expr.name);
+	save(id, parent_id, L"call " + expr.name);
 	visit(expr.arguments, id);
 }
 

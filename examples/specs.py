@@ -55,7 +55,7 @@ end
 while expr do a = a + 4
 
 fn add(a : mut int, b : mut int) => int
-    if a > b :
+    if a > b then
         return a + b + 4
     end
 

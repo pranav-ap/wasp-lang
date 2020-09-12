@@ -198,16 +198,30 @@ Expression_ptr UDTCreationParselet::parse(Parser_ptr parser, Token_ptr token)
 Expression_ptr UDTMemberAccessParselet::parse(Parser_ptr parser, Expression_ptr left, Token_ptr token)
 {
 	ExpressionVector chain = { left };
+	bool must_check_optional = token->type == WTokenType::QUESTION_DOT;
 
 	while (auto member_expression = parser->parse_expression())
 	{
 		chain.push_back(member_expression);
 
-		if (!parser->token_pipe->optional(WTokenType::DOT))
-			break;
+		auto token = parser->token_pipe->current();
+
+		if (token.has_value())
+		{
+			switch (token.value()->type)
+			{
+			case WTokenType::DOT:
+			case WTokenType::QUESTION_DOT:
+			{
+				continue;
+			}
+			}
+		}
+
+		break;
 	}
 
-	return MAKE_EXPRESSION(UDTMemberAccess(chain));
+	return MAKE_EXPRESSION(UDTMemberAccess(chain, must_check_optional));
 }
 
 Expression_ptr EnumMemberParselet::parse(Parser_ptr parser, Expression_ptr left, Token_ptr token)

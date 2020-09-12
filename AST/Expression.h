@@ -109,9 +109,10 @@ struct AST_API UDTConstruct
 struct AST_API UDTMemberAccess
 {
 	ExpressionVector chain;
+	bool must_check_optional;
 
-	UDTMemberAccess(ExpressionVector chain)
-		: chain(chain) {};
+	UDTMemberAccess(ExpressionVector chain, bool must_check_optional)
+		: chain(chain), must_check_optional(must_check_optional) {};
 };
 
 struct AST_API EnumMember

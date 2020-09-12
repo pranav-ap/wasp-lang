@@ -6,11 +6,11 @@ enum class Precedence : int
 	TYPE_PATTERN, // ? :
 	LOGICAL, // and or
 	EQUALITY, // == !=
-	COMPARISON, // < > <= >= in typeof
+	COMPARISON, // < > <= >= in instanceof
 	TERM, // + -
 	PRODUCT, // * / %
 	EXPONENT, // ^
-	PREFIX,
+	PREFIX, // + - ! typeof
 	POSTFIX,
-	CALL // call, member access
+	CALL // call . new ?.
 };

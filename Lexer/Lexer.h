@@ -94,6 +94,7 @@ class LEXER_API Lexer
 	Token_ptr consume_power();
 	Token_ptr consume_bang();
 	Token_ptr consume_equal();
+	Token_ptr consume_question();
 	Token_ptr consume_colon();
 	Token_ptr consume_greater_than();
 	Token_ptr consume_lesser_than();

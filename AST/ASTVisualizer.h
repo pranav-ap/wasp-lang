@@ -69,7 +69,7 @@ class AST_API ASTVisualizer
 	void visit(TypePattern const& expr, int parent_id);
 	void visit(Assignment const& expr, int parent_id);
 
-	// Types
+	// Type
 
 	void visit(const Type_ptr type, int parent_id);
 	void visit(std::vector<Type_ptr> const& types, int parent_id);

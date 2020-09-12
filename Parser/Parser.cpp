@@ -62,7 +62,9 @@ Parser::Parser()
 
 	register_parselet(WTokenType::NEW, make_shared<UDTCreationParselet>());
 
+	register_parselet(WTokenType::QUESTION_DOT, make_shared<UDTMemberAccessParselet>());
 	register_parselet(WTokenType::DOT, make_shared<UDTMemberAccessParselet>());
+
 	register_parselet(WTokenType::COLON, make_shared<TypePatternParselet>());
 
 	register_prefix(WTokenType::PLUS, Precedence::PREFIX);
