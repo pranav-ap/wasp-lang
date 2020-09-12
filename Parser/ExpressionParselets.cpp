@@ -111,11 +111,8 @@ Expression_ptr PostfixOperatorParselet::parse(Parser_ptr parser, Expression_ptr 
 	return MAKE_EXPRESSION(Postfix(left, token));
 }
 
-Expression_ptr CallParselet::parse(Parser_ptr parser, Expression_ptr left, Token_ptr token)
+Expression_ptr CallParselet::parse(Parser_ptr parser, Identifier* identifier)
 {
-	ASSERT(holds_alternative<Identifier>(*left), "Function name is supposed to be an identifier");
-	auto identifier = get_if<Identifier>(&*left);
-
 	ExpressionVector arguments;
 
 	if (parser->token_pipe->optional(WTokenType::CLOSE_PARENTHESIS))
@@ -127,6 +124,33 @@ Expression_ptr CallParselet::parse(Parser_ptr parser, Expression_ptr left, Token
 	parser->token_pipe->expect(WTokenType::CLOSE_PARENTHESIS);
 
 	return MAKE_EXPRESSION(Call(identifier->name, arguments));
+}
+
+Expression_ptr CallParselet::parse(Parser_ptr parser, Expression_ptr left, Token_ptr token)
+{
+	Expression_ptr result;
+
+	std::visit(overloaded{
+		[&](Identifier& expr)
+		{
+			result = parse(parser, &expr);
+		},
+		[&](Infix& expr)
+		{
+			Expression_ptr right_expr = expr.right;
+			ASSERT(holds_alternative<Identifier>(*right_expr), "Function name is supposed to be an identifier");
+			auto identifier = get_if<Identifier>(&*right_expr);
+
+			expr.right = parse(parser, identifier);
+			result = MAKE_EXPRESSION(expr);
+		},
+		[&](auto)
+		{
+			FATAL("Function Call syntax error");
+		}
+		}, *left);
+
+	return result;
 }
 
 Expression_ptr GroupParselet::parse(Parser_ptr parser, Token_ptr token)
@@ -195,35 +219,6 @@ Expression_ptr UDTCreationParselet::parse(Parser_ptr parser, Token_ptr token)
 	return MAKE_EXPRESSION(UDTConstruct(next_token->value, arguments));
 }
 
-Expression_ptr UDTMemberAccessParselet::parse(Parser_ptr parser, Expression_ptr left, Token_ptr token)
-{
-	ExpressionVector chain = { left };
-	bool must_check_optional = token->type == WTokenType::QUESTION_DOT;
-
-	while (auto member_expression = parser->parse_expression())
-	{
-		chain.push_back(member_expression);
-
-		auto token = parser->token_pipe->current();
-
-		if (token.has_value())
-		{
-			switch (token.value()->type)
-			{
-			case WTokenType::DOT:
-			case WTokenType::QUESTION_DOT:
-			{
-				continue;
-			}
-			}
-		}
-
-		break;
-	}
-
-	return MAKE_EXPRESSION(UDTMemberAccess(chain, must_check_optional));
-}
-
 Expression_ptr EnumMemberParselet::parse(Parser_ptr parser, Expression_ptr left, Token_ptr token)
 {
 	ASSERT(holds_alternative<Identifier>(*left), "Expect enum member name");
@@ -276,14 +271,9 @@ int CallParselet::get_precedence()
 	return (int)Precedence::CALL;
 }
 
-int UDTMemberAccessParselet::get_precedence()
-{
-	return (int)Precedence::CALL;
-}
-
 int EnumMemberParselet::get_precedence()
 {
-	return (int)Precedence::CALL;
+	return (int)Precedence::MEMBER_ACCESS;
 }
 
 int UDTCreationParselet::get_precedence()

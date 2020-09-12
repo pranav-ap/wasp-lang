@@ -59,7 +59,6 @@ class AST_API ASTVisualizer
 	void visit(SetLiteral const& expr, int parent_id);
 	void visit(MapLiteral const& expr, int parent_id);
 	void visit(UDTConstruct const& expr, int parent_id);
-	void visit(UDTMemberAccess const& expr, int parent_id);
 	void visit(EnumMember const& expr, int parent_id);
 	void visit(Identifier const& expr, int parent_id);
 	void visit(Call const& expr, int parent_id);
@@ -67,6 +66,7 @@ class AST_API ASTVisualizer
 	void visit(Infix const& expr, int parent_id);
 	void visit(Postfix const& expr, int parent_id);
 	void visit(TypePattern const& expr, int parent_id);
+	void visit(SpreadExpression const& expr, int parent_id);
 	void visit(Assignment const& expr, int parent_id);
 
 	// Type

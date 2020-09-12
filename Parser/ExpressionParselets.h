@@ -95,6 +95,7 @@ public:
 class CallParselet : public IInfixParselet
 {
 public:
+	Expression_ptr parse(Parser_ptr parser, Identifier* left);
 	Expression_ptr parse(Parser_ptr parser, Expression_ptr left, Token_ptr token);
 	int get_precedence();
 };

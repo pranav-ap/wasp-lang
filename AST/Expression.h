@@ -24,7 +24,6 @@ struct TupleLiteral;
 struct SetLiteral;
 struct MapLiteral;
 struct UDTConstruct;
-struct UDTMemberAccess;
 struct EnumMember;
 struct Identifier;
 struct Call;
@@ -36,8 +35,7 @@ using Expression = AST_API std::variant<
 	std::monostate,
 	int, double, std::wstring, bool,
 	ListLiteral, TupleLiteral, SetLiteral,
-	MapLiteral, UDTConstruct,
-	UDTMemberAccess, EnumMember,
+	MapLiteral, UDTConstruct, EnumMember,
 	Identifier, Call,
 	Assignment,
 	Prefix, Infix, Postfix,
@@ -105,15 +103,6 @@ struct AST_API UDTConstruct
 
 	UDTConstruct(std::wstring UDT_name, ExpressionVector expressions)
 		: UDT_name(UDT_name), expressions(expressions) {};
-};
-
-struct AST_API UDTMemberAccess
-{
-	ExpressionVector chain;
-	bool must_check_optional;
-
-	UDTMemberAccess(ExpressionVector chain, bool must_check_optional)
-		: chain(chain), must_check_optional(must_check_optional) {};
 };
 
 struct AST_API EnumMember

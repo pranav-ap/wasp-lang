@@ -3,7 +3,7 @@
 enum class Precedence : int
 {
 	ASSIGNMENT = 1,
-	TYPE_PATTERN, // ? :
+	TYPE_PATTERN, // :
 	OR,
 	AND,
 	EQUALITY, // == !=
@@ -13,5 +13,6 @@ enum class Precedence : int
 	EXPONENT, // ^
 	PREFIX, // + - ! typeof
 	POSTFIX,
-	CALL // call() . new ?.
+	CALL, // call() new
+	MEMBER_ACCESS // . ?.
 };

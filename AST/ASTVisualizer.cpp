@@ -229,7 +229,6 @@ void ASTVisualizer::visit(const Expression_ptr expression, int parent_id)
 		[&](SetLiteral const& expr) { visit(expr, parent_id); },
 		[&](MapLiteral const& expr) { visit(expr, parent_id); },
 		[&](UDTConstruct const& expr) { visit(expr, parent_id); },
-		[&](UDTMemberAccess const& expr) { visit(expr, parent_id); },
 		[&](EnumMember const& expr) { visit(expr, parent_id); },
 		[&](Identifier const& expr) { visit(expr, parent_id); },
 		[&](Call const& expr) { visit(expr, parent_id); },
@@ -238,6 +237,7 @@ void ASTVisualizer::visit(const Expression_ptr expression, int parent_id)
 		[&](Postfix const& expr) { visit(expr, parent_id); },
 		[&](TypePattern const& expr) { visit(expr, parent_id); },
 		[&](Assignment const& expr) { visit(expr, parent_id); },
+		[&](SpreadExpression const& expr) { visit(expr, parent_id); },
 
 		[](auto) {FATAL("Never seen this Expression before! So I cannot print it!"); }
 		}, *expression);
@@ -310,14 +310,6 @@ void ASTVisualizer::visit(UDTConstruct const& expr, int parent_id)
 	visit(expr.expressions, id);
 }
 
-void ASTVisualizer::visit(UDTMemberAccess const& expr, int parent_id)
-{
-	const int id = id_counter++;
-	const std::wstring tag = expr.must_check_optional ? L"? " : L"";
-	save(id, parent_id, L"UDT member access " + tag);
-	visit(expr.chain, id);
-}
-
 void ASTVisualizer::visit(EnumMember const& expr, int parent_id)
 {
 	std::wstring member_chain = L"";
@@ -376,6 +368,14 @@ void ASTVisualizer::visit(TypePattern const& expr, int parent_id)
 
 	visit(expr.expression, colon_id);
 	visit(expr.type, colon_id);
+}
+
+void ASTVisualizer::visit(SpreadExpression const& expr, int parent_id)
+{
+	const int id = id_counter++;
+	save(id, parent_id, L"...");
+
+	visit(expr.expression, id);
 }
 
 void ASTVisualizer::visit(Assignment const& expr, int parent_id)
