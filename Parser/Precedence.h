@@ -4,13 +4,14 @@ enum class Precedence : int
 {
 	ASSIGNMENT = 1,
 	TYPE_PATTERN, // ? :
-	LOGICAL, // and or
+	OR,
+	AND,
 	EQUALITY, // == !=
-	COMPARISON, // < > <= >= in instanceof
+	COMPARISON, // < > <= >= in is
 	TERM, // + -
 	PRODUCT, // * / %
 	EXPONENT, // ^
 	PREFIX, // + - ! typeof
 	POSTFIX,
-	CALL // call . new ?.
+	CALL // call() . new ?.
 };

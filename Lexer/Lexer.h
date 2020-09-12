@@ -42,6 +42,7 @@ const std::map<std::wstring, WTokenType> keyword_map =
 	{ L"yield", WTokenType::YIELD_KEYWORD },
 
 	{ L"typeof", WTokenType::TYPE_OF },
+	{ L"is", WTokenType::IS },
 
 	{ L"type", WTokenType::TYPE },
 	{ L"int", WTokenType::INT },

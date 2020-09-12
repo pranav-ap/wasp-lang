@@ -97,6 +97,7 @@ enum class TOKEN_API WTokenType
 	SWEAR,
 
 	TYPE_OF,
+	IS,
 
 	FN,
 	RETURN_KEYWORD,

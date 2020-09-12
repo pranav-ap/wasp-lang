@@ -45,52 +45,42 @@ using std::holds_alternative;
 Parser::Parser()
 {
 	register_parselet(WTokenType::EQUAL, make_shared<AssignmentParselet>());
-
 	register_parselet(WTokenType::IDENTIFIER, make_shared<IdentifierParselet>());
 	register_parselet(WTokenType::STRING_LITERAL, make_shared<StringParselet>());
 	register_parselet(WTokenType::NUMBER_LITERAL, make_shared<NumberParselet>());
-
 	register_parselet(WTokenType::TRUE_KEYWORD, make_shared<BooleanParselet>());
 	register_parselet(WTokenType::FALSE_KEYWORD, make_shared<BooleanParselet>());
-
 	register_parselet(WTokenType::OPEN_PARENTHESIS, make_shared<CallParselet>());
 	register_parselet(WTokenType::OPEN_PARENTHESIS, make_shared<GroupParselet>());
 	register_parselet(WTokenType::OPEN_SQUARE_BRACKET, make_shared<ListParselet>());
 	register_parselet(WTokenType::OPEN_ANGLE_BRACKET, make_shared<MapParselet>());
 	register_parselet(WTokenType::OPEN_FLOOR_BRACKET, make_shared<TupleParselet>());
 	register_parselet(WTokenType::OPEN_CURLY_BRACE, make_shared<SetParselet>());
-
 	register_parselet(WTokenType::NEW, make_shared<UDTCreationParselet>());
-
 	register_parselet(WTokenType::QUESTION_DOT, make_shared<UDTMemberAccessParselet>());
 	register_parselet(WTokenType::DOT, make_shared<UDTMemberAccessParselet>());
-
 	register_parselet(WTokenType::COLON, make_shared<TypePatternParselet>());
 
 	register_prefix(WTokenType::PLUS, Precedence::PREFIX);
 	register_prefix(WTokenType::MINUS, Precedence::PREFIX);
 	register_prefix(WTokenType::BANG, Precedence::PREFIX);
+	register_prefix(WTokenType::TYPE_OF, Precedence::PREFIX);
 
 	register_infix_left(WTokenType::PLUS, Precedence::TERM);
 	register_infix_left(WTokenType::MINUS, Precedence::TERM);
-
 	register_infix_left(WTokenType::STAR, Precedence::PRODUCT);
 	register_infix_left(WTokenType::DIVISION, Precedence::PRODUCT);
 	register_infix_left(WTokenType::REMINDER, Precedence::PRODUCT);
-
 	register_infix_left(WTokenType::EQUAL_EQUAL, Precedence::EQUALITY);
 	register_infix_left(WTokenType::BANG_EQUAL, Precedence::EQUALITY);
-
 	register_infix_left(WTokenType::LESSER_THAN, Precedence::COMPARISON);
 	register_infix_left(WTokenType::LESSER_THAN_EQUAL, Precedence::COMPARISON);
 	register_infix_left(WTokenType::GREATER_THAN, Precedence::COMPARISON);
 	register_infix_left(WTokenType::GREATER_THAN_EQUAL, Precedence::COMPARISON);
-
 	register_infix_left(WTokenType::IN_KEYWORD, Precedence::COMPARISON);
-	register_infix_left(WTokenType::TYPE_OF, Precedence::COMPARISON);
-
-	register_infix_left(WTokenType::AND, Precedence::LOGICAL);
-	register_infix_left(WTokenType::OR, Precedence::LOGICAL);
+	register_infix_left(WTokenType::IS, Precedence::COMPARISON);
+	register_infix_left(WTokenType::AND, Precedence::AND);
+	register_infix_left(WTokenType::OR, Precedence::OR);
 
 	register_infix_right(WTokenType::POWER, Precedence::EXPONENT);
 	register_infix_right(WTokenType::EQUAL, Precedence::ASSIGNMENT);

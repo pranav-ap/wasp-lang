@@ -1,19 +1,7 @@
 digraph G { 
 "0"   [label="root"]; 
- "1"   [label="UDT member access  ? "]; 
+ "1"   [label="typeof"]; 
  "0" -> "1"; 
- "2"   [label="call a"]; 
+ "2"   [label="rat"]; 
  "1" -> "2"; 
- "3"   [label="55"]; 
- "2" -> "3"; 
- "4"   [label="UDT member access "]; 
- "1" -> "4"; 
- "5"   [label="b"]; 
- "4" -> "5"; 
- "6"   [label="call c"]; 
- "4" -> "6"; 
- "7"   [label="123"]; 
- "6" -> "7"; 
- "8"   [label="143"]; 
- "6" -> "8"; 
  }
