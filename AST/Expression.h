@@ -28,7 +28,7 @@ struct Call;
 struct Prefix;
 struct Infix;
 struct Postfix;
-struct Conditional;
+struct TernaryCondition;
 
 using Expression = AST_API std::variant<
 	std::monostate,
@@ -39,7 +39,7 @@ using Expression = AST_API std::variant<
 	Identifier, Call,
 	Assignment,
 	Prefix, Infix, Postfix,
-	Conditional
+	TernaryCondition
 >;
 
 using Expression_ptr = AST_API std::shared_ptr<Expression>;
@@ -160,12 +160,12 @@ struct AST_API Postfix
 		: operand(std::move(operand)), op(std::move(op)) {};
 };
 
-struct AST_API Conditional
+struct AST_API TernaryCondition
 {
 	Expression_ptr condition;
 	Expression_ptr then_arm;
 	Expression_ptr else_arm;
 
-	Conditional(Expression_ptr condition, Expression_ptr then_arm, Expression_ptr else_arm)
+	TernaryCondition(Expression_ptr condition, Expression_ptr then_arm, Expression_ptr else_arm)
 		: condition(std::move(condition)), then_arm(std::move(then_arm)), else_arm(std::move(else_arm)) {};
 };

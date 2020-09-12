@@ -23,13 +23,12 @@ let [a : int, b : string] = c  // UNS
 let [a : int, ...b : string, c : string] = some_list  // UNS
 [a, ...b, c] = some_list  // UNS
 
-
 if a > 3 and r == 3 then
-    pass
+    345
 elif a > 3  then
-    pass
+    567
 else
-    pass
+    5671
 end
 
 

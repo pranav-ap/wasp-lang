@@ -117,7 +117,7 @@ Expression_ptr TernaryConditionParselet::parse(Parser_ptr parser, Expression_ptr
 	parser->token_pipe->expect(WTokenType::COLON);
 	Expression_ptr else_arm = parser->parse_expression((int)Precedence::TERNARY_CONDITION - 1);
 
-	return MAKE_EXPRESSION(Conditional(condition, then_arm, else_arm));
+	return MAKE_EXPRESSION(TernaryCondition(condition, then_arm, else_arm));
 }
 
 Expression_ptr CallParselet::parse(Parser_ptr parser, Expression_ptr left, Token_ptr token)

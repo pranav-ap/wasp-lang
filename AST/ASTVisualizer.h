@@ -47,6 +47,7 @@ class AST_API ASTVisualizer
 	// Expression
 
 	void visit(const Expression_ptr expr, int parent_id);
+	void visit(std::vector<Expression_ptr> const& expressions, int parent_id);
 
 	void visit(int const expr, int parent_id);
 	void visit(double const expr, int parent_id);
@@ -64,10 +65,13 @@ class AST_API ASTVisualizer
 	void visit(Prefix const& expr, int parent_id);
 	void visit(Infix const& expr, int parent_id);
 	void visit(Postfix const& expr, int parent_id);
-	void visit(Conditional const& expr, int parent_id);
+	void visit(TernaryCondition const& expr, int parent_id);
 	void visit(Assignment const& expr, int parent_id);
 
 public:
+	ASTVisualizer()
+		: content(L""), id_counter(0) {};
+
 	void generate_dot_file(Module_ptr mod);
 };
 

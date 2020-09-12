@@ -3,7 +3,6 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros">
     <WaspAdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)Utils;$(SolutionDir)Type_System;$(SolutionDir)Token;$(SolutionDir)SemanticAnalyzer;$(SolutionDir)Parser;$(SolutionDir)ObjectSystem;$(SolutionDir)MemorySystem;$(SolutionDir)Lexer;$(SolutionDir)ControlFlowGraph;$(SolutionDir)Compiler;$(SolutionDir)Bytecode;$(SolutionDir)AST;$(SolutionDir)VM</WaspAdditionalIncludeDirectories>
-    <water>water</water>
   </PropertyGroup>
   <PropertyGroup />
   <ItemDefinitionGroup />
@@ -11,9 +10,6 @@
     <BuildMacro Include="WaspAdditionalIncludeDirectories">
       <Value>$(WaspAdditionalIncludeDirectories)</Value>
       <EnvironmentVariable>true</EnvironmentVariable>
-    </BuildMacro>
-    <BuildMacro Include="water">
-      <Value>$(water)</Value>
     </BuildMacro>
   </ItemGroup>
 </Project>

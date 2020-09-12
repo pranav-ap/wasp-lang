@@ -60,7 +60,7 @@ void ASTVisualizer::visit(const Statement_ptr statement, int parent_id)
 		[&](ImploreStatement const& stat) { visit(stat, parent_id); },
 		[&](SwearStatement const& stat) { visit(stat, parent_id); },
 
-		[](auto) { FATAL("Never Seen this Statement before! So I cannot print it!"); }
+		[](auto) { FATAL("Never seen this Statement before! So I cannot print it!"); }
 		}, *statement);
 }
 
@@ -74,8 +74,24 @@ void ASTVisualizer::visit(std::vector<Statement_ptr> const& statements, int pare
 
 void ASTVisualizer::visit(Branching const& statement, int parent_id)
 {
+	int branch_count = 1;
+
 	for (const auto [condition, block] : statement.branches)
 	{
+		const int if_id = id_counter++;
+		save(if_id, parent_id, (branch_count == 1) ? L"if" : L"elif");
+
+		visit(condition, if_id);
+		visit(block, if_id);
+
+		branch_count++;
+	}
+
+	if (statement.else_block.size() > 0)
+	{
+		const int else_id = id_counter++;
+		save(else_id, parent_id, L"else");
+		visit(statement.else_block, else_id);
 	}
 }
 
@@ -90,6 +106,16 @@ void ASTVisualizer::visit(WhileLoop const& statement, int parent_id)
 
 void ASTVisualizer::visit(ForInLoop const& statement, int parent_id)
 {
+	const int id = id_counter++;
+	save(id, parent_id, L"for");
+
+	const int in_id = id_counter++;
+	save(in_id, id, L"in");
+
+	visit(statement.item_name, in_id);
+	visit(statement.iterable, in_id);
+
+	visit(statement.block, id);
 }
 
 void ASTVisualizer::visit(Break const& statement, int parent_id)
@@ -128,26 +154,38 @@ void ASTVisualizer::visit(YieldStatement const& statement, int parent_id)
 
 void ASTVisualizer::visit(VariableDefinition const& statement, int parent_id)
 {
+	const int id = id_counter++;
+	save(id, parent_id, L"VariableDefinition");
 }
 
 void ASTVisualizer::visit(UDTDefinition const& statement, int parent_id)
 {
+	const int id = id_counter++;
+	save(id, parent_id, L"UDTDefinition");
 }
 
 void ASTVisualizer::visit(AliasDefinition const& statement, int parent_id)
 {
+	const int id = id_counter++;
+	save(id, parent_id, L"AliasDefinition");
 }
 
 void ASTVisualizer::visit(FunctionDefinition const& statement, int parent_id)
 {
+	const int id = id_counter++;
+	save(id, parent_id, L"FunctionDefinition");
 }
 
 void ASTVisualizer::visit(GeneratorDefinition const& statement, int parent_id)
 {
+	const int id = id_counter++;
+	save(id, parent_id, L"GeneratorDefinition");
 }
 
 void ASTVisualizer::visit(EnumDefinition const& statement, int parent_id)
 {
+	const int id = id_counter++;
+	save(id, parent_id, L"EnumDefinition");
 }
 
 void ASTVisualizer::visit(ExpressionStatement const& statement, int parent_id)
@@ -197,11 +235,19 @@ void ASTVisualizer::visit(const Expression_ptr expression, int parent_id)
 		[&](Prefix const& expr) { visit(expr, parent_id); },
 		[&](Infix const& expr) { visit(expr, parent_id); },
 		[&](Postfix const& expr) { visit(expr, parent_id); },
-		[&](Conditional const& expr) { visit(expr, parent_id); },
+		[&](TernaryCondition const& expr) { visit(expr, parent_id); },
 		[&](Assignment const& expr) { visit(expr, parent_id); },
 
-		[](auto) {}
+		[](auto) {FATAL("Never seen this Expression before! So I cannot print it!"); }
 		}, *expression);
+}
+
+void ASTVisualizer::visit(std::vector<Expression_ptr> const& expressions, int parent_id)
+{
+	for (const auto expression : expressions)
+	{
+		visit(expression, parent_id);
+	}
 }
 
 void ASTVisualizer::visit(int const expr, int parent_id)
@@ -219,15 +265,8 @@ void ASTVisualizer::visit(double const expr, int parent_id)
 void ASTVisualizer::visit(bool const expr, int parent_id)
 {
 	const int id = id_counter++;
-
-	if (expr)
-	{
-		save(id, parent_id, L"true");
-	}
-	else
-	{
-		save(id, parent_id, L"false");
-	}
+	std::wstring term = expr ? L"true" : L"false";
+	save(id, parent_id, term);
 }
 
 void ASTVisualizer::visit(std::wstring const& expr, int parent_id)
@@ -240,33 +279,21 @@ void ASTVisualizer::visit(ListLiteral const& expr, int parent_id)
 {
 	const int id = id_counter++;
 	save(id, parent_id, L"List Literal");
-
-	for (const auto element : expr.expressions)
-	{
-		visit(element, id);
-	}
+	visit(expr.expressions, id);
 }
 
 void ASTVisualizer::visit(TupleLiteral const& expr, int parent_id)
 {
 	const int id = id_counter++;
 	save(id, parent_id, L"Tuple Literal");
-
-	for (const auto element : expr.expressions)
-	{
-		visit(element, id);
-	}
+	visit(expr.expressions, id);
 }
 
 void ASTVisualizer::visit(SetLiteral const& expr, int parent_id)
 {
 	const int id = id_counter++;
 	save(id, parent_id, L"Set Literal");
-
-	for (const auto element : expr.expressions)
-	{
-		visit(element, id);
-	}
+	visit(expr.expressions, id);
 }
 
 void ASTVisualizer::visit(MapLiteral const& expr, int parent_id)
@@ -279,22 +306,14 @@ void ASTVisualizer::visit(UDTConstruct const& expr, int parent_id)
 {
 	const int id = id_counter++;
 	save(id, parent_id, expr.UDT_name);
-
-	for (const auto element : expr.expressions)
-	{
-		visit(element, id);
-	}
+	visit(expr.expressions, id);
 }
 
 void ASTVisualizer::visit(UDTMemberAccess const& expr, int parent_id)
 {
 	const int id = id_counter++;
 	save(id, parent_id, L"UDT member access");
-
-	for (const auto element : expr.chain)
-	{
-		visit(element, id);
-	}
+	visit(expr.chain, id);
 }
 
 void ASTVisualizer::visit(EnumMember const& expr, int parent_id)
@@ -322,11 +341,7 @@ void ASTVisualizer::visit(Call const& expr, int parent_id)
 {
 	const int id = id_counter++;
 	save(id, parent_id, expr.name);
-
-	for (const auto element : expr.arguments)
-	{
-		visit(element, id);
-	}
+	visit(expr.arguments, id);
 }
 
 void ASTVisualizer::visit(Prefix const& expr, int parent_id)
@@ -349,11 +364,10 @@ void ASTVisualizer::visit(Postfix const& expr, int parent_id)
 {
 	const int id = id_counter++;
 	save(id, parent_id, expr.op->value);
-
 	visit(expr.operand, id);
 }
 
-void ASTVisualizer::visit(Conditional const& expr, int parent_id)
+void ASTVisualizer::visit(TernaryCondition const& expr, int parent_id)
 {
 	const int question_id = id_counter++;
 	save(question_id, parent_id, L"?");
@@ -397,7 +411,7 @@ void ASTVisualizer::generate_dot_file(Module_ptr mod)
 
 	// write to file
 
-	std::string path = "../examples/expr_graph.dot";
+	std::string path = "../examples/module.dot";
 	std::wofstream ofs(path, std::wofstream::out);
 	ofs << content;
 	ofs.close();

@@ -9,20 +9,17 @@
 //#include "Compiler.h"
 //#include "CFGBuilder.h"
 #include <string>
-#include <iostream>
 #include <memory>
 #include <vector>
 
 using std::make_unique;
 using std::make_shared;
-using std::cout;
-using std::endl;
 using std::vector;
 using std::wstring;
 
 int main()
 {
-	wstring raw_source = read_source("../examples/main.txt");
+	wstring raw_source = read_source("../examples/main.wasp");
 
 	Lexer_ptr lexer = make_unique<Lexer>();
 	vector<Token_ptr> tokens = lexer->execute(raw_source);
