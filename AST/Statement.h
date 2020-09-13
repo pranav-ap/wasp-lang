@@ -82,22 +82,20 @@ struct AST_API Branching
 
 struct AST_API WhileLoop
 {
-	Expression_ptr condition;
+	Expression_ptr pattern;
 	Block block;
 
-	WhileLoop(Expression_ptr condition, Block block)
-		: condition(std::move(condition)), block(block) {};
+	WhileLoop(Expression_ptr pattern, Block block)
+		: pattern(std::move(pattern)), block(block) {};
 };
 
 struct AST_API ForInLoop
 {
-	Type_ptr item_type;
-	std::wstring item_name;
-	Expression_ptr iterable;
+	Expression_ptr pattern;
 	Block block;
 
-	ForInLoop(Type_ptr item_type, std::wstring item_name, Expression_ptr iterable, Block block)
-		: block(block), item_type(std::move(item_type)), item_name(item_name), iterable(std::move(iterable)) {};
+	ForInLoop(Expression_ptr pattern, Block block)
+		: block(block), pattern(std::move(pattern)) {};
 };
 
 struct AST_API Break

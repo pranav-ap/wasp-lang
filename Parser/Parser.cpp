@@ -514,23 +514,19 @@ Statement_ptr Parser::parse_while_loop()
 
 Statement_ptr Parser::parse_for_in_loop()
 {
-	auto [identifier, item_type] = consume_identifier_type_pair();
-
-	token_pipe->expect(WTokenType::IN_KEYWORD);
-
-	auto iterable_expression = parse_expression();
-	NULL_CHECK(iterable_expression);
+	auto pattern = parse_expression();
+	NULL_CHECK(pattern);
 
 	token_pipe->expect(WTokenType::DO);
 
 	if (token_pipe->optional(WTokenType::EOL))
 	{
 		auto block = parse_block();
-		return MAKE_STATEMENT(ForInLoop(item_type, identifier, iterable_expression, block));
+		return MAKE_STATEMENT(ForInLoop(pattern, block));
 	}
 
 	auto statement = parse_non_block_statement();
-	return MAKE_STATEMENT(ForInLoop(item_type, identifier, iterable_expression, { statement }));
+	return MAKE_STATEMENT(ForInLoop(pattern, { statement }));
 }
 
 // Type Parsers
@@ -561,6 +557,10 @@ Type_ptr Parser::parse_type(bool is_optional)
 		else if (token_pipe->optional(WTokenType::OPEN_FLOOR_BRACKET))
 		{
 			type = parse_tuple_type(is_optional);
+		}
+		else if (token_pipe->optional(WTokenType::OPEN_PARENTHESIS))
+		{
+			type = parse_function_type(is_optional);
 		}
 		else
 		{
@@ -667,6 +667,45 @@ Type_ptr Parser::parse_map_type(bool is_optional)
 	}
 
 	return MAKE_TYPE(MapType(move(key_type), move(value_type)));
+}
+
+Type_ptr Parser::parse_function_type(bool is_optional)
+{
+	TypeVector input_types;
+
+	while (true)
+	{
+		auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
+		NULL_CHECK(identifier);
+
+		token_pipe->expect(WTokenType::COLON);
+
+		auto type = parse_type();
+		NULL_CHECK(type);
+
+		input_types.push_back(type);
+
+		if (token_pipe->optional(WTokenType::COMMA))
+			continue;
+
+		token_pipe->expect(WTokenType::CLOSE_PARENTHESIS);
+		break;
+	}
+
+	std::optional<Type_ptr> return_type = std::nullopt;
+
+	if (token_pipe->optional(WTokenType::ARROW))
+	{
+		return_type = parse_type();
+		NULL_CHECK(return_type);
+	}
+
+	if (is_optional)
+	{
+		return MAKE_OPTIONAL_TYPE(FunctionType(input_types, return_type));
+	}
+
+	return MAKE_TYPE(FunctionType(input_types, return_type));
 }
 
 Type_ptr Parser::consume_datatype_word(bool is_optional)
@@ -823,6 +862,7 @@ Statement_ptr Parser::parse_interface_definition(bool is_public)
 			break;
 
 		auto [identifier, type] = consume_identifier_type_pair();
+		token_pipe->expect(WTokenType::EOL);
 		member_types.insert_or_assign(identifier, type);
 	}
 

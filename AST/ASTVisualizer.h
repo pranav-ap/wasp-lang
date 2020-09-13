@@ -36,6 +36,7 @@ class AST_API ASTVisualizer
 	void visit(YieldStatement const& statement, int parent_id);
 	void visit(VariableDefinition const& statement, int parent_id);
 	void visit(UDTDefinition const& statement, int parent_id);
+	void visit(InterfaceDefinition const& statement, int parent_id);
 	void visit(AliasDefinition const& statement, int parent_id);
 	void visit(FunctionDefinition const& statement, int parent_id);
 	void visit(GeneratorDefinition const& statement, int parent_id);

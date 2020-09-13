@@ -51,6 +51,7 @@ void ASTVisualizer::visit(const Statement_ptr statement, int parent_id)
 		[&](YieldStatement const& stat) { visit(stat, parent_id); },
 		[&](VariableDefinition const& stat) { visit(stat, parent_id); },
 		[&](UDTDefinition const& stat) { visit(stat, parent_id); },
+		[&](InterfaceDefinition const& stat) { visit(stat, parent_id); },
 		[&](AliasDefinition const& stat) { visit(stat, parent_id); },
 		[&](FunctionDefinition const& stat) { visit(stat, parent_id); },
 		[&](GeneratorDefinition const& stat) { visit(stat, parent_id); },
@@ -76,12 +77,12 @@ void ASTVisualizer::visit(Branching const& statement, int parent_id)
 {
 	int branch_count = 1;
 
-	for (const auto [condition, block] : statement.branches)
+	for (const auto [pattern, block] : statement.branches)
 	{
 		const int if_id = id_counter++;
 		save(if_id, parent_id, (branch_count == 1) ? L"if" : L"elif");
 
-		visit(condition, if_id);
+		visit(pattern, if_id);
 		visit(block, if_id);
 
 		branch_count++;
@@ -100,7 +101,7 @@ void ASTVisualizer::visit(WhileLoop const& statement, int parent_id)
 	const int id = id_counter++;
 	save(id, parent_id, L"while");
 
-	visit(statement.condition, id);
+	visit(statement.pattern, id);
 	visit(statement.block, id);
 }
 
@@ -109,12 +110,7 @@ void ASTVisualizer::visit(ForInLoop const& statement, int parent_id)
 	const int id = id_counter++;
 	save(id, parent_id, L"for");
 
-	const int in_id = id_counter++;
-	save(in_id, id, L"in");
-
-	visit(statement.item_name, in_id);
-	visit(statement.iterable, in_id);
-
+	visit(statement.pattern, id);
 	visit(statement.block, id);
 }
 
@@ -163,12 +159,33 @@ void ASTVisualizer::visit(UDTDefinition const& statement, int parent_id)
 {
 	const int id = id_counter++;
 	save(id, parent_id, L"UDTDefinition");
+
+	for (const auto member : statement.member_types)
+	{
+		const int member_id = id_counter++;
+		save(member_id, id, member.first);
+		visit(member.second, member_id);
+	}
+}
+
+void ASTVisualizer::visit(InterfaceDefinition const& statement, int parent_id)
+{
+	const int id = id_counter++;
+	save(id, parent_id, L"Interface Definition");
+	visit(statement.name, id);
+
+	for (const auto member : statement.member_types)
+	{
+		const int member_id = id_counter++;
+		save(member_id, id, member.first);
+		visit(member.second, member_id);
+	}
 }
 
 void ASTVisualizer::visit(AliasDefinition const& statement, int parent_id)
 {
 	const int id = id_counter++;
-	save(id, parent_id, L"AliasDefinition");
+	save(id, parent_id, L"Alias Definition");
 	visit(statement.name, id);
 	visit(statement.type, id);
 }
@@ -176,7 +193,7 @@ void ASTVisualizer::visit(AliasDefinition const& statement, int parent_id)
 void ASTVisualizer::visit(FunctionDefinition const& statement, int parent_id)
 {
 	const int id = id_counter++;
-	save(id, parent_id, L"FunctionDefinition");
+	save(id, parent_id, L"Function Definition");
 	visit(statement.name, id);
 	visit(statement.arguments, id);
 	visit(statement.type, id);
@@ -570,11 +587,16 @@ void ASTVisualizer::visit(FunctionType const& type, int parent_id)
 {
 	const int id = id_counter++;
 	save(id, parent_id, L"Function Type");
-	visit(type.input_types, id);
+
+	const int input_types_id = id_counter++;
+	save(input_types_id, id, L"Input Types");
+	visit(type.input_types, input_types_id);
 
 	if (type.return_type.has_value())
 	{
-		visit(type.return_type.value(), id);
+		const int return_type_id = id_counter++;
+		save(return_type_id, id, L"Return Type");
+		visit(type.return_type.value(), return_type_id);
 	}
 }
 
@@ -601,7 +623,7 @@ void ASTVisualizer::generate_dot_file(Module_ptr mod)
 
 	// create content
 
-	content.append(L"digraph G { \n");
+	content.append(L"digraph G { \n ");
 
 	const int id = id_counter++;
 	save(id, L"root");

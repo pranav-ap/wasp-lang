@@ -137,13 +137,6 @@ public:
 	int get_precedence();
 };
 
-class TernaryConditionParselet : public IPrefixParselet
-{
-public:
-	Expression_ptr parse(Parser_ptr parser, Token_ptr token);
-	int get_precedence();
-};
-
 class EnumMemberParselet : public IInfixParselet
 {
 public:
@@ -162,5 +155,12 @@ class TypePatternParselet : public IInfixParselet
 {
 public:
 	Expression_ptr parse(Parser_ptr parser, Expression_ptr left, Token_ptr token);
+	int get_precedence();
+};
+
+class TernaryConditionParselet : public IPrefixParselet
+{
+public:
+	Expression_ptr parse(Parser_ptr parser, Token_ptr token);
 	int get_precedence();
 };

@@ -1,2 +1,4 @@
-x = if true then 43 else if true then 43 else 765
 
+interface ICastle
+    open_gates: (speed: int, distance: float) => bool
+end
