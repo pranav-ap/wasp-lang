@@ -12,6 +12,7 @@
 #include <memory>
 #include <utility>
 #include <variant>
+#include <cmath>
 
 #define ADVANCE_PTR token_pipe->advance_pointer()
 #define RETREAT_PTR token_pipe->retreat_pointer()
@@ -656,6 +657,44 @@ Type_ptr Parser::consume_datatype_word(bool is_optional)
 
 	switch (token.value()->type)
 	{
+	case WTokenType::NUMBER_LITERAL:
+	{
+		ADVANCE_PTR;
+
+		auto value = std::stod(token.value()->value);
+
+		if (std::fmod(value, 1.0) == 0.0)
+		{
+			return is_optional
+				? MAKE_OPTIONAL_TYPE(IntLiteralType((int)value))
+				: MAKE_TYPE(IntLiteralType((int)value));
+		}
+
+		return is_optional
+			? MAKE_OPTIONAL_TYPE(FloatLiteralType(value))
+			: MAKE_TYPE(FloatLiteralType(value));
+	}
+	case WTokenType::STRING_LITERAL:
+	{
+		ADVANCE_PTR;
+		return is_optional
+			? MAKE_OPTIONAL_TYPE(StringLiteralType(token.value()->value))
+			: MAKE_TYPE(StringLiteralType(token.value()->value));
+	}
+	case WTokenType::TRUE_KEYWORD:
+	{
+		ADVANCE_PTR;
+		return is_optional
+			? MAKE_OPTIONAL_TYPE(BooleanLiteralType(true))
+			: MAKE_TYPE(BooleanLiteralType(true));
+	}
+	case WTokenType::FALSE_KEYWORD:
+	{
+		ADVANCE_PTR;
+		return is_optional
+			? MAKE_OPTIONAL_TYPE(BooleanLiteralType(false))
+			: MAKE_TYPE(BooleanLiteralType(false));
+	}
 	case WTokenType::INT:
 	{
 		ADVANCE_PTR;

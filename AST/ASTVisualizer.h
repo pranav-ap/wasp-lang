@@ -75,6 +75,10 @@ class AST_API ASTVisualizer
 	void visit(std::vector<Type_ptr> const& types, int parent_id);
 
 	void visit(AnyType const& expr, int parent_id);
+	void visit(IntLiteralType const& expr, int parent_id);
+	void visit(FloatLiteralType const& expr, int parent_id);
+	void visit(StringLiteralType const& expr, int parent_id);
+	void visit(BooleanLiteralType const& expr, int parent_id);
 	void visit(IntType const& expr, int parent_id);
 	void visit(FloatType const& expr, int parent_id);
 	void visit(StringType const& expr, int parent_id);

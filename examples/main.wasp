@@ -1,1 +1,1 @@
-x(123).foo(36, gg).age.house() = 43 + x(123).foo(36, gg)
+type WindowStates = 123 | 65.54 | "open" | "closed" | "minimized"

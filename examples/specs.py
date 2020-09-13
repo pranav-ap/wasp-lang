@@ -1,4 +1,4 @@
-﻿let { io } = import("std/io") // UNS
+﻿let { io } = import("std/io")
 
 // Its more of a comment really
 
@@ -11,17 +11,12 @@ let x : ⟨ string => string ⟩ = ⟨ "a": "b", "c": "d" ⟩
 let x : Person = new Person("john", false)
 
 a = 1
-x.at(32) = 323524 // UNS
-
-x.foo.age
-x(123).foo(36, gg).age
+x.foo.age = 1
+x(123).foo(36, gg).age = 1
 
 
-let [a : int, b : string] = c  // UNS
-[a, b] = c  // UNS
-
-let [a : int, ...b : string, c : string] = some_list  // UNS
-[a, ...b, c] = some_list  // UNS
+let [a : int, ...b : string, c : string] = some_list
+[a, ...b, c] = some_list
 
 if a > 3 and r == 3 then
     345
@@ -83,11 +78,13 @@ type length = int | string
 type WindowStates = "open" | "closed" | "minimized"
 
 
-match thing :
+match thing then
     case "open" : string then
         echo "open"
-    case "closed" :
+    case "closed" then
         echo "closed"
+    else
+        echo "bye"
 end
 
 
@@ -125,5 +122,15 @@ end
 
 
 module Hello :
+
+end
+
+try
+
+catch
+
+else
+
+finally
 
 end

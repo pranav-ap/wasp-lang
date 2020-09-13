@@ -169,18 +169,28 @@ void ASTVisualizer::visit(AliasDefinition const& statement, int parent_id)
 {
 	const int id = id_counter++;
 	save(id, parent_id, L"AliasDefinition");
+	visit(statement.name, id);
+	visit(statement.type, id);
 }
 
 void ASTVisualizer::visit(FunctionDefinition const& statement, int parent_id)
 {
 	const int id = id_counter++;
 	save(id, parent_id, L"FunctionDefinition");
+	visit(statement.name, id);
+	visit(statement.arguments, id);
+	visit(statement.type, id);
+	visit(statement.block, id);
 }
 
 void ASTVisualizer::visit(GeneratorDefinition const& statement, int parent_id)
 {
 	const int id = id_counter++;
 	save(id, parent_id, L"GeneratorDefinition");
+	visit(statement.name, id);
+	visit(statement.arguments, id);
+	visit(statement.type, id);
+	visit(statement.block, id);
 }
 
 void ASTVisualizer::visit(EnumDefinition const& statement, int parent_id)
@@ -393,6 +403,10 @@ void ASTVisualizer::visit(const Type_ptr type, int parent_id)
 {
 	std::visit(overloaded{
 		   [&](AnyType const& ty) { visit(ty, parent_id); },
+		   [&](IntLiteralType const& ty) { visit(ty, parent_id); },
+		   [&](FloatLiteralType const& ty) { visit(ty, parent_id); },
+		   [&](StringLiteralType const& ty) { visit(ty, parent_id); },
+		   [&](BooleanLiteralType const& ty) { visit(ty, parent_id); },
 		   [&](IntType const& ty) { visit(ty, parent_id); },
 		   [&](FloatType const& ty) { visit(ty, parent_id); },
 		   [&](StringType const& ty) { visit(ty, parent_id); },
@@ -424,6 +438,35 @@ void ASTVisualizer::visit(AnyType const& type, int parent_id)
 {
 	const int id = id_counter++;
 	save(id, parent_id, L"any");
+}
+
+void ASTVisualizer::visit(IntLiteralType const& expr, int parent_id)
+{
+	const int id = id_counter++;
+	save(id, parent_id, L"Int Literal Type");
+	visit(expr.value, id);
+}
+
+void ASTVisualizer::visit(FloatLiteralType const& expr, int parent_id)
+{
+	const int id = id_counter++;
+	save(id, parent_id, L"Float Literal Type");
+	visit(expr.value, id);
+}
+
+void ASTVisualizer::visit(StringLiteralType const& expr, int parent_id)
+{
+	const int id = id_counter++;
+	save(id, parent_id, L"String Literal Type");
+	visit(expr.value, id);
+}
+
+void ASTVisualizer::visit(BooleanLiteralType const& expr, int parent_id)
+{
+	const int id = id_counter++;
+	save(id, parent_id, L"Boolean Literal Type");
+	std::wstring value = expr.value ? L"true" : L"false";
+	visit(value, id);
 }
 
 void ASTVisualizer::visit(IntType const& type, int parent_id)

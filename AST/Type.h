@@ -13,6 +13,10 @@
 #include <optional>
 
 struct AnyType;
+struct IntLiteralType;
+struct FloatLiteralType;
+struct StringLiteralType;
+struct BooleanLiteralType;
 struct IntType;
 struct FloatType;
 struct StringType;
@@ -31,6 +35,7 @@ struct GeneratorType;
 using Type = AST_API std::variant<
 	std::monostate,
 	AnyType,
+	IntLiteralType, FloatLiteralType, StringLiteralType, BooleanLiteralType,
 	IntType, FloatType, StringType, BooleanType,
 	ListType, TupleType, SetType,
 	UDTType, MapType,
@@ -49,6 +54,10 @@ struct AST_API AnyType
 };
 
 struct AST_API ScalarType : public AnyType
+{
+};
+
+struct AST_API LiteralType : public AnyType
 {
 };
 
@@ -85,6 +94,32 @@ struct AST_API StringType : public ScalarType
 
 struct AST_API BooleanType : public ScalarType
 {
+};
+
+// Literal Types
+
+struct AST_API IntLiteralType : public LiteralType
+{
+	int value;
+	IntLiteralType(int value) : value(value) {};
+};
+
+struct AST_API FloatLiteralType : public LiteralType
+{
+	double value;
+	FloatLiteralType(double value) : value(value) {};
+};
+
+struct AST_API StringLiteralType : public LiteralType
+{
+	std::wstring value;
+	StringLiteralType(std::wstring value) : value(value) {};
+};
+
+struct AST_API BooleanLiteralType : public LiteralType
+{
+	bool value;
+	BooleanLiteralType(bool value) : value(value) {};
 };
 
 // Composite Types

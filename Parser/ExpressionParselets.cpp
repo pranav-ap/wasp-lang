@@ -4,7 +4,7 @@
 #include "Parser.h"
 #include "Assertion.h"
 
-#include <iostream>
+#include <cmath>
 #include <vector>
 #include <tuple>
 #include <stack>
