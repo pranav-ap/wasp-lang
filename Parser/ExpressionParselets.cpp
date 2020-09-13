@@ -249,6 +249,25 @@ Expression_ptr TypePatternParselet::parse(Parser_ptr parser, Expression_ptr left
 	return MAKE_EXPRESSION(TypePattern(left, type));
 }
 
+Expression_ptr TernaryConditionParselet::parse(Parser_ptr parser, Token_ptr token)
+{
+	ADVANCE_PTR;
+
+	Expression_ptr condition = parser->parse_expression();
+	parser->token_pipe->expect(WTokenType::THEN);
+	OPT_CHECK(!parser->token_pipe->optional(WTokenType::EOL));
+
+	Expression_ptr then_arm = parser->parse_expression();
+
+	if (parser->token_pipe->optional(WTokenType::ELSE))
+	{
+		Expression_ptr else_arm = parser->parse_expression((int)Precedence::TERNARY_CONDITION - 1);
+		return MAKE_EXPRESSION(TernaryCondition(condition, then_arm, else_arm));
+	}
+
+	return MAKE_EXPRESSION(TernaryCondition(condition, then_arm));
+}
+
 // get_precedence
 
 int PrefixOperatorParselet::get_precedence()
@@ -289,4 +308,9 @@ int AssignmentParselet::get_precedence()
 int TypePatternParselet::get_precedence()
 {
 	return (int)Precedence::TYPE_PATTERN;
+}
+
+int TernaryConditionParselet::get_precedence()
+{
+	return (int)Precedence::TERNARY_CONDITION;
 }

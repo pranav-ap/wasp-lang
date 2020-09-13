@@ -248,6 +248,7 @@ void ASTVisualizer::visit(const Expression_ptr expression, int parent_id)
 		[&](TypePattern const& expr) { visit(expr, parent_id); },
 		[&](Assignment const& expr) { visit(expr, parent_id); },
 		[&](SpreadExpression const& expr) { visit(expr, parent_id); },
+		[&](TernaryCondition const& expr) { visit(expr, parent_id); },
 
 		[](auto) {FATAL("Never seen this Expression before! So I cannot print it!"); }
 		}, *expression);
@@ -395,6 +396,22 @@ void ASTVisualizer::visit(Assignment const& expr, int parent_id)
 
 	visit(expr.lhs_expression, equal_id);
 	visit(expr.rhs_expression, equal_id);
+}
+
+void ASTVisualizer::visit(TernaryCondition const& expr, int parent_id)
+{
+	const int if_id = id_counter++;
+	save(if_id, parent_id, L"if");
+
+	visit(expr.condition, if_id);
+	visit(expr.true_expression, if_id);
+
+	if (expr.false_expression.has_value())
+	{
+		const int else_id = id_counter++;
+		save(else_id, if_id, L"else");
+		visit(expr.false_expression.value(), else_id);
+	}
 }
 
 // Type

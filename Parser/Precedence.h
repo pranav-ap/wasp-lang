@@ -3,6 +3,7 @@
 enum class Precedence : int
 {
 	ASSIGNMENT = 1,
+	TERNARY_CONDITION,
 	TYPE_PATTERN, // :
 	OR,
 	AND,

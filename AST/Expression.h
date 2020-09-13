@@ -16,6 +16,7 @@
 #include <memory>
 #include <variant>
 
+struct TernaryCondition;
 struct SpreadExpression;
 struct TypePattern;
 struct Assignment;
@@ -39,7 +40,8 @@ using Expression = AST_API std::variant<
 	Identifier, Call,
 	Assignment,
 	Prefix, Infix, Postfix,
-	TypePattern, SpreadExpression
+	TypePattern, SpreadExpression,
+	TernaryCondition
 >;
 
 using Expression_ptr = AST_API std::shared_ptr<Expression>;
@@ -161,12 +163,23 @@ struct AST_API TypePattern
 		: expression(std::move(expression)), type(std::move(type)) {};
 };
 
-using TypePattern_ptr = AST_API std::shared_ptr<TypePattern>;
-
 struct AST_API SpreadExpression
 {
 	Expression_ptr expression;
 
 	SpreadExpression(Expression_ptr expression)
 		: expression(std::move(expression)) {};
+};
+
+struct AST_API TernaryCondition
+{
+	Expression_ptr condition;
+	Expression_ptr true_expression;
+	std::optional<Expression_ptr> false_expression;
+
+	TernaryCondition(Expression_ptr condition, Expression_ptr true_expression)
+		: condition(std::move(condition)), true_expression(std::move(true_expression)), false_expression(std::nullopt) {};
+
+	TernaryCondition(Expression_ptr condition, Expression_ptr true_expression, Expression_ptr false_expression)
+		: condition(std::move(condition)), true_expression(std::move(true_expression)), false_expression(std::make_optional(std::move(false_expression))) {};
 };

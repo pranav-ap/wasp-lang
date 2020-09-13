@@ -59,6 +59,7 @@ Parser::Parser()
 	register_parselet(WTokenType::OPEN_CURLY_BRACE, make_shared<SetParselet>());
 	register_parselet(WTokenType::NEW, make_shared<UDTCreationParselet>());
 	register_parselet(WTokenType::COLON, make_shared<TypePatternParselet>());
+	register_parselet(WTokenType::IF, make_shared<TernaryConditionParselet>());
 
 	register_prefix(WTokenType::PLUS, Precedence::PREFIX);
 	register_prefix(WTokenType::MINUS, Precedence::PREFIX);
@@ -272,31 +273,6 @@ Statement_ptr Parser::parse_public_statement()
 	}
 }
 
-Statement_ptr Parser::parse_non_block_statement()
-{
-	auto token = token_pipe->current();
-	OPT_CHECK(token);
-
-	ADVANCE_PTR;
-
-	switch (token.value()->type)
-	{
-		CASE(WTokenType::RETURN_KEYWORD, parse_return());
-		CASE(WTokenType::YIELD_KEYWORD, parse_yield());
-		CASE(WTokenType::BREAK, parse_break());
-		CASE(WTokenType::CONTINUE, parse_continue());
-		CASE(WTokenType::ASSERT, parse_assert());
-		CASE(WTokenType::IMPLORE, parse_implore());
-		CASE(WTokenType::SWEAR, parse_swear());
-
-	default:
-	{
-		RETREAT_PTR;
-		return parse_expression_statement();
-	}
-	}
-}
-
 Statement_ptr Parser::parse_expression_statement()
 {
 	auto expression = parse_expression();
@@ -398,6 +374,31 @@ Block Parser::parse_block()
 	return statements;
 }
 
+Statement_ptr Parser::parse_non_block_statement()
+{
+	auto token = token_pipe->current();
+	OPT_CHECK(token);
+
+	ADVANCE_PTR;
+
+	switch (token.value()->type)
+	{
+		CASE(WTokenType::RETURN_KEYWORD, parse_return());
+		CASE(WTokenType::YIELD_KEYWORD, parse_yield());
+		CASE(WTokenType::BREAK, parse_break());
+		CASE(WTokenType::CONTINUE, parse_continue());
+		CASE(WTokenType::ASSERT, parse_assert());
+		CASE(WTokenType::IMPLORE, parse_implore());
+		CASE(WTokenType::SWEAR, parse_swear());
+
+	default:
+	{
+		RETREAT_PTR;
+		return parse_expression_statement();
+	}
+	}
+}
+
 Block Parser::parse_conditional_block()
 {
 	Block statements;
@@ -436,31 +437,49 @@ pair<Expression_ptr, Block> Parser::parse_condition_and_consequence()
 {
 	auto condition = parse_expression();
 	token_pipe->expect(WTokenType::THEN);
+	token_pipe->expect(WTokenType::EOL);
 
-	if (token_pipe->optional(WTokenType::EOL))
+	auto block = parse_conditional_block();
+	return make_pair(condition, block);
+}
+
+Expression_ptr Parser::parse_ternary_condition(Expression_ptr condition)
+{
+	auto true_expression = parse_expression();
+
+	if (token_pipe->optional(WTokenType::ELSE))
 	{
-		auto block = parse_conditional_block();
-		return make_pair(condition, block);
+		auto false_expression = parse_expression();
+		return MAKE_EXPRESSION(TernaryCondition(move(condition), move(true_expression), move(false_expression)));
 	}
 
-	auto statement = parse_non_block_statement();
-	Block block = { move(statement) };
-	return make_pair(condition, block);
+	token_pipe->expect(WTokenType::EOL);
+
+	return MAKE_EXPRESSION(TernaryCondition(move(condition), move(true_expression)));
 }
 
 Statement_ptr Parser::parse_branching()
 {
 	std::vector<std::pair<Expression_ptr, Block>> branches;
 
-	while (true)
+	auto condition = parse_expression();
+	token_pipe->expect(WTokenType::THEN);
+
+	if (!token_pipe->optional(WTokenType::EOL))
+	{
+		Expression_ptr ternary = parse_ternary_condition(condition);
+		token_pipe->expect(WTokenType::EOL);
+
+		return MAKE_STATEMENT(ExpressionStatement(move(ternary)));
+	}
+
+	auto block = parse_conditional_block();
+	branches.push_back({ condition, block });
+
+	while (token_pipe->optional(WTokenType::ELIF))
 	{
 		auto condition_consequence_pair = parse_condition_and_consequence();
 		branches.push_back(condition_consequence_pair);
-
-		if (token_pipe->optional(WTokenType::ELIF))
-			continue;
-
-		break;
 	}
 
 	Block else_block;
