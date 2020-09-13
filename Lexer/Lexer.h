@@ -41,6 +41,8 @@ const std::map<std::wstring, WTokenType> keyword_map =
 	{ L"gen", WTokenType::GEN },
 	{ L"yield", WTokenType::YIELD_KEYWORD },
 
+	{ L"module", WTokenType::MODULE_KEYWORD },
+
 	{ L"typeof", WTokenType::TYPE_OF },
 	{ L"is", WTokenType::IS },
 

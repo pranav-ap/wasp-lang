@@ -17,6 +17,7 @@
 #include <variant>
 #include <utility>
 
+struct File;
 struct Module;
 struct Branching;
 struct WhileLoop;
@@ -33,15 +34,15 @@ struct GeneratorDefinition;
 struct InterfaceDefinition;
 struct EnumDefinition;
 struct ExpressionStatement;
-struct AssertStatement;
-struct ImploreStatement;
-struct SwearStatement;
+struct Assert;
+struct Implore;
+struct Swear;
 
 using Statement = AST_API std::variant<
 	std::monostate,
 
+	File,
 	Module,
-
 	Branching,
 	WhileLoop, ForInLoop,
 	Break, Continue,
@@ -53,8 +54,8 @@ using Statement = AST_API std::variant<
 	InterfaceDefinition, EnumDefinition,
 
 	ExpressionStatement,
-	AssertStatement,
-	ImploreStatement, SwearStatement
+	Assert,
+	Implore, Swear
 >;
 
 using Statement_ptr = AST_API std::shared_ptr<Statement>;
@@ -62,13 +63,13 @@ using Block = AST_API std::vector<Statement_ptr>;
 using ConditionBlockPairs = AST_API std::vector<std::pair<Expression_ptr, Block>>;
 using StringVector = AST_API std::vector<std::wstring>;
 
-struct AST_API Module
+struct AST_API File
 {
 	Block statements;
 	void add_statement(Statement_ptr node);
 };
 
-using Module_ptr = AST_API std::shared_ptr<Module>;
+using File_ptr = AST_API std::shared_ptr<File>;
 
 struct AST_API Branching
 {
@@ -214,26 +215,36 @@ struct AST_API ExpressionStatement
 		: expression(std::move(expression)) {};
 };
 
-struct AST_API AssertStatement
+struct AST_API Assert
 {
 	Expression_ptr expression;
 
-	AssertStatement(Expression_ptr expression)
+	Assert(Expression_ptr expression)
 		: expression(std::move(expression)) {};
 };
 
-struct AST_API ImploreStatement
+struct AST_API Implore
 {
 	Expression_ptr expression;
 
-	ImploreStatement(Expression_ptr expression)
+	Implore(Expression_ptr expression)
 		: expression(std::move(expression)) {};
 };
 
-struct AST_API SwearStatement
+struct AST_API Swear
 {
 	Expression_ptr expression;
 
-	SwearStatement(Expression_ptr expression)
+	Swear(Expression_ptr expression)
 		: expression(std::move(expression)) {};
+};
+
+struct AST_API Module
+{
+	std::wstring name;
+	bool is_public;
+	Block statements;
+
+	Module(std::wstring name, Block statements, bool is_public)
+		: name(name), statements(statements), is_public(is_public) { };
 };

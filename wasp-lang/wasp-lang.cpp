@@ -25,7 +25,7 @@ int main()
 	vector<Token_ptr> tokens = lexer->execute(raw_source);
 
 	Parser_ptr parser = new Parser();
-	Module_ptr ast = parser->execute(tokens);
+	File_ptr ast = parser->execute(tokens);
 
 	ASTVisualizer_ptr vis = make_unique<ASTVisualizer>();
 	vis->generate_dot_file(ast);

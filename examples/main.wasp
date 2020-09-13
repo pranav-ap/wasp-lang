@@ -1,4 +1,3 @@
-
-interface ICastle
-    open_gates: (speed: int, distance: float) => bool
+module Hello
+    x = x + 2
 end

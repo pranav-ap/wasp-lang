@@ -10,6 +10,7 @@ let x : { string } = { "1", "hello" }
 let x : ⟨ string => string ⟩ = ⟨ "a": "b", "c": "d" ⟩
 let x : Person = new Person("john", false)
 
+
 a = 1
 x.foo.age = 1
 x(123).foo(36, gg).age = 1
@@ -17,6 +18,7 @@ x(123).foo(36, gg).age = 1
 
 let [a : int, ...b : string, c : string] = some_list
 [a, ...b, c] = some_list
+
 
 if a > 3 and r == 3 then
     345
@@ -39,6 +41,7 @@ end
 
 for x : int in [1, 2, 3] do call(x)
 
+
 for i : int in 1 to 8 step 2 do // to, downto
     print(i)
 end
@@ -47,7 +50,9 @@ while expr do
     a = a + 4
 end
 
+
 while expr do a = a + 4
+
 
 fn add(a : mut int, b : mut int) => int
     if a > b then
@@ -121,16 +126,12 @@ operator a : num + b : num => num :
 end
 
 
-module Hello :
-
+module Hello
 end
 
+
 try
-
 catch
-
 else
-
 finally
-
 end

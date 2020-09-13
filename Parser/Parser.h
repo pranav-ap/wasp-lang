@@ -48,6 +48,8 @@ class PARSER_API Parser
 
 	// Blocks
 
+	Statement_ptr parse_module(bool is_public);
+
 	Block parse_block();
 	Block parse_conditional_block();
 	std::pair<Expression_ptr, Block> parse_condition_and_consequence();
@@ -97,7 +99,7 @@ public:
 	ExpressionVector parse_expressions();
 
 	Parser();
-	Module_ptr execute(std::vector<Token_ptr>& tokens);
+	File_ptr execute(std::vector<Token_ptr>& tokens);
 };
 
 using Parser_ptr = PARSER_API Parser*;

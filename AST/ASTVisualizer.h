@@ -42,9 +42,10 @@ class AST_API ASTVisualizer
 	void visit(GeneratorDefinition const& statement, int parent_id);
 	void visit(EnumDefinition const& statement, int parent_id);
 	void visit(ExpressionStatement const& statement, int parent_id);
-	void visit(AssertStatement const& statement, int parent_id);
-	void visit(ImploreStatement const& statement, int parent_id);
-	void visit(SwearStatement const& statement, int parent_id);
+	void visit(Assert const& statement, int parent_id);
+	void visit(Implore const& statement, int parent_id);
+	void visit(Swear const& statement, int parent_id);
+	void visit(Module const& statement, int parent_id);
 
 	// Expression
 
@@ -100,7 +101,7 @@ public:
 	ASTVisualizer()
 		: content(L""), id_counter(0) {};
 
-	void generate_dot_file(Module_ptr mod);
+	void generate_dot_file(File_ptr mod);
 };
 
 using ASTVisualizer_ptr = AST_API std::unique_ptr<ASTVisualizer>;

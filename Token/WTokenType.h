@@ -95,6 +95,8 @@ enum class TOKEN_API WTokenType
 	CASE,
 	END,
 
+	MODULE_KEYWORD,
+
 	IMPLORE,
 	SWEAR,
 

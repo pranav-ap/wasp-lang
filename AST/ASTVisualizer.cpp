@@ -57,9 +57,10 @@ void ASTVisualizer::visit(const Statement_ptr statement, int parent_id)
 		[&](GeneratorDefinition const& stat) { visit(stat, parent_id); },
 		[&](EnumDefinition const& stat) { visit(stat, parent_id); },
 		[&](ExpressionStatement const& stat) { visit(stat, parent_id); },
-		[&](AssertStatement const& stat) { visit(stat, parent_id); },
-		[&](ImploreStatement const& stat) { visit(stat, parent_id); },
-		[&](SwearStatement const& stat) { visit(stat, parent_id); },
+		[&](Assert const& stat) { visit(stat, parent_id); },
+		[&](Implore const& stat) { visit(stat, parent_id); },
+		[&](Swear const& stat) { visit(stat, parent_id); },
+		[&](Module const& stat) { visit(stat, parent_id); },
 
 		[](auto) { FATAL("Never seen this Statement before! So I cannot print it!"); }
 		}, *statement);
@@ -221,25 +222,32 @@ void ASTVisualizer::visit(ExpressionStatement const& statement, int parent_id)
 	visit(statement.expression, parent_id);
 }
 
-void ASTVisualizer::visit(AssertStatement const& statement, int parent_id)
+void ASTVisualizer::visit(Assert const& statement, int parent_id)
 {
 	const int id = id_counter++;
 	save(id, parent_id, L"assert");
 	visit(statement.expression, id);
 }
 
-void ASTVisualizer::visit(ImploreStatement const& statement, int parent_id)
+void ASTVisualizer::visit(Implore const& statement, int parent_id)
 {
 	const int id = id_counter++;
 	save(id, parent_id, L"implore");
 	visit(statement.expression, id);
 }
 
-void ASTVisualizer::visit(SwearStatement const& statement, int parent_id)
+void ASTVisualizer::visit(Swear const& statement, int parent_id)
 {
 	const int id = id_counter++;
 	save(id, parent_id, L"swear");
 	visit(statement.expression, id);
+}
+
+void ASTVisualizer::visit(Module const& statement, int parent_id)
+{
+	const int id = id_counter++;
+	save(id, parent_id, L"Module " + statement.name);
+	visit(statement.statements, id);
 }
 
 // Expression
@@ -614,7 +622,7 @@ void ASTVisualizer::visit(GeneratorType const& type, int parent_id)
 
 // Generate
 
-void ASTVisualizer::generate_dot_file(Module_ptr mod)
+void ASTVisualizer::generate_dot_file(File_ptr mod)
 {
 	// reset
 

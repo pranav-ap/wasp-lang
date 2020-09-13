@@ -185,15 +185,15 @@ int Parser::get_next_operator_precedence()
 
 // Statement Parsers
 
-Module_ptr Parser::execute(std::vector<Token_ptr>& tokens)
+File_ptr Parser::execute(std::vector<Token_ptr>& tokens)
 {
 	token_pipe = std::make_shared<TokenPipe>(tokens);
 
-	auto module_ast = std::make_shared<Module>();
+	auto module_ast = std::make_shared<File>();
 
 	while ((size_t)token_pipe->get_current_index() < token_pipe->get_size())
 	{
-		Statement_ptr node = parse_statement(false);
+		Statement_ptr node = parse_statement();
 
 		if (node)
 		{
@@ -223,6 +223,8 @@ Statement_ptr Parser::parse_statement(bool is_public)
 		CASE(WTokenType::TYPE, parse_type_definition(is_public));
 		CASE(WTokenType::FN, parse_function_definition(is_public));
 		CASE(WTokenType::GEN, parse_generator_definition(is_public));
+
+		CASE(WTokenType::MODULE_KEYWORD, parse_module(is_public));
 
 		CASE(WTokenType::IF, parse_branching());
 		CASE(WTokenType::WHILE, parse_while_loop());
@@ -263,6 +265,8 @@ Statement_ptr Parser::parse_public_statement()
 		CASE(WTokenType::TYPE, parse_type_definition(is_public));
 		CASE(WTokenType::FN, parse_function_definition(is_public));
 		CASE(WTokenType::GEN, parse_generator_definition(is_public));
+
+		CASE(WTokenType::MODULE_KEYWORD, parse_module(is_public));
 
 		CASE(WTokenType::LET, parse_variable_definition(is_public, true));
 		CASE(WTokenType::CONST_KEYWORD, parse_variable_definition(is_public, false));
@@ -311,7 +315,7 @@ Statement_ptr Parser::parse_assert()
 	NULL_CHECK(expression);
 
 	token_pipe->expect(WTokenType::EOL);
-	return MAKE_STATEMENT(AssertStatement(move(expression)));
+	return MAKE_STATEMENT(Assert(move(expression)));
 }
 
 Statement_ptr Parser::parse_implore()
@@ -320,7 +324,7 @@ Statement_ptr Parser::parse_implore()
 	NULL_CHECK(expression);
 
 	token_pipe->expect(WTokenType::EOL);
-	return MAKE_STATEMENT(ImploreStatement(move(expression)));
+	return MAKE_STATEMENT(Implore(move(expression)));
 }
 
 Statement_ptr Parser::parse_swear()
@@ -329,7 +333,7 @@ Statement_ptr Parser::parse_swear()
 	NULL_CHECK(expression);
 
 	token_pipe->expect(WTokenType::EOL);
-	return MAKE_STATEMENT(SwearStatement(move(expression)));
+	return MAKE_STATEMENT(Swear(move(expression)));
 }
 
 Statement_ptr Parser::parse_break()
@@ -345,6 +349,22 @@ Statement_ptr Parser::parse_continue()
 }
 
 // Blocks
+
+Statement_ptr Parser::parse_module(bool is_public)
+{
+	Block statements;
+
+	auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
+	NULL_CHECK(identifier);
+
+	while (!token_pipe->optional(WTokenType::END))
+	{
+		Statement_ptr node = parse_statement();
+		statements.push_back(node);
+	}
+
+	return MAKE_STATEMENT(Module(identifier->value, statements, is_public));
+}
 
 Block Parser::parse_block()
 {
