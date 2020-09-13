@@ -693,23 +693,25 @@ Type_ptr Parser::parse_function_type(bool is_optional)
 {
 	TypeVector input_types;
 
-	while (true)
+	if (!token_pipe->optional(WTokenType::CLOSE_PARENTHESIS))
 	{
-		auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
-		NULL_CHECK(identifier);
+		while (true)
+		{
+			auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
+			NULL_CHECK(identifier);
 
-		token_pipe->expect(WTokenType::COLON);
+			token_pipe->expect(WTokenType::COLON);
 
-		auto type = parse_type();
-		NULL_CHECK(type);
+			auto type = parse_type();
+			NULL_CHECK(type);
 
-		input_types.push_back(type);
+			input_types.push_back(type);
 
-		if (token_pipe->optional(WTokenType::COMMA))
-			continue;
+			if (token_pipe->optional(WTokenType::CLOSE_PARENTHESIS))
+				break;
 
-		token_pipe->expect(WTokenType::CLOSE_PARENTHESIS);
-		break;
+			token_pipe->expect(WTokenType::COMMA);
+		}
 	}
 
 	std::optional<Type_ptr> return_type = std::nullopt;
@@ -867,12 +869,10 @@ Statement_ptr Parser::parse_variable_definition(bool is_public, bool is_mutable)
 	return MAKE_STATEMENT(VariableDefinition(is_public, is_mutable, move(expression)));
 }
 
-Statement_ptr Parser::parse_interface_definition(bool is_public)
+tuple<map<wstring, Type_ptr>, StringVector> Parser::parse_type_and_interface_definition()
 {
-	auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
-	token_pipe->expect(WTokenType::EOL);
-
-	std::map<std::wstring, Type_ptr> member_types;
+	map<wstring, Type_ptr> member_types;
+	StringVector public_members;
 
 	while (true)
 	{
@@ -881,12 +881,31 @@ Statement_ptr Parser::parse_interface_definition(bool is_public)
 		if (token_pipe->optional(WTokenType::END))
 			break;
 
+		bool is_public_member = false;
+
+		if (token_pipe->optional(WTokenType::PUB))
+			is_public_member = true;
+
 		auto [identifier, type] = consume_identifier_type_pair();
 		token_pipe->expect(WTokenType::EOL);
 		member_types.insert_or_assign(identifier, type);
+
+		if (is_public_member)
+		{
+			public_members.push_back(identifier);
+		}
 	}
 
-	return MAKE_STATEMENT(InterfaceDefinition(is_public, identifier->value, member_types));
+	return make_tuple(member_types, public_members);
+}
+
+Statement_ptr Parser::parse_interface_definition(bool is_public)
+{
+	auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
+	token_pipe->expect(WTokenType::EOL);
+
+	auto [member_types, public_members] = parse_type_and_interface_definition();
+	return MAKE_STATEMENT(InterfaceDefinition(is_public, identifier->value, member_types, public_members));
 }
 
 Statement_ptr Parser::parse_type_definition(bool is_public)
@@ -902,48 +921,12 @@ Statement_ptr Parser::parse_type_definition(bool is_public)
 
 	token_pipe->expect(WTokenType::EOL);
 
-	map<wstring, Type_ptr> member_types;
-	StringVector public_members;
-
-	while (true)
-	{
-		token_pipe->ignore_whitespace();
-
-		if (token_pipe->optional(WTokenType::END))
-		{
-			token_pipe->expect(WTokenType::EOL);
-			return MAKE_STATEMENT(UDTDefinition(is_public, identifier->value, member_types, public_members));
-		}
-
-		/*if (token_pipe->optional(WTokenType::FN))
-		{
-			return MAKE_STATEMENT(UDTDefinition(is_public, identifier->value, member_types, public_members));
-		}*/
-
-		bool is_public_member = false;
-
-		if (token_pipe->optional(WTokenType::PUB))
-			is_public_member = true;
-
-		auto [identifier, type] = consume_identifier_type_pair();
-		member_types.insert_or_assign(identifier, type);
-
-		if (is_public_member)
-		{
-			public_members.push_back(identifier);
-		}
-
-		token_pipe->expect(WTokenType::EOL);
-	}
-
-	return MAKE_STATEMENT(UDTDefinition(is_public, identifier->value, member_types, public_members));
+	auto [member_types, public_members] = parse_type_and_interface_definition();
+	return MAKE_STATEMENT(ClassDefinition(is_public, identifier->value, member_types, public_members));
 }
 
-tuple<wstring, StringVector, TypeVector, optional<Type_ptr>, Block> Parser::parse_callable_definition()
+tuple<StringVector, TypeVector, optional<Type_ptr>, Block> Parser::parse_callable_definition()
 {
-	auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
-	token_pipe->expect(WTokenType::OPEN_PARENTHESIS);
-
 	StringVector arguments;
 	TypeVector argument_types;
 
@@ -975,21 +958,59 @@ tuple<wstring, StringVector, TypeVector, optional<Type_ptr>, Block> Parser::pars
 
 	Block block = parse_block();
 
-	return make_tuple(identifier->value, arguments, argument_types, optional_return_type, block);
+	return make_tuple(arguments, argument_types, optional_return_type, block);
 }
 
 Statement_ptr Parser::parse_function_definition(bool is_public)
 {
-	auto [identifier, arguments, argument_types, optional_return_type, block] = parse_callable_definition();
+	auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
+	NULL_CHECK(identifier);
+
+	bool is_method = false;
+	Token_ptr second_identifier;
+
+	if (token_pipe->optional(WTokenType::COLON_COLON))
+	{
+		is_method = true;
+		second_identifier = token_pipe->require(WTokenType::IDENTIFIER);
+	}
+
+	token_pipe->expect(WTokenType::OPEN_PARENTHESIS);
+
+	auto [arguments, argument_types, optional_return_type, block] = parse_callable_definition();
 	Type_ptr function_type = std::make_shared<Type>(FunctionType(argument_types, optional_return_type));
 
-	return MAKE_STATEMENT(FunctionDefinition(is_public, identifier, arguments, function_type, block));
+	if (is_method)
+	{
+		return MAKE_STATEMENT(FunctionMethodDefinition(identifier->value, second_identifier->value, arguments, function_type, block));
+	}
+
+	return MAKE_STATEMENT(FunctionDefinition(is_public, identifier->value, arguments, function_type, block));
 }
 
 Statement_ptr Parser::parse_generator_definition(bool is_public)
 {
-	auto [identifier, arguments, argument_types, optional_return_type, block] = parse_callable_definition();
+	auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
+	NULL_CHECK(identifier);
+
+	bool is_method = false;
+	Token_ptr second_identifier;
+
+	if (token_pipe->optional(WTokenType::COLON_COLON))
+	{
+		is_method = true;
+		second_identifier = token_pipe->require(WTokenType::IDENTIFIER);
+	}
+
+	token_pipe->expect(WTokenType::OPEN_PARENTHESIS);
+
+	auto [arguments, argument_types, optional_return_type, block] = parse_callable_definition();
 	Type_ptr generator_type = std::make_shared<Type>(GeneratorType(argument_types, optional_return_type));
 
-	return MAKE_STATEMENT(GeneratorDefinition(is_public, identifier, arguments, generator_type, block));
+	if (is_method)
+	{
+		return MAKE_STATEMENT(GeneratorMethodDefinition(identifier->value, second_identifier->value, arguments, generator_type, block));
+	}
+
+	return MAKE_STATEMENT(GeneratorDefinition(is_public, identifier->value, arguments, generator_type, block));
 }

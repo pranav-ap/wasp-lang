@@ -32,6 +32,7 @@ end
 if a > 3 then call() else 4
 
 
+// UC
 if let x : int = call() :
     pass
 else :
@@ -103,21 +104,24 @@ interface ICastle :
     close_gates: (speed: int) => bool
 end
 
+// UC
 
 type Castle ~ ICastle < Building
     name: string
 
-    fn constructor()
-        self.name = ""
-    end
+    constructor : ()
+    constructor : (name: string)
+    repr : () => string
+end
 
-    fn constructor(name: string)
-        self.name = name
-    end
 
-    fn repr() => string
-        pass
-    end
+fn constructor(name: string)
+    self.name = name
+end
+
+
+fn Castle::defend() => any
+    x = 43
 end
 
 

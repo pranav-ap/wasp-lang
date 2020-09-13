@@ -96,8 +96,6 @@ struct AST_API MapLiteral
 		: pairs(pairs) {};
 };
 
-// UDT
-
 struct AST_API UDTConstruct
 {
 	std::wstring UDT_name;

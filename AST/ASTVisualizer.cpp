@@ -50,12 +50,14 @@ void ASTVisualizer::visit(const Statement_ptr statement, int parent_id)
 		[&](Return const& stat) { visit(stat, parent_id); },
 		[&](YieldStatement const& stat) { visit(stat, parent_id); },
 		[&](VariableDefinition const& stat) { visit(stat, parent_id); },
-		[&](UDTDefinition const& stat) { visit(stat, parent_id); },
+		[&](ClassDefinition const& stat) { visit(stat, parent_id); },
 		[&](InterfaceDefinition const& stat) { visit(stat, parent_id); },
 		[&](AliasDefinition const& stat) { visit(stat, parent_id); },
 		[&](FunctionDefinition const& stat) { visit(stat, parent_id); },
 		[&](GeneratorDefinition const& stat) { visit(stat, parent_id); },
 		[&](EnumDefinition const& stat) { visit(stat, parent_id); },
+		[&](FunctionMethodDefinition const& stat) { visit(stat, parent_id); },
+		[&](GeneratorMethodDefinition const& stat) { visit(stat, parent_id); },
 		[&](ExpressionStatement const& stat) { visit(stat, parent_id); },
 		[&](Assert const& stat) { visit(stat, parent_id); },
 		[&](Implore const& stat) { visit(stat, parent_id); },
@@ -156,10 +158,10 @@ void ASTVisualizer::visit(VariableDefinition const& statement, int parent_id)
 	visit(statement.expression, id);
 }
 
-void ASTVisualizer::visit(UDTDefinition const& statement, int parent_id)
+void ASTVisualizer::visit(ClassDefinition const& statement, int parent_id)
 {
 	const int id = id_counter++;
-	save(id, parent_id, L"UDTDefinition");
+	save(id, parent_id, L"UDT Definition : " + statement.name);
 
 	for (const auto member : statement.member_types)
 	{
@@ -194,27 +196,79 @@ void ASTVisualizer::visit(AliasDefinition const& statement, int parent_id)
 void ASTVisualizer::visit(FunctionDefinition const& statement, int parent_id)
 {
 	const int id = id_counter++;
-	save(id, parent_id, L"Function Definition");
-	visit(statement.name, id);
-	visit(statement.arguments, id);
+	save(id, parent_id, L"Function Definition : " + statement.name);
+
+	if (statement.arguments.size() > 0)
+	{
+		visit(statement.arguments, id);
+	}
+
 	visit(statement.type, id);
-	visit(statement.block, id);
+
+	if (statement.block.size() > 0)
+	{
+		visit(statement.block, id);
+	}
 }
 
 void ASTVisualizer::visit(GeneratorDefinition const& statement, int parent_id)
 {
 	const int id = id_counter++;
-	save(id, parent_id, L"GeneratorDefinition");
-	visit(statement.name, id);
-	visit(statement.arguments, id);
+	save(id, parent_id, L"Generator Definition : " + statement.name);
+
+	if (statement.arguments.size() > 0)
+	{
+		visit(statement.arguments, id);
+	}
+
 	visit(statement.type, id);
-	visit(statement.block, id);
+
+	if (statement.block.size() > 0)
+	{
+		visit(statement.block, id);
+	}
 }
 
 void ASTVisualizer::visit(EnumDefinition const& statement, int parent_id)
 {
 	const int id = id_counter++;
 	save(id, parent_id, L"EnumDefinition");
+}
+
+void ASTVisualizer::visit(FunctionMethodDefinition const& statement, int parent_id)
+{
+	const int id = id_counter++;
+	save(id, parent_id, L"Function Method Definition " + statement.type_name + L"::" + statement.name);
+
+	if (statement.arguments.size() > 0)
+	{
+		visit(statement.arguments, id);
+	}
+
+	visit(statement.type, id);
+
+	if (statement.body.size() > 0)
+	{
+		visit(statement.body, id);
+	}
+}
+
+void ASTVisualizer::visit(GeneratorMethodDefinition const& statement, int parent_id)
+{
+	const int id = id_counter++;
+	save(id, parent_id, L"Generator Method Definition " + statement.type_name + L"::" + statement.name);
+
+	if (statement.arguments.size() > 0)
+	{
+		visit(statement.arguments, id);
+	}
+
+	visit(statement.type, id);
+
+	if (statement.body.size() > 0)
+	{
+		visit(statement.body, id);
+	}
 }
 
 void ASTVisualizer::visit(ExpressionStatement const& statement, int parent_id)

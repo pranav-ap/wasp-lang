@@ -27,12 +27,14 @@ struct Continue;
 struct Return;
 struct YieldStatement;
 struct VariableDefinition;
-struct UDTDefinition;
+struct ClassDefinition;
 struct AliasDefinition;
 struct FunctionDefinition;
 struct GeneratorDefinition;
 struct InterfaceDefinition;
 struct EnumDefinition;
+struct FunctionMethodDefinition;
+struct GeneratorMethodDefinition;
 struct ExpressionStatement;
 struct Assert;
 struct Implore;
@@ -49,9 +51,11 @@ using Statement = AST_API std::variant<
 	Return, YieldStatement,
 
 	VariableDefinition,
-	UDTDefinition, AliasDefinition,
+	ClassDefinition, AliasDefinition,
 	FunctionDefinition, GeneratorDefinition,
 	InterfaceDefinition, EnumDefinition,
+	FunctionMethodDefinition,
+	GeneratorMethodDefinition,
 
 	ExpressionStatement,
 	Assert,
@@ -63,13 +67,7 @@ using Block = AST_API std::vector<Statement_ptr>;
 using ConditionBlockPairs = AST_API std::vector<std::pair<Expression_ptr, Block>>;
 using StringVector = AST_API std::vector<std::wstring>;
 
-struct AST_API File
-{
-	Block statements;
-	void add_statement(Statement_ptr node);
-};
-
-using File_ptr = AST_API std::shared_ptr<File>;
+// Branching
 
 struct AST_API Branching
 {
@@ -79,6 +77,7 @@ struct AST_API Branching
 	Branching(ConditionBlockPairs branches, Block else_block)
 		: branches(branches), else_block(else_block) {};
 };
+
 // Looping
 
 struct AST_API WhileLoop
@@ -100,10 +99,6 @@ struct AST_API ForInLoop
 };
 
 struct AST_API Break
-{
-};
-
-struct AST_API Pass
 {
 };
 
@@ -141,12 +136,16 @@ struct AST_API UDTDefinition : public Definition
 		: Definition(is_public, name), member_types(member_types), public_members(public_members) {};
 };
 
-struct AST_API InterfaceDefinition : public Definition
+struct AST_API ClassDefinition : public UDTDefinition
 {
-	std::map<std::wstring, Type_ptr> member_types;
+	ClassDefinition(bool is_public, std::wstring name, std::map<std::wstring, Type_ptr> member_types, StringVector public_members)
+		: UDTDefinition(is_public, name, member_types, public_members) {};
+};
 
-	InterfaceDefinition(bool is_public, std::wstring name, std::map<std::wstring, Type_ptr> member_types)
-		: Definition(is_public, name), member_types(member_types) {};
+struct AST_API InterfaceDefinition : public UDTDefinition
+{
+	InterfaceDefinition(bool is_public, std::wstring name, std::map<std::wstring, Type_ptr> member_types, StringVector public_members)
+		: UDTDefinition(is_public, name, member_types, public_members) {};
 };
 
 struct AST_API AliasDefinition : public Definition
@@ -179,6 +178,30 @@ struct AST_API GeneratorDefinition : public CallableDefinition
 		: CallableDefinition(is_public, name, arguments, type, body) {};
 };
 
+struct AST_API MethodDefinition
+{
+	std::wstring type_name;
+	std::wstring name;
+	StringVector arguments;
+	Type_ptr type;
+	Block body;
+
+	MethodDefinition(std::wstring type_name, std::wstring name, StringVector arguments, Type_ptr type, Block body)
+		: type_name(type_name), name(name), arguments(arguments), type(type), body(body) {};
+};
+
+struct AST_API FunctionMethodDefinition : public MethodDefinition
+{
+	FunctionMethodDefinition(std::wstring type_name, std::wstring name, StringVector arguments, Type_ptr type, Block body)
+		: MethodDefinition(type_name, name, arguments, type, body) {};
+};
+
+struct AST_API GeneratorMethodDefinition : public MethodDefinition
+{
+	GeneratorMethodDefinition(std::wstring type_name, std::wstring name, StringVector arguments, Type_ptr type, Block body)
+		: MethodDefinition(type_name, name, arguments, type, body) {};
+};
+
 struct AST_API EnumDefinition : public Definition
 {
 	StringVector members;
@@ -187,7 +210,7 @@ struct AST_API EnumDefinition : public Definition
 		: Definition(is_public, name), members(members) {};
 };
 
-// Other
+// Control
 
 struct AST_API Return
 {
@@ -207,37 +230,41 @@ struct AST_API YieldStatement
 		: expression(std::make_optional(std::move(expression))) {};
 };
 
-struct AST_API ExpressionStatement
+// Single Expression Statement
+
+struct AST_API SingleExpressionStatement
 {
 	Expression_ptr expression;
 
+	SingleExpressionStatement(Expression_ptr expression)
+		: expression(std::move(expression)) {};
+};
+
+struct AST_API ExpressionStatement : public SingleExpressionStatement
+{
 	ExpressionStatement(Expression_ptr expression)
-		: expression(std::move(expression)) {};
+		: SingleExpressionStatement(std::move(expression)) {};
 };
 
-struct AST_API Assert
+struct AST_API Assert : public SingleExpressionStatement
 {
-	Expression_ptr expression;
-
 	Assert(Expression_ptr expression)
-		: expression(std::move(expression)) {};
+		: SingleExpressionStatement(std::move(expression)) {};
 };
 
-struct AST_API Implore
+struct AST_API Implore : public SingleExpressionStatement
 {
-	Expression_ptr expression;
-
 	Implore(Expression_ptr expression)
-		: expression(std::move(expression)) {};
+		: SingleExpressionStatement(std::move(expression)) {};
 };
 
-struct AST_API Swear
+struct AST_API Swear : public SingleExpressionStatement
 {
-	Expression_ptr expression;
-
 	Swear(Expression_ptr expression)
-		: expression(std::move(expression)) {};
+		: SingleExpressionStatement(std::move(expression)) {};
 };
+
+// Other
 
 struct AST_API Module
 {
@@ -248,3 +275,11 @@ struct AST_API Module
 	Module(std::wstring name, Block statements, bool is_public)
 		: name(name), statements(statements), is_public(is_public) { };
 };
+
+struct AST_API File
+{
+	Block statements;
+	void add_statement(Statement_ptr node);
+};
+
+using File_ptr = AST_API std::shared_ptr<File>;
