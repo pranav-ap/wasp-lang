@@ -2,7 +2,8 @@
 
 enum class Precedence : int
 {
-	ASSIGNMENT = 1,
+	DEFINITION = 1,
+	ASSIGNMENT,
 	TERNARY_CONDITION,
 	TYPE_PATTERN, // :
 	OR,

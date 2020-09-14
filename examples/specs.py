@@ -32,11 +32,10 @@ end
 if a > 3 then call() else 4
 
 
-// UC
-if let x : int = call() :
-    pass
-else :
-    pass
+if let x : int = call() then
+    x = 1
+else
+    x = 3
 end
 
 
@@ -104,7 +103,6 @@ interface ICastle :
     close_gates: gen (speed: int) => bool
 end
 
-// UC
 
 type Castle ~ ICastle < Building
     name: string

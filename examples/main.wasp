@@ -1,7 +1,6 @@
-type Castle
-    name: string
 
-    a : fn ()
-    b : (name: string) => bool
-    c : gen (name: string)
+if let x : int = call() then
+    x = 1
+else
+    x = 3
 end

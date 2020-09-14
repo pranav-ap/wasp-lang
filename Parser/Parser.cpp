@@ -60,6 +60,8 @@ Parser::Parser()
 	register_parselet(WTokenType::NEW, make_shared<UDTCreationParselet>());
 	register_parselet(WTokenType::COLON, make_shared<TypePatternParselet>());
 	register_parselet(WTokenType::IF, make_shared<TernaryConditionParselet>());
+	register_parselet(WTokenType::LET, make_shared<VariableDefinitionExpressionParselet>());
+	register_parselet(WTokenType::CONST_KEYWORD, make_shared<VariableDefinitionExpressionParselet>());
 
 	register_prefix(WTokenType::PLUS, Precedence::PREFIX);
 	register_prefix(WTokenType::MINUS, Precedence::PREFIX);
@@ -898,10 +900,46 @@ Statement_ptr Parser::parse_variable_definition(bool is_public, bool is_mutable)
 	return MAKE_STATEMENT(VariableDefinition(is_public, is_mutable, move(expression)));
 }
 
-tuple<map<wstring, Type_ptr>, StringVector> Parser::parse_type_and_interface_definition()
+StringVector Parser::parse_comma_separated_identifiers()
+{
+	StringVector identifiers;
+
+	while (true)
+	{
+		token_pipe->ignore_whitespace();
+
+		auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
+		NULL_CHECK(identifier);
+
+		identifiers.push_back(identifier->value);
+
+		if (token_pipe->optional(WTokenType::COMMA))
+			continue;
+
+		break;
+	}
+
+	return identifiers;
+}
+
+tuple<map<wstring, Type_ptr>, StringVector, StringVector, StringVector> Parser::parse_type_and_interface_definition()
 {
 	map<wstring, Type_ptr> member_types;
 	StringVector public_members;
+
+	StringVector interfaces;
+
+	if (token_pipe->optional(WTokenType::TILDE))
+	{
+		interfaces = parse_comma_separated_identifiers();
+	}
+
+	StringVector base_types;
+
+	if (token_pipe->optional(WTokenType::LESSER_THAN))
+	{
+		interfaces = parse_comma_separated_identifiers();
+	}
 
 	while (true)
 	{
@@ -925,16 +963,15 @@ tuple<map<wstring, Type_ptr>, StringVector> Parser::parse_type_and_interface_def
 		}
 	}
 
-	return make_tuple(member_types, public_members);
+	return make_tuple(member_types, public_members, interfaces, base_types);
 }
 
 Statement_ptr Parser::parse_interface_definition(bool is_public)
 {
 	auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
-	token_pipe->expect(WTokenType::EOL);
 
-	auto [member_types, public_members] = parse_type_and_interface_definition();
-	return MAKE_STATEMENT(InterfaceDefinition(is_public, identifier->value, member_types, public_members));
+	auto [member_types, public_members, interfaces, base_types] = parse_type_and_interface_definition();
+	return MAKE_STATEMENT(InterfaceDefinition(is_public, identifier->value, member_types, public_members, interfaces, base_types));
 }
 
 Statement_ptr Parser::parse_type_definition(bool is_public)
@@ -948,10 +985,8 @@ Statement_ptr Parser::parse_type_definition(bool is_public)
 		return MAKE_STATEMENT(AliasDefinition(is_public, identifier->value, move(type)));
 	}
 
-	token_pipe->expect(WTokenType::EOL);
-
-	auto [member_types, public_members] = parse_type_and_interface_definition();
-	return MAKE_STATEMENT(ClassDefinition(is_public, identifier->value, member_types, public_members));
+	auto [member_types, public_members, interfaces, base_types] = parse_type_and_interface_definition();
+	return MAKE_STATEMENT(ClassDefinition(is_public, identifier->value, member_types, public_members, interfaces, base_types));
 }
 
 tuple<StringVector, TypeVector, optional<Type_ptr>, Block> Parser::parse_callable_definition()

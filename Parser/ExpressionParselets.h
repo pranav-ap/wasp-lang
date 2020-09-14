@@ -164,3 +164,10 @@ public:
 	Expression_ptr parse(Parser_ptr parser, Token_ptr token);
 	int get_precedence();
 };
+
+class VariableDefinitionExpressionParselet : public IPrefixParselet
+{
+public:
+	Expression_ptr parse(Parser_ptr parser, Token_ptr token);
+	int get_precedence();
+};

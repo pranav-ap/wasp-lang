@@ -328,6 +328,7 @@ void ASTVisualizer::visit(const Expression_ptr expression, int parent_id)
 		[&](Assignment const& expr) { visit(expr, parent_id); },
 		[&](SpreadExpression const& expr) { visit(expr, parent_id); },
 		[&](TernaryCondition const& expr) { visit(expr, parent_id); },
+		[&](VariableDefinitionExpression const& expr) { visit(expr, parent_id); },
 
 		[](auto) {FATAL("Never seen this Expression before! So I cannot print it!"); }
 		}, *expression);
@@ -491,6 +492,14 @@ void ASTVisualizer::visit(TernaryCondition const& expr, int parent_id)
 		save(else_id, if_id, L"else");
 		visit(expr.false_expression.value(), else_id);
 	}
+}
+
+void ASTVisualizer::visit(VariableDefinitionExpression const& expr, int parent_id)
+{
+	const int id = id_counter++;
+	save(id, parent_id, (expr.is_mutable) ? L"const" : L"let");
+
+	visit(expr.expression, id);
 }
 
 // Type

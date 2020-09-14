@@ -268,6 +268,17 @@ Expression_ptr TernaryConditionParselet::parse(Parser_ptr parser, Token_ptr toke
 	return MAKE_EXPRESSION(TernaryCondition(condition, then_arm));
 }
 
+Expression_ptr VariableDefinitionExpressionParselet::parse(Parser_ptr parser, Token_ptr token)
+{
+	ADVANCE_PTR;
+
+	const bool is_mutable = token->type == WTokenType::CONST_KEYWORD;
+	Expression_ptr expression = parser->parse_expression();
+	NULL_CHECK(expression);
+
+	return MAKE_EXPRESSION(VariableDefinitionExpression(is_mutable, expression));
+}
+
 // get_precedence
 
 int PrefixOperatorParselet::get_precedence()
@@ -313,4 +324,9 @@ int TypePatternParselet::get_precedence()
 int TernaryConditionParselet::get_precedence()
 {
 	return (int)Precedence::TERNARY_CONDITION;
+}
+
+int VariableDefinitionExpressionParselet::get_precedence()
+{
+	return (int)Precedence::DEFINITION;
 }

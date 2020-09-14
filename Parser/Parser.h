@@ -71,11 +71,12 @@ class PARSER_API Parser
 
 	Statement_ptr parse_variable_definition(bool is_public, bool is_mutable);
 
-	std::tuple<std::map<std::wstring, Type_ptr>, StringVector> parse_type_and_interface_definition();
+	StringVector parse_comma_separated_identifiers();
+	std::tuple<std::map<std::wstring, Type_ptr>, StringVector, StringVector, StringVector> parse_type_and_interface_definition();
 	Statement_ptr parse_interface_definition(bool is_public);
 	Statement_ptr parse_type_definition(bool is_public);
 
-	std::tuple<std::vector<std::wstring>, TypeVector, std::optional<Type_ptr>, Block> parse_callable_definition();
+	std::tuple<StringVector, TypeVector, std::optional<Type_ptr>, Block> parse_callable_definition();
 	Statement_ptr parse_function_definition(bool is_public);
 	Statement_ptr parse_generator_definition(bool is_public);
 

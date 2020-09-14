@@ -129,23 +129,26 @@ struct AST_API VariableDefinition
 
 struct AST_API UDTDefinition : public Definition
 {
+	StringVector interfaces;
+	StringVector base_types;
+
 	std::map<std::wstring, Type_ptr> member_types;
 	StringVector public_members;
 
-	UDTDefinition(bool is_public, std::wstring name, std::map<std::wstring, Type_ptr> member_types, StringVector public_members)
-		: Definition(is_public, name), member_types(member_types), public_members(public_members) {};
+	UDTDefinition(bool is_public, std::wstring name, std::map<std::wstring, Type_ptr> member_types, StringVector public_members, std::vector<std::wstring> interfaces, std::vector<std::wstring> base_types)
+		: Definition(is_public, name), member_types(member_types), public_members(public_members), interfaces(interfaces), base_types(base_types) {};
 };
 
 struct AST_API ClassDefinition : public UDTDefinition
 {
-	ClassDefinition(bool is_public, std::wstring name, std::map<std::wstring, Type_ptr> member_types, StringVector public_members)
-		: UDTDefinition(is_public, name, member_types, public_members) {};
+	ClassDefinition(bool is_public, std::wstring name, std::map<std::wstring, Type_ptr> member_types, StringVector public_members, std::vector<std::wstring> interfaces, std::vector<std::wstring> base_types)
+		: UDTDefinition(is_public, name, member_types, public_members, interfaces, base_types) {};
 };
 
 struct AST_API InterfaceDefinition : public UDTDefinition
 {
-	InterfaceDefinition(bool is_public, std::wstring name, std::map<std::wstring, Type_ptr> member_types, StringVector public_members)
-		: UDTDefinition(is_public, name, member_types, public_members) {};
+	InterfaceDefinition(bool is_public, std::wstring name, std::map<std::wstring, Type_ptr> member_types, StringVector public_members, std::vector<std::wstring> interfaces, std::vector<std::wstring> base_types)
+		: UDTDefinition(is_public, name, member_types, public_members, interfaces, base_types) {};
 };
 
 struct AST_API AliasDefinition : public Definition
