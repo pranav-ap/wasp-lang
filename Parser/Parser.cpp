@@ -582,6 +582,16 @@ Type_ptr Parser::parse_type(bool is_optional)
 		{
 			type = parse_function_type(is_optional);
 		}
+		else if (token_pipe->optional(WTokenType::FN))
+		{
+			token_pipe->expect(WTokenType::OPEN_PARENTHESIS);
+			type = parse_function_type(is_optional);
+		}
+		else if (token_pipe->optional(WTokenType::GEN))
+		{
+			token_pipe->expect(WTokenType::OPEN_PARENTHESIS);
+			type = parse_generator_type(is_optional);
+		}
 		else
 		{
 			type = consume_datatype_word(is_optional);
@@ -689,7 +699,7 @@ Type_ptr Parser::parse_map_type(bool is_optional)
 	return MAKE_TYPE(MapType(move(key_type), move(value_type)));
 }
 
-Type_ptr Parser::parse_function_type(bool is_optional)
+std::tuple<TypeVector, std::optional<Type_ptr>> Parser::parse_callable_type()
 {
 	TypeVector input_types;
 
@@ -722,12 +732,31 @@ Type_ptr Parser::parse_function_type(bool is_optional)
 		NULL_CHECK(return_type);
 	}
 
+	return make_tuple(input_types, return_type);
+}
+
+Type_ptr Parser::parse_function_type(bool is_optional)
+{
+	auto [input_types, return_type] = parse_callable_type();
+
 	if (is_optional)
 	{
 		return MAKE_OPTIONAL_TYPE(FunctionType(input_types, return_type));
 	}
 
 	return MAKE_TYPE(FunctionType(input_types, return_type));
+}
+
+Type_ptr Parser::parse_generator_type(bool is_optional)
+{
+	auto [input_types, return_type] = parse_callable_type();
+
+	if (is_optional)
+	{
+		return MAKE_OPTIONAL_TYPE(GeneratorType(input_types, return_type));
+	}
+
+	return MAKE_TYPE(GeneratorType(input_types, return_type));
 }
 
 Type_ptr Parser::consume_datatype_word(bool is_optional)

@@ -43,8 +43,11 @@ class PARSER_API Parser
 	Type_ptr parse_set_type(bool is_optional);
 	Type_ptr parse_tuple_type(bool is_optional);
 	Type_ptr parse_map_type(bool is_optional);
-	Type_ptr parse_function_type(bool is_optional);
 	Type_ptr consume_datatype_word(bool is_optional);
+
+	std::tuple<TypeVector, std::optional<Type_ptr>> parse_callable_type();
+	Type_ptr parse_function_type(bool is_optional);
+	Type_ptr parse_generator_type(bool is_optional);
 
 	// Blocks
 

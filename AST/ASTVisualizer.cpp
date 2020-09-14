@@ -650,9 +650,12 @@ void ASTVisualizer::visit(FunctionType const& type, int parent_id)
 	const int id = id_counter++;
 	save(id, parent_id, L"Function Type");
 
-	const int input_types_id = id_counter++;
-	save(input_types_id, id, L"Input Types");
-	visit(type.input_types, input_types_id);
+	if (type.input_types.size() > 0)
+	{
+		const int input_types_id = id_counter++;
+		save(input_types_id, id, L"Input Types");
+		visit(type.input_types, input_types_id);
+	}
 
 	if (type.return_type.has_value())
 	{
@@ -666,7 +669,13 @@ void ASTVisualizer::visit(GeneratorType const& type, int parent_id)
 {
 	const int id = id_counter++;
 	save(id, parent_id, L"Generator Type");
-	visit(type.input_types, id);
+
+	if (type.input_types.size() > 0)
+	{
+		const int input_types_id = id_counter++;
+		save(input_types_id, id, L"Input Types");
+		visit(type.input_types, input_types_id);
+	}
 
 	if (type.return_type.has_value())
 	{

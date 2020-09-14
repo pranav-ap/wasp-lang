@@ -1,3 +1,7 @@
-fn Castle::defend() => any
-    x = 43
+type Castle
+    name: string
+
+    a : fn ()
+    b : (name: string) => bool
+    c : gen (name: string)
 end

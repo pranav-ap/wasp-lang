@@ -101,7 +101,7 @@ interface ICastle :
     tileSize: 8 | 16 | 32
 
     open_gates: (speed: int) => bool
-    close_gates: (speed: int) => bool
+    close_gates: gen (speed: int) => bool
 end
 
 // UC
@@ -109,7 +109,7 @@ end
 type Castle ~ ICastle < Building
     name: string
 
-    constructor : ()
+    constructor : fn ()
     constructor : (name: string)
     repr : () => string
 end
