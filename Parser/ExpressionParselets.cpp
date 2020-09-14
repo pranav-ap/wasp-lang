@@ -50,27 +50,7 @@ Expression_ptr IdentifierParselet::parse(Parser_ptr parser, Token_ptr token)
 	return MAKE_EXPRESSION(Identifier(token->value));
 }
 
-Expression_ptr NumberParselet::parse(Parser_ptr parser, Token_ptr token)
-{
-	ADVANCE_PTR;
-
-	auto value = stod(token->value);
-
-	if (std::fmod(value, 1.0) == 0.0)
-	{
-		return MAKE_EXPRESSION((int)value);
-	}
-
-	return MAKE_EXPRESSION(value);
-}
-
-Expression_ptr StringParselet::parse(Parser_ptr parser, Token_ptr token)
-{
-	ADVANCE_PTR;
-	return MAKE_EXPRESSION(token->value);
-}
-
-Expression_ptr BooleanParselet::parse(Parser_ptr parser, Token_ptr token)
+Expression_ptr LiteralParselet::parse(Parser_ptr parser, Token_ptr token)
 {
 	ADVANCE_PTR;
 
@@ -83,6 +63,21 @@ Expression_ptr BooleanParselet::parse(Parser_ptr parser, Token_ptr token)
 	case WTokenType::FALSE_KEYWORD:
 	{
 		return MAKE_EXPRESSION(false);
+	}
+	case WTokenType::STRING_LITERAL:
+	{
+		return MAKE_EXPRESSION(token->value);
+	}
+	case WTokenType::NUMBER_LITERAL:
+	{
+		auto value = stod(token->value);
+
+		if (std::fmod(value, 1.0) == 0.0)
+		{
+			return MAKE_EXPRESSION((int)value);
+		}
+
+		return MAKE_EXPRESSION(value);
 	}
 	default:
 	{
@@ -121,7 +116,7 @@ Expression_ptr CallParselet::parse(Parser_ptr parser, Identifier* identifier)
 	}
 
 	arguments = parser->parse_expressions();
-	parser->token_pipe->expect(WTokenType::CLOSE_PARENTHESIS);
+	parser->token_pipe->require(WTokenType::CLOSE_PARENTHESIS);
 
 	return MAKE_EXPRESSION(Call(identifier->name, arguments));
 }
@@ -157,7 +152,7 @@ Expression_ptr GroupParselet::parse(Parser_ptr parser, Token_ptr token)
 {
 	ADVANCE_PTR;
 	Expression_ptr expression = parser->parse_expression();
-	parser->token_pipe->expect(WTokenType::CLOSE_PARENTHESIS);
+	parser->token_pipe->require(WTokenType::CLOSE_PARENTHESIS);
 	return expression;
 }
 
@@ -165,7 +160,7 @@ Expression_ptr ListParselet::parse(Parser_ptr parser, Token_ptr token)
 {
 	ADVANCE_PTR;
 	ExpressionVector expressions = parser->parse_expressions();
-	parser->token_pipe->expect(WTokenType::CLOSE_SQUARE_BRACKET);
+	parser->token_pipe->require(WTokenType::CLOSE_SQUARE_BRACKET);
 	return MAKE_EXPRESSION(ListLiteral(expressions));
 }
 
@@ -173,7 +168,7 @@ Expression_ptr TupleParselet::parse(Parser_ptr parser, Token_ptr token)
 {
 	ADVANCE_PTR;
 	ExpressionVector expressions = parser->parse_expressions();
-	parser->token_pipe->expect(WTokenType::CLOSE_FLOOR_BRACKET);
+	parser->token_pipe->require(WTokenType::CLOSE_FLOOR_BRACKET);
 	return MAKE_EXPRESSION(TupleLiteral(expressions));
 }
 
@@ -181,7 +176,7 @@ Expression_ptr SetParselet::parse(Parser_ptr parser, Token_ptr token)
 {
 	ADVANCE_PTR;
 	ExpressionVector expressions = parser->parse_expressions();
-	parser->token_pipe->expect(WTokenType::CLOSE_CURLY_BRACE);
+	parser->token_pipe->require(WTokenType::CLOSE_CURLY_BRACE);
 	return MAKE_EXPRESSION(SetLiteral(expressions));
 }
 
@@ -202,21 +197,21 @@ Expression_ptr MapParselet::parse(Parser_ptr parser, Token_ptr token)
 		auto value = (parser->token_pipe->optional(WTokenType::COLON)) ? parser->parse_expression() : key;
 		pairs.insert_or_assign(key, value);
 
-		parser->token_pipe->expect(WTokenType::COMMA);
+		parser->token_pipe->require(WTokenType::COMMA);
 	}
 }
 
-Expression_ptr UDTCreationParselet::parse(Parser_ptr parser, Token_ptr token)
+Expression_ptr NewParselet::parse(Parser_ptr parser, Token_ptr token)
 {
 	auto next_token = parser->token_pipe->require(WTokenType::IDENTIFIER);
 	NULL_CHECK(next_token);
 	ASSERT(next_token->type == WTokenType::IDENTIFIER, "Expect name of a UDT");
 
-	parser->token_pipe->expect(WTokenType::OPEN_PARENTHESIS);
+	parser->token_pipe->require(WTokenType::OPEN_PARENTHESIS);
 	ExpressionVector arguments = parser->parse_expressions();
-	parser->token_pipe->expect(WTokenType::CLOSE_PARENTHESIS);
+	parser->token_pipe->require(WTokenType::CLOSE_PARENTHESIS);
 
-	return MAKE_EXPRESSION(UDTConstruct(next_token->value, arguments));
+	return MAKE_EXPRESSION(NewObject(next_token->value, arguments));
 }
 
 Expression_ptr EnumMemberParselet::parse(Parser_ptr parser, Expression_ptr left, Token_ptr token)
@@ -254,7 +249,7 @@ Expression_ptr TernaryConditionParselet::parse(Parser_ptr parser, Token_ptr toke
 	ADVANCE_PTR;
 
 	Expression_ptr condition = parser->parse_expression();
-	parser->token_pipe->expect(WTokenType::THEN);
+	parser->token_pipe->require(WTokenType::THEN);
 	OPT_CHECK(!parser->token_pipe->optional(WTokenType::EOL));
 
 	Expression_ptr then_arm = parser->parse_expression();
@@ -266,17 +261,6 @@ Expression_ptr TernaryConditionParselet::parse(Parser_ptr parser, Token_ptr toke
 	}
 
 	return MAKE_EXPRESSION(TernaryCondition(condition, then_arm));
-}
-
-Expression_ptr VariableDefinitionExpressionParselet::parse(Parser_ptr parser, Token_ptr token)
-{
-	ADVANCE_PTR;
-
-	const bool is_mutable = token->type == WTokenType::CONST_KEYWORD;
-	Expression_ptr expression = parser->parse_expression();
-	NULL_CHECK(expression);
-
-	return MAKE_EXPRESSION(VariableDefinitionExpression(is_mutable, expression));
 }
 
 // get_precedence
@@ -306,7 +290,7 @@ int EnumMemberParselet::get_precedence()
 	return (int)Precedence::MEMBER_ACCESS;
 }
 
-int UDTCreationParselet::get_precedence()
+int NewParselet::get_precedence()
 {
 	return (int)Precedence::CALL;
 }
@@ -324,9 +308,4 @@ int TypePatternParselet::get_precedence()
 int TernaryConditionParselet::get_precedence()
 {
 	return (int)Precedence::TERNARY_CONDITION;
-}
-
-int VariableDefinitionExpressionParselet::get_precedence()
-{
-	return (int)Precedence::DEFINITION;
 }

@@ -47,21 +47,20 @@ Parser::Parser()
 {
 	register_parselet(WTokenType::EQUAL, make_shared<AssignmentParselet>());
 	register_parselet(WTokenType::IDENTIFIER, make_shared<IdentifierParselet>());
-	register_parselet(WTokenType::STRING_LITERAL, make_shared<StringParselet>());
-	register_parselet(WTokenType::NUMBER_LITERAL, make_shared<NumberParselet>());
-	register_parselet(WTokenType::TRUE_KEYWORD, make_shared<BooleanParselet>());
-	register_parselet(WTokenType::FALSE_KEYWORD, make_shared<BooleanParselet>());
+	register_parselet(WTokenType::STRING_LITERAL, make_shared<LiteralParselet>());
+	register_parselet(WTokenType::NUMBER_LITERAL, make_shared<LiteralParselet>());
+	register_parselet(WTokenType::TRUE_KEYWORD, make_shared<LiteralParselet>());
+	register_parselet(WTokenType::FALSE_KEYWORD, make_shared<LiteralParselet>());
+	register_parselet(WTokenType::NONE, make_shared<LiteralParselet>());
 	register_parselet(WTokenType::OPEN_PARENTHESIS, make_shared<CallParselet>());
 	register_parselet(WTokenType::OPEN_PARENTHESIS, make_shared<GroupParselet>());
 	register_parselet(WTokenType::OPEN_SQUARE_BRACKET, make_shared<ListParselet>());
 	register_parselet(WTokenType::OPEN_ANGLE_BRACKET, make_shared<MapParselet>());
 	register_parselet(WTokenType::OPEN_FLOOR_BRACKET, make_shared<TupleParselet>());
 	register_parselet(WTokenType::OPEN_CURLY_BRACE, make_shared<SetParselet>());
-	register_parselet(WTokenType::NEW, make_shared<UDTCreationParselet>());
+	register_parselet(WTokenType::NEW, make_shared<NewParselet>());
 	register_parselet(WTokenType::COLON, make_shared<TypePatternParselet>());
 	register_parselet(WTokenType::IF, make_shared<TernaryConditionParselet>());
-	register_parselet(WTokenType::LET, make_shared<VariableDefinitionExpressionParselet>());
-	register_parselet(WTokenType::CONST_KEYWORD, make_shared<VariableDefinitionExpressionParselet>());
 
 	register_prefix(WTokenType::PLUS, Precedence::PREFIX);
 	register_prefix(WTokenType::MINUS, Precedence::PREFIX);
@@ -228,7 +227,7 @@ Statement_ptr Parser::parse_statement(bool is_public)
 
 		CASE(WTokenType::MODULE_KEYWORD, parse_module(is_public));
 
-		CASE(WTokenType::IF, parse_branching());
+		CASE(WTokenType::IF, parse_branching(token.value()->type));
 		CASE(WTokenType::WHILE, parse_while_loop());
 		CASE(WTokenType::FOR, parse_for_in_loop());
 
@@ -282,7 +281,7 @@ Statement_ptr Parser::parse_public_statement()
 Statement_ptr Parser::parse_expression_statement()
 {
 	auto expression = parse_expression();
-	token_pipe->expect(WTokenType::EOL);
+	token_pipe->require(WTokenType::EOL);
 
 	return MAKE_STATEMENT(ExpressionStatement(move(expression)));
 }
@@ -291,11 +290,11 @@ Statement_ptr Parser::parse_return()
 {
 	if (auto expression = parse_expression())
 	{
-		token_pipe->expect(WTokenType::EOL);
+		token_pipe->require(WTokenType::EOL);
 		return MAKE_STATEMENT(Return(move(expression)));
 	}
 
-	token_pipe->expect(WTokenType::EOL);
+	token_pipe->require(WTokenType::EOL);
 	return MAKE_STATEMENT(Return());
 }
 
@@ -303,11 +302,11 @@ Statement_ptr Parser::parse_yield()
 {
 	if (auto expression = parse_expression())
 	{
-		token_pipe->expect(WTokenType::EOL);
+		token_pipe->require(WTokenType::EOL);
 		return MAKE_STATEMENT(YieldStatement(move(expression)));
 	}
 
-	token_pipe->expect(WTokenType::EOL);
+	token_pipe->require(WTokenType::EOL);
 	return MAKE_STATEMENT(YieldStatement());
 }
 
@@ -316,7 +315,7 @@ Statement_ptr Parser::parse_assert()
 	auto expression = parse_expression();
 	NULL_CHECK(expression);
 
-	token_pipe->expect(WTokenType::EOL);
+	token_pipe->require(WTokenType::EOL);
 	return MAKE_STATEMENT(Assert(move(expression)));
 }
 
@@ -325,7 +324,7 @@ Statement_ptr Parser::parse_implore()
 	auto expression = parse_expression();
 	NULL_CHECK(expression);
 
-	token_pipe->expect(WTokenType::EOL);
+	token_pipe->require(WTokenType::EOL);
 	return MAKE_STATEMENT(Implore(move(expression)));
 }
 
@@ -334,19 +333,19 @@ Statement_ptr Parser::parse_swear()
 	auto expression = parse_expression();
 	NULL_CHECK(expression);
 
-	token_pipe->expect(WTokenType::EOL);
+	token_pipe->require(WTokenType::EOL);
 	return MAKE_STATEMENT(Swear(move(expression)));
 }
 
 Statement_ptr Parser::parse_break()
 {
-	token_pipe->expect(WTokenType::EOL);
+	token_pipe->require(WTokenType::EOL);
 	return MAKE_STATEMENT(Break());
 }
 
 Statement_ptr Parser::parse_continue()
 {
-	token_pipe->expect(WTokenType::EOL);
+	token_pipe->require(WTokenType::EOL);
 	return MAKE_STATEMENT(Continue());
 }
 
@@ -455,14 +454,14 @@ Block Parser::parse_conditional_block()
 	return statements;
 }
 
-pair<Expression_ptr, Block> Parser::parse_condition_and_consequence()
+Statement_ptr Parser::parse_condition_and_consequence()
 {
 	auto condition = parse_expression();
-	token_pipe->expect(WTokenType::THEN);
-	token_pipe->expect(WTokenType::EOL);
+	token_pipe->require(WTokenType::THEN);
+	token_pipe->require(WTokenType::EOL);
 
 	auto block = parse_conditional_block();
-	return make_pair(condition, block);
+	return MAKE_STATEMENT(IfBranch(move(condition), block));
 }
 
 Expression_ptr Parser::parse_ternary_condition(Expression_ptr condition)
@@ -475,46 +474,43 @@ Expression_ptr Parser::parse_ternary_condition(Expression_ptr condition)
 		return MAKE_EXPRESSION(TernaryCondition(move(condition), move(true_expression), move(false_expression)));
 	}
 
-	token_pipe->expect(WTokenType::EOL);
+	token_pipe->require(WTokenType::EOL);
 
 	return MAKE_EXPRESSION(TernaryCondition(move(condition), move(true_expression)));
 }
 
-Statement_ptr Parser::parse_branching()
+Statement_ptr Parser::parse_branching(WTokenType token_type)
 {
-	std::vector<std::pair<Expression_ptr, Block>> branches;
-
 	auto condition = parse_expression();
-	token_pipe->expect(WTokenType::THEN);
+	token_pipe->require(WTokenType::THEN);
 
-	if (!token_pipe->optional(WTokenType::EOL))
+	if (token_type == WTokenType::IF && !token_pipe->optional(WTokenType::EOL))
 	{
 		Expression_ptr ternary = parse_ternary_condition(condition);
-		token_pipe->expect(WTokenType::EOL);
+		token_pipe->require(WTokenType::EOL);
 
 		return MAKE_STATEMENT(ExpressionStatement(move(ternary)));
 	}
 
-	auto block = parse_conditional_block();
-	branches.push_back({ condition, block });
+	Block block = parse_conditional_block();
+	auto if_branch = IfBranch(condition, block);
 
-	while (token_pipe->optional(WTokenType::ELIF))
+	if (token_pipe->optional(WTokenType::ELIF))
 	{
-		auto condition_consequence_pair = parse_condition_and_consequence();
-		branches.push_back(condition_consequence_pair);
+		auto alternative = parse_branching(WTokenType::ELIF);
+		if_branch.alternative = alternative;
+	}
+	else if (token_pipe->optional(WTokenType::ELSE))
+	{
+		token_pipe->require(WTokenType::EOL);
+		Block else_block = parse_conditional_block();
+		if_branch.alternative = MAKE_STATEMENT(ElseBranch(else_block));
+		return MAKE_STATEMENT(if_branch);
 	}
 
-	Block else_block;
+	token_pipe->require(WTokenType::END);
 
-	if (token_pipe->optional(WTokenType::ELSE))
-	{
-		token_pipe->expect(WTokenType::EOL);
-		else_block = parse_conditional_block();
-	}
-
-	token_pipe->expect(WTokenType::END);
-
-	return MAKE_STATEMENT(Branching(branches, else_block));
+	return MAKE_STATEMENT(if_branch);
 }
 
 Statement_ptr Parser::parse_while_loop()
@@ -522,7 +518,7 @@ Statement_ptr Parser::parse_while_loop()
 	auto condition = parse_expression();
 	NULL_CHECK(condition);
 
-	token_pipe->expect(WTokenType::DO);
+	token_pipe->require(WTokenType::DO);
 
 	if (token_pipe->optional(WTokenType::EOL))
 	{
@@ -539,7 +535,7 @@ Statement_ptr Parser::parse_for_in_loop()
 	auto pattern = parse_expression();
 	NULL_CHECK(pattern);
 
-	token_pipe->expect(WTokenType::DO);
+	token_pipe->require(WTokenType::DO);
 
 	if (token_pipe->optional(WTokenType::EOL))
 	{
@@ -586,12 +582,12 @@ Type_ptr Parser::parse_type(bool is_optional)
 		}
 		else if (token_pipe->optional(WTokenType::FN))
 		{
-			token_pipe->expect(WTokenType::OPEN_PARENTHESIS);
+			token_pipe->require(WTokenType::OPEN_PARENTHESIS);
 			type = parse_function_type(is_optional);
 		}
 		else if (token_pipe->optional(WTokenType::GEN))
 		{
-			token_pipe->expect(WTokenType::OPEN_PARENTHESIS);
+			token_pipe->require(WTokenType::OPEN_PARENTHESIS);
 			type = parse_generator_type(is_optional);
 		}
 		else
@@ -625,7 +621,7 @@ Type_ptr Parser::parse_list_type(bool is_optional)
 		if (token_pipe->optional(WTokenType::COMMA))
 			continue;
 
-		token_pipe->expect(WTokenType::CLOSE_SQUARE_BRACKET);
+		token_pipe->require(WTokenType::CLOSE_SQUARE_BRACKET);
 		break;
 	}
 
@@ -649,7 +645,7 @@ Type_ptr Parser::parse_set_type(bool is_optional)
 		if (token_pipe->optional(WTokenType::COMMA))
 			continue;
 
-		token_pipe->expect(WTokenType::CLOSE_CURLY_BRACE);
+		token_pipe->require(WTokenType::CLOSE_CURLY_BRACE);
 		break;
 	}
 
@@ -673,7 +669,7 @@ Type_ptr Parser::parse_tuple_type(bool is_optional)
 		if (token_pipe->optional(WTokenType::COMMA))
 			continue;
 
-		token_pipe->expect(WTokenType::CLOSE_FLOOR_BRACKET);
+		token_pipe->require(WTokenType::CLOSE_FLOOR_BRACKET);
 		break;
 	}
 
@@ -688,10 +684,10 @@ Type_ptr Parser::parse_tuple_type(bool is_optional)
 Type_ptr Parser::parse_map_type(bool is_optional)
 {
 	auto key_type = parse_type();
-	token_pipe->expect(WTokenType::ARROW);
+	token_pipe->require(WTokenType::ARROW);
 
 	auto value_type = parse_type();
-	token_pipe->expect(WTokenType::CLOSE_ANGLE_BRACKET);
+	token_pipe->require(WTokenType::CLOSE_ANGLE_BRACKET);
 
 	if (is_optional)
 	{
@@ -712,7 +708,7 @@ std::tuple<TypeVector, std::optional<Type_ptr>> Parser::parse_callable_type()
 			auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
 			NULL_CHECK(identifier);
 
-			token_pipe->expect(WTokenType::COLON);
+			token_pipe->require(WTokenType::COLON);
 
 			auto type = parse_type();
 			NULL_CHECK(type);
@@ -722,7 +718,7 @@ std::tuple<TypeVector, std::optional<Type_ptr>> Parser::parse_callable_type()
 			if (token_pipe->optional(WTokenType::CLOSE_PARENTHESIS))
 				break;
 
-			token_pipe->expect(WTokenType::COMMA);
+			token_pipe->require(WTokenType::COMMA);
 		}
 	}
 
@@ -844,7 +840,7 @@ Type_ptr Parser::consume_datatype_word(bool is_optional)
 pair<wstring, Type_ptr> Parser::consume_identifier_type_pair()
 {
 	auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
-	token_pipe->expect(WTokenType::COLON);
+	token_pipe->require(WTokenType::COLON);
 	auto type = parse_type();
 
 	return make_pair(identifier->value, move(type));
@@ -855,7 +851,7 @@ pair<wstring, Type_ptr> Parser::consume_identifier_type_pair()
 Statement_ptr Parser::parse_enum_definition(bool is_public)
 {
 	auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
-	token_pipe->expect(WTokenType::EOL);
+	token_pipe->require(WTokenType::EOL);
 	vector<wstring> members = parse_enum_members(identifier->value);
 	return MAKE_STATEMENT(EnumDefinition(is_public, identifier->value, members));
 }
@@ -874,7 +870,7 @@ vector<wstring> Parser::parse_enum_members(wstring stem)
 		if (token_pipe->optional(WTokenType::ENUM))
 		{
 			auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
-			token_pipe->expect(WTokenType::EOL);
+			token_pipe->require(WTokenType::EOL);
 			members.push_back(stem + L"::" + identifier->value);
 
 			auto children = parse_enum_members(stem + L"::" + identifier->value);
@@ -886,7 +882,7 @@ vector<wstring> Parser::parse_enum_members(wstring stem)
 		auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
 		members.push_back(stem + L"::" + identifier->value);
 
-		token_pipe->expect(WTokenType::EOL);
+		token_pipe->require(WTokenType::EOL);
 	}
 
 	return members;
@@ -895,7 +891,7 @@ vector<wstring> Parser::parse_enum_members(wstring stem)
 Statement_ptr Parser::parse_variable_definition(bool is_public, bool is_mutable)
 {
 	auto expression = parse_expression();
-	token_pipe->expect(WTokenType::EOL);
+	token_pipe->require(WTokenType::EOL);
 
 	return MAKE_STATEMENT(VariableDefinition(is_public, is_mutable, move(expression)));
 }
@@ -954,7 +950,7 @@ tuple<map<wstring, Type_ptr>, StringVector, StringVector, StringVector> Parser::
 			is_public_member = true;
 
 		auto [identifier, type] = consume_identifier_type_pair();
-		token_pipe->expect(WTokenType::EOL);
+		token_pipe->require(WTokenType::EOL);
 		member_types.insert_or_assign(identifier, type);
 
 		if (is_public_member)
@@ -981,7 +977,7 @@ Statement_ptr Parser::parse_type_definition(bool is_public)
 	if (token_pipe->optional(WTokenType::EQUAL))
 	{
 		auto type = parse_type();
-		token_pipe->expect(WTokenType::EOL);
+		token_pipe->require(WTokenType::EOL);
 		return MAKE_STATEMENT(AliasDefinition(is_public, identifier->value, move(type)));
 	}
 
@@ -989,8 +985,22 @@ Statement_ptr Parser::parse_type_definition(bool is_public)
 	return MAKE_STATEMENT(ClassDefinition(is_public, identifier->value, member_types, public_members, interfaces, base_types));
 }
 
-tuple<StringVector, TypeVector, optional<Type_ptr>, Block> Parser::parse_callable_definition()
+tuple<wstring, wstring, bool, StringVector, TypeVector, optional<Type_ptr>, Block> Parser::parse_callable_definition()
 {
+	auto first_identifier = token_pipe->require(WTokenType::IDENTIFIER);
+	NULL_CHECK(first_identifier);
+
+	bool is_method = false;
+	Token_ptr second_identifier;
+
+	if (token_pipe->optional(WTokenType::COLON_COLON))
+	{
+		is_method = true;
+		second_identifier = token_pipe->require(WTokenType::IDENTIFIER);
+	}
+
+	token_pipe->require(WTokenType::OPEN_PARENTHESIS);
+
 	StringVector arguments;
 	TypeVector argument_types;
 
@@ -1005,7 +1015,7 @@ tuple<StringVector, TypeVector, optional<Type_ptr>, Block> Parser::parse_callabl
 			if (token_pipe->optional(WTokenType::COMMA))
 				continue;
 
-			token_pipe->expect(WTokenType::CLOSE_PARENTHESIS);
+			token_pipe->require(WTokenType::CLOSE_PARENTHESIS);
 			break;
 		}
 	}
@@ -1018,63 +1028,35 @@ tuple<StringVector, TypeVector, optional<Type_ptr>, Block> Parser::parse_callabl
 		optional_return_type = std::make_optional(return_type);
 	}
 
-	token_pipe->expect(WTokenType::EOL);
+	token_pipe->require(WTokenType::EOL);
 
 	Block block = parse_block();
 
-	return make_tuple(arguments, argument_types, optional_return_type, block);
+	return make_tuple(first_identifier->value, second_identifier->value, is_method, arguments, argument_types, optional_return_type, block);
 }
 
 Statement_ptr Parser::parse_function_definition(bool is_public)
 {
-	auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
-	NULL_CHECK(identifier);
-
-	bool is_method = false;
-	Token_ptr second_identifier;
-
-	if (token_pipe->optional(WTokenType::COLON_COLON))
-	{
-		is_method = true;
-		second_identifier = token_pipe->require(WTokenType::IDENTIFIER);
-	}
-
-	token_pipe->expect(WTokenType::OPEN_PARENTHESIS);
-
-	auto [arguments, argument_types, optional_return_type, block] = parse_callable_definition();
+	auto [first_identifier, second_identifier, is_method, arguments, argument_types, optional_return_type, block] = parse_callable_definition();
 	Type_ptr function_type = std::make_shared<Type>(FunctionType(argument_types, optional_return_type));
 
 	if (is_method)
 	{
-		return MAKE_STATEMENT(FunctionMethodDefinition(identifier->value, second_identifier->value, arguments, function_type, block));
+		return MAKE_STATEMENT(FunctionMethodDefinition(first_identifier, second_identifier, arguments, function_type, block));
 	}
 
-	return MAKE_STATEMENT(FunctionDefinition(is_public, identifier->value, arguments, function_type, block));
+	return MAKE_STATEMENT(FunctionDefinition(is_public, first_identifier, arguments, function_type, block));
 }
 
 Statement_ptr Parser::parse_generator_definition(bool is_public)
 {
-	auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
-	NULL_CHECK(identifier);
-
-	bool is_method = false;
-	Token_ptr second_identifier;
-
-	if (token_pipe->optional(WTokenType::COLON_COLON))
-	{
-		is_method = true;
-		second_identifier = token_pipe->require(WTokenType::IDENTIFIER);
-	}
-
-	token_pipe->expect(WTokenType::OPEN_PARENTHESIS);
-
-	auto [arguments, argument_types, optional_return_type, block] = parse_callable_definition();
-	Type_ptr generator_type = std::make_shared<Type>(GeneratorType(argument_types, optional_return_type));
+	auto [first_identifier, second_identifier, is_method, arguments, argument_types, optional_return_type, block] = parse_callable_definition();
+	Type_ptr function_type = std::make_shared<Type>(GeneratorType(argument_types, optional_return_type));
 
 	if (is_method)
 	{
-		return MAKE_STATEMENT(GeneratorMethodDefinition(identifier->value, second_identifier->value, arguments, generator_type, block));
+		return MAKE_STATEMENT(GeneratorMethodDefinition(first_identifier, second_identifier, arguments, function_type, block));
 	}
 
-	return MAKE_STATEMENT(GeneratorDefinition(is_public, identifier->value, arguments, generator_type, block));
+	return MAKE_STATEMENT(GeneratorDefinition(is_public, first_identifier, arguments, function_type, block));
 }

@@ -27,7 +27,8 @@ class AST_API ASTVisualizer
 	void visit(const Statement_ptr expr, int parent_id);
 	void visit(std::vector<Statement_ptr> const& statements, int parent_id);
 
-	void visit(Branching const& statement, int parent_id);
+	void visit(IfBranch const& statement, int parent_id);
+	void visit(ElseBranch const& statement, int parent_id);
 	void visit(WhileLoop const& statement, int parent_id);
 	void visit(ForInLoop const& statement, int parent_id);
 	void visit(Break const& statement, int parent_id);
@@ -62,7 +63,7 @@ class AST_API ASTVisualizer
 	void visit(TupleLiteral const& expr, int parent_id);
 	void visit(SetLiteral const& expr, int parent_id);
 	void visit(MapLiteral const& expr, int parent_id);
-	void visit(UDTConstruct const& expr, int parent_id);
+	void visit(NewObject const& expr, int parent_id);
 	void visit(EnumMember const& expr, int parent_id);
 	void visit(Identifier const& expr, int parent_id);
 	void visit(Call const& expr, int parent_id);
@@ -73,7 +74,6 @@ class AST_API ASTVisualizer
 	void visit(SpreadExpression const& expr, int parent_id);
 	void visit(Assignment const& expr, int parent_id);
 	void visit(TernaryCondition const& expr, int parent_id);
-	void visit(VariableDefinitionExpression const& expr, int parent_id);
 
 	// Type
 

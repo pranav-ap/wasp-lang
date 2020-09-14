@@ -55,10 +55,10 @@ class PARSER_API Parser
 
 	Block parse_block();
 	Block parse_conditional_block();
-	std::pair<Expression_ptr, Block> parse_condition_and_consequence();
+	Statement_ptr parse_condition_and_consequence();
 
 	Expression_ptr parse_ternary_condition(Expression_ptr condition);
-	Statement_ptr parse_branching();
+	Statement_ptr parse_branching(WTokenType token_type);
 	Statement_ptr parse_while_loop();
 	Statement_ptr parse_for_in_loop();
 
@@ -76,7 +76,7 @@ class PARSER_API Parser
 	Statement_ptr parse_interface_definition(bool is_public);
 	Statement_ptr parse_type_definition(bool is_public);
 
-	std::tuple<StringVector, TypeVector, std::optional<Type_ptr>, Block> parse_callable_definition();
+	std::tuple<std::wstring, std::wstring, bool, StringVector, TypeVector, std::optional<Type_ptr>, Block> parse_callable_definition();
 	Statement_ptr parse_function_definition(bool is_public);
 	Statement_ptr parse_generator_definition(bool is_public);
 

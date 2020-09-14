@@ -23,7 +23,7 @@ optional<Token_ptr> TokenPipe::current() const
 	return make_optional(tokens[index]);
 }
 
-std::optional<Token_ptr> TokenPipe::lookahead() const
+optional<Token_ptr> TokenPipe::lookahead() const
 {
 	if ((size_t)index + 1 >= tokens.size())
 	{
@@ -35,6 +35,11 @@ std::optional<Token_ptr> TokenPipe::lookahead() const
 
 optional<Token_ptr> TokenPipe::optional(WTokenType token_type)
 {
+	if (token_type != WTokenType::EOL)
+	{
+		ignore_whitespace();
+	}
+
 	auto token = current();
 
 	if (token.has_value() && token.value()->type == token_type)
@@ -48,21 +53,17 @@ optional<Token_ptr> TokenPipe::optional(WTokenType token_type)
 
 Token_ptr TokenPipe::require(WTokenType token_type)
 {
+	if (token_type != WTokenType::EOL)
+	{
+		ignore_whitespace();
+	}
+
 	auto token = current();
 	OPT_CHECK(token);
 	ASSERT(token.value()->type == token_type, "Token has an incorrect type");
 
 	advance_pointer();
 	return token.value();
-}
-
-void TokenPipe::expect(WTokenType token_type)
-{
-	auto token = current();
-	OPT_CHECK(token);
-	ASSERT(token.value()->type == token_type, "Token has an incorrect type");
-
-	advance_pointer();
 }
 
 void TokenPipe::ignore_whitespace()

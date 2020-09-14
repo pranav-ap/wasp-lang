@@ -16,7 +16,6 @@
 #include <memory>
 #include <variant>
 
-struct VariableDefinitionExpression;
 struct TernaryCondition;
 struct SpreadExpression;
 struct TypePattern;
@@ -25,7 +24,7 @@ struct ListLiteral;
 struct TupleLiteral;
 struct SetLiteral;
 struct MapLiteral;
-struct UDTConstruct;
+struct NewObject;
 struct EnumMember;
 struct Identifier;
 struct Call;
@@ -37,13 +36,12 @@ using Expression = AST_API std::variant<
 	std::monostate,
 	int, double, std::wstring, bool,
 	ListLiteral, TupleLiteral, SetLiteral,
-	MapLiteral, UDTConstruct, EnumMember,
+	MapLiteral, NewObject, EnumMember,
 	Identifier, Call,
 	Assignment,
 	Prefix, Infix, Postfix,
 	TypePattern, SpreadExpression,
-	TernaryCondition,
-	VariableDefinitionExpression
+	TernaryCondition
 >;
 
 using Expression_ptr = AST_API std::shared_ptr<Expression>;
@@ -98,12 +96,12 @@ struct AST_API MapLiteral
 		: pairs(pairs) {};
 };
 
-struct AST_API UDTConstruct
+struct AST_API NewObject
 {
 	std::wstring UDT_name;
 	ExpressionVector expressions;
 
-	UDTConstruct(std::wstring UDT_name, ExpressionVector expressions)
+	NewObject(std::wstring UDT_name, ExpressionVector expressions)
 		: UDT_name(UDT_name), expressions(expressions) {};
 };
 
@@ -182,13 +180,4 @@ struct AST_API TernaryCondition
 
 	TernaryCondition(Expression_ptr condition, Expression_ptr true_expression, Expression_ptr false_expression)
 		: condition(std::move(condition)), true_expression(std::move(true_expression)), false_expression(std::make_optional(std::move(false_expression))) {};
-};
-
-struct AST_API VariableDefinitionExpression
-{
-	bool is_mutable;
-	Expression_ptr expression;
-
-	VariableDefinitionExpression(bool is_mutable, Expression_ptr expression)
-		: is_mutable(is_mutable), expression(std::move(expression)) {};
 };

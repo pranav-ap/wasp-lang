@@ -19,7 +19,8 @@
 
 struct File;
 struct Module;
-struct Branching;
+struct IfBranch;
+struct ElseBranch;
 struct WhileLoop;
 struct ForInLoop;
 struct Break;
@@ -45,7 +46,7 @@ using Statement = AST_API std::variant<
 
 	File,
 	Module,
-	Branching,
+	IfBranch, ElseBranch,
 	WhileLoop, ForInLoop,
 	Break, Continue,
 	Return, YieldStatement,
@@ -64,18 +65,28 @@ using Statement = AST_API std::variant<
 
 using Statement_ptr = AST_API std::shared_ptr<Statement>;
 using Block = AST_API std::vector<Statement_ptr>;
-using ConditionBlockPairs = AST_API std::vector<std::pair<Expression_ptr, Block>>;
 using StringVector = AST_API std::vector<std::wstring>;
 
-// Branching
+// IfBranch
 
-struct AST_API Branching
+struct AST_API IfBranch
 {
-	ConditionBlockPairs branches;
-	Block else_block;
+	Expression_ptr test;
+	Block body;
+	std::optional<Statement_ptr> alternative;
 
-	Branching(ConditionBlockPairs branches, Block else_block)
-		: branches(branches), else_block(else_block) {};
+	IfBranch(Expression_ptr test, Block body)
+		: test(test), body(body) {};
+
+	IfBranch(Expression_ptr test, Block body, Statement_ptr alternative)
+		: test(test), body(body), alternative(std::make_optional(alternative)) {};
+};
+
+struct AST_API ElseBranch
+{
+	Block body;
+
+	ElseBranch(Block body) : body(body) {};
 };
 
 // Looping

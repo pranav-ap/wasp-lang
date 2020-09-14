@@ -42,7 +42,8 @@ std::wstring ASTVisualizer::quote(std::wstring part)
 void ASTVisualizer::visit(const Statement_ptr statement, int parent_id)
 {
 	std::visit(overloaded{
-		[&](Branching const& stat) { visit(stat, parent_id); },
+		[&](IfBranch const& stat) { visit(stat, parent_id); },
+		[&](ElseBranch const& stat) { visit(stat, parent_id); },
 		[&](WhileLoop const& stat) { visit(stat, parent_id); },
 		[&](ForInLoop const& stat) { visit(stat, parent_id); },
 		[&](Break const& stat) { visit(stat, parent_id); },
@@ -76,27 +77,25 @@ void ASTVisualizer::visit(std::vector<Statement_ptr> const& statements, int pare
 	}
 }
 
-void ASTVisualizer::visit(Branching const& statement, int parent_id)
+void ASTVisualizer::visit(IfBranch const& statement, int parent_id)
 {
-	int branch_count = 1;
+	const int id = id_counter++;
+	save(id, parent_id, L"If");
 
-	for (const auto [pattern, block] : statement.branches)
+	visit(statement.test, id);
+	visit(statement.body, id);
+
+	if (statement.alternative.has_value())
 	{
-		const int if_id = id_counter++;
-		save(if_id, parent_id, (branch_count == 1) ? L"if" : L"elif");
-
-		visit(pattern, if_id);
-		visit(block, if_id);
-
-		branch_count++;
+		visit(statement.alternative.value(), id);
 	}
+}
 
-	if (statement.else_block.size() > 0)
-	{
-		const int else_id = id_counter++;
-		save(else_id, parent_id, L"else");
-		visit(statement.else_block, else_id);
-	}
+void ASTVisualizer::visit(ElseBranch const& statement, int parent_id)
+{
+	const int id = id_counter++;
+	save(id, parent_id, L"else");
+	visit(statement.body, id);
 }
 
 void ASTVisualizer::visit(WhileLoop const& statement, int parent_id)
@@ -317,7 +316,7 @@ void ASTVisualizer::visit(const Expression_ptr expression, int parent_id)
 		[&](TupleLiteral const& expr) { visit(expr, parent_id); },
 		[&](SetLiteral const& expr) { visit(expr, parent_id); },
 		[&](MapLiteral const& expr) { visit(expr, parent_id); },
-		[&](UDTConstruct const& expr) { visit(expr, parent_id); },
+		[&](NewObject const& expr) { visit(expr, parent_id); },
 		[&](EnumMember const& expr) { visit(expr, parent_id); },
 		[&](Identifier const& expr) { visit(expr, parent_id); },
 		[&](Call const& expr) { visit(expr, parent_id); },
@@ -328,9 +327,8 @@ void ASTVisualizer::visit(const Expression_ptr expression, int parent_id)
 		[&](Assignment const& expr) { visit(expr, parent_id); },
 		[&](SpreadExpression const& expr) { visit(expr, parent_id); },
 		[&](TernaryCondition const& expr) { visit(expr, parent_id); },
-		[&](VariableDefinitionExpression const& expr) { visit(expr, parent_id); },
 
-		[](auto) {FATAL("Never seen this Expression before! So I cannot print it!"); }
+		[](auto) { FATAL("Never seen this Expression before! So I cannot print it!"); }
 		}, *expression);
 }
 
@@ -394,7 +392,7 @@ void ASTVisualizer::visit(MapLiteral const& expr, int parent_id)
 	save(id, parent_id, L"Map Literal");
 }
 
-void ASTVisualizer::visit(UDTConstruct const& expr, int parent_id)
+void ASTVisualizer::visit(NewObject const& expr, int parent_id)
 {
 	const int id = id_counter++;
 	save(id, parent_id, expr.UDT_name);
@@ -492,14 +490,6 @@ void ASTVisualizer::visit(TernaryCondition const& expr, int parent_id)
 		save(else_id, if_id, L"else");
 		visit(expr.false_expression.value(), else_id);
 	}
-}
-
-void ASTVisualizer::visit(VariableDefinitionExpression const& expr, int parent_id)
-{
-	const int id = id_counter++;
-	save(id, parent_id, (expr.is_mutable) ? L"const" : L"let");
-
-	visit(expr.expression, id);
 }
 
 // Type
