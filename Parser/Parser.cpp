@@ -242,6 +242,10 @@ Statement_ptr Parser::parse_statement(bool is_public)
 		CASE(WTokenType::BREAK, parse_break());
 		CASE(WTokenType::CONTINUE, parse_continue());
 
+		CASE(WTokenType::PREFIX, parse_prefix_definition(is_public));
+		CASE(WTokenType::POSTFIX, parse_postfix_definition(is_public));
+		CASE(WTokenType::INFIX, parse_infix_definition(is_public));
+
 	default:
 	{
 		RETREAT_PTR;
@@ -271,6 +275,11 @@ Statement_ptr Parser::parse_public_statement()
 
 		CASE(WTokenType::LET, parse_variable_definition(is_public, true));
 		CASE(WTokenType::CONST_KEYWORD, parse_variable_definition(is_public, false));
+
+		CASE(WTokenType::PREFIX, parse_prefix_definition(is_public));
+		CASE(WTokenType::POSTFIX, parse_postfix_definition(is_public));
+		CASE(WTokenType::INFIX, parse_infix_definition(is_public));
+
 	default:
 	{
 		FATAL("UNEXPECTED_KEYWORD");
@@ -473,8 +482,6 @@ Expression_ptr Parser::parse_ternary_condition(Expression_ptr condition)
 		auto false_expression = parse_expression();
 		return MAKE_EXPRESSION(TernaryCondition(move(condition), move(true_expression), move(false_expression)));
 	}
-
-	token_pipe->require(WTokenType::EOL);
 
 	return MAKE_EXPRESSION(TernaryCondition(move(condition), move(true_expression)));
 }
@@ -697,7 +704,7 @@ Type_ptr Parser::parse_map_type(bool is_optional)
 	return MAKE_TYPE(MapType(move(key_type), move(value_type)));
 }
 
-std::tuple<TypeVector, std::optional<Type_ptr>> Parser::parse_callable_type()
+tuple<TypeVector, optional<Type_ptr>> Parser::parse_callable_type()
 {
 	TypeVector input_types;
 
@@ -1038,7 +1045,7 @@ tuple<wstring, wstring, bool, StringVector, TypeVector, optional<Type_ptr>, Bloc
 Statement_ptr Parser::parse_function_definition(bool is_public)
 {
 	auto [first_identifier, second_identifier, is_method, arguments, argument_types, optional_return_type, block] = parse_callable_definition();
-	Type_ptr function_type = std::make_shared<Type>(FunctionType(argument_types, optional_return_type));
+	Type_ptr function_type = MAKE_TYPE(FunctionType(argument_types, optional_return_type));
 
 	if (is_method)
 	{
@@ -1059,4 +1066,72 @@ Statement_ptr Parser::parse_generator_definition(bool is_public)
 	}
 
 	return MAKE_STATEMENT(GeneratorDefinition(is_public, first_identifier, arguments, function_type, block));
+}
+
+tuple<wstring, StringVector, TypeVector, optional<Type_ptr>, Block> Parser::parse_operator_definition()
+{
+	auto first_identifier = token_pipe->require(WTokenType::IDENTIFIER);
+	NULL_CHECK(first_identifier);
+
+	token_pipe->require(WTokenType::OPEN_PARENTHESIS);
+
+	StringVector arguments;
+	TypeVector argument_types;
+
+	if (!token_pipe->optional(WTokenType::CLOSE_PARENTHESIS))
+	{
+		while (true)
+		{
+			auto [identifier, type] = consume_identifier_type_pair();
+			arguments.push_back(identifier);
+			argument_types.push_back(type);
+
+			if (token_pipe->optional(WTokenType::COMMA))
+				continue;
+
+			token_pipe->require(WTokenType::CLOSE_PARENTHESIS);
+			break;
+		}
+	}
+
+	optional<Type_ptr> optional_return_type = std::nullopt;
+
+	if (token_pipe->optional(WTokenType::ARROW))
+	{
+		auto return_type = parse_type();
+		optional_return_type = std::make_optional(return_type);
+	}
+
+	token_pipe->require(WTokenType::EOL);
+
+	Block block = parse_block();
+
+	return make_tuple(first_identifier->value, arguments, argument_types, optional_return_type, block);
+}
+
+Statement_ptr Parser::parse_prefix_definition(bool is_public)
+{
+	auto [operator_symbol, arguments, argument_types, optional_return_type, body] = parse_operator_definition();
+	Type_ptr operator_type = MAKE_TYPE(OperatorType(OperatorPosition::Prefix, argument_types, optional_return_type));
+
+	ASSERT(arguments.size() == 1, "One input argument must be defined");
+	return MAKE_STATEMENT(PrefixOperatorDefinition(is_public, operator_symbol, operator_type, body, arguments.front()));
+}
+
+Statement_ptr Parser::parse_postfix_definition(bool is_public)
+{
+	auto [operator_symbol, arguments, argument_types, optional_return_type, body] = parse_operator_definition();
+	Type_ptr operator_type = MAKE_TYPE(OperatorType(OperatorPosition::Postfix, argument_types, optional_return_type));
+
+	ASSERT(arguments.size() == 1, "One input argument must be defined");
+	return MAKE_STATEMENT(PrefixOperatorDefinition(is_public, operator_symbol, operator_type, body, arguments.front()));
+}
+
+Statement_ptr Parser::parse_infix_definition(bool is_public)
+{
+	auto [operator_symbol, arguments, argument_types, optional_return_type, body] = parse_operator_definition();
+	Type_ptr operator_type = MAKE_TYPE(OperatorType(OperatorPosition::Prefix, argument_types, optional_return_type));
+
+	ASSERT(arguments.size() == 2, "Two input arguments must be defined");
+	return MAKE_STATEMENT(InfixOperatorDefinition(is_public, operator_symbol, operator_type, body, arguments[0], arguments[1]));
 }

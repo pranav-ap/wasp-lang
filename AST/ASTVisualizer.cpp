@@ -103,7 +103,7 @@ void ASTVisualizer::visit(WhileLoop const& statement, int parent_id)
 	const int id = id_counter++;
 	save(id, parent_id, L"while");
 
-	visit(statement.pattern, id);
+	visit(statement.expression, id);
 	visit(statement.block, id);
 }
 
@@ -112,7 +112,7 @@ void ASTVisualizer::visit(ForInLoop const& statement, int parent_id)
 	const int id = id_counter++;
 	save(id, parent_id, L"for");
 
-	visit(statement.pattern, id);
+	visit(statement.expression, id);
 	visit(statement.block, id);
 }
 
@@ -301,6 +301,45 @@ void ASTVisualizer::visit(Module const& statement, int parent_id)
 	const int id = id_counter++;
 	save(id, parent_id, L"Module " + statement.name);
 	visit(statement.statements, id);
+}
+
+void ASTVisualizer::visit(InfixOperatorDefinition const& statement, int parent_id)
+{
+	const int id = id_counter++;
+	save(id, parent_id, L"Infix Operator Definition " + statement.name);
+
+	visit(statement.type, id);
+
+	if (statement.body.size() > 0)
+	{
+		visit(statement.body, id);
+	}
+}
+
+void ASTVisualizer::visit(PrefixOperatorDefinition const& statement, int parent_id)
+{
+	const int id = id_counter++;
+	save(id, parent_id, L"Prefix Operator Definition " + statement.name);
+
+	visit(statement.type, id);
+
+	if (statement.body.size() > 0)
+	{
+		visit(statement.body, id);
+	}
+}
+
+void ASTVisualizer::visit(PostfixOperatorDefinition const& statement, int parent_id)
+{
+	const int id = id_counter++;
+	save(id, parent_id, L"Postfix Operator Definition " + statement.name);
+
+	visit(statement.type, id);
+
+	if (statement.body.size() > 0)
+	{
+		visit(statement.body, id);
+	}
 }
 
 // Expression

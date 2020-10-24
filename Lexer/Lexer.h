@@ -41,6 +41,10 @@ const std::map<std::wstring, WTokenType> keyword_map =
 	{ L"gen", WTokenType::GEN },
 	{ L"yield", WTokenType::YIELD_KEYWORD },
 
+	{ L"infix", WTokenType::INFIX },
+	{ L"prefix", WTokenType::PREFIX },
+	{ L"postfix", WTokenType::POSTFIX },
+
 	{ L"module", WTokenType::MODULE_KEYWORD },
 
 	{ L"typeof", WTokenType::TYPE_OF },
@@ -62,6 +66,7 @@ const std::map<std::wstring, WTokenType> keyword_map =
 
 	{ L"implore", WTokenType::IMPLORE },
 	{ L"swear", WTokenType::SWEAR },
+	{ L"assert", WTokenType::ASSERT },
 
 	{ L"then", WTokenType::THEN },
 	{ L"do", WTokenType::DO },
@@ -70,8 +75,7 @@ const std::map<std::wstring, WTokenType> keyword_map =
 	{ L"false", WTokenType::FALSE_KEYWORD },
 
 	{ L"new", WTokenType::NEW },
-	{ L"pub", WTokenType::PUB },
-	{ L"assert", WTokenType::ASSERT }
+	{ L"pub", WTokenType::PUB }
 };
 
 class LEXER_API Lexer

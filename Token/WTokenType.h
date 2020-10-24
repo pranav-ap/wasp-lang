@@ -108,6 +108,10 @@ enum class TOKEN_API WTokenType
 	GEN,
 	YIELD_KEYWORD,
 
+	INFIX,
+	POSTFIX,
+	PREFIX,
+
 	TYPE,
 	NONE,
 	INT,

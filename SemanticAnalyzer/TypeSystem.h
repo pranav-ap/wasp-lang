@@ -34,5 +34,3 @@ public:
 };
 
 using TypeSystem_ptr = std::shared_ptr<TypeSystem>;
-
-;

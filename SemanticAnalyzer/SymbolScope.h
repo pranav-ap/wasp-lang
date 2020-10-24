@@ -8,9 +8,9 @@
 
 enum class ScopeType
 {
+	FILE,
 	CONDITIONAL,
 	LOOP,
-	FILE,
 	FUNCTION,
 	GENERATOR
 };
@@ -30,7 +30,7 @@ public:
 		: scope_type(ScopeType::FILE), enclosing_scope(std::nullopt) {};
 
 	SymbolScope(SymbolScope_ptr enclosing_scope, ScopeType scope_type)
-		:scope_type(scope_type), enclosing_scope(enclosing_scope) {};
+		: scope_type(scope_type), enclosing_scope(enclosing_scope) {};
 
 	void define(std::wstring name, Symbol_ptr symbol);
 	std::optional<Symbol_ptr> lookup(std::wstring name);

@@ -4,6 +4,7 @@
 #include "Symbol.h"
 #include "SymbolScope.h"
 #include "Statement.h"
+#include "Expression.h"
 #include "Assertion.h"
 #include <variant>
 #include <vector>
@@ -23,14 +24,14 @@ using std::get_if;
 using std::make_shared;
 using std::move;
 
-void SemanticAnalyzer::execute(const Module_ptr module_ast)
+void SemanticAnalyzer::execute(const File_ptr ast)
 {
 	current_scope = std::make_shared<SymbolScope>();
 	type_system = std::make_shared<TypeSystem>();
 
 	enter_scope(ScopeType::FILE);
 
-	for (auto statement : module_ast->statements)
+	for (auto statement : ast->statements)
 	{
 		visit(statement);
 	}
@@ -43,23 +44,29 @@ void SemanticAnalyzer::execute(const Module_ptr module_ast)
 void SemanticAnalyzer::visit(const Statement_ptr statement)
 {
 	std::visit(overloaded{
-		[&](Assignment const& stat) { visit(stat); },
-		[&](Branching const& stat) { visit(stat); },
+		[&](IfBranch const& stat) { visit(stat); },
+		[&](ElseBranch const& stat) { visit(stat); },
 		[&](WhileLoop const& stat) { visit(stat); },
 		[&](ForInLoop const& stat) { visit(stat); },
 		[&](Break const& stat) { visit(stat); },
 		[&](Continue const& stat) { visit(stat); },
-		[&](Pass const& stat) { visit(stat); },
 		[&](Return const& stat) { visit(stat); },
 		[&](YieldStatement const& stat) { visit(stat); },
 		[&](VariableDefinition const& stat) { visit(stat); },
-		[&](UDTDefinition const& stat) { visit(stat); },
+		[&](ClassDefinition const& stat) { visit(stat); },
+		[&](InterfaceDefinition const& stat) { visit(stat); },
 		[&](AliasDefinition const& stat) { visit(stat); },
-		[&](FunctionDefinition const& stat) { visit(stat); },
-		[&](GeneratorDefinition const& stat) { visit(stat); },
+		[&](FunctionMethodDefinition const& stat) { visit(stat); },
+		[&](GeneratorMethodDefinition const& stat) { visit(stat); },
 		[&](EnumDefinition const& stat) { visit(stat); },
 		[&](ExpressionStatement const& stat) { visit(stat); },
-		[&](AssertStatement const& stat) { visit(stat); },
+		[&](Assert const& stat) { visit(stat); },
+		[&](Implore const& stat) { visit(stat); },
+		[&](Swear const& stat) { visit(stat); },
+		[&](Module const& stat) { visit(stat); },
+		[&](InfixOperatorDefinition const& stat) { visit(stat); },
+		[&](PrefixOperatorDefinition const& stat) { visit(stat); },
+		[&](PostfixOperatorDefinition const& stat) { visit(stat); },
 
 		[](auto) { FATAL("Never Seen this Statement before!"); }
 		}, *statement);
@@ -73,54 +80,28 @@ void SemanticAnalyzer::visit(std::vector<Statement_ptr> const& block)
 	}
 }
 
-void SemanticAnalyzer::visit(Assignment const& statement)
+void SemanticAnalyzer::visit(IfBranch const& statement)
 {
-	std::optional<Symbol_ptr> symbol = current_scope->lookup(statement.name);
-	OPT_CHECK(symbol);
-
-	Type_ptr lhs_type = std::visit(overloaded{
-		[&](VariableSymbol const& sym) { return sym.type; },
-		[&](CallableSymbol const& sym) { return sym.type; },
-		[&](EnumSymbol const& sym) { return sym.type; },
-		[&](UDTSymbol const& sym) { return sym.type; },
-		[&](AliasSymbol const& sym) { return sym.type; },
-
-		[](auto)
-		{
-			FATAL("Never Seen this Statement before!");
-			return MAKE_TYPE(NoneType());
-		}
-		}, *symbol.value());
-
-	Type_ptr rhs_type = visit(statement.expression);
-	ASSERT(type_system->assignable(current_scope, lhs_type, rhs_type), "Type mismatch in assignment");
-}
-
-void SemanticAnalyzer::visit(Branching const& statement)
-{
-	for (const auto branch : statement.branches)
-	{
-		auto condition = branch.first;
-		Type_ptr condition_type = visit(condition);
-		ASSERT(type_system->is_boolean_type(condition_type), "Boolean operand is expected");
-
-		auto body = branch.second;
-
-		enter_scope(ScopeType::CONDITIONAL);
-		visit(body);
-		leave_scope();
-	}
-
-	auto else_body = statement.else_block;
+	Type_ptr condition_type = visit(statement.test);
+	ASSERT(type_system->is_boolean_type(condition_type), "Boolean operand is expected");
 
 	enter_scope(ScopeType::CONDITIONAL);
-	visit(else_body);
+	visit(statement.body);
 	leave_scope();
+
+	if (statement.alternative.has_value())
+	{
+		visit(statement.alternative.value());
+	}
+}
+
+void SemanticAnalyzer::visit(ElseBranch const& statement)
+{
 }
 
 void SemanticAnalyzer::visit(WhileLoop const& statement)
 {
-	Type_ptr condition_type = visit(statement.condition);
+	Type_ptr condition_type = visit(statement.expression);
 	ASSERT(type_system->is_boolean_type(condition_type), "Boolean operand is expected");
 
 	enter_scope(ScopeType::LOOP);
@@ -153,16 +134,6 @@ void SemanticAnalyzer::visit(Break const& statement)
 void SemanticAnalyzer::visit(Continue const& statement)
 {
 	ASSERT(current_scope->enclosed_in(ScopeType::LOOP), "Continue is not expected in this block");
-}
-
-void SemanticAnalyzer::visit(Pass const& statement)
-{
-	ASSERT(current_scope->enclosed_in({
-		ScopeType::CONDITIONAL,
-		ScopeType::FUNCTION,
-		ScopeType::GENERATOR,
-		ScopeType::LOOP,
-		}), "Pass is not expected in this block");
 }
 
 void SemanticAnalyzer::visit(Return const& statement)
@@ -203,19 +174,12 @@ void SemanticAnalyzer::visit(VariableDefinition const& statement)
 	current_scope->define(statement.name, symbol);
 }
 
-void SemanticAnalyzer::visit(UDTDefinition const& statement)
+void SemanticAnalyzer::visit(ClassDefinition const& statement)
 {
-	auto type = MAKE_TYPE(UDTType(statement.name));
+}
 
-	auto symbol = MAKE_SYMBOL(UDTSymbol(
-		statement.name,
-		statement.is_public,
-		statement.member_types,
-		statement.public_members,
-		type
-	));
-
-	current_scope->define(statement.name, symbol);
+void SemanticAnalyzer::visit(InterfaceDefinition const& statement)
+{
 }
 
 void SemanticAnalyzer::visit(AliasDefinition const& statement)
@@ -229,7 +193,7 @@ void SemanticAnalyzer::visit(AliasDefinition const& statement)
 	current_scope->define(statement.name, symbol);
 }
 
-void SemanticAnalyzer::visit(FunctionDefinition const& statement)
+void SemanticAnalyzer::visit(FunctionMethodDefinition const& statement)
 {
 	auto symbol = MAKE_SYMBOL(CallableSymbol(
 		statement.name,
@@ -245,7 +209,7 @@ void SemanticAnalyzer::visit(FunctionDefinition const& statement)
 	leave_scope();
 }
 
-void SemanticAnalyzer::visit(GeneratorDefinition const& statement)
+void SemanticAnalyzer::visit(GeneratorMethodDefinition const& statement)
 {
 	auto symbol = MAKE_SYMBOL(CallableSymbol(
 		statement.name,
@@ -280,10 +244,34 @@ void SemanticAnalyzer::visit(ExpressionStatement const& statement)
 	visit(statement.expression);
 }
 
-void SemanticAnalyzer::visit(AssertStatement const& statement)
+void SemanticAnalyzer::visit(Assert const& statement)
 {
 	Type_ptr type = visit(statement.expression);
 	ASSERT(type_system->is_boolean_type(type), "Boolean operand is expected");
+}
+
+void SemanticAnalyzer::visit(Implore const& statement)
+{
+}
+
+void SemanticAnalyzer::visit(Swear const& statement)
+{
+}
+
+void SemanticAnalyzer::visit(Module const& statement)
+{
+}
+
+void SemanticAnalyzer::visit(InfixOperatorDefinition const& statement)
+{
+}
+
+void SemanticAnalyzer::visit(PrefixOperatorDefinition const& statement)
+{
+}
+
+void SemanticAnalyzer::visit(PostfixOperatorDefinition const& statement)
+{
 }
 
 // Expression
@@ -297,13 +285,18 @@ Type_ptr SemanticAnalyzer::visit(const Expression_ptr expression)
 		[&](ListLiteral const& expr) { return visit(expr); },
 		[&](TupleLiteral const& expr) {return  visit(expr); },
 		[&](MapLiteral const& expr) { return visit(expr); },
-		[&](UDTConstruct const& expr) { return visit(expr); },
-		[&](UDTMemberAccess const& expr) { return visit(expr); },
+		[&](SetLiteral const& expr) { return visit(expr); },
+		[&](NewObject const& expr) { return visit(expr); },
+		[&](TernaryCondition const& expr) { return visit(expr); },
 		[&](EnumMember const& expr) { return visit(expr); },
 		[&](Identifier const& expr) { return visit(expr); },
-		[&](Unary const& expr) { return visit(expr); },
-		[&](Binary const& expr) { return visit(expr); },
+		[&](Prefix const& expr) { return visit(expr); },
+		[&](Infix const& expr) { return visit(expr); },
+		[&](Postfix const& expr) { return visit(expr); },
 		[&](Call const& expr) { return visit(expr); },
+		[&](SpreadExpression const& expr) { return visit(expr); },
+		[&](TypePattern const& expr) { return visit(expr); },
+		[&](Assignment const& expr) { return visit(expr); },
 
 		[&](auto)
 		{
@@ -363,6 +356,20 @@ Type_ptr SemanticAnalyzer::visit(TupleLiteral const& expr)
 	return tuple_type;
 }
 
+Type_ptr SemanticAnalyzer::visit(SetLiteral const& expr)
+{
+	TypeVector types;
+
+	for (auto const term : expr.expressions)
+	{
+		Type_ptr term_type = visit(term);
+		types.push_back(move(term_type));
+	}
+
+	Type_ptr tuple_type = MAKE_TYPE(TupleType(types));
+	return tuple_type;
+}
+
 Type_ptr SemanticAnalyzer::visit(MapLiteral const& expr)
 {
 	TypeVector key_types;
@@ -384,17 +391,45 @@ Type_ptr SemanticAnalyzer::visit(MapLiteral const& expr)
 	return map_type;
 }
 
-Type_ptr SemanticAnalyzer::visit(UDTConstruct const& expr)
+Type_ptr SemanticAnalyzer::visit(Assignment const& expr)
 {
-	std::optional<Symbol_ptr> symbol = current_scope->lookup(expr.UDT_name);
+	std::optional<Symbol_ptr> symbol = current_scope->lookup(statement.name);
 	OPT_CHECK(symbol);
-	ASSERT(holds_alternative<UDTSymbol>(*symbol.value()), "This is not a UDT!");
 
-	// must check args
+	Type_ptr lhs_type = std::visit(overloaded{
+		[&](VariableSymbol const& sym) { return sym.type; },
+		[&](CallableSymbol const& sym) { return sym.type; },
+		[&](EnumSymbol const& sym) { return sym.type; },
+		[&](UDTSymbol const& sym) { return sym.type; },
+		[&](AliasSymbol const& sym) { return sym.type; },
+
+		[](auto)
+		{
+			FATAL("Never Seen this Statement before!");
+			return MAKE_TYPE(NoneType());
+		}
+		}, *symbol.value());
+
+	Type_ptr rhs_type = visit(statement.expression);
+	ASSERT(type_system->assignable(current_scope, lhs_type, rhs_type), "Type mismatch in assignment");
+}
+
+Type_ptr SemanticAnalyzer::visit(TernaryCondition const& expr)
+{
 	return MAKE_TYPE(NoneType());
 }
 
-Type_ptr SemanticAnalyzer::visit(UDTMemberAccess const& expr)
+Type_ptr SemanticAnalyzer::visit(SpreadExpression const& expr)
+{
+	return MAKE_TYPE(NoneType());
+}
+
+Type_ptr SemanticAnalyzer::visit(TypePattern const& expr)
+{
+	return MAKE_TYPE(NoneType());
+}
+
+Type_ptr SemanticAnalyzer::visit(NewObject const& expr)
 {
 	return MAKE_TYPE(NoneType());
 }
@@ -470,7 +505,7 @@ Type_ptr SemanticAnalyzer::visit(Call const& expr)
 	return type_system->get_none_type();
 }
 
-Type_ptr SemanticAnalyzer::visit(Unary const& expr)
+Type_ptr SemanticAnalyzer::visit(Prefix const& expr)
 {
 	Type_ptr operand_type = visit(expr.operand);
 
@@ -497,7 +532,34 @@ Type_ptr SemanticAnalyzer::visit(Unary const& expr)
 	return MAKE_TYPE(NoneType());
 }
 
-Type_ptr SemanticAnalyzer::visit(Binary const& expr)
+Type_ptr SemanticAnalyzer::visit(Postfix const& expr)
+{
+	Type_ptr operand_type = visit(expr.operand);
+
+	switch (expr.op->type)
+	{
+	case WTokenType::PLUS:
+	case WTokenType::UNARY_MINUS:
+	{
+		ASSERT(type_system->is_number_type(operand_type), "Number operand is expected");
+		return type_system->get_number_type();
+	}
+	case WTokenType::BANG:
+	{
+		ASSERT(type_system->is_boolean_type(operand_type), "Boolean operand is expected");
+		return MAKE_TYPE(BooleanType());
+	}
+	default:
+	{
+		FATAL("What the hell is this unary statement?");
+		break;
+	}
+	}
+
+	return MAKE_TYPE(NoneType());
+}
+
+Type_ptr SemanticAnalyzer::visit(Infix const& expr)
 {
 	Type_ptr lhs_operand_type = visit(expr.left);
 	Type_ptr rhs_operand_type = visit(expr.right);

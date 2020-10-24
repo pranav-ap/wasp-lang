@@ -22,7 +22,7 @@ let [a : int, ...b : string, c : string] = some_list
 
 if a > 3 and r == 3 then
     345
-elif a > 3  then
+elif a > 3 then
     567
 else
     5671
@@ -32,7 +32,7 @@ end
 if a > 3 then call() else 4
 
 
-if let x : int = call() then
+if x : int = call() then
     x = 1
 else
     x = 3
@@ -42,9 +42,10 @@ end
 for x : int in [1, 2, 3] do call(x)
 
 
-for i : int in 1 to 8 step 2 do // to, downto
+for i : int in range(34, 4, 12) do
     print(i)
 end
+
 
 while expr do
     a = a + 4
@@ -82,6 +83,7 @@ type length = int
 type length = int | string
 type WindowStates = "open" | "closed" | "minimized"
 
+// UC
 
 match thing then
     case "open" : string then
@@ -93,7 +95,7 @@ match thing then
 end
 
 
-interface ICastle :
+interface ICastle
     lng: int const
     lat: int const
 
@@ -113,7 +115,7 @@ type Castle ~ ICastle < Building
 end
 
 
-fn constructor(name: string)
+fn Castle::constructor(name: string)
     self.name = name
 end
 
@@ -122,8 +124,7 @@ fn Castle::defend() => any
     x = 43
 end
 
-
-operator a : num + b : num => num :
+infix + (a : num, b : num) => num
     return a + b
 end
 
@@ -131,6 +132,7 @@ end
 module Hello
 end
 
+// UC
 
 try
 catch

@@ -31,6 +31,7 @@ struct VariantType;
 struct NoneType;
 struct FunctionType;
 struct GeneratorType;
+struct OperatorType;
 
 using Type = AST_API std::variant<
 	std::monostate,
@@ -41,7 +42,8 @@ using Type = AST_API std::variant<
 	UDTType, MapType,
 	EnumType,
 	VariantType, NoneType,
-	FunctionType, GeneratorType
+	FunctionType, GeneratorType,
+	OperatorType
 >;
 
 using Type_ptr = AST_API std::shared_ptr<Type>;
@@ -181,4 +183,19 @@ struct AST_API GeneratorType : public CallableType
 {
 	GeneratorType(TypeVector input_types, std::optional<Type_ptr> return_type)
 		: CallableType(input_types, return_type) {};
+};
+
+enum class AST_API OperatorPosition
+{
+	Infix,
+	Prefix,
+	Postfix
+};
+
+struct AST_API OperatorType : public CallableType
+{
+	OperatorPosition position;
+
+	OperatorType(OperatorPosition position, TypeVector input_types, std::optional<Type_ptr> return_type)
+		: CallableType(input_types, return_type), position(position) {};
 };

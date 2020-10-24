@@ -40,8 +40,11 @@ struct ExpressionStatement;
 struct Assert;
 struct Implore;
 struct Swear;
+struct InfixOperatorDefinition;
+struct PrefixOperatorDefinition;
+struct PostfixOperatorDefinition;
 
-using Statement = AST_API std::variant<
+using Statement = AST_API std::variant <
 	std::monostate,
 
 	File,
@@ -58,16 +61,20 @@ using Statement = AST_API std::variant<
 	FunctionMethodDefinition,
 	GeneratorMethodDefinition,
 
+	InfixOperatorDefinition,
+	PrefixOperatorDefinition,
+	PostfixOperatorDefinition,
+
 	ExpressionStatement,
 	Assert,
 	Implore, Swear
->;
+> ;
 
 using Statement_ptr = AST_API std::shared_ptr<Statement>;
 using Block = AST_API std::vector<Statement_ptr>;
 using StringVector = AST_API std::vector<std::wstring>;
 
-// IfBranch
+// Branching
 
 struct AST_API IfBranch
 {
@@ -93,20 +100,20 @@ struct AST_API ElseBranch
 
 struct AST_API WhileLoop
 {
-	Expression_ptr pattern;
+	Expression_ptr expression;
 	Block block;
 
-	WhileLoop(Expression_ptr pattern, Block block)
-		: pattern(std::move(pattern)), block(block) {};
+	WhileLoop(Expression_ptr expression, Block block)
+		: expression(std::move(expression)), block(block) {};
 };
 
 struct AST_API ForInLoop
 {
-	Expression_ptr pattern;
+	Expression_ptr expression;
 	Block block;
 
-	ForInLoop(Expression_ptr pattern, Block block)
-		: block(block), pattern(std::move(pattern)) {};
+	ForInLoop(Expression_ptr expression, Block block)
+		: block(block), expression(std::move(expression)) {};
 };
 
 struct AST_API Break
@@ -119,15 +126,6 @@ struct AST_API Continue
 
 // Definitions
 
-struct AST_API Definition
-{
-	bool is_public;
-	std::wstring name;
-
-	Definition(bool is_public, std::wstring name)
-		: is_public(is_public), name(name) {};
-};
-
 struct AST_API VariableDefinition
 {
 	bool is_public;
@@ -136,6 +134,15 @@ struct AST_API VariableDefinition
 
 	VariableDefinition(bool is_public, bool is_mutable, Expression_ptr expression)
 		: is_public(is_public), is_mutable(is_mutable), expression(std::move(expression)) {};
+};
+
+struct AST_API Definition
+{
+	bool is_public;
+	std::wstring name;
+
+	Definition(bool is_public, std::wstring name)
+		: is_public(is_public), name(name) {};
 };
 
 struct AST_API UDTDefinition : public Definition
@@ -192,6 +199,40 @@ struct AST_API GeneratorDefinition : public CallableDefinition
 		: CallableDefinition(is_public, name, arguments, type, body) {};
 };
 
+struct AST_API OperatorDefinition : public Definition
+{
+	Type_ptr type;
+	Block body;
+
+	OperatorDefinition(bool is_public, std::wstring operator_symbol, Type_ptr type, Block body)
+		: Definition(is_public, operator_symbol), type(type), body(body) {};
+};
+
+struct AST_API InfixOperatorDefinition : public OperatorDefinition
+{
+	std::wstring lhs_argument;
+	std::wstring rhs_argument;
+
+	InfixOperatorDefinition(bool is_public, std::wstring operator_symbol, Type_ptr type, Block body, std::wstring lhs_argument, std::wstring rhs_argument)
+		: OperatorDefinition(is_public, operator_symbol, type, body), lhs_argument(lhs_argument), rhs_argument(rhs_argument) {};
+};
+
+struct AST_API PrefixOperatorDefinition : public OperatorDefinition
+{
+	std::wstring argument;
+
+	PrefixOperatorDefinition(bool is_public, std::wstring operator_symbol, Type_ptr type, Block body, std::wstring argument)
+		: OperatorDefinition(is_public, operator_symbol, type, body), argument(argument) {};
+};
+
+struct AST_API PostfixOperatorDefinition : public OperatorDefinition
+{
+	std::wstring argument;
+
+	PostfixOperatorDefinition(bool is_public, std::wstring operator_symbol, Type_ptr type, Block body, std::wstring argument)
+		: OperatorDefinition(is_public, operator_symbol, type, body), argument(argument) {};
+};
+
 struct AST_API MethodDefinition
 {
 	std::wstring type_name;
@@ -224,7 +265,7 @@ struct AST_API EnumDefinition : public Definition
 		: Definition(is_public, name), members(members) {};
 };
 
-// Control
+// Return and Yield
 
 struct AST_API Return
 {

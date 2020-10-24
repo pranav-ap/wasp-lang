@@ -4,7 +4,7 @@
 #include "Parser.h"
 #include "Statement.h"
 #include "ASTVisualizer.h"
-//#include "SemanticAnalyzer.h"
+#include "SemanticAnalyzer.h"
 //#include "MemorySystem.h"
 //#include "Compiler.h"
 //#include "CFGBuilder.h"
@@ -30,8 +30,8 @@ int main()
 	ASTVisualizer_ptr vis = make_unique<ASTVisualizer>();
 	vis->generate_dot_file(ast);
 
-	//SemanticAnalyzer_ptr semantic_analyser = make_unique<SemanticAnalyzer>();
-	//semantic_analyser->execute(ast);
+	SemanticAnalyzer_ptr semantic_analyser = make_unique<SemanticAnalyzer>();
+	semantic_analyser->execute(ast);
 
 	//MemorySystem_ptr memory = make_shared<MemorySystem>();
 

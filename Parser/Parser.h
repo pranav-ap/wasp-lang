@@ -80,6 +80,11 @@ class PARSER_API Parser
 	Statement_ptr parse_function_definition(bool is_public);
 	Statement_ptr parse_generator_definition(bool is_public);
 
+	std::tuple<std::wstring, StringVector, TypeVector, std::optional<Type_ptr>, Block> parse_operator_definition();
+	Statement_ptr parse_prefix_definition(bool is_public);
+	Statement_ptr parse_postfix_definition(bool is_public);
+	Statement_ptr parse_infix_definition(bool is_public);
+
 	// Pratt Parser
 
 	std::map<WTokenType, IPrefixParselet_ptr> prefix_parselets;
@@ -98,13 +103,12 @@ class PARSER_API Parser
 public:
 	TokenPipe_ptr token_pipe;
 
+	Parser();
 	Type_ptr parse_type(bool is_optional = false);
-
 	Expression_ptr parse_expression();
 	Expression_ptr parse_expression(int precedence);
 	ExpressionVector parse_expressions();
 
-	Parser();
 	File_ptr execute(std::vector<Token_ptr>& tokens);
 };
 

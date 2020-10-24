@@ -1,4 +1,3 @@
-
 if x : int = call() then
     x = 1
 elif x > 43 then

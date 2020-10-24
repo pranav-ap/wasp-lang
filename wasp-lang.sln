@@ -17,7 +17,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Token", "Token\Token.vcxpro
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{560B1EE8-3F09-41FC-9CAE-127684444538}"
 	ProjectSection(SolutionItems) = preProject
-		examples\main.txt = examples\main.txt
+		examples\main.wasp = examples\main.wasp
+		examples\module.dot = examples\module.dot
+		examples\notes.md = examples\notes.md
+		examples\specs.py = examples\specs.py
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SemanticAnalyzer", "SemanticAnalyzer\SemanticAnalyzer.vcxproj", "{99B2F141-32AF-45E8-BD00-17C7CAAC85D6}"
