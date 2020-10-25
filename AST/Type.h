@@ -24,7 +24,8 @@ struct BooleanType;
 struct ListType;
 struct TupleType;
 struct SetType;
-struct UDTType;
+struct ClassType;
+struct InterfaceType;
 struct MapType;
 struct EnumType;
 struct VariantType;
@@ -39,7 +40,7 @@ using Type = AST_API std::variant<
 	IntLiteralType, FloatLiteralType, StringLiteralType, BooleanLiteralType,
 	IntType, FloatType, StringType, BooleanType,
 	ListType, TupleType, SetType,
-	UDTType, MapType,
+	ClassType, InterfaceType, MapType,
 	EnumType,
 	VariantType, NoneType,
 	FunctionType, GeneratorType,
@@ -153,10 +154,16 @@ struct AST_API MapType : public CompositeType
 		: key_type(std::move(key_type)), value_type(std::move(value_type)) {};
 };
 
-struct AST_API UDTType : public CompositeType
+struct AST_API ClassType : public CompositeType
 {
 	std::wstring name;
-	UDTType(std::wstring name) : name(name) {};
+	ClassType(std::wstring name) : name(name) {};
+};
+
+struct AST_API InterfaceType : public CompositeType
+{
+	std::wstring name;
+	InterfaceType(std::wstring name) : name(name) {};
 };
 
 struct AST_API EnumType : public CompositeType
@@ -199,3 +206,6 @@ struct AST_API OperatorType : public CallableType
 	OperatorType(OperatorPosition position, TypeVector input_types, std::optional<Type_ptr> return_type)
 		: CallableType(input_types, return_type), position(position) {};
 };
+
+std::wstring AST_API stringify_type(Type_ptr type);
+std::wstring AST_API stringify_type(std::vector<Type_ptr> types);

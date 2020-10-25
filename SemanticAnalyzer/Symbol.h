@@ -11,7 +11,8 @@
 struct VariableSymbol;
 struct CallableSymbol;
 struct EnumSymbol;
-struct UDTSymbol;
+struct ClassSymbol;
+struct InterfaceSymbol;
 struct AliasSymbol;
 
 using Symbol = std::variant<
@@ -19,7 +20,8 @@ using Symbol = std::variant<
 	VariableSymbol,
 	CallableSymbol,
 	EnumSymbol,
-	UDTSymbol,
+	ClassSymbol,
+	InterfaceSymbol,
 	AliasSymbol
 >;
 
@@ -62,13 +64,28 @@ struct EnumSymbol : public SymbolBase
 		: SymbolBase(name, is_public, type), members(members) {};
 };
 
-struct UDTSymbol : public SymbolBase
+struct ClassSymbol : public SymbolBase
 {
+	StringVector interfaces;
+	StringVector base_types;
+
 	std::map<std::wstring, Type_ptr> member_types;
 	StringVector public_members;
 
-	UDTSymbol(std::wstring name, bool is_public, std::map<std::wstring, Type_ptr> member_types, StringVector public_members, Type_ptr type)
-		: SymbolBase(name, is_public, type), member_types(member_types), public_members(public_members) {};
+	ClassSymbol(std::wstring name, bool is_public, StringVector interfaces, StringVector base_types, std::map<std::wstring, Type_ptr> member_types, StringVector public_members, Type_ptr type)
+		: SymbolBase(name, is_public, type), interfaces(interfaces), base_types(base_types), member_types(member_types), public_members(public_members) {};
+};
+
+struct InterfaceSymbol : public SymbolBase
+{
+	StringVector interfaces;
+	StringVector base_types;
+
+	std::map<std::wstring, Type_ptr> member_types;
+	StringVector public_members;
+
+	InterfaceSymbol(std::wstring name, bool is_public, StringVector interfaces, StringVector base_types, std::map<std::wstring, Type_ptr> member_types, StringVector public_members, Type_ptr type)
+		: SymbolBase(name, is_public, type), interfaces(interfaces), base_types(base_types), member_types(member_types), public_members(public_members) {};
 };
 
 struct AliasSymbol : public SymbolBase
@@ -80,5 +97,6 @@ struct AliasSymbol : public SymbolBase
 using VariableSymbol_ptr = std::shared_ptr<VariableSymbol>;
 using CallableSymbol_ptr = std::shared_ptr<CallableSymbol>;
 using EnumSymbol_ptr = std::shared_ptr<EnumSymbol>;
-using UDTSymbol_ptr = std::shared_ptr<UDTSymbol>;
+using ClassSymbol_ptr = std::shared_ptr<ClassSymbol>;
+using InterfaceSymbol_ptr = std::shared_ptr<InterfaceSymbol>;
 using AliasSymbol_ptr = std::shared_ptr<AliasSymbol>;

@@ -222,7 +222,7 @@ Statement_ptr Parser::parse_statement(bool is_public)
 		CASE(WTokenType::PUB, parse_public_statement());
 		CASE(WTokenType::ENUM, parse_enum_definition(is_public));
 		CASE(WTokenType::INTERFACE, parse_interface_definition(is_public));
-		CASE(WTokenType::TYPE, parse_type_definition(is_public));
+		CASE(WTokenType::TYPE, parse_class_definition(is_public));
 		CASE(WTokenType::FN, parse_function_definition(is_public));
 		CASE(WTokenType::GEN, parse_generator_definition(is_public));
 
@@ -268,7 +268,7 @@ Statement_ptr Parser::parse_public_statement()
 	{
 		CASE(WTokenType::INTERFACE, parse_interface_definition(is_public));
 		CASE(WTokenType::ENUM, parse_enum_definition(is_public));
-		CASE(WTokenType::TYPE, parse_type_definition(is_public));
+		CASE(WTokenType::TYPE, parse_class_definition(is_public));
 		CASE(WTokenType::FN, parse_function_definition(is_public));
 		CASE(WTokenType::GEN, parse_generator_definition(is_public));
 
@@ -841,7 +841,7 @@ Type_ptr Parser::consume_datatype_word(bool is_optional)
 	case WTokenType::IDENTIFIER:
 	{
 		ADVANCE_PTR;
-		return is_optional ? MAKE_OPTIONAL_TYPE(UDTType(token.value()->value)) : MAKE_TYPE(UDTType(token.value()->value));
+		return is_optional ? MAKE_OPTIONAL_TYPE(ClassType(token.value()->value)) : MAKE_TYPE(ClassType(token.value()->value));
 	}
 	}
 
@@ -929,7 +929,7 @@ StringVector Parser::parse_comma_separated_identifiers()
 	return identifiers;
 }
 
-tuple<map<wstring, Type_ptr>, StringVector, StringVector, StringVector> Parser::parse_type_and_interface_definition()
+tuple<map<wstring, Type_ptr>, StringVector, StringVector, StringVector> Parser::parse_class_and_interface_definition()
 {
 	map<wstring, Type_ptr> member_types;
 	StringVector public_members;
@@ -945,7 +945,7 @@ tuple<map<wstring, Type_ptr>, StringVector, StringVector, StringVector> Parser::
 
 	if (token_pipe->optional(WTokenType::LESSER_THAN))
 	{
-		interfaces = parse_comma_separated_identifiers();
+		base_types = parse_comma_separated_identifiers();
 	}
 
 	while (true)
@@ -962,7 +962,18 @@ tuple<map<wstring, Type_ptr>, StringVector, StringVector, StringVector> Parser::
 
 		auto [identifier, type] = consume_identifier_type_pair();
 		token_pipe->require(WTokenType::EOL);
-		member_types.insert_or_assign(identifier, type);
+
+		if (
+			holds_alternative<FunctionType>(*type) ||
+			holds_alternative<GeneratorType>(*type) ||
+			holds_alternative<OperatorType>(*type)
+			)
+		{
+			identifier += stringify_type(type);
+		}
+
+		const auto [_, success] = member_types.insert({ identifier, type });
+		ASSERT(success, "Duplicate members are found!");
 
 		if (is_public_member)
 		{
@@ -977,11 +988,11 @@ Statement_ptr Parser::parse_interface_definition(bool is_public)
 {
 	auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
 
-	auto [member_types, public_members, interfaces, base_types] = parse_type_and_interface_definition();
+	auto [member_types, public_members, interfaces, base_types] = parse_class_and_interface_definition();
 	return MAKE_STATEMENT(InterfaceDefinition(is_public, identifier->value, member_types, public_members, interfaces, base_types));
 }
 
-Statement_ptr Parser::parse_type_definition(bool is_public)
+Statement_ptr Parser::parse_class_definition(bool is_public)
 {
 	auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
 
@@ -992,7 +1003,7 @@ Statement_ptr Parser::parse_type_definition(bool is_public)
 		return MAKE_STATEMENT(AliasDefinition(is_public, identifier->value, move(type)));
 	}
 
-	auto [member_types, public_members, interfaces, base_types] = parse_type_and_interface_definition();
+	auto [member_types, public_members, interfaces, base_types] = parse_class_and_interface_definition();
 	return MAKE_STATEMENT(ClassDefinition(is_public, identifier->value, member_types, public_members, interfaces, base_types));
 }
 
@@ -1058,9 +1069,11 @@ Statement_ptr Parser::parse_function_definition(bool is_public)
 
 	if (is_method)
 	{
+		second_identifier += stringify_type(function_type);
 		return MAKE_STATEMENT(FunctionMethodDefinition(first_identifier, second_identifier, is_public, arguments, function_type, block));
 	}
 
+	first_identifier += stringify_type(function_type);
 	return MAKE_STATEMENT(FunctionDefinition(is_public, first_identifier, arguments, function_type, block));
 }
 
@@ -1071,9 +1084,11 @@ Statement_ptr Parser::parse_generator_definition(bool is_public)
 
 	if (is_method)
 	{
+		second_identifier += stringify_type(function_type);
 		return MAKE_STATEMENT(GeneratorMethodDefinition(first_identifier, second_identifier, is_public, arguments, function_type, block));
 	}
 
+	first_identifier += stringify_type(function_type);
 	return MAKE_STATEMENT(GeneratorDefinition(is_public, first_identifier, arguments, function_type, block));
 }
 

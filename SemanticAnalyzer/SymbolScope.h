@@ -1,5 +1,4 @@
 #pragma once
-
 #include "Symbol.h"
 #include <map>
 #include <memory>
@@ -12,7 +11,10 @@ enum class ScopeType
 	CONDITIONAL,
 	LOOP,
 	FUNCTION,
-	GENERATOR
+	GENERATOR,
+	CLASS_FUNCTION,
+	CLASS_GENERATOR,
+	OPERATOR_FUNCTION
 };
 
 class SymbolScope;

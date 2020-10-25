@@ -550,7 +550,7 @@ void ASTVisualizer::visit(const Type_ptr type, int parent_id)
 		   [&](ListType const& ty) { visit(ty, parent_id); },
 		   [&](TupleType const& ty) { visit(ty, parent_id); },
 		   [&](SetType const& ty) { visit(ty, parent_id); },
-		   [&](UDTType const& ty) { visit(ty, parent_id); },
+		   [&](ClassType const& ty) { visit(ty, parent_id); },
 		   [&](MapType const& ty) { visit(ty, parent_id); },
 		   [&](EnumType const& ty) { visit(ty, parent_id); },
 		   [&](VariantType const& ty) { visit(ty, parent_id); },
@@ -651,7 +651,7 @@ void ASTVisualizer::visit(SetType const& type, int parent_id)
 	visit(type.element_types, id);
 }
 
-void ASTVisualizer::visit(UDTType const& type, int parent_id)
+void ASTVisualizer::visit(ClassType const& type, int parent_id)
 {
 	const int id = id_counter++;
 	save(id, parent_id, L"UDT Type");

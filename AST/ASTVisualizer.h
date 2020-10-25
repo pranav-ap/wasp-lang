@@ -95,7 +95,7 @@ class AST_API ASTVisualizer
 	void visit(ListType const& expr, int parent_id);
 	void visit(TupleType const& expr, int parent_id);
 	void visit(SetType const& expr, int parent_id);
-	void visit(UDTType const& expr, int parent_id);
+	void visit(ClassType const& expr, int parent_id);
 	void visit(MapType const& expr, int parent_id);
 	void visit(EnumType const& expr, int parent_id);
 	void visit(VariantType const& expr, int parent_id);

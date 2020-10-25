@@ -39,6 +39,11 @@ else
 end
 
 
+if x = call() then
+    x = 1
+end
+
+
 for x : int in [1, 2, 3] do call(x)
 
 
@@ -98,6 +103,8 @@ end
 
 
 type Castle ~ ICastle < Building
+    const foo: int = 43
+
     name: string
 
     constructor : ()

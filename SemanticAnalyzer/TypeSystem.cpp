@@ -107,7 +107,7 @@ bool TypeSystem::equal(SymbolScope_ptr scope, const Type_ptr type_1, const Type_
 			return key_compare && value_compare;
 		},
 
-		[&](UDTType const& type_1, UDTType const& type_2)
+		[&](ClassType const& type_1, ClassType const& type_2)
 		{
 			std::optional<Symbol_ptr> symbol_1 = scope->lookup(type_1.name);
 			OPT_CHECK(symbol_1);
@@ -115,7 +115,7 @@ bool TypeSystem::equal(SymbolScope_ptr scope, const Type_ptr type_1, const Type_
 			OPT_CHECK(symbol_2);
 
 			bool udt_exists = std::visit(overloaded{
-				[&](UDTSymbol const& sym_1, UDTSymbol const& sym_2) { return true; },
+				[&](ClassSymbol const& sym_1, ClassSymbol const& sym_2) { return true; },
 
 				[](auto, auto) { return false; }
 				}, *symbol_1.value(), *symbol_2.value());

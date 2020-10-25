@@ -20,8 +20,8 @@ template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
 
 using std::holds_alternative;
 using std::wstring;
-using std::get;
 using std::get_if;
+using std::vector;
 using std::make_shared;
 using std::move;
 
@@ -83,10 +83,41 @@ void SemanticAnalyzer::visit(std::vector<Statement_ptr> const& block)
 
 void SemanticAnalyzer::visit(IfBranch const& statement)
 {
-	Type_ptr condition_type = visit(statement.test);
-	ASSERT(type_system->is_boolean_type(condition_type), "Boolean operand is expected");
-
 	enter_scope(ScopeType::CONDITIONAL);
+
+	std::visit(overloaded{
+		[&](Assignment const& expr)
+		{
+			if (holds_alternative<TypePattern>(*expr.lhs_expression))
+			{
+				auto type_pattern = get_if<TypePattern>(&*expr.lhs_expression);
+
+				ASSERT(holds_alternative<Identifier>(*type_pattern->expression), "Must be an identifier");
+				auto identifier = get_if<Identifier>(&*type_pattern->expression);
+
+				auto symbol = MAKE_SYMBOL(VariableSymbol(
+					identifier->name,
+					false,
+					true,
+					type_pattern->type
+				));
+
+				current_scope->define(identifier->name, symbol);
+			}
+			else
+			{
+				visit(&expr.lhs_expression);
+			}
+
+			visit(&expr.rhs_expression);
+		},
+
+		[&](auto)
+		{
+			visit(&statement.test);
+		}
+		}, *statement.test);
+
 	visit(statement.body);
 	leave_scope();
 
@@ -115,13 +146,8 @@ void SemanticAnalyzer::visit(ForInLoop const& statement)
 {
 	enter_scope(ScopeType::LOOP);
 
-	ASSERT(holds_alternative<Infix>(*statement.lhs_expression), "Infix must be an : pattern");
-	auto pattern = get_if<Infix>(&*statement.lhs_expression);
-	ASSERT(pattern->op->type == WTokenType::COLON, "Infix must be COLON");
-
-	ASSERT(holds_alternative<TypePattern>(*pattern->left), "Must be a TypePattern");
-	auto type_pattern = get_if<TypePattern>(&*pattern->left);
-
+	ASSERT(holds_alternative<TypePattern>(*statement.lhs_expression), "Must be a TypePattern");
+	auto type_pattern = get_if<TypePattern>(&*statement.lhs_expression);
 	ASSERT(holds_alternative<Identifier>(*type_pattern->expression), "Must be an identifier");
 	auto identifier = get_if<Identifier>(&*type_pattern->expression);
 
@@ -176,8 +202,11 @@ void SemanticAnalyzer::visit(YieldStatement const& statement)
 
 void SemanticAnalyzer::visit(VariableDefinition const& statement)
 {
-	ASSERT(holds_alternative<TypePattern>(*statement.expression), "Must be a TypePattern");
-	auto type_pattern = get_if<TypePattern>(&*statement.expression);
+	ASSERT(holds_alternative<Assignment>(*statement.expression), "Must be an Assignment");
+	auto assignment = get_if<Assignment>(&*statement.expression);
+
+	ASSERT(holds_alternative<TypePattern>(*assignment->lhs_expression), "Must be a TypePattern");
+	auto type_pattern = get_if<TypePattern>(&*assignment->lhs_expression);
 
 	ASSERT(holds_alternative<Identifier>(*type_pattern->expression), "Must be an identifier");
 	auto identifier = get_if<Identifier>(&*type_pattern->expression);
@@ -194,10 +223,32 @@ void SemanticAnalyzer::visit(VariableDefinition const& statement)
 
 void SemanticAnalyzer::visit(ClassDefinition const& statement)
 {
+	auto symbol = MAKE_SYMBOL(ClassSymbol(
+		statement.name,
+		statement.is_public,
+		statement.interfaces,
+		statement.base_types,
+		statement.member_types,
+		statement.public_members,
+		MAKE_TYPE(ClassType(statement.name))
+	));
+
+	current_scope->define(statement.name, symbol);
 }
 
 void SemanticAnalyzer::visit(InterfaceDefinition const& statement)
 {
+	auto symbol = MAKE_SYMBOL(InterfaceSymbol(
+		statement.name,
+		statement.is_public,
+		statement.interfaces,
+		statement.base_types,
+		statement.member_types,
+		statement.public_members,
+		MAKE_TYPE(InterfaceType(statement.name))
+	));
+
+	current_scope->define(statement.name, symbol);
 }
 
 void SemanticAnalyzer::visit(AliasDefinition const& statement)
@@ -254,7 +305,7 @@ void SemanticAnalyzer::visit(FunctionMethodDefinition const& statement)
 
 	current_scope->define(statement.name, symbol);
 
-	enter_scope(ScopeType::FUNCTION);
+	enter_scope(ScopeType::CLASS_FUNCTION);
 	visit(statement.body);
 	leave_scope();
 }
@@ -270,7 +321,7 @@ void SemanticAnalyzer::visit(GeneratorMethodDefinition const& statement)
 
 	current_scope->define(statement.name, symbol);
 
-	enter_scope(ScopeType::GENERATOR);
+	enter_scope(ScopeType::CLASS_GENERATOR);
 	visit(statement.body);
 	leave_scope();
 }
@@ -483,17 +534,42 @@ Type_ptr SemanticAnalyzer::visit(TernaryCondition const& expression)
 
 Type_ptr SemanticAnalyzer::visit(SpreadExpression const& expr)
 {
-	return MAKE_TYPE(NoneType());
+	ASSERT(holds_alternative<Identifier>(*expr.expression), "... operator must be followed by an Identifier");
+	Type_ptr type = visit(expr.expression);
+	return type;
 }
 
-Type_ptr SemanticAnalyzer::visit(TypePattern const& expression)
+Type_ptr SemanticAnalyzer::visit(TypePattern const& expr)
 {
-	return MAKE_TYPE(NoneType());
+	visit(expr.expression);
+	return expr.type;
 }
 
 Type_ptr SemanticAnalyzer::visit(NewObject const& expr)
 {
-	return MAKE_TYPE(NoneType());
+	Type_ptr type = MAKE_TYPE(ClassType(expr.UDT_name));
+	vector<Type_ptr> types;
+
+	for (const auto arg : expr.expressions)
+	{
+		Type_ptr arg_type = visit(arg);
+		types.push_back(arg_type);
+	}
+
+	wstring expected_constructor_name = L"constructor";
+	expected_constructor_name += stringify_type(types);
+
+	std::optional<Symbol_ptr> symbol = current_scope->lookup(expr.UDT_name);
+	OPT_CHECK(symbol);
+	ASSERT(holds_alternative<ClassSymbol>(*symbol.value()), "This is not a Class!");
+	auto class_symbol = get_if<ClassSymbol>(&*symbol.value());
+
+	// must support type inference here
+
+	auto exists = class_symbol->member_types.contains(expected_constructor_name);
+	ASSERT(exists, "Required constructor must exist");
+
+	return type;
 }
 
 Type_ptr SemanticAnalyzer::visit(EnumMember const& expr)
@@ -695,7 +771,7 @@ Type_ptr SemanticAnalyzer::visit(Identifier const& expr)
 		[&](VariableSymbol const& sym) { return sym.type; },
 		[&](CallableSymbol const& sym) { return sym.type; },
 		[&](EnumSymbol const& sym) { return sym.type; },
-		[&](UDTSymbol const& sym) { return sym.type; },
+		[&](ClassSymbol const& sym) { return sym.type; },
 		[&](AliasSymbol const& sym) { return sym.type; },
 
 		[&](auto) { return type_system->get_none_type(); }
