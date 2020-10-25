@@ -65,6 +65,10 @@ void ASTVisualizer::visit(const Statement_ptr statement, int parent_id)
 		[&](Swear const& stat) { visit(stat, parent_id); },
 		[&](Module const& stat) { visit(stat, parent_id); },
 
+		[&](InfixOperatorDefinition const& stat) { visit(stat, parent_id); },
+		[&](PrefixOperatorDefinition const& stat) { visit(stat, parent_id); },
+		[&](PostfixOperatorDefinition const& stat) { visit(stat, parent_id); },
+
 		[](auto) { FATAL("Never seen this Statement before! So I cannot print it!"); }
 		}, *statement);
 }
@@ -112,7 +116,8 @@ void ASTVisualizer::visit(ForInLoop const& statement, int parent_id)
 	const int id = id_counter++;
 	save(id, parent_id, L"for");
 
-	visit(statement.expression, id);
+	visit(statement.lhs_expression, id);
+	visit(statement.rhs_expression, id);
 	visit(statement.block, id);
 }
 
@@ -197,9 +202,9 @@ void ASTVisualizer::visit(FunctionDefinition const& statement, int parent_id)
 	const int id = id_counter++;
 	save(id, parent_id, L"Function Definition : " + statement.name);
 
-	if (statement.arguments.size() > 0)
+	for (auto arg : statement.arguments)
 	{
-		visit(statement.arguments, id);
+		visit(arg, id);
 	}
 
 	visit(statement.type, id);
@@ -215,9 +220,9 @@ void ASTVisualizer::visit(GeneratorDefinition const& statement, int parent_id)
 	const int id = id_counter++;
 	save(id, parent_id, L"Generator Definition : " + statement.name);
 
-	if (statement.arguments.size() > 0)
+	for (auto arg : statement.arguments)
 	{
-		visit(statement.arguments, id);
+		visit(arg, id);
 	}
 
 	visit(statement.type, id);
@@ -239,9 +244,9 @@ void ASTVisualizer::visit(FunctionMethodDefinition const& statement, int parent_
 	const int id = id_counter++;
 	save(id, parent_id, L"Function Method Definition " + statement.type_name + L"::" + statement.name);
 
-	if (statement.arguments.size() > 0)
+	for (auto arg : statement.arguments)
 	{
-		visit(statement.arguments, id);
+		visit(arg, id);
 	}
 
 	visit(statement.type, id);
@@ -257,9 +262,9 @@ void ASTVisualizer::visit(GeneratorMethodDefinition const& statement, int parent
 	const int id = id_counter++;
 	save(id, parent_id, L"Generator Method Definition " + statement.type_name + L"::" + statement.name);
 
-	if (statement.arguments.size() > 0)
+	for (auto arg : statement.arguments)
 	{
-		visit(statement.arguments, id);
+		visit(arg, id);
 	}
 
 	visit(statement.type, id);
@@ -523,12 +528,9 @@ void ASTVisualizer::visit(TernaryCondition const& expr, int parent_id)
 	visit(expr.condition, if_id);
 	visit(expr.true_expression, if_id);
 
-	if (expr.false_expression.has_value())
-	{
-		const int else_id = id_counter++;
-		save(else_id, if_id, L"else");
-		visit(expr.false_expression.value(), else_id);
-	}
+	const int else_id = id_counter++;
+	save(else_id, if_id, L"else");
+	visit(expr.false_expression, else_id);
 }
 
 // Type
@@ -555,6 +557,7 @@ void ASTVisualizer::visit(const Type_ptr type, int parent_id)
 		   [&](NoneType const& ty) { visit(ty, parent_id); },
 		   [&](FunctionType const& ty) { visit(ty, parent_id); },
 		   [&](GeneratorType const& ty) { visit(ty, parent_id); },
+		   [&](OperatorType const& ty) { visit(ty, parent_id); },
 
 		   [](auto) {FATAL("Never seen this Type before! So I cannot print it!"); }
 		}, *type);
@@ -718,6 +721,19 @@ void ASTVisualizer::visit(GeneratorType const& type, int parent_id)
 	if (type.return_type.has_value())
 	{
 		visit(type.return_type.value(), id);
+	}
+}
+
+void ASTVisualizer::visit(OperatorType const& expr, int parent_id)
+{
+	const int id = id_counter++;
+	save(id, parent_id, L"Operator Type");
+
+	visit(expr.input_types, id);
+
+	if (expr.return_type.has_value())
+	{
+		visit(expr.return_type.value(), id);
 	}
 }
 

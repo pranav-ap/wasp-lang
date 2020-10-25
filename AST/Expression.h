@@ -173,11 +173,8 @@ struct AST_API TernaryCondition
 {
 	Expression_ptr condition;
 	Expression_ptr true_expression;
-	std::optional<Expression_ptr> false_expression;
-
-	TernaryCondition(Expression_ptr condition, Expression_ptr true_expression)
-		: condition(std::move(condition)), true_expression(std::move(true_expression)), false_expression(std::nullopt) {};
+	Expression_ptr false_expression;
 
 	TernaryCondition(Expression_ptr condition, Expression_ptr true_expression, Expression_ptr false_expression)
-		: condition(std::move(condition)), true_expression(std::move(true_expression)), false_expression(std::make_optional(std::move(false_expression))) {};
+		: condition(std::move(condition)), true_expression(std::move(true_expression)), false_expression(std::move(false_expression)) {};
 };

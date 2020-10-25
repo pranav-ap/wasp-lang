@@ -35,9 +35,11 @@ optional<Token_ptr> TokenPipe::lookahead() const
 
 optional<Token_ptr> TokenPipe::optional(WTokenType token_type)
 {
+	int ignored_tokens_number = 0;
+
 	if (token_type != WTokenType::EOL)
 	{
-		ignore_whitespace();
+		ignored_tokens_number = ignore_whitespace();
 	}
 
 	auto token = current();
@@ -46,6 +48,11 @@ optional<Token_ptr> TokenPipe::optional(WTokenType token_type)
 	{
 		advance_pointer();
 		return token;
+	}
+
+	if (token_type != WTokenType::EOL)
+	{
+		index -= ignored_tokens_number;
 	}
 
 	return nullopt;
@@ -66,8 +73,10 @@ Token_ptr TokenPipe::require(WTokenType token_type)
 	return token.value();
 }
 
-void TokenPipe::ignore_whitespace()
+int TokenPipe::ignore_whitespace()
 {
+	int ignored_tokens_number = 0;
+
 	while (true)
 	{
 		auto token = current();
@@ -78,8 +87,11 @@ void TokenPipe::ignore_whitespace()
 		if (token.value()->type != WTokenType::EOL)
 			break;
 
+		ignored_tokens_number++;
 		advance_pointer();
 	}
+
+	return ignored_tokens_number;
 }
 
 // UTILS

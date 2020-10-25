@@ -18,9 +18,8 @@ public:
 
 	std::optional<Token_ptr> optional(WTokenType token_type);
 	Token_ptr require(WTokenType token_type);
-	void expect(WTokenType token_type);
 
-	void ignore_whitespace();
+	int ignore_whitespace();
 
 	// Utils
 

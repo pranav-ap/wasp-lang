@@ -15,6 +15,8 @@ public:
 
 	bool is_boolean_type(const Type_ptr type) const;
 	bool is_number_type(const Type_ptr type) const;
+	bool is_int_type(const Type_ptr type) const;
+	bool is_float_type(const Type_ptr type) const;
 	bool is_string_type(const Type_ptr type) const;
 	bool is_none_type(const Type_ptr type) const;
 
@@ -28,7 +30,8 @@ public:
 	bool assignable(SymbolScope_ptr scope, VariantType const& lhs_variant_type, Type_ptr const& rhs_type) const;
 
 	Type_ptr get_boolean_type() const;
-	Type_ptr get_number_type() const;
+	Type_ptr get_int_type() const;
+	Type_ptr get_float_type() const;
 	Type_ptr get_string_type() const;
 	Type_ptr get_none_type() const;
 };

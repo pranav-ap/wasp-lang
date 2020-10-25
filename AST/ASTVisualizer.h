@@ -102,6 +102,7 @@ class AST_API ASTVisualizer
 	void visit(NoneType const& expr, int parent_id);
 	void visit(FunctionType const& expr, int parent_id);
 	void visit(GeneratorType const& expr, int parent_id);
+	void visit(OperatorType const& expr, int parent_id);
 
 public:
 	ASTVisualizer()

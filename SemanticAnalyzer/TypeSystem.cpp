@@ -16,9 +16,10 @@ template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
 TypeSystem::TypeSystem()
 {
 	type_pool.insert({ 0, MAKE_TYPE(BooleanType()) });
-	type_pool.insert({ 1, MAKE_TYPE(NumberType()) });
-	type_pool.insert({ 2, MAKE_TYPE(StringType()) });
-	type_pool.insert({ 3, MAKE_TYPE(NoneType()) });
+	type_pool.insert({ 1, MAKE_TYPE(IntType()) });
+	type_pool.insert({ 2, MAKE_TYPE(FloatType()) });
+	type_pool.insert({ 3, MAKE_TYPE(StringType()) });
+	type_pool.insert({ 4, MAKE_TYPE(NoneType()) });
 }
 
 bool TypeSystem::is_boolean_type(const Type_ptr type) const
@@ -28,7 +29,17 @@ bool TypeSystem::is_boolean_type(const Type_ptr type) const
 
 bool TypeSystem::is_number_type(const Type_ptr type) const
 {
-	return holds_alternative<NumberType>(*type);
+	return holds_alternative<IntType>(*type) || holds_alternative<FloatType>(*type);
+}
+
+bool TypeSystem::is_int_type(const Type_ptr type) const
+{
+	return holds_alternative<IntType>(*type);
+}
+
+bool TypeSystem::is_float_type(const Type_ptr type) const
+{
+	return holds_alternative<FloatType>(*type);
 }
 
 bool TypeSystem::is_string_type(const Type_ptr type) const
@@ -55,7 +66,8 @@ bool TypeSystem::is_iterable_type(const Type_ptr type) const
 bool TypeSystem::is_key_type(const Type_ptr key_type) const
 {
 	return std::visit(overloaded{
-	[&](NumberType const& type) { return true; },
+	[&](IntType const& type) { return true; },
+	[&](FloatType const& type) { return true; },
 	[&](BooleanType const& type) { return true; },
 	[&](StringType const& type) { return true; },
 
@@ -68,7 +80,8 @@ bool TypeSystem::is_key_type(const Type_ptr key_type) const
 bool TypeSystem::equal(SymbolScope_ptr scope, const Type_ptr type_1, const Type_ptr type_2) const
 {
 	return std::visit(overloaded{
-		[&](NumberType const& type_1, NumberType const& type_2) { return true; },
+		[&](IntType const& type_1, IntType const& type_2) { return true; },
+		[&](FloatType const& type_1, FloatType const& type_2) { return true; },
 		[&](BooleanType const& type_1, BooleanType const& type_2) { return true; },
 		[&](StringType const& type_1, StringType const& type_2) { return true; },
 
@@ -189,17 +202,22 @@ Type_ptr TypeSystem::get_boolean_type() const
 	return type_pool.at(0);
 }
 
-Type_ptr TypeSystem::get_number_type() const
+Type_ptr TypeSystem::get_int_type() const
 {
 	return type_pool.at(1);
 }
 
-Type_ptr TypeSystem::get_string_type() const
+Type_ptr TypeSystem::get_float_type() const
 {
 	return type_pool.at(2);
 }
 
-Type_ptr TypeSystem::get_none_type() const
+Type_ptr TypeSystem::get_string_type() const
 {
 	return type_pool.at(3);
+}
+
+Type_ptr TypeSystem::get_none_type() const
+{
+	return type_pool.at(4);
 }

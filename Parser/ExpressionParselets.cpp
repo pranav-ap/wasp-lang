@@ -249,18 +249,14 @@ Expression_ptr TernaryConditionParselet::parse(Parser_ptr parser, Token_ptr toke
 	ADVANCE_PTR;
 
 	Expression_ptr condition = parser->parse_expression();
-	parser->token_pipe->require(WTokenType::THEN);
-	OPT_CHECK(!parser->token_pipe->optional(WTokenType::EOL));
 
+	parser->token_pipe->require(WTokenType::THEN);
 	Expression_ptr then_arm = parser->parse_expression();
 
-	if (parser->token_pipe->optional(WTokenType::ELSE))
-	{
-		Expression_ptr else_arm = parser->parse_expression((int)Precedence::TERNARY_CONDITION - 1);
-		return MAKE_EXPRESSION(TernaryCondition(condition, then_arm, else_arm));
-	}
+	parser->token_pipe->require(WTokenType::ELSE);
+	Expression_ptr else_arm = parser->parse_expression((int)Precedence::TERNARY_CONDITION - 1);
 
-	return MAKE_EXPRESSION(TernaryCondition(condition, then_arm));
+	return MAKE_EXPRESSION(TernaryCondition(condition, then_arm, else_arm));
 }
 
 // get_precedence

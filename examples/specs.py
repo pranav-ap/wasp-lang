@@ -35,7 +35,7 @@ if a > 3 then call() else 4
 if x : int = call() then
     x = 1
 else
-    x = 3
+    3
 end
 
 
@@ -55,7 +55,7 @@ end
 while expr do a = a + 4
 
 
-fn add(a : mut int, b : mut int) => int
+fn add(a : int, b : int) => int
     if a > b then
         return a + b + 4
     end
@@ -83,21 +83,12 @@ type length = int
 type length = int | string
 type WindowStates = "open" | "closed" | "minimized"
 
-// UC
-
-match thing then
-    case "open" : string then
-        echo "open"
-    case "closed" then
-        echo "closed"
-    else
-        echo "bye"
-end
-
 
 interface ICastle
-    lng: int const
-    lat: int const
+    const foo: int = 43
+
+    lng: int
+    lat: int
 
     tileSize: 8 | 16 | 32
 
@@ -109,7 +100,7 @@ end
 type Castle ~ ICastle < Building
     name: string
 
-    constructor : fn ()
+    constructor : ()
     constructor : (name: string)
     repr : () => string
 end
@@ -124,6 +115,7 @@ fn Castle::defend() => any
     x = 43
 end
 
+
 infix + (a : num, b : num) => num
     return a + b
 end
@@ -132,7 +124,17 @@ end
 module Hello
 end
 
-// UC
+
+// Planned Features
+
+match thing then
+    case "open" : string then
+        echo "open"
+    case "closed" then
+        echo "closed"
+    else
+        echo "bye"
+end
 
 try
 catch

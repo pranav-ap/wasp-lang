@@ -37,6 +37,8 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 	void visit(ClassDefinition const& statement);
 	void visit(InterfaceDefinition const& statement);
 	void visit(AliasDefinition const& statement);
+	void visit(FunctionDefinition const& statement);
+	void visit(GeneratorDefinition const& statement);
 	void visit(FunctionMethodDefinition const& statement);
 	void visit(GeneratorMethodDefinition const& statement);
 	void visit(EnumDefinition const& statement);
@@ -53,6 +55,7 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 
 	Type_ptr visit(const Expression_ptr expr);
 
+	Type_ptr visit(const int expr);
 	Type_ptr visit(const double expr);
 	Type_ptr visit(const std::wstring expr);
 	Type_ptr visit(const bool expr);

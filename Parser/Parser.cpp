@@ -68,6 +68,7 @@ Parser::Parser()
 	register_prefix(WTokenType::TYPE_OF, Precedence::PREFIX);
 	register_prefix(WTokenType::DOT_DOT_DOT, Precedence::PREFIX);
 
+	register_infix_left(WTokenType::COLON_COLON, Precedence::MEMBER_ACCESS);
 	register_infix_left(WTokenType::DOT, Precedence::MEMBER_ACCESS);
 	register_infix_left(WTokenType::QUESTION_DOT, Precedence::MEMBER_ACCESS);
 	register_infix_left(WTokenType::PLUS, Precedence::TERM);
@@ -475,15 +476,12 @@ Statement_ptr Parser::parse_condition_and_consequence()
 
 Expression_ptr Parser::parse_ternary_condition(Expression_ptr condition)
 {
-	auto true_expression = parse_expression();
+	Expression_ptr then_arm = parse_expression();
 
-	if (token_pipe->optional(WTokenType::ELSE))
-	{
-		auto false_expression = parse_expression();
-		return MAKE_EXPRESSION(TernaryCondition(move(condition), move(true_expression), move(false_expression)));
-	}
+	token_pipe->require(WTokenType::ELSE);
+	Expression_ptr else_arm = parse_expression((int)Precedence::TERNARY_CONDITION - 1);
 
-	return MAKE_EXPRESSION(TernaryCondition(move(condition), move(true_expression)));
+	return MAKE_EXPRESSION(TernaryCondition(move(condition), move(then_arm), move(else_arm)));
 }
 
 Statement_ptr Parser::parse_branching(WTokenType token_type)
@@ -512,7 +510,6 @@ Statement_ptr Parser::parse_branching(WTokenType token_type)
 		token_pipe->require(WTokenType::EOL);
 		Block else_block = parse_conditional_block();
 		if_branch.alternative = MAKE_STATEMENT(ElseBranch(else_block));
-		return MAKE_STATEMENT(if_branch);
 	}
 
 	token_pipe->require(WTokenType::END);
@@ -539,19 +536,26 @@ Statement_ptr Parser::parse_while_loop()
 
 Statement_ptr Parser::parse_for_in_loop()
 {
-	auto pattern = parse_expression();
-	NULL_CHECK(pattern);
+	auto expression = parse_expression();
+	NULL_CHECK(expression);
+
+	ASSERT(holds_alternative<Infix>(*expression), "Infix must be an IN expression");
+	auto infix_expression = get_if<Infix>(&*expression);
+	ASSERT(infix_expression->op->type == WTokenType::IN_KEYWORD, "Infix must be IN");
+
+	auto lhs_pattern = infix_expression->left;
+	auto rhs_pattern = infix_expression->right;
 
 	token_pipe->require(WTokenType::DO);
 
 	if (token_pipe->optional(WTokenType::EOL))
 	{
 		auto block = parse_block();
-		return MAKE_STATEMENT(ForInLoop(pattern, block));
+		return MAKE_STATEMENT(ForInLoop(lhs_pattern, rhs_pattern, block));
 	}
 
 	auto statement = parse_non_block_statement();
-	return MAKE_STATEMENT(ForInLoop(pattern, { statement }));
+	return MAKE_STATEMENT(ForInLoop(lhs_pattern, rhs_pattern, { statement }));
 }
 
 // Type Parsers
@@ -1039,7 +1043,12 @@ tuple<wstring, wstring, bool, StringVector, TypeVector, optional<Type_ptr>, Bloc
 
 	Block block = parse_block();
 
-	return make_tuple(first_identifier->value, second_identifier->value, is_method, arguments, argument_types, optional_return_type, block);
+	if (is_method)
+	{
+		return make_tuple(first_identifier->value, second_identifier->value, is_method, arguments, argument_types, optional_return_type, block);
+	}
+
+	return make_tuple(first_identifier->value, L"", is_method, arguments, argument_types, optional_return_type, block);
 }
 
 Statement_ptr Parser::parse_function_definition(bool is_public)
@@ -1049,7 +1058,7 @@ Statement_ptr Parser::parse_function_definition(bool is_public)
 
 	if (is_method)
 	{
-		return MAKE_STATEMENT(FunctionMethodDefinition(first_identifier, second_identifier, arguments, function_type, block));
+		return MAKE_STATEMENT(FunctionMethodDefinition(first_identifier, second_identifier, is_public, arguments, function_type, block));
 	}
 
 	return MAKE_STATEMENT(FunctionDefinition(is_public, first_identifier, arguments, function_type, block));
@@ -1062,7 +1071,7 @@ Statement_ptr Parser::parse_generator_definition(bool is_public)
 
 	if (is_method)
 	{
-		return MAKE_STATEMENT(GeneratorMethodDefinition(first_identifier, second_identifier, arguments, function_type, block));
+		return MAKE_STATEMENT(GeneratorMethodDefinition(first_identifier, second_identifier, is_public, arguments, function_type, block));
 	}
 
 	return MAKE_STATEMENT(GeneratorDefinition(is_public, first_identifier, arguments, function_type, block));
@@ -1070,8 +1079,9 @@ Statement_ptr Parser::parse_generator_definition(bool is_public)
 
 tuple<wstring, StringVector, TypeVector, optional<Type_ptr>, Block> Parser::parse_operator_definition()
 {
-	auto first_identifier = token_pipe->require(WTokenType::IDENTIFIER);
-	NULL_CHECK(first_identifier);
+	auto op_token = token_pipe->current();
+	OPT_CHECK(op_token);
+	ADVANCE_PTR;
 
 	token_pipe->require(WTokenType::OPEN_PARENTHESIS);
 
@@ -1106,7 +1116,7 @@ tuple<wstring, StringVector, TypeVector, optional<Type_ptr>, Block> Parser::pars
 
 	Block block = parse_block();
 
-	return make_tuple(first_identifier->value, arguments, argument_types, optional_return_type, block);
+	return make_tuple(op_token.value()->value, arguments, argument_types, optional_return_type, block);
 }
 
 Statement_ptr Parser::parse_prefix_definition(bool is_public)
@@ -1130,7 +1140,7 @@ Statement_ptr Parser::parse_postfix_definition(bool is_public)
 Statement_ptr Parser::parse_infix_definition(bool is_public)
 {
 	auto [operator_symbol, arguments, argument_types, optional_return_type, body] = parse_operator_definition();
-	Type_ptr operator_type = MAKE_TYPE(OperatorType(OperatorPosition::Prefix, argument_types, optional_return_type));
+	Type_ptr operator_type = MAKE_TYPE(OperatorType(OperatorPosition::Infix, argument_types, optional_return_type));
 
 	ASSERT(arguments.size() == 2, "Two input arguments must be defined");
 	return MAKE_STATEMENT(InfixOperatorDefinition(is_public, operator_symbol, operator_type, body, arguments[0], arguments[1]));

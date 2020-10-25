@@ -109,11 +109,12 @@ struct AST_API WhileLoop
 
 struct AST_API ForInLoop
 {
-	Expression_ptr expression;
+	Expression_ptr lhs_expression;
+	Expression_ptr rhs_expression;
 	Block block;
 
-	ForInLoop(Expression_ptr expression, Block block)
-		: block(block), expression(std::move(expression)) {};
+	ForInLoop(Expression_ptr lhs_expression, Expression_ptr rhs_expression, Block block)
+		: block(block), lhs_expression(std::move(lhs_expression)), rhs_expression(std::move(rhs_expression)) {};
 };
 
 struct AST_API Break
@@ -240,21 +241,22 @@ struct AST_API MethodDefinition
 	StringVector arguments;
 	Type_ptr type;
 	Block body;
+	bool is_public;
 
-	MethodDefinition(std::wstring type_name, std::wstring name, StringVector arguments, Type_ptr type, Block body)
-		: type_name(type_name), name(name), arguments(arguments), type(type), body(body) {};
+	MethodDefinition(std::wstring type_name, std::wstring name, bool is_public, StringVector arguments, Type_ptr type, Block body)
+		: type_name(type_name), name(name), is_public(is_public), arguments(arguments), type(type), body(body) {};
 };
 
 struct AST_API FunctionMethodDefinition : public MethodDefinition
 {
-	FunctionMethodDefinition(std::wstring type_name, std::wstring name, StringVector arguments, Type_ptr type, Block body)
-		: MethodDefinition(type_name, name, arguments, type, body) {};
+	FunctionMethodDefinition(std::wstring type_name, std::wstring name, bool is_public, StringVector arguments, Type_ptr type, Block body)
+		: MethodDefinition(type_name, name, is_public, arguments, type, body) {};
 };
 
 struct AST_API GeneratorMethodDefinition : public MethodDefinition
 {
-	GeneratorMethodDefinition(std::wstring type_name, std::wstring name, StringVector arguments, Type_ptr type, Block body)
-		: MethodDefinition(type_name, name, arguments, type, body) {};
+	GeneratorMethodDefinition(std::wstring type_name, std::wstring name, bool is_public, StringVector arguments, Type_ptr type, Block body)
+		: MethodDefinition(type_name, name, is_public, arguments, type, body) {};
 };
 
 struct AST_API EnumDefinition : public Definition
