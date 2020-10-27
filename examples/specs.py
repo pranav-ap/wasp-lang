@@ -66,7 +66,6 @@ fn add(a : int, b : int) => int
     end
 
     return a + b
-end
 
 
 enum Animal
@@ -128,14 +127,14 @@ infix + (a : num, b : num) => num
 end
 
 
-module Hello
+namepace Hello
 end
 
 
 // Planned Features
 
-match thing then
-    case "open" : string then
+match { thing, another, third } then
+    case { "open", a is int, _ } then
         echo "open"
     case "closed" then
         echo "closed"

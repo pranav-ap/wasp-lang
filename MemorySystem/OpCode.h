@@ -24,6 +24,8 @@ enum class MEMORYSYSTEM_API OpCode
 	UNARY_NOT,
 
 	ASSERT,
+	SWEAR,
+	IMPLORE,
 
 	ADD,
 	SUBTRACT,
@@ -63,6 +65,7 @@ enum class MEMORYSYSTEM_API OpCode
 
 	MAKE_LIST, // length
 	MAKE_TUPLE,
+	MAKE_SET,
 	MAKE_MAP,
 
 	JUMP, // target
@@ -91,7 +94,16 @@ enum class MEMORYSYSTEM_API OpCode
 	SET_CHAR_FROM_STRING,
 
 	CALL_FUNCTION, // id, number of arguments
-	CALL_GENERATOR
+	CALL_GENERATOR,
+
+	GET_CLASS_PROPERTY, // class id, property name
+	SET_CLASS_PROPERTY,
+
+	GET_CLASS_INSTANCE_PROPERTY, // instance id, property name
+	SET_CLASS_INSTANCE_PROPERTY,
+
+	GET_CLASS_FUNCTION, // instance id, method name
+	GET_CLASS_GENERATOR
 };
 
 using ByteVector = MEMORYSYSTEM_API std::vector<std::byte>;

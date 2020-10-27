@@ -46,7 +46,7 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 	void visit(Assert const& statement);
 	void visit(Implore const& statement);
 	void visit(Swear const& statement);
-	void visit(Module const& statement);
+	void visit(Namespace const& statement);
 	void visit(InfixOperatorDefinition const& statement);
 	void visit(PrefixOperatorDefinition const& statement);
 	void visit(PostfixOperatorDefinition const& statement);

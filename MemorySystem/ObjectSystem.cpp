@@ -70,12 +70,8 @@ Object_ptr ListObject::get(Object_ptr index_object)
 {
 	try
 	{
-		auto index = std::get<NumberObject>(*index_object);
-
-		double intpart;
-		ASSERT(modf(index.value, &intpart) == 0.0, "Index must be an integer");
-
-		auto value = values.at(intpart);
+		auto index = std::get<IntObject>(*index_object);
+		auto value = values.at(index.value);
 		NULL_CHECK(value);
 		return value;
 	}
@@ -96,12 +92,8 @@ Object_ptr ListObject::set(Object_ptr index_object, Object_ptr value)
 
 	try
 	{
-		auto index = std::get<NumberObject>(*index_object);
-
-		double intpart;
-		ASSERT(modf(index.value, &intpart) == 0.0, "Index must be an integer");
-
-		values.at(intpart) = move(value);
+		auto index = std::get<IntObject>(*index_object);
+		values.at(index.value) = move(value);
 		return VOID;
 	}
 	catch (std::out_of_range&)
@@ -201,12 +193,8 @@ Object_ptr TupleObject::get(Object_ptr index_object)
 {
 	try
 	{
-		auto index = std::get<NumberObject>(*index_object);
-
-		double intpart;
-		ASSERT(modf(index.value, &intpart) == 0.0, "Index must be an integer");
-
-		auto value = values.at(intpart);
+		auto index = std::get<IntObject>(*index_object);
+		auto value = values.at(index.value);
 		NULL_CHECK(value);
 		return value;
 	}
@@ -226,12 +214,8 @@ Object_ptr TupleObject::set(Object_ptr index_object, Object_ptr value)
 
 	try
 	{
-		auto index = std::get<NumberObject>(*index_object);
-
-		double intpart;
-		ASSERT(modf(index.value, &intpart) == 0.0, "Index must be an integer");
-
-		values.at(intpart) = move(value);
+		auto index = std::get<IntObject>(*index_object);
+		values.at(index.value) = move(value);
 	}
 	catch (std::out_of_range&)
 	{
@@ -293,7 +277,12 @@ std::wstring GeneratorObject::stringify() const
 	return L"GeneratorObject : " + this->name;
 }
 
-std::wstring NumberObject::stringify() const
+std::wstring IntObject::stringify() const
+{
+	return to_wstring(this->value);
+}
+
+std::wstring FloatObject::stringify() const
 {
 	return to_wstring(this->value);
 }
@@ -333,9 +322,19 @@ std::wstring ReturnObject::stringify() const
 	return L"ReturnObject";
 }
 
+std::wstring YieldObject::stringify() const
+{
+	return L"YieldObject";
+}
+
 std::wstring ErrorObject::stringify() const
 {
 	return L"ErrorObject";
+}
+
+std::wstring InstanceObject::stringify() const
+{
+	return L"InstanceObject";
 }
 
 // Utils
@@ -343,7 +342,8 @@ std::wstring ErrorObject::stringify() const
 std::wstring stringify_object(Object_ptr value)
 {
 	return std::visit(overloaded{
-		[&](NumberObject const& obj) { return obj.stringify(); },
+		[&](IntObject const& obj) { return obj.stringify(); },
+		[&](FloatObject const& obj) { return obj.stringify(); },
 		[&](StringObject const& obj) { return obj.stringify(); },
 		[&](BooleanObject const& obj) { return obj.stringify(); },
 

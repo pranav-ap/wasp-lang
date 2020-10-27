@@ -329,6 +329,30 @@ MEMORYSYSTEM_API std::wstring stringify_opcode(OpCode opcode)
 	{
 		return L"CALL_GENERATOR";
 	}
+	case OpCode::GET_CLASS_PROPERTY:
+	{
+		return L"GET_CLASS_PROPERTY";
+	}
+	case OpCode::SET_CLASS_PROPERTY:
+	{
+		return L"SET_CLASS_PROPERTY";
+	}
+	case OpCode::GET_CLASS_INSTANCE_PROPERTY:
+	{
+		return L"GET_CLASS_INSTANCE_PROPERTY";
+	}
+	case OpCode::SET_CLASS_INSTANCE_PROPERTY:
+	{
+		return L"SET_CLASS_INSTANCE_PROPERTY";
+	}
+	case OpCode::GET_CLASS_FUNCTION:
+	{
+		return L"GET_CLASS_FUNCTION";
+	}
+	case OpCode::GET_CLASS_GENERATOR:
+	{
+		return L"GET_CLASS_GENERATOR";
+	}
 	default:
 	{
 		std::wstring empty = L"";

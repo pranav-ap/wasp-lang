@@ -226,7 +226,7 @@ Statement_ptr Parser::parse_statement(bool is_public)
 		CASE(WTokenType::FN, parse_function_definition(is_public));
 		CASE(WTokenType::GEN, parse_generator_definition(is_public));
 
-		CASE(WTokenType::MODULE_KEYWORD, parse_module(is_public));
+		CASE(WTokenType::NAMESPACE, parse_namespace(is_public));
 
 		CASE(WTokenType::IF, parse_branching(token.value()->type));
 		CASE(WTokenType::WHILE, parse_while_loop());
@@ -272,7 +272,7 @@ Statement_ptr Parser::parse_public_statement()
 		CASE(WTokenType::FN, parse_function_definition(is_public));
 		CASE(WTokenType::GEN, parse_generator_definition(is_public));
 
-		CASE(WTokenType::MODULE_KEYWORD, parse_module(is_public));
+		CASE(WTokenType::NAMESPACE, parse_namespace(is_public));
 
 		CASE(WTokenType::LET, parse_variable_definition(is_public, true));
 		CASE(WTokenType::CONST_KEYWORD, parse_variable_definition(is_public, false));
@@ -361,7 +361,7 @@ Statement_ptr Parser::parse_continue()
 
 // Blocks
 
-Statement_ptr Parser::parse_module(bool is_public)
+Statement_ptr Parser::parse_namespace(bool is_public)
 {
 	Block statements;
 
@@ -374,7 +374,7 @@ Statement_ptr Parser::parse_module(bool is_public)
 		statements.push_back(node);
 	}
 
-	return MAKE_STATEMENT(Module(identifier->value, statements, is_public));
+	return MAKE_STATEMENT(Namespace(identifier->value, statements, is_public));
 }
 
 Block Parser::parse_block()

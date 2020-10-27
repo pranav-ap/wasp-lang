@@ -1,9 +1,1 @@
-interface ICastle
-    lng: int
-    lat: int
-
-    tileSize: 8 | 16 | 32
-
-    open_gates: (speed: int) => bool
-    close_gates: gen (speed: int) => bool
-end
+let x : int = 43

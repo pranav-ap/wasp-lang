@@ -51,7 +51,7 @@ class PARSER_API Parser
 
 	// Blocks
 
-	Statement_ptr parse_module(bool is_public);
+	Statement_ptr parse_namespace(bool is_public);
 
 	Block parse_block();
 	Block parse_conditional_block();

@@ -63,7 +63,7 @@ void ASTVisualizer::visit(const Statement_ptr statement, int parent_id)
 		[&](Assert const& stat) { visit(stat, parent_id); },
 		[&](Implore const& stat) { visit(stat, parent_id); },
 		[&](Swear const& stat) { visit(stat, parent_id); },
-		[&](Module const& stat) { visit(stat, parent_id); },
+		[&](Namespace const& stat) { visit(stat, parent_id); },
 
 		[&](InfixOperatorDefinition const& stat) { visit(stat, parent_id); },
 		[&](PrefixOperatorDefinition const& stat) { visit(stat, parent_id); },
@@ -301,7 +301,7 @@ void ASTVisualizer::visit(Swear const& statement, int parent_id)
 	visit(statement.expression, id);
 }
 
-void ASTVisualizer::visit(Module const& statement, int parent_id)
+void ASTVisualizer::visit(Namespace const& statement, int parent_id)
 {
 	const int id = id_counter++;
 	save(id, parent_id, L"Module " + statement.name);

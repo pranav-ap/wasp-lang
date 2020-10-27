@@ -64,7 +64,7 @@ void SemanticAnalyzer::visit(const Statement_ptr statement)
 		[&](Assert const& stat) { visit(stat); },
 		[&](Implore const& stat) { visit(stat); },
 		[&](Swear const& stat) { visit(stat); },
-		[&](Module const& stat) { visit(stat); },
+		[&](Namespace const& stat) { visit(stat); },
 		[&](InfixOperatorDefinition const& stat) { visit(stat); },
 		[&](PrefixOperatorDefinition const& stat) { visit(stat); },
 		[&](PostfixOperatorDefinition const& stat) { visit(stat); },
@@ -363,12 +363,11 @@ void SemanticAnalyzer::visit(Swear const& statement)
 	ASSERT(type_system->is_boolean_type(type), "Boolean operand is expected");
 }
 
-void SemanticAnalyzer::visit(Module const& statement)
+void SemanticAnalyzer::visit(Namespace const& statement)
 {
-	for (auto statement : statement.statements)
-	{
-		visit(statement);
-	}
+	enter_scope(ScopeType::NAMESPACE);
+	visit(statement.statements);
+	leave_scope();
 }
 
 void SemanticAnalyzer::visit(InfixOperatorDefinition const& statement)

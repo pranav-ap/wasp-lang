@@ -15,7 +15,8 @@
 #include <memory>
 #include <variant>
 
-struct NumberObject;
+struct IntObject;
+struct FloatObject;
 struct StringObject;
 struct BooleanObject;
 struct ListObject;
@@ -24,6 +25,7 @@ struct MapObject;
 struct EnumMemberObject;
 struct VariantObject;
 struct ReturnObject;
+struct YieldObject;
 struct ErrorObject;
 struct BreakObject;
 struct ContinueObject;
@@ -31,24 +33,27 @@ struct BuiltInsObject;
 struct NoneObject;
 struct FunctionObject;
 struct GeneratorObject;
+struct InstanceObject;
 
 using Object = MEMORYSYSTEM_API std::variant<
 	std::monostate,
 	// Scalar Objects
-	NumberObject, StringObject, BooleanObject,
+	IntObject, FloatObject, StringObject, BooleanObject,
 	// Composite Objects
 	ListObject, TupleObject,
 	EnumMemberObject,
 	MapObject,
 	VariantObject,
 	// Action Objects
-	ReturnObject, ErrorObject,
+	ReturnObject, YieldObject,
+	ErrorObject,
 	BreakObject, ContinueObject,
 	BuiltInsObject,
 	// Other
 	NoneObject,
 	FunctionObject,
-	GeneratorObject
+	GeneratorObject,
+	InstanceObject
 >;
 
 using Object_ptr = MEMORYSYSTEM_API std::shared_ptr<Object>;
@@ -106,12 +111,31 @@ struct MEMORYSYSTEM_API GeneratorObject : public BaseObject
 	std::wstring stringify() const override;
 };
 
+struct MEMORYSYSTEM_API InstanceObject : public BaseObject
+{
+	std::map<std::wstring, Object_ptr> fields;
+
+	InstanceObject() {};
+	InstanceObject(std::map<std::wstring, Object_ptr> fields)
+		: fields(fields) {};
+
+	std::wstring stringify() const override;
+};
+
 // Scalar Objects
 
-struct MEMORYSYSTEM_API NumberObject : public ScalarObject
+struct MEMORYSYSTEM_API IntObject : public ScalarObject
+{
+	int value;
+	IntObject(int value) : value(value) {};
+
+	std::wstring stringify() const override;
+};
+
+struct MEMORYSYSTEM_API FloatObject : public ScalarObject
 {
 	double value;
-	NumberObject(double value) : value(value) {};
+	FloatObject(double value) : value(value) {};
 
 	std::wstring stringify() const override;
 };
@@ -233,6 +257,18 @@ struct MEMORYSYSTEM_API ReturnObject : public ActionObject
 	ReturnObject()
 		: value(std::nullopt) {};
 	ReturnObject(Object_ptr value)
+		: value(std::optional(std::move(value))) {};
+
+	std::wstring stringify() const override;
+};
+
+struct MEMORYSYSTEM_API YieldObject : public ActionObject
+{
+	std::optional<Object_ptr> value;
+
+	YieldObject()
+		: value(std::nullopt) {};
+	YieldObject(Object_ptr value)
 		: value(std::optional(std::move(value))) {};
 
 	std::wstring stringify() const override;

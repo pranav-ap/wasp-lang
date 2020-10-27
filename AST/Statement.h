@@ -18,7 +18,7 @@
 #include <utility>
 
 struct File;
-struct Module;
+struct Namespace;
 struct IfBranch;
 struct ElseBranch;
 struct WhileLoop;
@@ -48,7 +48,7 @@ using Statement = AST_API std::variant <
 	std::monostate,
 
 	File,
-	Module,
+	Namespace,
 	IfBranch, ElseBranch,
 	WhileLoop, ForInLoop,
 	Break, Continue,
@@ -323,13 +323,13 @@ struct AST_API Swear : public SingleExpressionStatement
 
 // Other
 
-struct AST_API Module
+struct AST_API Namespace
 {
 	std::wstring name;
 	bool is_public;
 	Block statements;
 
-	Module(std::wstring name, Block statements, bool is_public)
+	Namespace(std::wstring name, Block statements, bool is_public)
 		: name(name), statements(statements), is_public(is_public) { };
 };
 
