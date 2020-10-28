@@ -42,6 +42,7 @@ struct MEMORYSYSTEM_API CodeSection
 	void push(ByteVector instruction);
 	void replace(int index, std::byte replacement);
 	void set(ByteVector instructions);
+	void remove_last_byte();
 
 	void emit(OpCode opcode);
 	void emit(OpCode opcode, int operand);

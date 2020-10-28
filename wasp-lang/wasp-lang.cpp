@@ -44,7 +44,7 @@ int main()
 	//ByteVector instructions = cfg_builder->assemble();
 	//memory->get_code_section()->set(instructions);
 
-	//memory->print();
+	memory->print();
 
 	return 0;
 }

@@ -65,7 +65,6 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 	Type_ptr visit(SetLiteral const& expr);
 	Type_ptr visit(NewObject const& expr);
 	Type_ptr visit(TernaryCondition const& expr);
-	Type_ptr visit(SpreadExpression const& expr);
 	Type_ptr visit(TypePattern const& expr);
 	Type_ptr visit(Assignment const& expr);
 	Type_ptr visit(EnumMember const& expr);

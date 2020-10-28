@@ -17,7 +17,6 @@
 #include <variant>
 
 struct TernaryCondition;
-struct SpreadExpression;
 struct TypePattern;
 struct Assignment;
 struct ListLiteral;
@@ -40,8 +39,7 @@ using Expression = AST_API std::variant<
 	Identifier, Call,
 	Assignment,
 	Prefix, Infix, Postfix,
-	TypePattern, SpreadExpression,
-	TernaryCondition
+	TypePattern, TernaryCondition
 >;
 
 using Expression_ptr = AST_API std::shared_ptr<Expression>;
@@ -159,14 +157,6 @@ struct AST_API TypePattern
 
 	TypePattern(Expression_ptr expression, Type_ptr type)
 		: expression(std::move(expression)), type(std::move(type)) {};
-};
-
-struct AST_API SpreadExpression
-{
-	Expression_ptr expression;
-
-	SpreadExpression(Expression_ptr expression)
-		: expression(std::move(expression)) {};
 };
 
 struct AST_API TernaryCondition

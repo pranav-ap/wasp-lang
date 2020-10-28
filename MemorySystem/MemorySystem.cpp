@@ -70,6 +70,11 @@ void CodeSection::set(ByteVector instructions)
 	this->instructions = instructions;
 }
 
+void CodeSection::remove_last_byte()
+{
+	instructions.pop_back();
+}
+
 void CodeSection::emit(OpCode opcode)
 {
 	ByteVector instruction;

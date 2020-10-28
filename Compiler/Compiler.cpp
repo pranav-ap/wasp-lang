@@ -99,31 +99,43 @@ void Compiler::visit(IfBranch const& statement)
 void Compiler::visit(IfBranch const& statement, int exit_tree_label, int branch_label)
 {
 	memory->get_code_section()->emit(OpCode::LABEL, branch_label);
-	visit(statement.test);
+
+	enter_scope();
+
+	std::visit(overloaded{
+		[&](Assignment const& expr)
+		{
+			ASSERT(holds_alternative<TypePattern>(*expr.lhs_expression), "Expected type pattern");
+			auto type_pattern = get_if<TypePattern>(&*expr.lhs_expression);
+
+			ASSERT(holds_alternative<Identifier>(*type_pattern->expression), "Must be an identifier");
+			auto identifier = get_if<Identifier>(&*type_pattern->expression);
+
+			visit(expr.rhs_expression);
+
+			int id = define_variable(identifier->name);
+			memory->get_code_section()->emit(OpCode::STORE_LOCAL, id);
+			memory->get_code_section()->emit(OpCode::PUSH_CONSTANT, id);
+		},
+
+		[&](auto)
+		{
+			visit(statement.test);
+		}
+		}, *statement.test);
 
 	auto alternative = statement.alternative;
 
 	if (alternative.has_value())
 	{
-		if (
-			holds_alternative<IfBranch>(*alternative.value()) ||
-			holds_alternative<ElseBranch>(*alternative.value())
-			)
-		{
-			branch_label = create_label();
-			memory->get_code_section()->emit(OpCode::POP_JUMP_IF_FALSE, branch_label);
-		}
-		else
-		{
-			FATAL("Alternative must be an IfBranch or ElseBranch");
-		}
+		branch_label = create_label();
+		memory->get_code_section()->emit(OpCode::POP_JUMP_IF_FALSE, branch_label);
 	}
 	else
 	{
 		memory->get_code_section()->emit(OpCode::POP_JUMP_IF_FALSE, exit_tree_label);
 	}
 
-	enter_scope();
 	visit(statement.body);
 	memory->get_code_section()->emit(OpCode::POP_JUMP, exit_tree_label);
 	leave_scope();
@@ -132,14 +144,13 @@ void Compiler::visit(IfBranch const& statement, int exit_tree_label, int branch_
 	{
 		if (holds_alternative<IfBranch>(*alternative.value()))
 		{
-			branch_label = create_label();
 			auto if_branch = get_if<IfBranch>(&*alternative.value());
 			visit(*if_branch, exit_tree_label, branch_label);
 		}
 		else if (holds_alternative<ElseBranch>(*alternative.value()))
 		{
 			auto else_branch = get_if<ElseBranch>(&*alternative.value());
-			visit(*else_branch, exit_tree_label);
+			visit(*else_branch, branch_label);
 		}
 		else
 		{
@@ -153,27 +164,12 @@ void Compiler::visit(ElseBranch const& statement)
 	FATAL("Else must be part of an if branch");
 }
 
-void Compiler::visit(ElseBranch const& statement, int exit_tree_label)
+void Compiler::visit(ElseBranch const& statement, int branch_label)
 {
 	enter_scope();
-	memory->get_code_section()->emit(OpCode::LABEL, exit_tree_label);
+	memory->get_code_section()->emit(OpCode::LABEL, branch_label);
 	visit(statement.body);
 	leave_scope();
-}
-
-void Compiler::visit(Assignment const& statement)
-{
-	visit(statement.rhs_expression);
-
-	ASSERT(holds_alternative<TypePattern>(*statement.lhs_expression), "Must be a TypePattern");
-	auto type_pattern = get_if<TypePattern>(&*statement.lhs_expression);
-
-	ASSERT(holds_alternative<Identifier>(*type_pattern->expression), "Must be an identifier");
-	auto identifier = get_if<Identifier>(&*type_pattern->expression);
-
-	auto scope = scope_stack.top();
-	int label = scope->symbol_table->lookup(identifier->name);
-	memory->get_code_section()->emit(OpCode::STORE_LOCAL, label);
 }
 
 void Compiler::visit(WhileLoop const& statement)
@@ -285,10 +281,11 @@ void Compiler::visit(YieldStatement const& statement)
 
 void Compiler::visit(VariableDefinition const& statement)
 {
-	visit(statement.expression);
-
 	ASSERT(holds_alternative<Assignment>(*statement.expression), "Must be an Assignment");
 	auto assignment = get_if<Assignment>(&*statement.expression);
+
+	visit(assignment->rhs_expression);
+	//memory->get_code_section()->remove_last_byte();
 
 	ASSERT(holds_alternative<TypePattern>(*assignment->lhs_expression), "Must be a TypePattern");
 	auto type_pattern = get_if<TypePattern>(&*assignment->lhs_expression);
@@ -409,7 +406,6 @@ void Compiler::visit(const Expression_ptr expression)
 		[&](Infix const& expr) { visit(expr); },
 		[&](Postfix const& expr) { visit(expr); },
 		[&](Call const& expr) { visit(expr); },
-		[&](SpreadExpression const& expr) { visit(expr); },
 		[&](TypePattern const& expr) { visit(expr); },
 		[&](Assignment const& expr) { visit(expr); },
 
@@ -493,17 +489,50 @@ void Compiler::visit(NewObject const& expr)
 
 void Compiler::visit(TernaryCondition const& expr)
 {
+	enter_scope();
+
+	std::visit(overloaded{
+		[&](Assignment const& assignment)
+		{
+			ASSERT(holds_alternative<TypePattern>(*assignment.lhs_expression), "Expected type pattern");
+			auto type_pattern = get_if<TypePattern>(&*assignment.lhs_expression);
+
+			ASSERT(holds_alternative<Identifier>(*type_pattern->expression), "Must be an identifier");
+			auto identifier = get_if<Identifier>(&*type_pattern->expression);
+
+			visit(assignment.rhs_expression);
+
+			int id = define_variable(identifier->name);
+			memory->get_code_section()->emit(OpCode::STORE_LOCAL, id);
+			memory->get_code_section()->emit(OpCode::PUSH_CONSTANT, id);
+		},
+
+		[&](auto)
+		{
+			visit(expr.condition);
+		}
+		}, *expr.condition);
+
+	int	alternative_branch_label = create_label();
+	int	exit_branch_label = create_label();
+
+	memory->get_code_section()->emit(OpCode::POP_JUMP_IF_FALSE, alternative_branch_label);
+	visit(expr.true_expression);
+	memory->get_code_section()->emit(OpCode::POP_JUMP, exit_branch_label);
+
+	memory->get_code_section()->emit(OpCode::LABEL, alternative_branch_label);
+	visit(expr.false_expression);
+
+	memory->get_code_section()->emit(OpCode::LABEL, exit_branch_label);
+
+	leave_scope();
 }
 
-void Compiler::visit(SpreadExpression const& expr)
+void Compiler::visit(EnumMember const& expr)
 {
 }
 
 void Compiler::visit(TypePattern const& expr)
-{
-}
-
-void Compiler::visit(EnumMember const& expr)
 {
 }
 
@@ -555,6 +584,17 @@ void Compiler::visit(Prefix const& expr)
 void Compiler::visit(Infix const& expr)
 {
 	visit(expr.right);
+
+	switch (expr.op->type)
+	{
+	case WTokenType::DOT:
+	case WTokenType::QUESTION_DOT:
+	{
+		// ?
+		return;
+	}
+	}
+
 	visit(expr.left);
 
 	switch (expr.op->type)
@@ -638,6 +678,18 @@ void Compiler::visit(Infix const& expr)
 
 void Compiler::visit(Postfix const& expr)
 {
+}
+
+void Compiler::visit(Assignment const& statement)
+{
+	visit(statement.rhs_expression);
+
+	ASSERT(holds_alternative<Identifier>(*statement.lhs_expression), "Must be an identifier");
+	auto identifier = get_if<Identifier>(&*statement.lhs_expression);
+
+	auto scope = scope_stack.top();
+	int label = scope->symbol_table->lookup(identifier->name);
+	memory->get_code_section()->emit(OpCode::STORE_LOCAL, label);
 }
 
 // Scope

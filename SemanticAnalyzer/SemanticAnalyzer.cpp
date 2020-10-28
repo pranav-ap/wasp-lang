@@ -88,28 +88,23 @@ void SemanticAnalyzer::visit(IfBranch const& statement)
 	std::visit(overloaded{
 		[&](Assignment const& expr)
 		{
-			if (holds_alternative<TypePattern>(*expr.lhs_expression))
-			{
-				auto type_pattern = get_if<TypePattern>(&*expr.lhs_expression);
+			ASSERT(holds_alternative<TypePattern>(*expr.lhs_expression), "Expected type pattern");
+			auto type_pattern = get_if<TypePattern>(&*expr.lhs_expression);
 
-				ASSERT(holds_alternative<Identifier>(*type_pattern->expression), "Must be an identifier");
-				auto identifier = get_if<Identifier>(&*type_pattern->expression);
+			Type_ptr rhs_type = visit(expr.rhs_expression);
+			ASSERT(type_system->assignable(current_scope, type_pattern->type, rhs_type), "Type mismatch in assignment");
 
-				auto symbol = MAKE_SYMBOL(VariableSymbol(
-					identifier->name,
-					false,
-					true,
-					type_pattern->type
-				));
+			ASSERT(holds_alternative<Identifier>(*type_pattern->expression), "Must be an identifier");
+			auto identifier = get_if<Identifier>(&*type_pattern->expression);
 
-				current_scope->define(identifier->name, symbol);
-			}
-			else
-			{
-				visit(&expr.lhs_expression);
-			}
+			auto symbol = MAKE_SYMBOL(VariableSymbol(
+				identifier->name,
+				false,
+				true,
+				type_pattern->type
+			));
 
-			visit(&expr.rhs_expression);
+			current_scope->define(identifier->name, symbol);
 		},
 
 		[&](auto)
@@ -403,7 +398,6 @@ Type_ptr SemanticAnalyzer::visit(const Expression_ptr expression)
 		[&](Infix const& expr) { return visit(expr); },
 		[&](Postfix const& expr) { return visit(expr); },
 		[&](Call const& expr) { return visit(expr); },
-		[&](SpreadExpression const& expr) { return visit(expr); },
 		[&](TypePattern const& expr) { return visit(expr); },
 		[&](Assignment const& expr) { return visit(expr); },
 
@@ -531,13 +525,6 @@ Type_ptr SemanticAnalyzer::visit(TernaryCondition const& expression)
 	return MAKE_TYPE(VariantType({ true_type, false_type }));
 }
 
-Type_ptr SemanticAnalyzer::visit(SpreadExpression const& expr)
-{
-	ASSERT(holds_alternative<Identifier>(*expr.expression), "... operator must be followed by an Identifier");
-	Type_ptr type = visit(expr.expression);
-	return type;
-}
-
 Type_ptr SemanticAnalyzer::visit(TypePattern const& expr)
 {
 	visit(expr.expression);
@@ -659,6 +646,15 @@ Type_ptr SemanticAnalyzer::visit(Prefix const& expr)
 		ASSERT(type_system->is_boolean_type(operand_type), "Boolean operand is expected");
 		return MAKE_TYPE(BooleanType());
 	}
+	case WTokenType::TYPE_OF:
+	{
+		return operand_type;
+	}
+	case WTokenType::DOT_DOT_DOT:
+	{
+		// ?
+		return operand_type;
+	}
 	default:
 	{
 		FATAL("What the hell is this unary statement?");
@@ -678,6 +674,16 @@ Type_ptr SemanticAnalyzer::visit(Postfix const& expr)
 
 Type_ptr SemanticAnalyzer::visit(Infix const& expr)
 {
+	switch (expr.op->type)
+	{
+	case WTokenType::DOT:
+	case WTokenType::QUESTION_DOT:
+	{
+		// ?
+		return MAKE_TYPE(NoneType());
+	}
+	}
+
 	Type_ptr lhs_operand_type = visit(expr.left);
 	Type_ptr rhs_operand_type = visit(expr.right);
 
@@ -694,11 +700,7 @@ Type_ptr SemanticAnalyzer::visit(Infix const& expr)
 		}
 		else if (type_system->is_string_type(lhs_operand_type))
 		{
-			ASSERT(
-				type_system->is_number_type(rhs_operand_type) ||
-				type_system->is_string_type(rhs_operand_type),
-				"Number or string operand is expected");
-
+			ASSERT(type_system->is_number_type(rhs_operand_type) || type_system->is_string_type(rhs_operand_type), "Number or string operand is expected");
 			return type_system->get_string_type();
 		}
 		else
@@ -711,10 +713,6 @@ Type_ptr SemanticAnalyzer::visit(Infix const& expr)
 	case WTokenType::MINUS:
 	case WTokenType::DIVISION:
 	case WTokenType::REMINDER:
-	case WTokenType::LESSER_THAN:
-	case WTokenType::LESSER_THAN_EQUAL:
-	case WTokenType::GREATER_THAN:
-	case WTokenType::GREATER_THAN_EQUAL:
 	{
 		ASSERT(type_system->is_number_type(lhs_operand_type), "Number operand is expected");
 		ASSERT(type_system->is_number_type(rhs_operand_type), "Number operand is expected");
@@ -725,6 +723,15 @@ Type_ptr SemanticAnalyzer::visit(Infix const& expr)
 		}
 
 		return type_system->get_int_type();
+	}
+	case WTokenType::LESSER_THAN:
+	case WTokenType::LESSER_THAN_EQUAL:
+	case WTokenType::GREATER_THAN:
+	case WTokenType::GREATER_THAN_EQUAL:
+	{
+		ASSERT(type_system->is_number_type(lhs_operand_type), "Number operand is expected");
+		ASSERT(type_system->is_number_type(rhs_operand_type), "Number operand is expected");
+		return type_system->get_boolean_type();
 	}
 	case WTokenType::EQUAL_EQUAL:
 	case WTokenType::BANG_EQUAL:
@@ -744,12 +751,20 @@ Type_ptr SemanticAnalyzer::visit(Infix const& expr)
 			ASSERT(type_system->is_boolean_type(rhs_operand_type), "String operand is expected");
 			return type_system->get_boolean_type();
 		}
-		else
-		{
-			FATAL("Number or string or boolean operand is expected");
-		}
 
+		FATAL("Number or string or boolean operand is expected");
 		break;
+	}
+	case WTokenType::AND:
+	case WTokenType::OR:
+	{
+		ASSERT(type_system->is_boolean_type(lhs_operand_type), "Boolean operand is expected");
+		ASSERT(type_system->is_boolean_type(rhs_operand_type), "Boolean operand is expected");
+		return type_system->get_boolean_type();
+	}
+	case WTokenType::IS:
+	{
+		return type_system->get_boolean_type();
 	}
 	default:
 	{

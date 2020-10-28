@@ -20,7 +20,7 @@ let [a : int, ...b : string, c : string] = some_list
 [a, ...b, c] = some_list
 
 
-if a > 3 and r == 3 then
+if a > 3 then
     345
 elif a > 3 then
     567

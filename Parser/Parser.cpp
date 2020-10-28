@@ -61,6 +61,7 @@ Parser::Parser()
 	register_parselet(WTokenType::NEW, make_shared<NewParselet>());
 	register_parselet(WTokenType::COLON, make_shared<TypePatternParselet>());
 	register_parselet(WTokenType::IF, make_shared<TernaryConditionParselet>());
+	register_parselet(WTokenType::COLON_COLON, make_shared<EnumMemberParselet>());
 
 	register_prefix(WTokenType::PLUS, Precedence::PREFIX);
 	register_prefix(WTokenType::MINUS, Precedence::PREFIX);
@@ -68,7 +69,6 @@ Parser::Parser()
 	register_prefix(WTokenType::TYPE_OF, Precedence::PREFIX);
 	register_prefix(WTokenType::DOT_DOT_DOT, Precedence::PREFIX);
 
-	register_infix_left(WTokenType::COLON_COLON, Precedence::MEMBER_ACCESS);
 	register_infix_left(WTokenType::DOT, Precedence::MEMBER_ACCESS);
 	register_infix_left(WTokenType::QUESTION_DOT, Precedence::MEMBER_ACCESS);
 	register_infix_left(WTokenType::PLUS, Precedence::TERM);
@@ -504,6 +504,7 @@ Statement_ptr Parser::parse_branching(WTokenType token_type)
 	{
 		auto alternative = parse_branching(WTokenType::ELIF);
 		if_branch.alternative = alternative;
+		return MAKE_STATEMENT(if_branch);
 	}
 	else if (token_pipe->optional(WTokenType::ELSE))
 	{

@@ -35,7 +35,7 @@ class COMPILER_API Compiler
 	void visit(IfBranch const& stat, int exit_tree_label, int branch_label);
 
 	void visit(ElseBranch const& statement);
-	void visit(ElseBranch const& statement, int exit_tree_label);
+	void visit(ElseBranch const& statement, int branch_label);
 
 	void visit(WhileLoop const& statement);
 	void visit(ForInLoop const& statement);
@@ -76,7 +76,6 @@ class COMPILER_API Compiler
 	void visit(SetLiteral const& expr);
 	void visit(NewObject const& expr);
 	void visit(TernaryCondition const& expr);
-	void visit(SpreadExpression const& expr);
 	void visit(TypePattern const& expr);
 	void visit(Assignment const& expr);
 	void visit(EnumMember const& expr);
