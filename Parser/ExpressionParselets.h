@@ -132,6 +132,13 @@ public:
 	int get_precedence();
 };
 
+class SpreadParselet : public IPrefixParselet
+{
+public:
+	Expression_ptr parse(Parser_ptr parser, Token_ptr token);
+	int get_precedence();
+};
+
 class EnumMemberParselet : public IInfixParselet
 {
 public:

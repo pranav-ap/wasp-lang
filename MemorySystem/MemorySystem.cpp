@@ -70,11 +70,6 @@ void CodeSection::set(ByteVector instructions)
 	this->instructions = instructions;
 }
 
-void CodeSection::remove_last_byte()
-{
-	instructions.pop_back();
-}
-
 void CodeSection::emit(OpCode opcode)
 {
 	ByteVector instruction;
@@ -146,6 +141,14 @@ ByteVector CodeSection::operands_of(int opcode_index)
 }
 
 // ConstantPool
+
+int ConstantPool::allocate()
+{
+	int id = pool.size();
+	pool.insert({ id, move(MAKE_OBJECT_VARIANT(NoneObject())) });
+
+	return id;
+}
 
 int ConstantPool::allocate(int number)
 {
@@ -234,6 +237,12 @@ int ConstantPool::allocate(Object_ptr value)
 	pool.insert({ id, move(value) });
 
 	return id;
+}
+
+void ConstantPool::set(int id, Object_ptr value)
+{
+	ASSERT(pool.contains(id), "ID does not exist in pool");
+	pool.at(id) = move(value);
 }
 
 Object_ptr ConstantPool::get(int id)

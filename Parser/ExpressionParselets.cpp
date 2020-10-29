@@ -259,6 +259,13 @@ Expression_ptr TernaryConditionParselet::parse(Parser_ptr parser, Token_ptr toke
 	return MAKE_EXPRESSION(TernaryCondition(condition, then_arm, else_arm));
 }
 
+Expression_ptr SpreadParselet::parse(Parser_ptr parser, Token_ptr token)
+{
+	ADVANCE_PTR;
+	Expression_ptr expression = parser->parse_expression();
+	return MAKE_EXPRESSION(Spread(expression));
+}
+
 // get_precedence
 
 int PrefixOperatorParselet::get_precedence()
@@ -304,4 +311,9 @@ int TypePatternParselet::get_precedence()
 int TernaryConditionParselet::get_precedence()
 {
 	return (int)Precedence::TERNARY_CONDITION;
+}
+
+int SpreadParselet::get_precedence()
+{
+	return (int)Precedence::PREFIX;
 }

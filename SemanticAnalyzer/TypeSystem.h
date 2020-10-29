@@ -20,6 +20,9 @@ public:
 	bool is_string_type(const Type_ptr type) const;
 	bool is_none_type(const Type_ptr type) const;
 
+	bool is_condition_type(const Type_ptr condition_type) const;
+	bool is_spreadable_type(const Type_ptr condition_type) const;
+
 	bool is_iterable_type(const Type_ptr type) const;
 	bool is_key_type(const Type_ptr key_type) const;
 

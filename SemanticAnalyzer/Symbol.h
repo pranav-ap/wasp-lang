@@ -29,6 +29,13 @@ using Symbol_ptr = std::shared_ptr<Symbol>;
 using NameTypePairs = std::vector<std::pair<std::wstring, Type_ptr>>;
 using StringVector = std::vector<std::wstring>;
 
+using VariableSymbol_ptr = std::shared_ptr<VariableSymbol>;
+using CallableSymbol_ptr = std::shared_ptr<CallableSymbol>;
+using EnumSymbol_ptr = std::shared_ptr<EnumSymbol>;
+using ClassSymbol_ptr = std::shared_ptr<ClassSymbol>;
+using InterfaceSymbol_ptr = std::shared_ptr<InterfaceSymbol>;
+using AliasSymbol_ptr = std::shared_ptr<AliasSymbol>;
+
 struct SymbolBase
 {
 	std::wstring name;
@@ -69,11 +76,13 @@ struct ClassSymbol : public SymbolBase
 	StringVector interfaces;
 	StringVector base_types;
 
-	std::map<std::wstring, Type_ptr> member_types;
+	std::map<std::wstring, Type_ptr> field_types;
+	std::map<std::wstring, CallableSymbol_ptr> method_symbols;
+
 	StringVector public_members;
 
-	ClassSymbol(std::wstring name, bool is_public, StringVector interfaces, StringVector base_types, std::map<std::wstring, Type_ptr> member_types, StringVector public_members, Type_ptr type)
-		: SymbolBase(name, is_public, type), interfaces(interfaces), base_types(base_types), member_types(member_types), public_members(public_members) {};
+	ClassSymbol(std::wstring name, bool is_public, StringVector interfaces, StringVector base_types, std::map<std::wstring, Type_ptr> field_types, StringVector public_members, Type_ptr type)
+		: SymbolBase(name, is_public, type), interfaces(interfaces), base_types(base_types), field_types(field_types), public_members(public_members) {};
 };
 
 struct InterfaceSymbol : public SymbolBase
@@ -93,10 +102,3 @@ struct AliasSymbol : public SymbolBase
 	AliasSymbol(std::wstring name, bool is_public, Type_ptr type)
 		: SymbolBase(name, is_public, type) {};
 };
-
-using VariableSymbol_ptr = std::shared_ptr<VariableSymbol>;
-using CallableSymbol_ptr = std::shared_ptr<CallableSymbol>;
-using EnumSymbol_ptr = std::shared_ptr<EnumSymbol>;
-using ClassSymbol_ptr = std::shared_ptr<ClassSymbol>;
-using InterfaceSymbol_ptr = std::shared_ptr<InterfaceSymbol>;
-using AliasSymbol_ptr = std::shared_ptr<AliasSymbol>;

@@ -62,15 +62,16 @@ Parser::Parser()
 	register_parselet(WTokenType::COLON, make_shared<TypePatternParselet>());
 	register_parselet(WTokenType::IF, make_shared<TernaryConditionParselet>());
 	register_parselet(WTokenType::COLON_COLON, make_shared<EnumMemberParselet>());
+	register_parselet(WTokenType::DOT_DOT_DOT, make_shared<SpreadParselet>());
 
 	register_prefix(WTokenType::PLUS, Precedence::PREFIX);
 	register_prefix(WTokenType::MINUS, Precedence::PREFIX);
 	register_prefix(WTokenType::BANG, Precedence::PREFIX);
 	register_prefix(WTokenType::TYPE_OF, Precedence::PREFIX);
-	register_prefix(WTokenType::DOT_DOT_DOT, Precedence::PREFIX);
 
 	register_infix_left(WTokenType::DOT, Precedence::MEMBER_ACCESS);
 	register_infix_left(WTokenType::QUESTION_DOT, Precedence::MEMBER_ACCESS);
+	register_infix_left(WTokenType::QUESTION_QUESTION, Precedence::MEMBER_ACCESS);
 	register_infix_left(WTokenType::PLUS, Precedence::TERM);
 	register_infix_left(WTokenType::MINUS, Precedence::TERM);
 	register_infix_left(WTokenType::STAR, Precedence::PRODUCT);

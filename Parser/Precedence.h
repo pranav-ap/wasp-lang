@@ -13,7 +13,7 @@ enum class Precedence : int
 	TERM, // + -
 	PRODUCT, // * / %
 	EXPONENT, // ^
-	PREFIX, // + - ! typeof
+	PREFIX, // + - ! typeof ...
 	POSTFIX,
 	CALL, // call() new
 	MEMBER_ACCESS // . ?. ::

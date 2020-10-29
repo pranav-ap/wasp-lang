@@ -16,6 +16,7 @@
 #include <memory>
 #include <variant>
 
+struct Spread;
 struct TernaryCondition;
 struct TypePattern;
 struct Assignment;
@@ -37,7 +38,7 @@ using Expression = AST_API std::variant<
 	ListLiteral, TupleLiteral, SetLiteral,
 	MapLiteral, NewObject, EnumMember,
 	Identifier, Call,
-	Assignment,
+	Assignment, Spread,
 	Prefix, Infix, Postfix,
 	TypePattern, TernaryCondition
 >;
@@ -167,4 +168,12 @@ struct AST_API TernaryCondition
 
 	TernaryCondition(Expression_ptr condition, Expression_ptr true_expression, Expression_ptr false_expression)
 		: condition(std::move(condition)), true_expression(std::move(true_expression)), false_expression(std::move(false_expression)) {};
+};
+
+struct AST_API Spread
+{
+	Expression_ptr expression;
+
+	Spread(Expression_ptr expression)
+		: expression(std::move(expression)) {};
 };

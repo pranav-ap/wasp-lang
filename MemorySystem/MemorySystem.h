@@ -21,11 +21,13 @@ class MEMORYSYSTEM_API ConstantPool
 	std::map<int, Object_ptr> pool;
 
 public:
+	int allocate();
 	int allocate(int value);
 	int allocate(double value);
 	int allocate(std::wstring value);
 	int allocate(Object_ptr value);
 
+	void set(int id, Object_ptr value);
 	Object_ptr get(int id);
 };
 
@@ -42,7 +44,6 @@ struct MEMORYSYSTEM_API CodeSection
 	void push(ByteVector instruction);
 	void replace(int index, std::byte replacement);
 	void set(ByteVector instructions);
-	void remove_last_byte();
 
 	void emit(OpCode opcode);
 	void emit(OpCode opcode, int operand);

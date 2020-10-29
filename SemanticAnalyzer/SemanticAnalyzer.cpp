@@ -97,6 +97,8 @@ void SemanticAnalyzer::visit(IfBranch const& statement)
 			ASSERT(holds_alternative<Identifier>(*type_pattern->expression), "Must be an identifier");
 			auto identifier = get_if<Identifier>(&*type_pattern->expression);
 
+			ASSERT(type_system->is_condition_type(type_pattern->type), "Must be a condition");
+
 			auto symbol = MAKE_SYMBOL(VariableSymbol(
 				identifier->name,
 				false,
@@ -109,7 +111,8 @@ void SemanticAnalyzer::visit(IfBranch const& statement)
 
 		[&](auto)
 		{
-			visit(&statement.test);
+			Type_ptr condition_type = visit(&statement.test);
+			ASSERT(type_system->is_condition_type(condition_type), "Must be a condition");
 		}
 		}, *statement.test);
 
@@ -130,7 +133,7 @@ void SemanticAnalyzer::visit(ElseBranch const& statement)
 void SemanticAnalyzer::visit(WhileLoop const& statement)
 {
 	Type_ptr condition_type = visit(statement.expression);
-	ASSERT(type_system->is_boolean_type(condition_type), "Boolean operand is expected");
+	ASSERT(type_system->is_condition_type(condition_type), "Boolean operand is expected");
 
 	enter_scope(ScopeType::LOOP);
 	visit(statement.block);
@@ -291,14 +294,21 @@ void SemanticAnalyzer::visit(GeneratorDefinition const& statement)
 
 void SemanticAnalyzer::visit(FunctionMethodDefinition const& statement)
 {
-	auto symbol = MAKE_SYMBOL(CallableSymbol(
+	std::optional<Symbol_ptr> symbol = current_scope->lookup(statement.type_name);
+	OPT_CHECK(symbol);
+
+	ASSERT(holds_alternative<ClassSymbol>(*symbol.value()), "Expected a class type");
+	auto class_symbol = get_if<ClassSymbol>(&*symbol.value());
+
+	auto method_symbol = std::make_shared<CallableSymbol>(CallableSymbol(
 		statement.name,
 		statement.is_public,
 		statement.arguments,
 		statement.type
 	));
 
-	current_scope->define(statement.name, symbol);
+	wstring mangled_name = statement.name; // +stringify_type(statement.type);
+	class_symbol->method_symbols[mangled_name] = method_symbol;
 
 	enter_scope(ScopeType::CLASS_FUNCTION);
 	visit(statement.body);
@@ -307,14 +317,21 @@ void SemanticAnalyzer::visit(FunctionMethodDefinition const& statement)
 
 void SemanticAnalyzer::visit(GeneratorMethodDefinition const& statement)
 {
-	auto symbol = MAKE_SYMBOL(CallableSymbol(
+	std::optional<Symbol_ptr> symbol = current_scope->lookup(statement.type_name);
+	OPT_CHECK(symbol);
+
+	ASSERT(holds_alternative<ClassSymbol>(*symbol.value()), "Expected a class type");
+	auto class_symbol = get_if<ClassSymbol>(&*symbol.value());
+
+	auto method_symbol = std::make_shared<CallableSymbol>(CallableSymbol(
 		statement.name,
 		statement.is_public,
 		statement.arguments,
 		statement.type
 	));
 
-	current_scope->define(statement.name, symbol);
+	wstring mangled_name = statement.name; // +stringify_type(statement.type);
+	class_symbol->method_symbols[mangled_name] = method_symbol;
 
 	enter_scope(ScopeType::CLASS_GENERATOR);
 	visit(statement.body);
@@ -400,6 +417,7 @@ Type_ptr SemanticAnalyzer::visit(const Expression_ptr expression)
 		[&](Call const& expr) { return visit(expr); },
 		[&](TypePattern const& expr) { return visit(expr); },
 		[&](Assignment const& expr) { return visit(expr); },
+		[&](Spread const& expr) { return visit(expr); },
 
 		[&](auto)
 		{
@@ -512,7 +530,7 @@ Type_ptr SemanticAnalyzer::visit(Assignment const& expression)
 Type_ptr SemanticAnalyzer::visit(TernaryCondition const& expression)
 {
 	Type_ptr condition_type = visit(expression.condition);
-	ASSERT(type_system->is_boolean_type(condition_type), "Boolean operand is expected");
+	ASSERT(type_system->is_condition_type(condition_type), "Must be a condition");
 
 	Type_ptr true_type = visit(expression.true_expression);
 	Type_ptr false_type = visit(expression.false_expression);
@@ -523,6 +541,14 @@ Type_ptr SemanticAnalyzer::visit(TernaryCondition const& expression)
 	}
 
 	return MAKE_TYPE(VariantType({ true_type, false_type }));
+}
+
+Type_ptr SemanticAnalyzer::visit(Spread const& expr)
+{
+	Type_ptr operand_type = visit(expr.expression);
+	ASSERT(type_system->is_spreadable_type(operand_type), "Must be a spreadable type");
+
+	return operand_type;
 }
 
 Type_ptr SemanticAnalyzer::visit(TypePattern const& expr)
@@ -543,16 +569,17 @@ Type_ptr SemanticAnalyzer::visit(NewObject const& expr)
 	}
 
 	wstring expected_constructor_name = L"constructor";
-	expected_constructor_name += stringify_type(types);
+	//expected_constructor_name += stringify_type(types);
 
 	std::optional<Symbol_ptr> symbol = current_scope->lookup(expr.UDT_name);
 	OPT_CHECK(symbol);
+
 	ASSERT(holds_alternative<ClassSymbol>(*symbol.value()), "This is not a Class!");
 	auto class_symbol = get_if<ClassSymbol>(&*symbol.value());
 
 	// must support type inference here
 
-	auto exists = class_symbol->member_types.contains(expected_constructor_name);
+	auto exists = class_symbol->field_types.contains(expected_constructor_name);
 	ASSERT(exists, "Required constructor must exist");
 
 	return type;
@@ -648,11 +675,6 @@ Type_ptr SemanticAnalyzer::visit(Prefix const& expr)
 	}
 	case WTokenType::TYPE_OF:
 	{
-		return operand_type;
-	}
-	case WTokenType::DOT_DOT_DOT:
-	{
-		// ?
 		return operand_type;
 	}
 	default:
@@ -761,6 +783,15 @@ Type_ptr SemanticAnalyzer::visit(Infix const& expr)
 		ASSERT(type_system->is_boolean_type(lhs_operand_type), "Boolean operand is expected");
 		ASSERT(type_system->is_boolean_type(rhs_operand_type), "Boolean operand is expected");
 		return type_system->get_boolean_type();
+	}
+	case WTokenType::QUESTION_QUESTION:
+	{
+		if (type_system->equal(current_scope, lhs_operand_type, rhs_operand_type))
+		{
+			return lhs_operand_type;
+		}
+
+		return MAKE_TYPE(VariantType({ lhs_operand_type, rhs_operand_type }));
 	}
 	case WTokenType::IS:
 	{

@@ -16,9 +16,6 @@ x.foo.age = 1
 x(123).foo(36, gg).age = 1
 
 
-let [a : int, ...b : string, c : string] = some_list
-[a, ...b, c] = some_list
-
 
 if a > 3 then
     345
@@ -36,11 +33,6 @@ if x : int = call() then
     x = 1
 else
     3
-end
-
-
-if x = call() then
-    x = 1
 end
 
 
@@ -147,3 +139,7 @@ catch
 else
 finally
 end
+
+
+let [a : int, ...b : string, c : string] = some_list
+[a, ...b, c] = some_list

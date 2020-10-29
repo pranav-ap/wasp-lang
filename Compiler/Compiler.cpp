@@ -115,7 +115,7 @@ void Compiler::visit(IfBranch const& statement, int exit_tree_label, int branch_
 
 			int id = define_variable(identifier->name);
 			memory->get_code_section()->emit(OpCode::STORE_LOCAL, id);
-			memory->get_code_section()->emit(OpCode::PUSH_CONSTANT, id);
+			memory->get_code_section()->emit(OpCode::LOAD_LOCAL, id);
 		},
 
 		[&](auto)
@@ -285,7 +285,6 @@ void Compiler::visit(VariableDefinition const& statement)
 	auto assignment = get_if<Assignment>(&*statement.expression);
 
 	visit(assignment->rhs_expression);
-	//memory->get_code_section()->remove_last_byte();
 
 	ASSERT(holds_alternative<TypePattern>(*assignment->lhs_expression), "Must be a TypePattern");
 	auto type_pattern = get_if<TypePattern>(&*assignment->lhs_expression);
@@ -299,10 +298,22 @@ void Compiler::visit(VariableDefinition const& statement)
 
 void Compiler::visit(ClassDefinition const& statement)
 {
+	std::map<std::wstring, int> static_fields;
+	std::map<std::wstring, int> methods;
+
+	for (auto const& [member_name, type] : statement.member_types)
+	{
+		int id = memory->get_constant_pool()->allocate();
+		methods.insert({ member_name , id });
+	}
+
+	auto class_object = MAKE_OBJECT_VARIANT(ClassObject(static_fields, methods));
+	memory->get_constant_pool()->allocate(move(class_object));
 }
 
 void Compiler::visit(InterfaceDefinition const& statement)
 {
+	// Do nothing
 }
 
 void Compiler::visit(AliasDefinition const& statement)
@@ -315,7 +326,8 @@ void Compiler::visit(FunctionDefinition const& statement)
 
 	for (auto const& arg_name : statement.arguments)
 	{
-		define_variable(statement.name);
+		int id = define_variable(arg_name);
+		memory->get_code_section()->emit(OpCode::STORE_LOCAL, id);
 	}
 
 	visit(&statement.block);
@@ -324,25 +336,94 @@ void Compiler::visit(FunctionDefinition const& statement)
 	int parameter_count = statement.arguments.size();
 
 	auto function_object = MAKE_OBJECT_VARIANT(FunctionObject(statement.name, instructions, parameter_count));
-
-	int constant_id = memory->get_constant_pool()->allocate(move(function_object));
-	memory->get_code_section()->emit(OpCode::PUSH_CONSTANT, constant_id);
+	memory->get_constant_pool()->allocate(move(function_object));
 }
 
 void Compiler::visit(GeneratorDefinition const& statement)
 {
+	enter_scope();
+
+	for (auto const& arg_name : statement.arguments)
+	{
+		int id = define_variable(arg_name);
+		memory->get_code_section()->emit(OpCode::STORE_LOCAL, id);
+	}
+
+	visit(&statement.block);
+
+	auto instructions = leave_scope();
+	int parameter_count = statement.arguments.size();
+
+	auto generator_object = MAKE_OBJECT_VARIANT(GeneratorObject(statement.name, instructions, parameter_count));
+	memory->get_constant_pool()->allocate(move(generator_object));
 }
 
 void Compiler::visit(FunctionMethodDefinition const& statement)
 {
+	auto scope = scope_stack.top();
+	int id = scope->symbol_table->lookup(statement.type_name);
+
+	Object_ptr object = memory->get_constant_pool()->get(id);
+	ASSERT(holds_alternative<ClassObject>(*object), "Expected class defintion object");
+	auto class_object = get_if<ClassObject>(&*object);
+
+	ASSERT(class_object->methods.contains(statement.name), "Method name is not found in class definition");
+	int method_id = class_object->methods.at(statement.name);
+
+	enter_scope();
+
+	for (auto const& arg_name : statement.arguments)
+	{
+		int id = define_variable(arg_name);
+		memory->get_code_section()->emit(OpCode::STORE_LOCAL, id);
+	}
+
+	visit(&statement.body);
+
+	auto instructions = leave_scope();
+	int parameter_count = statement.arguments.size();
+
+	auto function_object = MAKE_OBJECT_VARIANT(FunctionMethodObject(statement.name, instructions, parameter_count));
+	memory->get_constant_pool()->set(method_id, move(function_object));
 }
 
 void Compiler::visit(GeneratorMethodDefinition const& statement)
 {
+	auto scope = scope_stack.top();
+	int id = scope->symbol_table->lookup(statement.type_name);
+
+	Object_ptr object = memory->get_constant_pool()->get(id);
+	ASSERT(holds_alternative<ClassObject>(*object), "Expected class defintion object");
+	auto class_object = get_if<ClassObject>(&*object);
+
+	ASSERT(class_object->methods.contains(statement.name), "Method name is not found in class definition");
+	int method_id = class_object->methods.at(statement.name);
+
+	enter_scope();
+
+	for (auto const& arg_name : statement.arguments)
+	{
+		int id = define_variable(arg_name);
+		memory->get_code_section()->emit(OpCode::STORE_LOCAL, id);
+	}
+
+	visit(&statement.body);
+
+	auto instructions = leave_scope();
+	int parameter_count = statement.arguments.size();
+
+	auto generator_object = MAKE_OBJECT_VARIANT(GeneratorMethodObject(statement.name, instructions, parameter_count));
+	memory->get_constant_pool()->set(method_id, move(generator_object));
 }
 
 void Compiler::visit(EnumDefinition const& statement)
 {
+	auto enum_object = MAKE_OBJECT_VARIANT(EnumDefinitionObject(
+		statement.name,
+		statement.members
+	));
+
+	memory->get_constant_pool()->allocate(move(enum_object));
 }
 
 void Compiler::visit(ExpressionStatement const& statement)
@@ -504,7 +585,7 @@ void Compiler::visit(TernaryCondition const& expr)
 
 			int id = define_variable(identifier->name);
 			memory->get_code_section()->emit(OpCode::STORE_LOCAL, id);
-			memory->get_code_section()->emit(OpCode::PUSH_CONSTANT, id);
+			memory->get_code_section()->emit(OpCode::LOAD_LOCAL, id);
 		},
 
 		[&](auto)
@@ -530,10 +611,15 @@ void Compiler::visit(TernaryCondition const& expr)
 
 void Compiler::visit(EnumMember const& expr)
 {
+	auto enum_name = expr.member_chain.front();
+
+	auto scope = scope_stack.top();
+	auto id = scope->symbol_table->lookup(enum_name);
 }
 
 void Compiler::visit(TypePattern const& expr)
 {
+	FATAL("TypePattern cannot be a standalone");
 }
 
 void Compiler::visit(Identifier const& expr)
@@ -541,6 +627,10 @@ void Compiler::visit(Identifier const& expr)
 	auto scope = scope_stack.top();
 	auto id = scope->symbol_table->lookup(expr.name);
 	memory->get_code_section()->emit(OpCode::LOAD_LOCAL, id);
+}
+
+void Compiler::visit(Spread const& expr)
+{
 }
 
 void Compiler::visit(Call const& expr)
@@ -688,8 +778,8 @@ void Compiler::visit(Assignment const& statement)
 	auto identifier = get_if<Identifier>(&*statement.lhs_expression);
 
 	auto scope = scope_stack.top();
-	int label = scope->symbol_table->lookup(identifier->name);
-	memory->get_code_section()->emit(OpCode::STORE_LOCAL, label);
+	int id = scope->symbol_table->lookup(identifier->name);
+	memory->get_code_section()->emit(OpCode::STORE_LOCAL, id);
 }
 
 // Scope

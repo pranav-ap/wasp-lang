@@ -332,7 +332,13 @@ Token_ptr Lexer::consume_equal()
 Token_ptr Lexer::consume_question()
 {
 	if (expect_current_char('.'))
+	{
 		return MAKE_TOKEN(WTokenType::QUESTION_DOT, L"?.", LINE_NUM, COL_NUM);
+	}
+	else if (expect_current_char('?'))
+	{
+		return MAKE_TOKEN(WTokenType::QUESTION_QUESTION, L"??", LINE_NUM, COL_NUM);
+	}
 
 	return MAKE_TOKEN(WTokenType::QUESTION, L"?", LINE_NUM, COL_NUM);
 }

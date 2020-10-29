@@ -52,6 +52,39 @@ bool TypeSystem::is_none_type(const Type_ptr type) const
 	return holds_alternative<NoneType>(*type);
 }
 
+bool TypeSystem::is_condition_type(const Type_ptr condition_type) const
+{
+	return std::visit(overloaded{
+	[&](IntType const& type) { return true; },
+	[&](FloatType const& type) { return true; },
+	[&](BooleanType const& type) { return true; },
+	[&](StringType const& type) { return true; },
+	[&](ListType const& type) { return true; },
+	[&](TupleType const& type) { return true; },
+	[&](VariantType const& type) { return true; },
+	[&](MapType const& type) { return true; },
+	[&](ClassType const& type) { return true; },
+	[&](EnumType const& type) { return true; },
+	[&](NoneType const& type) { return true; },
+	[&](FunctionType const& type) { return true; },
+	[&](GeneratorType const& type) { return true; },
+
+	[](auto) { return false; }
+		}, *condition_type);
+}
+
+bool TypeSystem::is_spreadable_type(const Type_ptr condition_type) const
+{
+	return std::visit(overloaded{
+		[&](StringType const& type) { return true; },
+		[&](ListType const& type) { return true; },
+		[&](TupleType const& type) { return true; },
+		[&](MapType const& type) { return true; },
+
+		[](auto) { return false; }
+		}, *condition_type);
+}
+
 bool TypeSystem::is_iterable_type(const Type_ptr type) const
 {
 	return std::visit(overloaded{

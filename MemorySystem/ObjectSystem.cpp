@@ -332,9 +332,29 @@ std::wstring ErrorObject::stringify() const
 	return L"ErrorObject";
 }
 
+std::wstring ClassObject::stringify() const
+{
+	return L"ClassObject";
+}
+
 std::wstring InstanceObject::stringify() const
 {
 	return L"InstanceObject";
+}
+
+std::wstring FunctionMethodObject::stringify() const
+{
+	return L"FunctionMethodObject";
+}
+
+std::wstring GeneratorMethodObject::stringify() const
+{
+	return L"GeneratorMethodObject";
+}
+
+std::wstring EnumDefinitionObject::stringify() const
+{
+	return L"EnumDefinitionObject";
 }
 
 // Utils

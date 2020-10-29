@@ -1,5 +1,8 @@
-
-let a : int = 3
-
-a = if a > 3 then 1 else 4
-
+enum Animal
+	DOG
+	CAT
+	enum Bird
+		CROW
+		PIGEON
+	end
+end

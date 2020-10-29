@@ -44,8 +44,8 @@ class COMPILER_API Compiler
 	void visit(Return const& statement);
 	void visit(YieldStatement const& statement);
 	void visit(VariableDefinition const& statement);
-	void visit(ClassDefinition const& statement);
 	void visit(InterfaceDefinition const& statement);
+	void visit(ClassDefinition const& statement);
 	void visit(AliasDefinition const& statement);
 	void visit(FunctionDefinition const& statement);
 	void visit(GeneratorDefinition const& statement);
@@ -84,6 +84,7 @@ class COMPILER_API Compiler
 	void visit(Infix const& expr);
 	void visit(Postfix const& expr);
 	void visit(Identifier const& expr);
+	void visit(Spread const& expr);
 
 	// Scope
 
