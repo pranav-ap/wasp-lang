@@ -178,7 +178,9 @@ void SemanticAnalyzer::visit(Return const& statement)
 {
 	ASSERT(current_scope->enclosed_in({
 		ScopeType::FUNCTION,
-		ScopeType::GENERATOR
+		ScopeType::GENERATOR,
+		ScopeType::CLASS_FUNCTION,
+		ScopeType::CLASS_GENERATOR
 		}), "Return is not expected in this block");
 
 	if (statement.expression.has_value())
@@ -416,7 +418,7 @@ void SemanticAnalyzer::visit(EnumDefinition const& statement)
 
 void SemanticAnalyzer::visit(ExpressionStatement const& statement)
 {
-	visit(statement.expression);
+	Type_ptr type = visit(statement.expression);
 }
 
 void SemanticAnalyzer::visit(Assert const& statement)
@@ -472,6 +474,7 @@ Type_ptr SemanticAnalyzer::visit(const Expression_ptr expression)
 		[&](NewObject const& expr) { return visit(expr); },
 		[&](TernaryCondition const& expr) { return visit(expr); },
 		[&](EnumMember const& expr) { return visit(expr); },
+		[&](MemberAccess const& expr) { return visit(expr); },
 		[&](Identifier const& expr) { return visit(expr); },
 		[&](Prefix const& expr) { return visit(expr); },
 		[&](Infix const& expr) { return visit(expr); },
@@ -760,16 +763,6 @@ Type_ptr SemanticAnalyzer::visit(Postfix const& expr)
 
 Type_ptr SemanticAnalyzer::visit(Infix const& expr)
 {
-	switch (expr.op->type)
-	{
-	case WTokenType::DOT:
-	case WTokenType::QUESTION_DOT:
-	{
-		// ?
-		return MAKE_TYPE(NoneType());
-	}
-	}
-
 	Type_ptr lhs_operand_type = visit(expr.left);
 	Type_ptr rhs_operand_type = visit(expr.right);
 
@@ -885,6 +878,53 @@ Type_ptr SemanticAnalyzer::visit(Identifier const& expr)
 
 		[&](auto) { return type_system->get_none_type(); }
 		}, *symbol.value());
+}
+
+Type_ptr SemanticAnalyzer::visit(MemberAccess const& expr)
+{
+	ASSERT(expr.op->type == WTokenType::DOT || expr.op->type == WTokenType::QUESTION_DOT, "Member access must be . or ?.");
+
+	Type_ptr lhs_operand_type = visit(expr.left);
+	ASSERT(holds_alternative<ClassType>(*lhs_operand_type), "Must be a ClassType");
+	auto class_type = get_if<ClassType>(&*lhs_operand_type);
+
+	std::optional<Symbol_ptr> symbol = current_scope->lookup(class_type->name);
+	OPT_CHECK(symbol);
+
+	ASSERT(holds_alternative<ClassSymbol>(*symbol.value()), "This is not a Class Symbol!");
+	auto class_symbol = get_if<ClassSymbol>(&*symbol.value());
+
+	return std::visit(overloaded{
+		[&](Identifier const& identifier)
+		{
+			ASSERT(class_symbol->field_types.contains(identifier.name), "Identifier is not found in class");
+			Type_ptr rhs_type = class_symbol->field_types.at(identifier.name);
+			return rhs_type;
+		},
+		[&](Call const& call)
+		{
+			ASSERT(class_symbol->method_symbols.contains(call.name), "Call is not found in class");
+			CallableSymbol_ptr symbol = class_symbol->method_symbols.at(call.name);
+
+			return std::visit(overloaded{
+				[&](FunctionType const& type) { return type.return_type.has_value() ? type.return_type.value() : type_system->get_none_type(); },
+				[&](GeneratorType const& type) { return type.return_type.has_value() ? type.return_type.value() : type_system->get_none_type(); },
+				[&](FunctionMethodType const& type) { return type.return_type.has_value() ? type.return_type.value() : type_system->get_none_type(); },
+				[&](GeneratorMethodType const& type) { return type.return_type.has_value() ? type.return_type.value() : type_system->get_none_type(); },
+				[&](auto)
+				{
+					FATAL("Expected a FunctionType or GeneratorType");
+					return type_system->get_none_type();
+				}
+				}, *symbol->type);
+		},
+
+		[&](auto)
+		{
+			FATAL("MemberAccess is invalid!");
+			return type_system->get_none_type();
+		}
+		}, *expr.right);
 }
 
 // Utils

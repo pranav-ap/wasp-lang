@@ -75,6 +75,7 @@ class AST_API ASTVisualizer
 	void visit(Postfix const& expr, int parent_id);
 	void visit(TypePattern const& expr, int parent_id);
 	void visit(Assignment const& expr, int parent_id);
+	void visit(MemberAccess const& expr, int parent_id);
 	void visit(TernaryCondition const& expr, int parent_id);
 
 	// Type

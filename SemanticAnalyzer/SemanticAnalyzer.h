@@ -74,6 +74,7 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 	Type_ptr visit(Infix const& expr);
 	Type_ptr visit(Postfix const& expr);
 	Type_ptr visit(Identifier const& expr);
+	Type_ptr visit(MemberAccess const& expr);
 
 	// Utils
 

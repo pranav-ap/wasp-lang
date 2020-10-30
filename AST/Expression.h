@@ -31,6 +31,7 @@ struct Call;
 struct Prefix;
 struct Infix;
 struct Postfix;
+struct MemberAccess;
 
 using Expression = AST_API std::variant<
 	std::monostate,
@@ -40,7 +41,8 @@ using Expression = AST_API std::variant<
 	Identifier, Call,
 	Assignment, Spread,
 	Prefix, Infix, Postfix,
-	TypePattern, TernaryCondition
+	TypePattern, TernaryCondition,
+	MemberAccess
 >;
 
 using Expression_ptr = AST_API std::shared_ptr<Expression>;
@@ -110,6 +112,16 @@ struct AST_API EnumMember
 
 	EnumMember(std::vector<std::wstring> member_chain)
 		: member_chain(member_chain) {};
+};
+
+struct AST_API MemberAccess
+{
+	Expression_ptr left;
+	Token_ptr op;
+	Expression_ptr right;
+
+	MemberAccess(Expression_ptr left, Token_ptr op, Expression_ptr right)
+		: left(std::move(left)), op(std::move(op)), right(std::move(right)) {};
 };
 
 struct AST_API Call

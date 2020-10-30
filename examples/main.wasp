@@ -1,13 +1,22 @@
+type Man 
+    id : int
+end
+
+
 type Castle 
     name: string
+    owner : Man
 
     constructor : ()
     repr : () => string
 end
 
 
-fn Castle::constructor()
-    43
+fn Castle::repr() => string
+    return "Castle"
 end
 
-3 + 55
+
+let x : Castle = new Castle()
+
+x.owner.id

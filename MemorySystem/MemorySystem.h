@@ -105,17 +105,16 @@ using MemorySystem_ptr = MEMORYSYSTEM_API std::shared_ptr<MemorySystem>;
 
 class MEMORYSYSTEM_API InstructionPrinter
 {
+	DefinitionStore_ptr definition_store;
+	VariableStore_ptr variable_store;
 	ConstantPool_ptr constant_pool;
 
 	std::wstring stringify_instruction(std::byte opcode, std::byte operand);
 	std::wstring stringify_instruction(std::byte opcode, std::byte operand_1, std::byte operand_2);
 
 public:
-	InstructionPrinter() :
-		constant_pool(std::make_shared<ConstantPool>()) {};
-
-	InstructionPrinter(ConstantPool_ptr constant_pool)
-		: constant_pool(constant_pool) {};
+	InstructionPrinter(DefinitionStore_ptr definition_store, VariableStore_ptr variable_store, ConstantPool_ptr constant_pool)
+		: definition_store(definition_store), variable_store(variable_store), constant_pool(constant_pool) {};
 
 	void print(CodeSection_ptr code_section);
 };

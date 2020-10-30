@@ -94,7 +94,7 @@ Expression_ptr PrefixOperatorParselet::parse(Parser_ptr parser, Token_ptr token)
 	return MAKE_EXPRESSION(Prefix(token, right));
 }
 
-Expression_ptr BinaryOperatorParselet::parse(Parser_ptr parser, Expression_ptr left, Token_ptr token)
+Expression_ptr InfixOperatorParselet::parse(Parser_ptr parser, Expression_ptr left, Token_ptr token)
 {
 	auto right = parser->parse_expression(precedence - (is_right_associative ? 1 : 0));
 	return MAKE_EXPRESSION(Infix(left, token, right));
@@ -130,7 +130,7 @@ Expression_ptr CallParselet::parse(Parser_ptr parser, Expression_ptr left, Token
 		{
 			result = parse(parser, &expr);
 		},
-		[&](Infix& expr)
+		[&](MemberAccess& expr)
 		{
 			Expression_ptr right_expr = expr.right;
 			ASSERT(holds_alternative<Identifier>(*right_expr), "Function name is supposed to be an identifier");
@@ -203,6 +203,7 @@ Expression_ptr MapParselet::parse(Parser_ptr parser, Token_ptr token)
 
 Expression_ptr NewParselet::parse(Parser_ptr parser, Token_ptr token)
 {
+	ADVANCE_PTR;
 	auto next_token = parser->token_pipe->require(WTokenType::IDENTIFIER);
 	NULL_CHECK(next_token);
 	ASSERT(next_token->type == WTokenType::IDENTIFIER, "Expect name of a UDT");
@@ -266,6 +267,13 @@ Expression_ptr SpreadParselet::parse(Parser_ptr parser, Token_ptr token)
 	return MAKE_EXPRESSION(Spread(expression));
 }
 
+Expression_ptr MemberAccessParselet::parse(Parser_ptr parser, Expression_ptr left, Token_ptr token)
+{
+	int precedence = get_precedence();
+	Expression_ptr right = parser->parse_expression(precedence);
+	return MAKE_EXPRESSION(MemberAccess(left, token, right));
+}
+
 // get_precedence
 
 int PrefixOperatorParselet::get_precedence()
@@ -273,7 +281,7 @@ int PrefixOperatorParselet::get_precedence()
 	return precedence;
 }
 
-int BinaryOperatorParselet::get_precedence()
+int InfixOperatorParselet::get_precedence()
 {
 	return precedence;
 }
@@ -316,4 +324,9 @@ int TernaryConditionParselet::get_precedence()
 int SpreadParselet::get_precedence()
 {
 	return (int)Precedence::PREFIX;
+}
+
+int MemberAccessParselet::get_precedence()
+{
+	return (int)Precedence::MEMBER_ACCESS;
 }

@@ -63,14 +63,14 @@ Parser::Parser()
 	register_parselet(WTokenType::IF, make_shared<TernaryConditionParselet>());
 	register_parselet(WTokenType::COLON_COLON, make_shared<EnumMemberParselet>());
 	register_parselet(WTokenType::DOT_DOT_DOT, make_shared<SpreadParselet>());
+	register_parselet(WTokenType::DOT, make_shared<MemberAccessParselet>());
+	register_parselet(WTokenType::QUESTION_DOT, make_shared<MemberAccessParselet>());
 
 	register_prefix(WTokenType::PLUS, Precedence::PREFIX);
 	register_prefix(WTokenType::MINUS, Precedence::PREFIX);
 	register_prefix(WTokenType::BANG, Precedence::PREFIX);
 	register_prefix(WTokenType::TYPE_OF, Precedence::PREFIX);
 
-	register_infix_left(WTokenType::DOT, Precedence::MEMBER_ACCESS);
-	register_infix_left(WTokenType::QUESTION_DOT, Precedence::MEMBER_ACCESS);
 	register_infix_left(WTokenType::QUESTION_QUESTION, Precedence::MEMBER_ACCESS);
 	register_infix_left(WTokenType::PLUS, Precedence::TERM);
 	register_infix_left(WTokenType::MINUS, Precedence::TERM);
@@ -105,6 +105,11 @@ Expression_ptr Parser::parse_expression(int precedence)
 
 	auto token = token_pipe->current();
 	OPT_CHECK(token);
+
+	if (token.value()->type == WTokenType::CLOSE_PARENTHESIS)
+	{
+		return nullptr;
+	}
 
 	IPrefixParselet_ptr prefix_parselet = prefix_parselets.at(token.value()->type);
 	NULL_CHECK(prefix_parselet);
@@ -160,12 +165,12 @@ void Parser::register_prefix(WTokenType token_type, Precedence precedence)
 
 void Parser::register_infix_left(WTokenType token_type, Precedence precedence)
 {
-	infix_parselets.insert(make_pair(token_type, make_shared<BinaryOperatorParselet>((int)precedence, false)));
+	infix_parselets.insert(make_pair(token_type, make_shared<InfixOperatorParselet>((int)precedence, false)));
 }
 
 void Parser::register_infix_right(WTokenType token_type, Precedence precedence)
 {
-	infix_parselets.insert(make_pair(token_type, make_shared<BinaryOperatorParselet>((int)precedence, true)));
+	infix_parselets.insert(make_pair(token_type, make_shared<InfixOperatorParselet>((int)precedence, true)));
 }
 
 void Parser::register_postfix(WTokenType token_type, Precedence precedence)
@@ -965,14 +970,14 @@ tuple<map<wstring, Type_ptr>, StringVector, StringVector, StringVector> Parser::
 		auto [identifier, type] = consume_identifier_type_pair();
 		token_pipe->require(WTokenType::EOL);
 
-		if (
-			holds_alternative<FunctionType>(*type) ||
-			holds_alternative<GeneratorType>(*type) ||
-			holds_alternative<OperatorType>(*type)
-			)
-		{
-			identifier += stringify_type(type);
-		}
+		//if (
+		//	holds_alternative<FunctionType>(*type) ||
+		//	holds_alternative<GeneratorType>(*type) ||
+		//	holds_alternative<OperatorType>(*type)
+		//	)
+		//{
+		//	identifier += stringify_type(type);
+		//}
 
 		const auto [_, success] = member_types.insert({ identifier, type });
 		ASSERT(success, "Duplicate members are found!");

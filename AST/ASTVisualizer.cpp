@@ -369,6 +369,7 @@ void ASTVisualizer::visit(const Expression_ptr expression, int parent_id)
 		[&](Postfix const& expr) { visit(expr, parent_id); },
 		[&](TypePattern const& expr) { visit(expr, parent_id); },
 		[&](Assignment const& expr) { visit(expr, parent_id); },
+		[&](MemberAccess const& expr) { visit(expr, parent_id); },
 		[&](TernaryCondition const& expr) { visit(expr, parent_id); },
 
 		[](auto) { FATAL("Never seen this Expression before! So I cannot print it!"); }
@@ -509,6 +510,15 @@ void ASTVisualizer::visit(Assignment const& expr, int parent_id)
 
 	visit(expr.lhs_expression, equal_id);
 	visit(expr.rhs_expression, equal_id);
+}
+
+void ASTVisualizer::visit(MemberAccess const& expr, int parent_id)
+{
+	const int id = id_counter++;
+	save(id, parent_id, expr.op->value);
+
+	visit(expr.left, id);
+	visit(expr.right, id);
 }
 
 void ASTVisualizer::visit(TernaryCondition const& expr, int parent_id)

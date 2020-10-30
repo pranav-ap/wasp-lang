@@ -486,6 +486,7 @@ void Compiler::visit(const Expression_ptr expression)
 		[&](NewObject const& expr) { visit(expr); },
 		[&](TernaryCondition const& expr) { visit(expr); },
 		[&](EnumMember const& expr) { visit(expr); },
+		[&](MemberAccess const& expr) { visit(expr); },
 		[&](Identifier const& expr) { visit(expr); },
 		[&](Prefix const& expr) { visit(expr); },
 		[&](Infix const& expr) { visit(expr); },
@@ -655,6 +656,21 @@ void Compiler::visit(Identifier const& expr)
 
 void Compiler::visit(Spread const& expr)
 {
+}
+
+void Compiler::visit(MemberAccess const& expr)
+{
+	switch (expr.op->type)
+	{
+	case WTokenType::DOT:
+	{
+		break;
+	}
+	case WTokenType::QUESTION_DOT:
+	{
+		break;
+	}
+	}
 }
 
 void Compiler::visit(Call const& expr)

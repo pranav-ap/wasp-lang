@@ -57,13 +57,13 @@ public:
 	int get_precedence();
 };
 
-class BinaryOperatorParselet : public IInfixParselet
+class InfixOperatorParselet : public IInfixParselet
 {
 	int precedence;
 	bool is_right_associative;
 
 public:
-	BinaryOperatorParselet(int precedence, bool is_right_associative)
+	InfixOperatorParselet(int precedence, bool is_right_associative)
 		: precedence(precedence), is_right_associative(is_right_associative) {};
 
 	Expression_ptr parse(Parser_ptr parser, Expression_ptr left, Token_ptr token);
@@ -140,6 +140,13 @@ public:
 };
 
 class EnumMemberParselet : public IInfixParselet
+{
+public:
+	Expression_ptr parse(Parser_ptr parser, Expression_ptr left, Token_ptr token);
+	int get_precedence();
+};
+
+class MemberAccessParselet : public IInfixParselet
 {
 public:
 	Expression_ptr parse(Parser_ptr parser, Expression_ptr left, Token_ptr token);

@@ -119,11 +119,11 @@ infix + (a : num, b : num) => num
 end
 
 
+// Planned Features
+
 namepace Hello
 end
 
-
-// Planned Features
 
 match { thing, another, third } then
     case { "open", a is int, _ } then

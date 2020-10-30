@@ -86,6 +86,7 @@ class COMPILER_API Compiler
 	void visit(Postfix const& expr);
 	void visit(Identifier const& expr);
 	void visit(Spread const& expr);
+	void visit(MemberAccess const& expr);
 
 	// Emit
 
