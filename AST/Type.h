@@ -32,6 +32,8 @@ struct VariantType;
 struct NoneType;
 struct FunctionType;
 struct GeneratorType;
+struct FunctionMethodType;
+struct GeneratorMethodType;
 struct OperatorType;
 
 using Type = AST_API std::variant<
@@ -44,6 +46,7 @@ using Type = AST_API std::variant<
 	EnumType,
 	VariantType, NoneType,
 	FunctionType, GeneratorType,
+	FunctionMethodType, GeneratorMethodType,
 	OperatorType
 >;
 
@@ -190,6 +193,22 @@ struct AST_API GeneratorType : public CallableType
 {
 	GeneratorType(TypeVector input_types, std::optional<Type_ptr> return_type)
 		: CallableType(input_types, return_type) {};
+};
+
+struct AST_API FunctionMethodType : public CallableType
+{
+	std::wstring type_name;
+
+	FunctionMethodType(std::wstring type_name, TypeVector input_types, std::optional<Type_ptr> return_type)
+		: CallableType(input_types, return_type), type_name(type_name) {};
+};
+
+struct AST_API GeneratorMethodType : public CallableType
+{
+	std::wstring type_name;
+
+	GeneratorMethodType(std::wstring type_name, TypeVector input_types, std::optional<Type_ptr> return_type)
+		: CallableType(input_types, return_type), type_name(type_name) {};
 };
 
 enum class AST_API OperatorPosition

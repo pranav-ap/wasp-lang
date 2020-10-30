@@ -1,6 +1,5 @@
 #pragma once
 
-#include "CSymbol.h"
 #include <map>
 #include <memory>
 #include <string>
@@ -11,7 +10,7 @@ using CSymbolTable_ptr = std::shared_ptr<CSymbolTable>;
 
 class CSymbolTable
 {
-	std::map<std::wstring, CSymbol_ptr> store;
+	std::map<std::wstring, int> store;
 
 public:
 	std::optional<CSymbolTable_ptr> enclosing_scope;

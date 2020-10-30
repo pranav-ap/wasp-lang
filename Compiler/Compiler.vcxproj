@@ -160,7 +160,6 @@
     <ClInclude Include="Compiler.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="CSymbol.h" />
     <ClInclude Include="CSymbolTable.h" />
     <ClInclude Include="CScope.h" />
   </ItemGroup>

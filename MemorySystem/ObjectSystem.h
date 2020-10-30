@@ -35,31 +35,35 @@ struct FunctionObject;
 struct GeneratorObject;
 struct FunctionMethodObject;
 struct GeneratorMethodObject;
-struct EnumDefinitionObject;
+struct EnumObject;
 struct ClassObject;
 struct InstanceObject;
 
-using Object = MEMORYSYSTEM_API std::variant<
+using Object = MEMORYSYSTEM_API std::variant <
 	std::monostate,
+
 	// Scalar Objects
 	IntObject, FloatObject, StringObject, BooleanObject,
+	NoneObject,
+
 	// Composite Objects
 	ListObject, TupleObject,
 	EnumMemberObject,
 	MapObject,
 	VariantObject,
+
 	// Action Objects
 	ReturnObject, YieldObject,
 	ErrorObject,
 	BreakObject, ContinueObject,
 	BuiltInsObject,
 
-	NoneObject,
-	EnumDefinitionObject,
+	// Complex Objects
+	EnumObject,
 	FunctionObject, GeneratorObject,
 	FunctionMethodObject, GeneratorMethodObject,
 	ClassObject, InstanceObject
->;
+> ;
 
 using Object_ptr = MEMORYSYSTEM_API std::shared_ptr<Object>;
 
@@ -90,66 +94,59 @@ struct MEMORYSYSTEM_API NoneObject : public BaseObject
 	std::wstring stringify() const override;
 };
 
-struct MEMORYSYSTEM_API FunctionObject : public BaseObject
+struct MEMORYSYSTEM_API DefinitionObject : public BaseObject
 {
 	std::wstring name;
 	std::vector<std::byte> instructions;
 	int parameter_count;
 
-	FunctionObject() : parameter_count(0) {};
+	DefinitionObject(std::wstring name, std::vector<std::byte> instructions, int parameter_count)
+		: name(name), instructions(instructions), parameter_count(parameter_count) {};
+
+	virtual std::wstring stringify() const = 0;
+};
+
+struct MEMORYSYSTEM_API FunctionObject : public DefinitionObject
+{
 	FunctionObject(std::wstring name, std::vector<std::byte> instructions, int parameter_count)
-		: name(name), instructions(instructions), parameter_count(parameter_count) {};
+		: DefinitionObject(name, instructions, parameter_count) {};
 
 	std::wstring stringify() const override;
 };
 
-struct MEMORYSYSTEM_API GeneratorObject : public BaseObject
+struct MEMORYSYSTEM_API GeneratorObject : public DefinitionObject
 {
-	std::wstring name;
-	std::vector<std::byte> instructions;
-	int parameter_count;
-
-	GeneratorObject() : parameter_count(0) {};
 	GeneratorObject(std::wstring name, std::vector<std::byte> instructions, int parameter_count)
-		: name(name), instructions(instructions), parameter_count(parameter_count) {};
+		: DefinitionObject(name, instructions, parameter_count) {};
 
 	std::wstring stringify() const override;
 };
 
-struct MEMORYSYSTEM_API FunctionMethodObject : public BaseObject
+struct MEMORYSYSTEM_API FunctionMethodObject : public DefinitionObject
 {
-	std::wstring name;
-	std::vector<std::byte> instructions;
-	int parameter_count;
-
-	FunctionMethodObject() : parameter_count(0) {};
 	FunctionMethodObject(std::wstring name, std::vector<std::byte> instructions, int parameter_count)
-		: name(name), instructions(instructions), parameter_count(parameter_count) {};
+		: DefinitionObject(name, instructions, parameter_count) {};
 
 	std::wstring stringify() const override;
 };
 
-struct MEMORYSYSTEM_API GeneratorMethodObject : public BaseObject
+struct MEMORYSYSTEM_API GeneratorMethodObject : public DefinitionObject
 {
-	std::wstring name;
-	std::vector<std::byte> instructions;
-	int parameter_count;
-
-	GeneratorMethodObject() : parameter_count(0) {};
 	GeneratorMethodObject(std::wstring name, std::vector<std::byte> instructions, int parameter_count)
-		: name(name), instructions(instructions), parameter_count(parameter_count) {};
+		: DefinitionObject(name, instructions, parameter_count) {};
 
 	std::wstring stringify() const override;
 };
 
 struct MEMORYSYSTEM_API ClassObject : public BaseObject
 {
+	std::wstring name;
 	std::map<std::wstring, int> static_fields;
 	std::map<std::wstring, int> methods;
 
 	ClassObject() {};
-	ClassObject(std::map<std::wstring, int> fields, std::map<std::wstring, int> methods)
-		: static_fields(static_fields), methods(methods) {};
+	ClassObject(std::wstring name, std::map<std::wstring, int> fields, std::map<std::wstring, int> methods)
+		: name(name), static_fields(static_fields), methods(methods) {};
 
 	std::wstring stringify() const override;
 };
@@ -166,13 +163,13 @@ struct MEMORYSYSTEM_API InstanceObject : public BaseObject
 	std::wstring stringify() const override;
 };
 
-struct MEMORYSYSTEM_API EnumDefinitionObject : public BaseObject
+struct MEMORYSYSTEM_API EnumObject : public BaseObject
 {
 	std::wstring name;
 	std::vector<std::wstring> members;
 
-	EnumDefinitionObject() {};
-	EnumDefinitionObject(std::wstring name, std::vector<std::wstring> members)
+	EnumObject() {};
+	EnumObject(std::wstring name, std::vector<std::wstring> members)
 		: name(name), members(members) {};
 
 	std::wstring stringify() const override;
@@ -271,9 +268,10 @@ struct MEMORYSYSTEM_API EnumMemberObject : public CompositeObject
 {
 	std::wstring enum_name;
 	std::vector<std::wstring> member_names;
+	int enum_member_index;
 
-	EnumMemberObject(std::wstring enum_name, std::vector<std::wstring> member_names)
-		: enum_name(enum_name), member_names(member_names) {};
+	EnumMemberObject(std::wstring enum_name, std::vector<std::wstring> member_names, int enum_member_index)
+		: enum_name(enum_name), member_names(member_names), enum_member_index(enum_member_index) {};
 
 	std::wstring stringify() const override;
 };

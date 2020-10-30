@@ -1067,30 +1067,32 @@ tuple<wstring, wstring, bool, StringVector, TypeVector, optional<Type_ptr>, Bloc
 Statement_ptr Parser::parse_function_definition(bool is_public)
 {
 	auto [first_identifier, second_identifier, is_method, arguments, argument_types, optional_return_type, block] = parse_callable_definition();
-	Type_ptr function_type = MAKE_TYPE(FunctionType(argument_types, optional_return_type));
 
 	if (is_method)
 	{
-		second_identifier += stringify_type(function_type);
-		return MAKE_STATEMENT(FunctionMethodDefinition(first_identifier, second_identifier, is_public, arguments, function_type, block));
+		Type_ptr function_method_type = MAKE_TYPE(FunctionMethodType(first_identifier, argument_types, optional_return_type));
+		//second_identifier += stringify_type(function_type);
+		return MAKE_STATEMENT(FunctionMethodDefinition(first_identifier, second_identifier, is_public, arguments, function_method_type, block));
 	}
 
-	first_identifier += stringify_type(function_type);
+	Type_ptr function_type = MAKE_TYPE(FunctionType(argument_types, optional_return_type));
+	//first_identifier += stringify_type(function_type);
 	return MAKE_STATEMENT(FunctionDefinition(is_public, first_identifier, arguments, function_type, block));
 }
 
 Statement_ptr Parser::parse_generator_definition(bool is_public)
 {
 	auto [first_identifier, second_identifier, is_method, arguments, argument_types, optional_return_type, block] = parse_callable_definition();
-	Type_ptr function_type = std::make_shared<Type>(GeneratorType(argument_types, optional_return_type));
 
 	if (is_method)
 	{
-		second_identifier += stringify_type(function_type);
-		return MAKE_STATEMENT(GeneratorMethodDefinition(first_identifier, second_identifier, is_public, arguments, function_type, block));
+		Type_ptr generator_method_type = MAKE_TYPE(GeneratorMethodType(first_identifier, argument_types, optional_return_type));
+		//second_identifier += stringify_type(function_type);
+		return MAKE_STATEMENT(GeneratorMethodDefinition(first_identifier, second_identifier, is_public, arguments, generator_method_type, block));
 	}
 
-	first_identifier += stringify_type(function_type);
+	Type_ptr function_type = std::make_shared<Type>(GeneratorType(argument_types, optional_return_type));
+	//first_identifier += stringify_type(function_type);
 	return MAKE_STATEMENT(GeneratorDefinition(is_public, first_identifier, arguments, function_type, block));
 }
 

@@ -14,6 +14,32 @@
 #include <map>
 #include <string>
 
+// DefinitionStore
+
+class MEMORYSYSTEM_API DefinitionStore
+{
+	std::map<int, Object_ptr> store;
+
+public:
+	void set(int id, Object_ptr value);
+	Object_ptr get(int id);
+};
+
+using DefinitionStore_ptr = MEMORYSYSTEM_API std::shared_ptr<DefinitionStore>;
+
+// VariableStore
+
+class MEMORYSYSTEM_API VariableStore
+{
+	std::map<int, Object_ptr> store;
+
+public:
+	void set(int id, Object_ptr value);
+	Object_ptr get(int id);
+};
+
+using VariableStore_ptr = MEMORYSYSTEM_API std::shared_ptr<VariableStore>;
+
 // ConstantPool
 
 class MEMORYSYSTEM_API ConstantPool
@@ -27,7 +53,6 @@ public:
 	int allocate(std::wstring value);
 	int allocate(Object_ptr value);
 
-	void set(int id, Object_ptr value);
 	Object_ptr get(int id);
 };
 
@@ -59,16 +84,17 @@ using CodeSection_ptr = MEMORYSYSTEM_API std::shared_ptr<CodeSection>;
 
 class MEMORYSYSTEM_API MemorySystem
 {
+public:
+	DefinitionStore_ptr definition_store;
+	VariableStore_ptr variable_store;
 	ConstantPool_ptr constant_pool;
 	CodeSection_ptr code_section;
 
-public:
 	MemorySystem()
-		: constant_pool(std::make_shared<ConstantPool>()),
+		: definition_store(std::make_shared<DefinitionStore>()),
+		variable_store(std::make_shared<VariableStore>()),
+		constant_pool(std::make_shared<ConstantPool>()),
 		code_section(std::make_shared<CodeSection>()) {};
-
-	ConstantPool_ptr get_constant_pool();
-	CodeSection_ptr get_code_section();
 
 	void print();
 };

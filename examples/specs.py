@@ -58,7 +58,7 @@ fn add(a : int, b : int) => int
     end
 
     return a + b
-
+end
 
 enum Animal
 	DOG

@@ -25,6 +25,7 @@ class COMPILER_API Compiler
 	std::stack<CScope_ptr> scope_stack;
 
 	int next_label;
+	int next_id;
 
 	// Statement
 
@@ -86,19 +87,26 @@ class COMPILER_API Compiler
 	void visit(Identifier const& expr);
 	void visit(Spread const& expr);
 
+	// Emit
+
+	void emit(OpCode opcode);
+	void emit(OpCode opcode, int operand);
+	void emit(OpCode opcode, int operand_1, int operand_2);
+
 	// Scope
 
 	CScope_ptr enter_scope();
 	ByteVector leave_scope();
+	ByteVector leave_subroutine_scope();
 
 	// Utils
 
-	int define_variable(std::wstring name);
+	int define(std::wstring name);
 	int create_label();
 
 public:
 	Compiler(MemorySystem_ptr memory)
-		: next_label(0), memory(memory) {};
+		: next_label(0), next_id(0), memory(memory) {};
 
 	void execute(const File_ptr ast);
 };

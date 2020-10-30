@@ -352,9 +352,9 @@ std::wstring GeneratorMethodObject::stringify() const
 	return L"GeneratorMethodObject";
 }
 
-std::wstring EnumDefinitionObject::stringify() const
+std::wstring EnumObject::stringify() const
 {
-	return L"EnumDefinitionObject";
+	return L"EnumObject";
 }
 
 // Utils

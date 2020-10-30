@@ -28,16 +28,6 @@ using std::to_string;
 
 // MemorySystem
 
-ConstantPool_ptr MemorySystem::get_constant_pool()
-{
-	return constant_pool;
-}
-
-CodeSection_ptr MemorySystem::get_code_section()
-{
-	return code_section;
-}
-
 void MemorySystem::print()
 {
 	InstructionPrinter_ptr printer = make_shared<InstructionPrinter>(constant_pool);
@@ -239,12 +229,6 @@ int ConstantPool::allocate(Object_ptr value)
 	return id;
 }
 
-void ConstantPool::set(int id, Object_ptr value)
-{
-	ASSERT(pool.contains(id), "ID does not exist in pool");
-	pool.at(id) = move(value);
-}
-
 Object_ptr ConstantPool::get(int id)
 {
 	if (pool.contains(id))
@@ -326,9 +310,10 @@ std::wstring InstructionPrinter::stringify_instruction(std::byte opcode, std::by
 	case OpCode::SET_CLASS_INSTANCE_PROPERTY:
 	case OpCode::GET_CLASS_FUNCTION:
 	case OpCode::GET_CLASS_GENERATOR:
+	case OpCode::GET_ENUM_MEMBER:
 	{
 		wstring variable_name = stringify_object(constant_pool->get(operand_1_int));
-		str_stream << std::right << setw(OPERAND_WIDTH) << L" (" << variable_name << L" ," << operand_2_int << L")";
+		str_stream << std::right << setw(OPERAND_WIDTH) << L" (" << variable_name << L" , " << operand_2_int << L")";
 
 		return str_stream.str();
 	}
@@ -336,7 +321,7 @@ std::wstring InstructionPrinter::stringify_instruction(std::byte opcode, std::by
 	case OpCode::CALL_GENERATOR:
 	{
 		wstring function_name = stringify_object(constant_pool->get(operand_1_int));
-		str_stream << std::right << setw(OPERAND_WIDTH) << L" (" << function_name << L" ," << operand_2_int << L")";
+		str_stream << std::right << setw(OPERAND_WIDTH) << L" (" << function_name << L" , " << operand_2_int << L")";
 
 		return str_stream.str();
 	}
@@ -384,4 +369,32 @@ void InstructionPrinter::print(CodeSection_ptr code_section)
 		}
 		}
 	}
+}
+
+// DefinitionStore
+
+void DefinitionStore::set(int id, Object_ptr value)
+{
+	ASSERT(!store.contains(id), "ID already exists in DefinitionStore");
+	store.insert({ id, move(value) });
+}
+
+Object_ptr DefinitionStore::get(int id)
+{
+	ASSERT(store.contains(id), "ID does not exist in DefinitionStore");
+	return store.at(id);
+}
+
+// VariableStore
+
+void VariableStore::set(int id, Object_ptr value)
+{
+	ASSERT(!store.contains(id), "ID already exists in DefinitionStore");
+	store.insert({ id, move(value) });
+}
+
+Object_ptr VariableStore::get(int id)
+{
+	ASSERT(store.contains(id), "ID does not exist in VariableStore");
+	return store.at(id);
 }

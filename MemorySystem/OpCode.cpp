@@ -77,6 +77,7 @@ MEMORYSYSTEM_API int get_opcode_arity(OpCode opcode)
 	case OpCode::SET_CHAR_FROM_STRING:
 	case OpCode::CALL_FUNCTION:
 	case OpCode::CALL_GENERATOR:
+	case OpCode::GET_ENUM_MEMBER:
 	{
 		return 2;
 	}
@@ -352,6 +353,10 @@ MEMORYSYSTEM_API std::wstring stringify_opcode(OpCode opcode)
 	case OpCode::GET_CLASS_GENERATOR:
 	{
 		return L"GET_CLASS_GENERATOR";
+	}
+	case OpCode::GET_ENUM_MEMBER:
+	{
+		return L"GET_ENUM_MEMBER";
 	}
 	default:
 	{

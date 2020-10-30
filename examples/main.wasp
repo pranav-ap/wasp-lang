@@ -1,8 +1,13 @@
-enum Animal
-	DOG
-	CAT
-	enum Bird
-		CROW
-		PIGEON
-	end
+type Castle 
+    name: string
+
+    constructor : ()
+    repr : () => string
 end
+
+
+fn Castle::constructor()
+    43
+end
+
+3 + 55

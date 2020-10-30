@@ -21,6 +21,7 @@ template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
 using std::move;
 using std::byte;
 using std::wstring;
+using std::map;
 using std::make_shared;
 using std::holds_alternative;
 using std::get_if;
@@ -33,14 +34,14 @@ void Compiler::execute(const File_ptr ast)
 
 	enter_scope();
 
-	memory->get_code_section()->emit(OpCode::START);
+	emit(OpCode::START);
 
 	for (auto statement : ast->statements)
 	{
 		visit(statement);
 	}
 
-	memory->get_code_section()->emit(OpCode::STOP);
+	emit(OpCode::STOP);
 
 	leave_scope();
 }
@@ -62,6 +63,8 @@ void Compiler::visit(const Statement_ptr statement)
 		[&](ClassDefinition const& stat) { visit(stat); },
 		[&](InterfaceDefinition const& stat) { visit(stat); },
 		[&](AliasDefinition const& stat) { visit(stat); },
+		[&](FunctionDefinition const& stat) { visit(stat); },
+		[&](GeneratorDefinition const& stat) { visit(stat); },
 		[&](FunctionMethodDefinition const& stat) { visit(stat); },
 		[&](GeneratorMethodDefinition const& stat) { visit(stat); },
 		[&](EnumDefinition const& stat) { visit(stat); },
@@ -93,12 +96,12 @@ void Compiler::visit(IfBranch const& statement)
 
 	visit(statement, exit_tree_label, branch_label);
 
-	memory->get_code_section()->emit(OpCode::LABEL, exit_tree_label);
+	emit(OpCode::LABEL, exit_tree_label);
 }
 
 void Compiler::visit(IfBranch const& statement, int exit_tree_label, int branch_label)
 {
-	memory->get_code_section()->emit(OpCode::LABEL, branch_label);
+	emit(OpCode::LABEL, branch_label);
 
 	enter_scope();
 
@@ -113,9 +116,9 @@ void Compiler::visit(IfBranch const& statement, int exit_tree_label, int branch_
 
 			visit(expr.rhs_expression);
 
-			int id = define_variable(identifier->name);
-			memory->get_code_section()->emit(OpCode::STORE_LOCAL, id);
-			memory->get_code_section()->emit(OpCode::LOAD_LOCAL, id);
+			int id = define(identifier->name);
+			emit(OpCode::STORE_LOCAL, id);
+			emit(OpCode::LOAD_LOCAL, id);
 		},
 
 		[&](auto)
@@ -129,15 +132,15 @@ void Compiler::visit(IfBranch const& statement, int exit_tree_label, int branch_
 	if (alternative.has_value())
 	{
 		branch_label = create_label();
-		memory->get_code_section()->emit(OpCode::POP_JUMP_IF_FALSE, branch_label);
+		emit(OpCode::POP_JUMP_IF_FALSE, branch_label);
 	}
 	else
 	{
-		memory->get_code_section()->emit(OpCode::POP_JUMP_IF_FALSE, exit_tree_label);
+		emit(OpCode::POP_JUMP_IF_FALSE, exit_tree_label);
 	}
 
 	visit(statement.body);
-	memory->get_code_section()->emit(OpCode::POP_JUMP, exit_tree_label);
+	emit(OpCode::POP_JUMP, exit_tree_label);
 	leave_scope();
 
 	if (alternative.has_value())
@@ -167,7 +170,7 @@ void Compiler::visit(ElseBranch const& statement)
 void Compiler::visit(ElseBranch const& statement, int branch_label)
 {
 	enter_scope();
-	memory->get_code_section()->emit(OpCode::LABEL, branch_label);
+	emit(OpCode::LABEL, branch_label);
 	visit(statement.body);
 	leave_scope();
 }
@@ -175,23 +178,21 @@ void Compiler::visit(ElseBranch const& statement, int branch_label)
 void Compiler::visit(WhileLoop const& statement)
 {
 	int condition_label = create_label();
-	memory->get_code_section()->emit(OpCode::LABEL, condition_label);
+	emit(OpCode::LABEL, condition_label);
 
-	auto condition = statement.expression;
-	visit(condition);
+	visit(statement.expression);
 
 	auto scope = enter_scope();
 	scope->continue_label = condition_label;
 
 	int block_end_label = create_label();
-	memory->get_code_section()->emit(OpCode::POP_JUMP_IF_FALSE, block_end_label);
+	emit(OpCode::POP_JUMP_IF_FALSE, block_end_label);
 	scope->break_label = block_end_label;
 
-	auto body = statement.block;
-	visit(body);
+	visit(statement.block);
 
-	memory->get_code_section()->emit(OpCode::JUMP, condition_label);
-	memory->get_code_section()->emit(OpCode::LABEL, block_end_label);
+	emit(OpCode::JUMP, condition_label);
+	emit(OpCode::LABEL, block_end_label);
 
 	leave_scope();
 }
@@ -199,7 +200,7 @@ void Compiler::visit(WhileLoop const& statement)
 void Compiler::visit(ForInLoop const& statement)
 {
 	int iterate_label = create_label();
-	memory->get_code_section()->emit(OpCode::LABEL, iterate_label);
+	emit(OpCode::LABEL, iterate_label);
 
 	// Place iterable on stack
 
@@ -209,17 +210,17 @@ void Compiler::visit(ForInLoop const& statement)
 	auto scope = enter_scope();
 
 	int block_begin_label = create_label();
-	memory->get_code_section()->emit(OpCode::LABEL, block_begin_label);
+	emit(OpCode::LABEL, block_begin_label);
 	scope->continue_label = block_begin_label;
 
 	int block_end_label = create_label();
 	scope->break_label = block_end_label;
 
 	std::visit(overloaded{
-		[&](wstring const& expr) { memory->get_code_section()->emit(OpCode::ITERATE_OVER_STRING, block_end_label); },
-		[&](ListLiteral const& expr) { memory->get_code_section()->emit(OpCode::ITERATE_OVER_LIST, block_end_label); },
-		[&](MapLiteral const& expr) { memory->get_code_section()->emit(OpCode::ITERATE_OVER_MAP, block_end_label); },
-		[&](Identifier const& expr) { memory->get_code_section()->emit(OpCode::ITERATE_OVER_IDENTIFIER, block_end_label); },
+		[&](wstring const& expr) { emit(OpCode::ITERATE_OVER_STRING, block_end_label); },
+		[&](ListLiteral const& expr) { emit(OpCode::ITERATE_OVER_LIST, block_end_label); },
+		[&](MapLiteral const& expr) { emit(OpCode::ITERATE_OVER_MAP, block_end_label); },
+		[&](Identifier const& expr) { emit(OpCode::ITERATE_OVER_IDENTIFIER, block_end_label); },
 
 		[](auto) { FATAL("Not an iterable!"); }
 		}, *iterable);
@@ -229,14 +230,13 @@ void Compiler::visit(ForInLoop const& statement)
 	ASSERT(holds_alternative<Identifier>(*type_pattern->expression), "Must be an identifier");
 	auto identifier = get_if<Identifier>(&*type_pattern->expression);
 
-	int item_id = define_variable(identifier->name);
-	memory->get_code_section()->emit(OpCode::STORE_LOCAL, item_id);
+	int item_id = define(identifier->name);
+	emit(OpCode::STORE_LOCAL, item_id);
 
-	auto body = statement.block;
-	visit(body);
+	visit(statement.block);
 
-	memory->get_code_section()->emit(OpCode::JUMP, block_begin_label);
-	memory->get_code_section()->emit(OpCode::LABEL, block_end_label);
+	emit(OpCode::JUMP, block_begin_label);
+	emit(OpCode::LABEL, block_end_label);
 
 	leave_scope();
 }
@@ -244,13 +244,13 @@ void Compiler::visit(ForInLoop const& statement)
 void Compiler::visit(Break const& statement)
 {
 	auto scope = scope_stack.top();
-	memory->get_code_section()->emit(OpCode::JUMP, scope->break_label);
+	emit(OpCode::JUMP, scope->break_label);
 }
 
 void Compiler::visit(Continue const& statement)
 {
 	auto scope = scope_stack.top();
-	memory->get_code_section()->emit(OpCode::JUMP, scope->continue_label);
+	emit(OpCode::JUMP, scope->continue_label);
 }
 
 void Compiler::visit(Return const& statement)
@@ -258,11 +258,11 @@ void Compiler::visit(Return const& statement)
 	if (statement.expression.has_value())
 	{
 		visit(statement.expression.value());
-		memory->get_code_section()->emit(OpCode::RETURN_VALUE);
+		emit(OpCode::RETURN_VALUE);
 	}
 	else
 	{
-		memory->get_code_section()->emit(OpCode::RETURN_VOID);
+		emit(OpCode::RETURN_VOID);
 	}
 }
 
@@ -271,11 +271,11 @@ void Compiler::visit(YieldStatement const& statement)
 	if (statement.expression.has_value())
 	{
 		visit(statement.expression.value());
-		memory->get_code_section()->emit(OpCode::YIELD_VALUE);
+		emit(OpCode::YIELD_VALUE);
 	}
 	else
 	{
-		memory->get_code_section()->emit(OpCode::YIELD_VOID);
+		emit(OpCode::YIELD_VOID);
 	}
 }
 
@@ -292,23 +292,24 @@ void Compiler::visit(VariableDefinition const& statement)
 	ASSERT(holds_alternative<Identifier>(*type_pattern->expression), "Must be an identifier");
 	auto identifier = get_if<Identifier>(&*type_pattern->expression);
 
-	int id = define_variable(identifier->name);
-	memory->get_code_section()->emit(OpCode::STORE_LOCAL, id);
+	int id = define(identifier->name);
+	emit(OpCode::STORE_LOCAL, id);
 }
 
 void Compiler::visit(ClassDefinition const& statement)
 {
-	std::map<std::wstring, int> static_fields;
-	std::map<std::wstring, int> methods;
+	map<wstring, int> static_fields;
+	map<wstring, int> methods;
 
 	for (auto const& [member_name, type] : statement.member_types)
 	{
-		int id = memory->get_constant_pool()->allocate();
+		int id = define(statement.name + L"::" + member_name);
 		methods.insert({ member_name , id });
 	}
 
-	auto class_object = MAKE_OBJECT_VARIANT(ClassObject(static_fields, methods));
-	memory->get_constant_pool()->allocate(move(class_object));
+	auto class_id = define(statement.name);
+	auto class_object = MAKE_OBJECT_VARIANT(ClassObject(statement.name, static_fields, methods));
+	memory->definition_store->set(class_id, move(class_object));
 }
 
 void Compiler::visit(InterfaceDefinition const& statement)
@@ -326,17 +327,18 @@ void Compiler::visit(FunctionDefinition const& statement)
 
 	for (auto const& arg_name : statement.arguments)
 	{
-		int id = define_variable(arg_name);
-		memory->get_code_section()->emit(OpCode::STORE_LOCAL, id);
+		int id = define(arg_name);
+		emit(OpCode::STORE_LOCAL, id);
 	}
 
-	visit(&statement.block);
+	visit(statement.block);
 
-	auto instructions = leave_scope();
+	auto instructions = leave_subroutine_scope();
 	int parameter_count = statement.arguments.size();
 
+	auto function_id = define(statement.name);
 	auto function_object = MAKE_OBJECT_VARIANT(FunctionObject(statement.name, instructions, parameter_count));
-	memory->get_constant_pool()->allocate(move(function_object));
+	memory->definition_store->set(function_id, move(function_object));
 }
 
 void Compiler::visit(GeneratorDefinition const& statement)
@@ -345,17 +347,18 @@ void Compiler::visit(GeneratorDefinition const& statement)
 
 	for (auto const& arg_name : statement.arguments)
 	{
-		int id = define_variable(arg_name);
-		memory->get_code_section()->emit(OpCode::STORE_LOCAL, id);
+		int id = define(arg_name);
+		emit(OpCode::STORE_LOCAL, id);
 	}
 
-	visit(&statement.block);
+	visit(statement.block);
 
-	auto instructions = leave_scope();
+	auto instructions = leave_subroutine_scope();
 	int parameter_count = statement.arguments.size();
 
+	auto generator_id = define(statement.name);
 	auto generator_object = MAKE_OBJECT_VARIANT(GeneratorObject(statement.name, instructions, parameter_count));
-	memory->get_constant_pool()->allocate(move(generator_object));
+	memory->definition_store->set(generator_id, move(generator_object));
 }
 
 void Compiler::visit(FunctionMethodDefinition const& statement)
@@ -363,7 +366,7 @@ void Compiler::visit(FunctionMethodDefinition const& statement)
 	auto scope = scope_stack.top();
 	int id = scope->symbol_table->lookup(statement.type_name);
 
-	Object_ptr object = memory->get_constant_pool()->get(id);
+	Object_ptr object = memory->definition_store->get(id);
 	ASSERT(holds_alternative<ClassObject>(*object), "Expected class defintion object");
 	auto class_object = get_if<ClassObject>(&*object);
 
@@ -374,17 +377,17 @@ void Compiler::visit(FunctionMethodDefinition const& statement)
 
 	for (auto const& arg_name : statement.arguments)
 	{
-		int id = define_variable(arg_name);
-		memory->get_code_section()->emit(OpCode::STORE_LOCAL, id);
+		int id = define(arg_name);
+		emit(OpCode::STORE_LOCAL, id);
 	}
 
-	visit(&statement.body);
+	visit(statement.body);
 
-	auto instructions = leave_scope();
+	auto instructions = leave_subroutine_scope();
 	int parameter_count = statement.arguments.size();
 
 	auto function_object = MAKE_OBJECT_VARIANT(FunctionMethodObject(statement.name, instructions, parameter_count));
-	memory->get_constant_pool()->set(method_id, move(function_object));
+	memory->definition_store->set(method_id, move(function_object));
 }
 
 void Compiler::visit(GeneratorMethodDefinition const& statement)
@@ -392,7 +395,7 @@ void Compiler::visit(GeneratorMethodDefinition const& statement)
 	auto scope = scope_stack.top();
 	int id = scope->symbol_table->lookup(statement.type_name);
 
-	Object_ptr object = memory->get_constant_pool()->get(id);
+	Object_ptr object = memory->definition_store->get(id);
 	ASSERT(holds_alternative<ClassObject>(*object), "Expected class defintion object");
 	auto class_object = get_if<ClassObject>(&*object);
 
@@ -403,51 +406,52 @@ void Compiler::visit(GeneratorMethodDefinition const& statement)
 
 	for (auto const& arg_name : statement.arguments)
 	{
-		int id = define_variable(arg_name);
-		memory->get_code_section()->emit(OpCode::STORE_LOCAL, id);
+		int id = define(arg_name);
+		emit(OpCode::STORE_LOCAL, id);
 	}
 
-	visit(&statement.body);
+	visit(statement.body);
 
-	auto instructions = leave_scope();
+	auto instructions = leave_subroutine_scope();
 	int parameter_count = statement.arguments.size();
 
 	auto generator_object = MAKE_OBJECT_VARIANT(GeneratorMethodObject(statement.name, instructions, parameter_count));
-	memory->get_constant_pool()->set(method_id, move(generator_object));
+	memory->definition_store->set(method_id, move(generator_object));
 }
 
 void Compiler::visit(EnumDefinition const& statement)
 {
-	auto enum_object = MAKE_OBJECT_VARIANT(EnumDefinitionObject(
+	auto enum_object = MAKE_OBJECT_VARIANT(EnumObject(
 		statement.name,
 		statement.members
 	));
 
-	memory->get_constant_pool()->allocate(move(enum_object));
+	auto enum_id = define(statement.name);
+	memory->definition_store->set(enum_id, move(enum_object));
 }
 
 void Compiler::visit(ExpressionStatement const& statement)
 {
 	visit(statement.expression);
-	memory->get_code_section()->emit(OpCode::POP_FROM_STACK);
+	emit(OpCode::POP_FROM_STACK);
 }
 
 void Compiler::visit(Assert const& statement)
 {
 	visit(statement.expression);
-	memory->get_code_section()->emit(OpCode::ASSERT);
+	emit(OpCode::ASSERT);
 }
 
 void Compiler::visit(Implore const& statement)
 {
 	visit(statement.expression);
-	memory->get_code_section()->emit(OpCode::IMPLORE);
+	emit(OpCode::IMPLORE);
 }
 
 void Compiler::visit(Swear const& statement)
 {
 	visit(statement.expression);
-	memory->get_code_section()->emit(OpCode::SWEAR);
+	emit(OpCode::SWEAR);
 }
 
 void Compiler::visit(Namespace const& statement)
@@ -507,44 +511,44 @@ void Compiler::visit(std::vector<Expression_ptr> const& expressions)
 
 void Compiler::visit(const int number)
 {
-	int constant_id = memory->get_constant_pool()->allocate(number);
-	memory->get_code_section()->emit(OpCode::PUSH_CONSTANT, constant_id);
+	int constant_id = memory->constant_pool->allocate(number);
+	emit(OpCode::PUSH_CONSTANT, constant_id);
 }
 
 void Compiler::visit(const double number)
 {
-	int constant_id = memory->get_constant_pool()->allocate(number);
-	memory->get_code_section()->emit(OpCode::PUSH_CONSTANT, constant_id);
+	int constant_id = memory->constant_pool->allocate(number);
+	emit(OpCode::PUSH_CONSTANT, constant_id);
 }
 
 void Compiler::visit(const std::wstring text)
 {
-	int constant_id = memory->get_constant_pool()->allocate(text);
-	memory->get_code_section()->emit(OpCode::PUSH_CONSTANT, constant_id);
+	int constant_id = memory->constant_pool->allocate(text);
+	emit(OpCode::PUSH_CONSTANT, constant_id);
 }
 
 void Compiler::visit(const bool boolean)
 {
 	if (boolean)
 	{
-		memory->get_code_section()->emit(OpCode::PUSH_CONSTANT_TRUE);
+		emit(OpCode::PUSH_CONSTANT_TRUE);
 	}
 	else
 	{
-		memory->get_code_section()->emit(OpCode::PUSH_CONSTANT_FALSE);
+		emit(OpCode::PUSH_CONSTANT_FALSE);
 	}
 }
 
 void Compiler::visit(ListLiteral const& expr)
 {
 	visit(expr.expressions);
-	memory->get_code_section()->emit(OpCode::MAKE_LIST, expr.expressions.size());
+	emit(OpCode::MAKE_LIST, expr.expressions.size());
 }
 
 void Compiler::visit(TupleLiteral const& expr)
 {
 	visit(expr.expressions);
-	memory->get_code_section()->emit(OpCode::MAKE_TUPLE, expr.expressions.size());
+	emit(OpCode::MAKE_TUPLE, expr.expressions.size());
 }
 
 void Compiler::visit(MapLiteral const& expr)
@@ -555,13 +559,13 @@ void Compiler::visit(MapLiteral const& expr)
 		visit(value);
 	}
 
-	memory->get_code_section()->emit(OpCode::MAKE_MAP, expr.pairs.size());
+	emit(OpCode::MAKE_MAP, expr.pairs.size());
 }
 
 void Compiler::visit(SetLiteral const& expr)
 {
 	visit(expr.expressions);
-	memory->get_code_section()->emit(OpCode::MAKE_SET, expr.expressions.size());
+	emit(OpCode::MAKE_SET, expr.expressions.size());
 }
 
 void Compiler::visit(NewObject const& expr)
@@ -583,9 +587,9 @@ void Compiler::visit(TernaryCondition const& expr)
 
 			visit(assignment.rhs_expression);
 
-			int id = define_variable(identifier->name);
-			memory->get_code_section()->emit(OpCode::STORE_LOCAL, id);
-			memory->get_code_section()->emit(OpCode::LOAD_LOCAL, id);
+			int id = define(identifier->name);
+			emit(OpCode::STORE_LOCAL, id);
+			emit(OpCode::LOAD_LOCAL, id);
 		},
 
 		[&](auto)
@@ -597,14 +601,14 @@ void Compiler::visit(TernaryCondition const& expr)
 	int	alternative_branch_label = create_label();
 	int	exit_branch_label = create_label();
 
-	memory->get_code_section()->emit(OpCode::POP_JUMP_IF_FALSE, alternative_branch_label);
+	emit(OpCode::POP_JUMP_IF_FALSE, alternative_branch_label);
 	visit(expr.true_expression);
-	memory->get_code_section()->emit(OpCode::POP_JUMP, exit_branch_label);
+	emit(OpCode::POP_JUMP, exit_branch_label);
 
-	memory->get_code_section()->emit(OpCode::LABEL, alternative_branch_label);
+	emit(OpCode::LABEL, alternative_branch_label);
 	visit(expr.false_expression);
 
-	memory->get_code_section()->emit(OpCode::LABEL, exit_branch_label);
+	emit(OpCode::LABEL, exit_branch_label);
 
 	leave_scope();
 }
@@ -614,7 +618,27 @@ void Compiler::visit(EnumMember const& expr)
 	auto enum_name = expr.member_chain.front();
 
 	auto scope = scope_stack.top();
-	auto id = scope->symbol_table->lookup(enum_name);
+	auto enum_id = scope->symbol_table->lookup(enum_name);
+
+	Object_ptr object = memory->definition_store->get(enum_id);
+	ASSERT(holds_alternative<EnumObject>(*object), "Expected Enum object");
+	auto enum_object = get_if<EnumObject>(&*object);
+
+	wstring enum_string = L"";
+
+	for (const auto member : expr.member_chain)
+	{
+		enum_string.append(L"::");
+		enum_string.append(member);
+	}
+
+	enum_string = enum_string.substr(2, enum_string.size());
+
+	auto it = std::find(enum_object->members.begin(), enum_object->members.end(), enum_string);
+	ASSERT(it != enum_object->members.end(), "Enum does not contain this member");
+
+	int member_index = std::distance(enum_object->members.begin(), it);
+	emit(OpCode::GET_ENUM_MEMBER, enum_id, member_index);
 }
 
 void Compiler::visit(TypePattern const& expr)
@@ -626,7 +650,7 @@ void Compiler::visit(Identifier const& expr)
 {
 	auto scope = scope_stack.top();
 	auto id = scope->symbol_table->lookup(expr.name);
-	memory->get_code_section()->emit(OpCode::LOAD_LOCAL, id);
+	emit(OpCode::LOAD_LOCAL, id);
 }
 
 void Compiler::visit(Spread const& expr)
@@ -637,11 +661,11 @@ void Compiler::visit(Call const& expr)
 {
 	wstring function_name = expr.name;
 
-	int constant_id = memory->get_constant_pool()->allocate(function_name);
+	int constant_id = memory->constant_pool->allocate(function_name);
 	visit(expr.arguments);
 
 	int argument_count = expr.arguments.size();
-	memory->get_code_section()->emit(OpCode::CALL_FUNCTION, constant_id, argument_count);
+	emit(OpCode::CALL_FUNCTION, constant_id, argument_count);
 }
 
 void Compiler::visit(Prefix const& expr)
@@ -652,17 +676,17 @@ void Compiler::visit(Prefix const& expr)
 	{
 	case WTokenType::BANG:
 	{
-		memory->get_code_section()->emit(OpCode::UNARY_NOT);
+		emit(OpCode::UNARY_NOT);
 		break;
 	}
 	case WTokenType::MINUS:
 	{
-		memory->get_code_section()->emit(OpCode::UNARY_NEGATIVE);
+		emit(OpCode::UNARY_NEGATIVE);
 		break;
 	}
 	case WTokenType::PLUS:
 	{
-		memory->get_code_section()->emit(OpCode::UNARY_POSITIVE);
+		emit(OpCode::UNARY_POSITIVE);
 		break;
 	}
 	default: {
@@ -691,72 +715,72 @@ void Compiler::visit(Infix const& expr)
 	{
 	case WTokenType::PLUS:
 	{
-		memory->get_code_section()->emit(OpCode::ADD);
+		emit(OpCode::ADD);
 		break;
 	}
 	case WTokenType::MINUS:
 	{
-		memory->get_code_section()->emit(OpCode::SUBTRACT);
+		emit(OpCode::SUBTRACT);
 		break;
 	}
 	case WTokenType::STAR:
 	{
-		memory->get_code_section()->emit(OpCode::MULTIPLY);
+		emit(OpCode::MULTIPLY);
 		break;
 	}
 	case WTokenType::DIVISION:
 	{
-		memory->get_code_section()->emit(OpCode::DIVISION);
+		emit(OpCode::DIVISION);
 		break;
 	}
 	case WTokenType::REMINDER:
 	{
-		memory->get_code_section()->emit(OpCode::REMINDER);
+		emit(OpCode::REMINDER);
 		break;
 	}
 	case WTokenType::POWER:
 	{
-		memory->get_code_section()->emit(OpCode::POWER);
+		emit(OpCode::POWER);
 		break;
 	}
 	case WTokenType::EQUAL_EQUAL:
 	{
-		memory->get_code_section()->emit(OpCode::EQUAL);
+		emit(OpCode::EQUAL);
 		break;
 	}
 	case WTokenType::BANG_EQUAL:
 	{
-		memory->get_code_section()->emit(OpCode::NOT_EQUAL);
+		emit(OpCode::NOT_EQUAL);
 		break;
 	}
 	case WTokenType::LESSER_THAN:
 	{
-		memory->get_code_section()->emit(OpCode::LESSER_THAN);
+		emit(OpCode::LESSER_THAN);
 		break;
 	}
 	case WTokenType::LESSER_THAN_EQUAL:
 	{
-		memory->get_code_section()->emit(OpCode::LESSER_THAN_EQUAL);
+		emit(OpCode::LESSER_THAN_EQUAL);
 		break;
 	}
 	case WTokenType::GREATER_THAN:
 	{
-		memory->get_code_section()->emit(OpCode::GREATER_THAN);
+		emit(OpCode::GREATER_THAN);
 		break;
 	}
 	case WTokenType::GREATER_THAN_EQUAL:
 	{
-		memory->get_code_section()->emit(OpCode::GREATER_THAN_EQUAL);
+		emit(OpCode::GREATER_THAN_EQUAL);
 		break;
 	}
 	case WTokenType::AND:
 	{
-		memory->get_code_section()->emit(OpCode::AND);
+		emit(OpCode::AND);
 		break;
 	}
 	case WTokenType::OR:
 	{
-		memory->get_code_section()->emit(OpCode::OR);
+		emit(OpCode::OR);
 		break;
 	}
 	default:
@@ -779,7 +803,27 @@ void Compiler::visit(Assignment const& statement)
 
 	auto scope = scope_stack.top();
 	int id = scope->symbol_table->lookup(identifier->name);
-	memory->get_code_section()->emit(OpCode::STORE_LOCAL, id);
+	emit(OpCode::STORE_LOCAL, id);
+}
+
+// Emit
+
+void Compiler::emit(OpCode opcode)
+{
+	auto scope = scope_stack.top();
+	scope->code_section->emit(opcode);
+}
+
+void Compiler::emit(OpCode opcode, int operand)
+{
+	auto scope = scope_stack.top();
+	scope->code_section->emit(opcode, operand);
+}
+
+void Compiler::emit(OpCode opcode, int operand_1, int operand_2)
+{
+	auto scope = scope_stack.top();
+	scope->code_section->emit(opcode, operand_1, operand_2);
 }
 
 // Scope
@@ -794,7 +838,7 @@ CScope_ptr Compiler::enter_scope()
 	}
 	else
 	{
-		scope_stack.push(make_shared<CScope>());
+		scope_stack.push(make_shared<CScope>(memory->code_section));
 	}
 
 	return scope_stack.top();
@@ -805,14 +849,14 @@ ByteVector Compiler::leave_scope()
 	auto old_outer_scope = scope_stack.top();
 	scope_stack.pop();
 
-	ByteVector instructions = move(old_outer_scope->instructions);
+	ByteVector instructions = old_outer_scope->code_section->instructions;
 
 	if (scope_stack.size() > 0)
 	{
 		auto new_outer_scope = scope_stack.top();
 
-		new_outer_scope->instructions.insert(
-			std::end(new_outer_scope->instructions),
+		new_outer_scope->code_section->instructions.insert(
+			std::end(new_outer_scope->code_section->instructions),
 			std::begin(instructions),
 			std::end(instructions)
 		);
@@ -821,11 +865,20 @@ ByteVector Compiler::leave_scope()
 	return instructions;
 }
 
+ByteVector Compiler::leave_subroutine_scope()
+{
+	auto old_outer_scope = scope_stack.top();
+	scope_stack.pop();
+
+	ByteVector instructions = old_outer_scope->code_section->instructions;
+	return instructions;
+}
+
 // Utils
 
-int Compiler::define_variable(wstring name)
+int Compiler::define(wstring name)
 {
-	int id = memory->get_constant_pool()->allocate(name);
+	int id = next_id++;
 
 	auto scope = scope_stack.top();
 	scope->symbol_table->define(name, id);

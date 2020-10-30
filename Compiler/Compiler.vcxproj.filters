@@ -24,9 +24,6 @@
     <ClInclude Include="Compiler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CSymbol.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="CSymbolTable.h">
       <Filter>Header Files</Filter>
     </ClInclude>

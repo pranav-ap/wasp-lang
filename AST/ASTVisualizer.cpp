@@ -548,6 +548,8 @@ void ASTVisualizer::visit(const Type_ptr type, int parent_id)
 		   [&](NoneType const& ty) { visit(ty, parent_id); },
 		   [&](FunctionType const& ty) { visit(ty, parent_id); },
 		   [&](GeneratorType const& ty) { visit(ty, parent_id); },
+		   [&](FunctionMethodType const& ty) { visit(ty, parent_id); },
+		   [&](GeneratorMethodType const& ty) { visit(ty, parent_id); },
 		   [&](OperatorType const& ty) { visit(ty, parent_id); },
 
 		   [](auto) {FATAL("Never seen this Type before! So I cannot print it!"); }
@@ -715,16 +717,62 @@ void ASTVisualizer::visit(GeneratorType const& type, int parent_id)
 	}
 }
 
-void ASTVisualizer::visit(OperatorType const& expr, int parent_id)
+void ASTVisualizer::visit(FunctionMethodType const& type, int parent_id)
+{
+	const int id = id_counter++;
+	save(id, parent_id, L"Function Method Type");
+
+	const int class_id = id_counter++;
+	save(class_id, id, type.type_name);
+
+	if (type.input_types.size() > 0)
+	{
+		const int input_types_id = id_counter++;
+		save(input_types_id, id, L"Input Types");
+		visit(type.input_types, input_types_id);
+	}
+
+	if (type.return_type.has_value())
+	{
+		const int return_type_id = id_counter++;
+		save(return_type_id, id, L"Return Type");
+		visit(type.return_type.value(), return_type_id);
+	}
+}
+
+void ASTVisualizer::visit(GeneratorMethodType const& type, int parent_id)
+{
+	const int id = id_counter++;
+	save(id, parent_id, L"Generator Method Type");
+
+	const int class_id = id_counter++;
+	save(class_id, id, type.type_name);
+
+	if (type.input_types.size() > 0)
+	{
+		const int input_types_id = id_counter++;
+		save(input_types_id, id, L"Input Types");
+		visit(type.input_types, input_types_id);
+	}
+
+	if (type.return_type.has_value())
+	{
+		const int return_type_id = id_counter++;
+		save(return_type_id, id, L"Return Type");
+		visit(type.return_type.value(), return_type_id);
+	}
+}
+
+void ASTVisualizer::visit(OperatorType const& type, int parent_id)
 {
 	const int id = id_counter++;
 	save(id, parent_id, L"Operator Type");
 
-	visit(expr.input_types, id);
+	visit(type.input_types, id);
 
-	if (expr.return_type.has_value())
+	if (type.return_type.has_value())
 	{
-		visit(expr.return_type.value(), id);
+		visit(type.return_type.value(), id);
 	}
 }
 

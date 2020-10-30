@@ -103,7 +103,9 @@ enum class MEMORYSYSTEM_API OpCode
 	SET_CLASS_INSTANCE_PROPERTY,
 
 	GET_CLASS_FUNCTION, // instance id, method name
-	GET_CLASS_GENERATOR
+	GET_CLASS_GENERATOR,
+
+	GET_ENUM_MEMBER // enum id, member id
 };
 
 using ByteVector = MEMORYSYSTEM_API std::vector<std::byte>;

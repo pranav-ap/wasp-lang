@@ -7,9 +7,7 @@
 
 void CSymbolTable::define(std::wstring name, int id)
 {
-	auto symbol_table = std::make_shared<CSymbol>(name, id);
-
-	auto result = store.insert({ name, symbol_table });
+	auto result = store.insert({ name, id });
 	ASSERT(result.second, "Name already exists in scope!");
 }
 
@@ -17,9 +15,7 @@ int CSymbolTable::lookup(std::wstring name)
 {
 	if (store.contains(name))
 	{
-		auto symbol = store.at(name);
-		NULL_CHECK(symbol);
-		return symbol->id;
+		return store.at(name);
 	}
 
 	if (enclosing_scope.has_value())

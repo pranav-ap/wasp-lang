@@ -57,6 +57,8 @@ void SemanticAnalyzer::visit(const Statement_ptr statement)
 		[&](ClassDefinition const& stat) { visit(stat); },
 		[&](InterfaceDefinition const& stat) { visit(stat); },
 		[&](AliasDefinition const& stat) { visit(stat); },
+		[&](FunctionDefinition const& stat) { visit(stat); },
+		[&](GeneratorDefinition const& stat) { visit(stat); },
 		[&](FunctionMethodDefinition const& stat) { visit(stat); },
 		[&](GeneratorMethodDefinition const& stat) { visit(stat); },
 		[&](EnumDefinition const& stat) { visit(stat); },
@@ -272,6 +274,21 @@ void SemanticAnalyzer::visit(FunctionDefinition const& statement)
 	current_scope->define(statement.name, symbol);
 
 	enter_scope(ScopeType::FUNCTION);
+
+	ASSERT(holds_alternative<FunctionType>(*statement.type), "Must be a FunctionType");
+	auto function_type = get_if<FunctionType>(&*statement.type);
+
+	int arg_index = 0;
+
+	for (auto const& arg_name : statement.arguments)
+	{
+		Type_ptr type = function_type->input_types.at(arg_index);
+		auto symbol = MAKE_SYMBOL(VariableSymbol(arg_name, false, true, type));
+		current_scope->define(arg_name, symbol);
+
+		arg_index++;
+	}
+
 	visit(statement.block);
 	leave_scope();
 }
@@ -288,6 +305,21 @@ void SemanticAnalyzer::visit(GeneratorDefinition const& statement)
 	current_scope->define(statement.name, symbol);
 
 	enter_scope(ScopeType::GENERATOR);
+
+	ASSERT(holds_alternative<GeneratorType>(*statement.type), "Must be a GeneratorType");
+	auto function_type = get_if<GeneratorType>(&*statement.type);
+
+	int arg_index = 0;
+
+	for (auto const& arg_name : statement.arguments)
+	{
+		Type_ptr type = function_type->input_types.at(arg_index);
+		auto symbol = MAKE_SYMBOL(VariableSymbol(arg_name, false, true, type));
+		current_scope->define(arg_name, symbol);
+
+		arg_index++;
+	}
+
 	visit(statement.block);
 	leave_scope();
 }
@@ -297,8 +329,24 @@ void SemanticAnalyzer::visit(FunctionMethodDefinition const& statement)
 	std::optional<Symbol_ptr> symbol = current_scope->lookup(statement.type_name);
 	OPT_CHECK(symbol);
 
-	ASSERT(holds_alternative<ClassSymbol>(*symbol.value()), "Expected a class type");
+	ASSERT(holds_alternative<ClassSymbol>(*symbol.value()), "Expected a ClassSymbol");
 	auto class_symbol = get_if<ClassSymbol>(&*symbol.value());
+
+	enter_scope(ScopeType::CLASS_FUNCTION);
+
+	ASSERT(holds_alternative<FunctionMethodType>(*statement.type), "Must be a FunctionMethodType");
+	auto function_type = get_if<FunctionMethodType>(&*statement.type);
+
+	int arg_index = 0;
+
+	for (auto const& arg_name : statement.arguments)
+	{
+		Type_ptr type = function_type->input_types.at(arg_index);
+		auto symbol = MAKE_SYMBOL(VariableSymbol(arg_name, false, true, type));
+		current_scope->define(arg_name, symbol);
+
+		arg_index++;
+	}
 
 	auto method_symbol = std::make_shared<CallableSymbol>(CallableSymbol(
 		statement.name,
@@ -310,7 +358,6 @@ void SemanticAnalyzer::visit(FunctionMethodDefinition const& statement)
 	wstring mangled_name = statement.name; // +stringify_type(statement.type);
 	class_symbol->method_symbols[mangled_name] = method_symbol;
 
-	enter_scope(ScopeType::CLASS_FUNCTION);
 	visit(statement.body);
 	leave_scope();
 }
@@ -320,8 +367,24 @@ void SemanticAnalyzer::visit(GeneratorMethodDefinition const& statement)
 	std::optional<Symbol_ptr> symbol = current_scope->lookup(statement.type_name);
 	OPT_CHECK(symbol);
 
-	ASSERT(holds_alternative<ClassSymbol>(*symbol.value()), "Expected a class type");
+	ASSERT(holds_alternative<ClassSymbol>(*symbol.value()), "Expected a ClassSymbol");
 	auto class_symbol = get_if<ClassSymbol>(&*symbol.value());
+
+	enter_scope(ScopeType::CLASS_GENERATOR);
+
+	ASSERT(holds_alternative<GeneratorMethodType>(*statement.type), "Must be a GeneratorMethodType");
+	auto generator_type = get_if<GeneratorMethodType>(&*statement.type);
+
+	int arg_index = 0;
+
+	for (auto const& arg_name : statement.arguments)
+	{
+		Type_ptr type = generator_type->input_types.at(arg_index);
+		auto symbol = MAKE_SYMBOL(VariableSymbol(arg_name, false, true, type));
+		current_scope->define(arg_name, symbol);
+
+		arg_index++;
+	}
 
 	auto method_symbol = std::make_shared<CallableSymbol>(CallableSymbol(
 		statement.name,
@@ -333,7 +396,6 @@ void SemanticAnalyzer::visit(GeneratorMethodDefinition const& statement)
 	wstring mangled_name = statement.name; // +stringify_type(statement.type);
 	class_symbol->method_symbols[mangled_name] = method_symbol;
 
-	enter_scope(ScopeType::CLASS_GENERATOR);
 	visit(statement.body);
 	leave_scope();
 }
@@ -601,6 +663,8 @@ Type_ptr SemanticAnalyzer::visit(EnumMember const& expr)
 		enum_string.append(L"::");
 		enum_string.append(member);
 	}
+
+	enum_string = enum_string.substr(2, enum_string.size());
 
 	ASSERT(
 		std::find(enum_members.begin(), enum_members.end(), enum_string) != enum_members.end(),
