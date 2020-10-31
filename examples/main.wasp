@@ -1,22 +1,9 @@
-type Man 
-    id : int
-end
-
 
 type Castle 
     name: string
-    owner : Man
-
-    constructor : ()
-    repr : () => string
+    id : int
 end
 
+let x : Castle = new Castle("jon", 23)
 
-fn Castle::repr() => string
-    return "Castle"
-end
-
-
-let x : Castle = new Castle()
-
-x.owner.id
+x.name

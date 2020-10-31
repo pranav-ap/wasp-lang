@@ -439,7 +439,7 @@ void ASTVisualizer::visit(MapLiteral const& expr, int parent_id)
 void ASTVisualizer::visit(NewObject const& expr, int parent_id)
 {
 	const int id = id_counter++;
-	save(id, parent_id, expr.UDT_name);
+	save(id, parent_id, expr.type_name);
 	visit(expr.expressions, id);
 }
 

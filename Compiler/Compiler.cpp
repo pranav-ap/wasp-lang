@@ -293,6 +293,8 @@ void Compiler::visit(VariableDefinition const& statement)
 	auto identifier = get_if<Identifier>(&*type_pattern->expression);
 
 	int id = define(identifier->name);
+	memory->variable_store->set(id, MAKE_OBJECT_VARIANT(NoneObject()));
+	memory->variable_store->name_store.insert({ id, identifier->name });
 	emit(OpCode::STORE_LOCAL, id);
 }
 
@@ -310,6 +312,7 @@ void Compiler::visit(ClassDefinition const& statement)
 	auto class_id = define(statement.name);
 	auto class_object = MAKE_OBJECT_VARIANT(ClassObject(statement.name, static_fields, methods));
 	memory->definition_store->set(class_id, move(class_object));
+	memory->definition_store->name_store.insert({ class_id, statement.name });
 }
 
 void Compiler::visit(InterfaceDefinition const& statement)
@@ -339,6 +342,7 @@ void Compiler::visit(FunctionDefinition const& statement)
 	auto function_id = define(statement.name);
 	auto function_object = MAKE_OBJECT_VARIANT(FunctionObject(statement.name, instructions, parameter_count));
 	memory->definition_store->set(function_id, move(function_object));
+	memory->definition_store->name_store.insert({ function_id, statement.name });
 }
 
 void Compiler::visit(GeneratorDefinition const& statement)
@@ -359,6 +363,7 @@ void Compiler::visit(GeneratorDefinition const& statement)
 	auto generator_id = define(statement.name);
 	auto generator_object = MAKE_OBJECT_VARIANT(GeneratorObject(statement.name, instructions, parameter_count));
 	memory->definition_store->set(generator_id, move(generator_object));
+	memory->definition_store->name_store.insert({ generator_id, statement.name });
 }
 
 void Compiler::visit(FunctionMethodDefinition const& statement)
@@ -388,6 +393,7 @@ void Compiler::visit(FunctionMethodDefinition const& statement)
 
 	auto function_object = MAKE_OBJECT_VARIANT(FunctionMethodObject(statement.name, instructions, parameter_count));
 	memory->definition_store->set(method_id, move(function_object));
+	memory->definition_store->name_store.insert({ method_id, statement.name });
 }
 
 void Compiler::visit(GeneratorMethodDefinition const& statement)
@@ -417,6 +423,7 @@ void Compiler::visit(GeneratorMethodDefinition const& statement)
 
 	auto generator_object = MAKE_OBJECT_VARIANT(GeneratorMethodObject(statement.name, instructions, parameter_count));
 	memory->definition_store->set(method_id, move(generator_object));
+	memory->definition_store->name_store.insert({ method_id, statement.name });
 }
 
 void Compiler::visit(EnumDefinition const& statement)
@@ -428,6 +435,7 @@ void Compiler::visit(EnumDefinition const& statement)
 
 	auto enum_id = define(statement.name);
 	memory->definition_store->set(enum_id, move(enum_object));
+	memory->definition_store->name_store.insert({ enum_id, statement.name });
 }
 
 void Compiler::visit(ExpressionStatement const& statement)
@@ -571,6 +579,14 @@ void Compiler::visit(SetLiteral const& expr)
 
 void Compiler::visit(NewObject const& expr)
 {
+	visit(expr.expressions);
+
+	int count = expr.expressions.size();
+
+	auto scope = scope_stack.top();
+	auto class_id = scope->symbol_table->lookup(expr.type_name);
+
+	emit(OpCode::MAKE_INSTANCE, class_id, count);
 }
 
 void Compiler::visit(TernaryCondition const& expr)
@@ -675,13 +691,13 @@ void Compiler::visit(MemberAccess const& expr)
 
 void Compiler::visit(Call const& expr)
 {
-	wstring function_name = expr.name;
-
-	int constant_id = memory->constant_pool->allocate(function_name);
 	visit(expr.arguments);
+	int count = expr.arguments.size();
 
-	int argument_count = expr.arguments.size();
-	emit(OpCode::CALL_FUNCTION, constant_id, argument_count);
+	auto scope = scope_stack.top();
+	auto class_id = scope->symbol_table->lookup(expr.name);
+
+	emit(OpCode::CALL_FUNCTION, class_id, count);
 }
 
 void Compiler::visit(Prefix const& expr)

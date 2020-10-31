@@ -21,6 +21,8 @@ class MEMORYSYSTEM_API DefinitionStore
 	std::map<int, Object_ptr> store;
 
 public:
+	std::map<int, std::wstring> name_store;
+
 	void set(int id, Object_ptr value);
 	Object_ptr get(int id);
 };
@@ -34,6 +36,8 @@ class MEMORYSYSTEM_API VariableStore
 	std::map<int, Object_ptr> store;
 
 public:
+	std::map<int, std::wstring> name_store;
+
 	void set(int id, Object_ptr value);
 	Object_ptr get(int id);
 };

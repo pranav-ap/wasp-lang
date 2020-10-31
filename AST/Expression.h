@@ -99,11 +99,11 @@ struct AST_API MapLiteral
 
 struct AST_API NewObject
 {
-	std::wstring UDT_name;
+	std::wstring type_name;
 	ExpressionVector expressions;
 
 	NewObject(std::wstring UDT_name, ExpressionVector expressions)
-		: UDT_name(UDT_name), expressions(expressions) {};
+		: type_name(UDT_name), expressions(expressions) {};
 };
 
 struct AST_API EnumMember

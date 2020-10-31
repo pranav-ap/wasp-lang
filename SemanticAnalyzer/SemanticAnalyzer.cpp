@@ -624,7 +624,7 @@ Type_ptr SemanticAnalyzer::visit(TypePattern const& expr)
 
 Type_ptr SemanticAnalyzer::visit(NewObject const& expr)
 {
-	Type_ptr type = MAKE_TYPE(ClassType(expr.UDT_name));
+	Type_ptr type = MAKE_TYPE(ClassType(expr.type_name));
 	vector<Type_ptr> types;
 
 	for (const auto arg : expr.expressions)
@@ -636,7 +636,7 @@ Type_ptr SemanticAnalyzer::visit(NewObject const& expr)
 	wstring expected_constructor_name = L"constructor";
 	//expected_constructor_name += stringify_type(types);
 
-	std::optional<Symbol_ptr> symbol = current_scope->lookup(expr.UDT_name);
+	std::optional<Symbol_ptr> symbol = current_scope->lookup(expr.type_name);
 	OPT_CHECK(symbol);
 
 	ASSERT(holds_alternative<ClassSymbol>(*symbol.value()), "This is not a Class!");

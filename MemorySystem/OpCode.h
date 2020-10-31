@@ -68,6 +68,8 @@ enum class MEMORYSYSTEM_API OpCode
 	MAKE_SET,
 	MAKE_MAP,
 
+	MAKE_INSTANCE, // class id, argument count
+
 	JUMP, // target
 	JUMP_IF_FALSE,
 
