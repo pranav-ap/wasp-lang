@@ -99,13 +99,30 @@ void SemanticAnalyzer::visit(IfBranch const& statement)
 			ASSERT(holds_alternative<Identifier>(*type_pattern->expression), "Must be an identifier");
 			auto identifier = get_if<Identifier>(&*type_pattern->expression);
 
-			ASSERT(type_system->is_condition_type(type_pattern->type), "Must be a condition");
+			Type_ptr lhs_type = type_pattern->type;
+
+			if (holds_alternative<ClassType>(*lhs_type))
+			{
+				auto class_type = get_if<ClassType>(&*lhs_type);
+
+				std::optional<Symbol_ptr> symbol = current_scope->lookup(class_type->name);
+				OPT_CHECK(symbol);
+
+				if (holds_alternative<AliasSymbol>(*symbol.value()))
+				{
+					auto alias_symbol = get_if<AliasSymbol>(&*symbol.value());
+					lhs_type = alias_symbol->type;
+				}
+			}
+
+			ASSERT(type_system->assignable(current_scope, lhs_type, rhs_type), "Type mismatch in assignment");
+			ASSERT(type_system->is_condition_type(lhs_type), "Must be a condition");
 
 			auto symbol = MAKE_SYMBOL(VariableSymbol(
 				identifier->name,
 				false,
 				true,
-				type_pattern->type
+				lhs_type
 			));
 
 			current_scope->define(identifier->name, symbol);
@@ -213,11 +230,30 @@ void SemanticAnalyzer::visit(VariableDefinition const& statement)
 	ASSERT(holds_alternative<Identifier>(*type_pattern->expression), "Must be an identifier");
 	auto identifier = get_if<Identifier>(&*type_pattern->expression);
 
+	Type_ptr lhs_type = type_pattern->type;
+
+	if (holds_alternative<ClassType>(*type_pattern->type))
+	{
+		auto class_type = get_if<ClassType>(&*type_pattern->type);
+
+		std::optional<Symbol_ptr> symbol = current_scope->lookup(class_type->name);
+		OPT_CHECK(symbol);
+
+		if (holds_alternative<AliasSymbol>(*symbol.value()))
+		{
+			auto alias_symbol = get_if<AliasSymbol>(&*symbol.value());
+			lhs_type = alias_symbol->type;
+		}
+	}
+
+	Type_ptr rhs_type = visit(assignment->rhs_expression);
+	ASSERT(type_system->assignable(current_scope, lhs_type, rhs_type), "Type mismatch in assignment");
+
 	auto symbol = MAKE_SYMBOL(VariableSymbol(
 		identifier->name,
 		false,
 		true,
-		type_pattern->type
+		lhs_type
 	));
 
 	current_scope->define(identifier->name, symbol);

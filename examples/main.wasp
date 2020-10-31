@@ -1,9 +1,0 @@
-
-type Castle 
-    name: string
-    id : int
-end
-
-let x : Castle = new Castle("jon", 23)
-
-x.name

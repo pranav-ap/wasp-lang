@@ -322,6 +322,7 @@ void Compiler::visit(InterfaceDefinition const& statement)
 
 void Compiler::visit(AliasDefinition const& statement)
 {
+	// Do nothing
 }
 
 void Compiler::visit(FunctionDefinition const& statement)

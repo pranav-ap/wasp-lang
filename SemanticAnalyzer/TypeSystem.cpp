@@ -132,7 +132,6 @@ bool TypeSystem::equal(SymbolScope_ptr scope, const Type_ptr type_1, const Type_
 		{
 			return equal(scope, type_1.types, type_2.types);
 		},
-
 		[&](MapType const& type_1, MapType const& type_2)
 		{
 			bool key_compare = equal(scope, type_1.key_type, type_2.key_type);

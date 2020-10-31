@@ -1,15 +1,15 @@
 digraph G { 
  "0"   [label="root"]; 
- "1"   [label="UDT Definition : Castle"]; 
+ "1"   [label="Alias Definition"]; 
  "0" -> "1"; 
- "2"   [label="id"]; 
+ "2"   [label="length"]; 
  "1" -> "2"; 
- "3"   [label="int"]; 
- "2" -> "3"; 
- "4"   [label="name"]; 
- "1" -> "4"; 
+ "3"   [label="Variant Type"]; 
+ "1" -> "3"; 
+ "4"   [label="int"]; 
+ "3" -> "4"; 
  "5"   [label="string"]; 
- "4" -> "5"; 
+ "3" -> "5"; 
  "6"   [label="VariableDefinition"]; 
  "0" -> "6"; 
  "7"   [label="="]; 
@@ -20,18 +20,8 @@ digraph G {
  "8" -> "9"; 
  "10"   [label="UDT Type"]; 
  "8" -> "10"; 
- "11"   [label="Castle"]; 
+ "11"   [label="length"]; 
  "10" -> "11"; 
- "12"   [label="Castle"]; 
+ "12"   [label="3"]; 
  "7" -> "12"; 
- "13"   [label="jon"]; 
- "12" -> "13"; 
- "14"   [label="23"]; 
- "12" -> "14"; 
- "15"   [label="."]; 
- "0" -> "15"; 
- "16"   [label="x"]; 
- "15" -> "16"; 
- "17"   [label="name"]; 
- "15" -> "17"; 
  }
