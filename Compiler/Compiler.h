@@ -50,8 +50,8 @@ class COMPILER_API Compiler
 	void visit(AliasDefinition const& statement);
 	void visit(FunctionDefinition const& statement);
 	void visit(GeneratorDefinition const& statement);
-	void visit(FunctionMethodDefinition const& statement);
-	void visit(GeneratorMethodDefinition const& statement);
+	void visit(FunctionMemberDefinition const& statement);
+	void visit(GeneratorMemberDefinition const& statement);
 	void visit(EnumDefinition const& statement);
 	void visit(ExpressionStatement const& statement);
 	void visit(Assert const& statement);

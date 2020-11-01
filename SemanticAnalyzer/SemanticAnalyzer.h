@@ -13,6 +13,7 @@
 #include "Expression.h"
 #include <memory>
 #include <stack>
+#include <tuple>
 #include <optional>
 
 class SEMANTICANALYZER_API SemanticAnalyzer
@@ -39,8 +40,8 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 	void visit(AliasDefinition const& statement);
 	void visit(FunctionDefinition const& statement);
 	void visit(GeneratorDefinition const& statement);
-	void visit(FunctionMethodDefinition const& statement);
-	void visit(GeneratorMethodDefinition const& statement);
+	void visit(FunctionMemberDefinition const& statement);
+	void visit(GeneratorMemberDefinition const& statement);
 	void visit(EnumDefinition const& statement);
 	void visit(ExpressionStatement const& statement);
 	void visit(Assert const& statement);
@@ -54,6 +55,7 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 	// Expression
 
 	Type_ptr visit(const Expression_ptr expr);
+	TypeVector visit(std::vector<Expression_ptr> const& expressions);
 
 	Type_ptr visit(const int expr);
 	Type_ptr visit(const double expr);
@@ -80,6 +82,9 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 
 	void enter_scope(ScopeType scope_type);
 	void leave_scope();
+
+	std::wstring concat(StringVector items, std::wstring middle);
+	std::tuple<std::wstring, Type_ptr> deconstruct_type_pattern(Expression_ptr expression);
 
 public:
 	SemanticAnalyzer() {};

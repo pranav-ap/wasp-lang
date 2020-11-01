@@ -848,7 +848,7 @@ Type_ptr Parser::consume_datatype_word(bool is_optional)
 	case WTokenType::IDENTIFIER:
 	{
 		ADVANCE_PTR;
-		return is_optional ? MAKE_OPTIONAL_TYPE(ClassType(token.value()->value)) : MAKE_TYPE(ClassType(token.value()->value));
+		return is_optional ? MAKE_OPTIONAL_TYPE(TypeIdentifier(token.value()->value)) : MAKE_TYPE(TypeIdentifier(token.value()->value));
 	}
 	}
 
@@ -911,7 +911,13 @@ Statement_ptr Parser::parse_variable_definition(bool is_public, bool is_mutable)
 	auto expression = parse_expression();
 	token_pipe->require(WTokenType::EOL);
 
-	return MAKE_STATEMENT(VariableDefinition(is_public, is_mutable, move(expression)));
+	ASSERT(holds_alternative<Assignment>(*expression), "Must be an Assignment");
+	auto assignment = get_if<Assignment>(&*expression);
+
+	ASSERT(holds_alternative<TypePattern>(*assignment->lhs_expression), "Must be a TypePattern");
+	auto type_pattern = get_if<TypePattern>(&*assignment->lhs_expression);
+
+	return MAKE_STATEMENT(VariableDefinition(is_public, is_mutable, move(type_pattern->type), move(type_pattern->expression), move(assignment->rhs_expression)));
 }
 
 StringVector Parser::parse_comma_separated_identifiers()
@@ -936,10 +942,10 @@ StringVector Parser::parse_comma_separated_identifiers()
 	return identifiers;
 }
 
-tuple<map<wstring, Type_ptr>, StringVector, StringVector, StringVector> Parser::parse_class_and_interface_definition()
+tuple<map<wstring, Type_ptr>, std::map<std::wstring, bool>, StringVector, StringVector> Parser::parse_class_and_interface_definition()
 {
 	map<wstring, Type_ptr> member_types;
-	StringVector public_members;
+	std::map<std::wstring, bool> is_public_member;
 
 	StringVector interfaces;
 
@@ -962,33 +968,22 @@ tuple<map<wstring, Type_ptr>, StringVector, StringVector, StringVector> Parser::
 		if (token_pipe->optional(WTokenType::END))
 			break;
 
-		bool is_public_member = false;
+		bool is_public = false;
 
 		if (token_pipe->optional(WTokenType::PUB))
-			is_public_member = true;
+			is_public = true;
 
 		auto [identifier, type] = consume_identifier_type_pair();
 		token_pipe->require(WTokenType::EOL);
 
-		//if (
-		//	holds_alternative<FunctionType>(*type) ||
-		//	holds_alternative<GeneratorType>(*type) ||
-		//	holds_alternative<OperatorType>(*type)
-		//	)
-		//{
-		//	identifier += stringify_type(type);
-		//}
-
 		const auto [_, success] = member_types.insert({ identifier, type });
 		ASSERT(success, "Duplicate members are found!");
 
-		if (is_public_member)
-		{
-			public_members.push_back(identifier);
-		}
+		const auto [_x, ok] = is_public_member.insert({ identifier, is_public });
+		ASSERT(ok, "Duplicate members are found!");
 	}
 
-	return make_tuple(member_types, public_members, interfaces, base_types);
+	return make_tuple(member_types, is_public_member, interfaces, base_types);
 }
 
 Statement_ptr Parser::parse_interface_definition(bool is_public)
@@ -1075,9 +1070,9 @@ Statement_ptr Parser::parse_function_definition(bool is_public)
 
 	if (is_method)
 	{
-		Type_ptr function_method_type = MAKE_TYPE(FunctionMethodType(first_identifier, argument_types, optional_return_type));
+		Type_ptr function_method_type = MAKE_TYPE(FunctionMemberType(first_identifier, argument_types, optional_return_type));
 		//second_identifier += stringify_type(function_type);
-		return MAKE_STATEMENT(FunctionMethodDefinition(first_identifier, second_identifier, is_public, arguments, function_method_type, block));
+		return MAKE_STATEMENT(FunctionMemberDefinition(first_identifier, second_identifier, is_public, arguments, function_method_type, block));
 	}
 
 	Type_ptr function_type = MAKE_TYPE(FunctionType(argument_types, optional_return_type));
@@ -1091,9 +1086,9 @@ Statement_ptr Parser::parse_generator_definition(bool is_public)
 
 	if (is_method)
 	{
-		Type_ptr generator_method_type = MAKE_TYPE(GeneratorMethodType(first_identifier, argument_types, optional_return_type));
+		Type_ptr generator_method_type = MAKE_TYPE(GeneratorMemberType(first_identifier, argument_types, optional_return_type));
 		//second_identifier += stringify_type(function_type);
-		return MAKE_STATEMENT(GeneratorMethodDefinition(first_identifier, second_identifier, is_public, arguments, generator_method_type, block));
+		return MAKE_STATEMENT(GeneratorMemberDefinition(first_identifier, second_identifier, is_public, arguments, generator_method_type, block));
 	}
 
 	Type_ptr function_type = std::make_shared<Type>(GeneratorType(argument_types, optional_return_type));

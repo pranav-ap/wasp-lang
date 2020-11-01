@@ -36,7 +36,7 @@ public:
 		: scope_type(scope_type), enclosing_scope(enclosing_scope) {};
 
 	void define(std::wstring name, Symbol_ptr symbol);
-	std::optional<Symbol_ptr> lookup(std::wstring name);
+	Symbol_ptr lookup(std::wstring name);
 
 	bool enclosed_in(ScopeType type);
 	bool enclosed_in(std::vector<ScopeType> types);

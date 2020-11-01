@@ -10,7 +10,10 @@
 #include <memory>
 #include <vector>
 #include <variant>
+#include <map>
 #include <optional>
+
+#define MAKE_TYPE(x) std::make_shared<Type>(x)
 
 struct AnyType;
 struct IntLiteralType;
@@ -25,6 +28,7 @@ struct ListType;
 struct TupleType;
 struct SetType;
 struct ClassType;
+struct AliasType;
 struct InterfaceType;
 struct MapType;
 struct EnumType;
@@ -32,9 +36,10 @@ struct VariantType;
 struct NoneType;
 struct FunctionType;
 struct GeneratorType;
-struct FunctionMethodType;
-struct GeneratorMethodType;
+struct FunctionMemberType;
+struct GeneratorMemberType;
 struct OperatorType;
+struct TypeIdentifier;
 
 using Type = AST_API std::variant<
 	std::monostate,
@@ -42,16 +47,17 @@ using Type = AST_API std::variant<
 	IntLiteralType, FloatLiteralType, StringLiteralType, BooleanLiteralType,
 	IntType, FloatType, StringType, BooleanType,
 	ListType, TupleType, SetType,
-	ClassType, InterfaceType, MapType,
-	EnumType,
+	ClassType, AliasType, InterfaceType, MapType,
+	EnumType, TypeIdentifier,
 	VariantType, NoneType,
 	FunctionType, GeneratorType,
-	FunctionMethodType, GeneratorMethodType,
+	FunctionMemberType, GeneratorMemberType,
 	OperatorType
 >;
 
 using Type_ptr = AST_API std::shared_ptr<Type>;
 using TypeVector = AST_API std::vector<Type_ptr>;
+using StringVector = std::vector<std::wstring>;
 
 // Type Base
 
@@ -78,10 +84,20 @@ struct AST_API NoneType : public AnyType
 struct AST_API CallableType : public AnyType
 {
 	TypeVector input_types;
-	std::optional<Type_ptr> return_type;
+	Type_ptr return_type;
 
-	CallableType(TypeVector input_types, std::optional<Type_ptr> return_type)
-		: input_types(input_types), return_type(return_type) {};
+	CallableType(TypeVector input_types, std::optional<Type_ptr> opt_return_type) : input_types(input_types)
+	{
+		return_type = opt_return_type.has_value() ? opt_return_type.value() : MAKE_TYPE(NoneType());
+	};
+};
+
+// Parser does not know whether type identifier is class, enum or interface
+
+struct AST_API TypeIdentifier : public AnyType
+{
+	std::wstring name;
+	TypeIdentifier(std::wstring name) : name(name) {};
 };
 
 // Scalar Types
@@ -157,22 +173,48 @@ struct AST_API MapType : public CompositeType
 		: key_type(std::move(key_type)), value_type(std::move(value_type)) {};
 };
 
-struct AST_API ClassType : public CompositeType
+struct AST_API AliasType : public CompositeType
 {
 	std::wstring name;
-	ClassType(std::wstring name) : name(name) {};
+	Type_ptr type;
+
+	AliasType(std::wstring name, Type_ptr type)
+		: name(name), type(type) {};
 };
 
-struct AST_API InterfaceType : public CompositeType
+struct AST_API UserDefinedType : public CompositeType
 {
 	std::wstring name;
-	InterfaceType(std::wstring name) : name(name) {};
+
+	StringVector interfaces;
+	StringVector base_types;
+
+	std::map<std::wstring, Type_ptr> members;
+	std::map<std::wstring, bool> is_public_member;
+
+	UserDefinedType(std::wstring name, StringVector interfaces, StringVector base_types, std::map<std::wstring, Type_ptr> members, std::map<std::wstring, bool> is_public_member)
+		: name(name), interfaces(interfaces), base_types(base_types), members(members), is_public_member(is_public_member) {};
+};
+
+struct AST_API ClassType : public UserDefinedType
+{
+	ClassType(std::wstring name, StringVector interfaces, StringVector base_types, std::map<std::wstring, Type_ptr> members, std::map<std::wstring, bool> is_public_member)
+		: UserDefinedType(name, interfaces, base_types, members, is_public_member) {};
+};
+
+struct AST_API InterfaceType : public UserDefinedType
+{
+	InterfaceType(std::wstring name, StringVector interfaces, StringVector base_types, std::map<std::wstring, Type_ptr> members, std::map<std::wstring, bool> is_public_member)
+		: UserDefinedType(name, interfaces, base_types, members, is_public_member) {};
 };
 
 struct AST_API EnumType : public CompositeType
 {
 	std::wstring enum_name;
-	EnumType(std::wstring enum_name) : enum_name(enum_name) {};
+	std::map<std::wstring, int> members;
+
+	EnumType(std::wstring enum_name, std::map<std::wstring, int> members)
+		: enum_name(enum_name), members(members) {};
 };
 
 struct AST_API VariantType : public CompositeType
@@ -195,19 +237,19 @@ struct AST_API GeneratorType : public CallableType
 		: CallableType(input_types, return_type) {};
 };
 
-struct AST_API FunctionMethodType : public CallableType
+struct AST_API FunctionMemberType : public CallableType
 {
 	std::wstring type_name;
 
-	FunctionMethodType(std::wstring type_name, TypeVector input_types, std::optional<Type_ptr> return_type)
+	FunctionMemberType(std::wstring type_name, TypeVector input_types, std::optional<Type_ptr> return_type)
 		: CallableType(input_types, return_type), type_name(type_name) {};
 };
 
-struct AST_API GeneratorMethodType : public CallableType
+struct AST_API GeneratorMemberType : public CallableType
 {
 	std::wstring type_name;
 
-	GeneratorMethodType(std::wstring type_name, TypeVector input_types, std::optional<Type_ptr> return_type)
+	GeneratorMemberType(std::wstring type_name, TypeVector input_types, std::optional<Type_ptr> return_type)
 		: CallableType(input_types, return_type), type_name(type_name) {};
 };
 

@@ -57,8 +57,8 @@ void ASTVisualizer::visit(const Statement_ptr statement, int parent_id)
 		[&](FunctionDefinition const& stat) { visit(stat, parent_id); },
 		[&](GeneratorDefinition const& stat) { visit(stat, parent_id); },
 		[&](EnumDefinition const& stat) { visit(stat, parent_id); },
-		[&](FunctionMethodDefinition const& stat) { visit(stat, parent_id); },
-		[&](GeneratorMethodDefinition const& stat) { visit(stat, parent_id); },
+		[&](FunctionMemberDefinition const& stat) { visit(stat, parent_id); },
+		[&](GeneratorMemberDefinition const& stat) { visit(stat, parent_id); },
 		[&](ExpressionStatement const& stat) { visit(stat, parent_id); },
 		[&](Assert const& stat) { visit(stat, parent_id); },
 		[&](Implore const& stat) { visit(stat, parent_id); },
@@ -159,7 +159,9 @@ void ASTVisualizer::visit(VariableDefinition const& statement, int parent_id)
 {
 	const int id = id_counter++;
 	save(id, parent_id, L"VariableDefinition");
-	visit(statement.expression, id);
+	visit(statement.lhs_expression, id);
+	visit(statement.type, id);
+	visit(statement.rhs_expression, id);
 }
 
 void ASTVisualizer::visit(ClassDefinition const& statement, int parent_id)
@@ -239,7 +241,7 @@ void ASTVisualizer::visit(EnumDefinition const& statement, int parent_id)
 	save(id, parent_id, L"EnumDefinition");
 }
 
-void ASTVisualizer::visit(FunctionMethodDefinition const& statement, int parent_id)
+void ASTVisualizer::visit(FunctionMemberDefinition const& statement, int parent_id)
 {
 	const int id = id_counter++;
 	save(id, parent_id, L"Function Method Definition " + statement.type_name + L"::" + statement.name);
@@ -257,7 +259,7 @@ void ASTVisualizer::visit(FunctionMethodDefinition const& statement, int parent_
 	}
 }
 
-void ASTVisualizer::visit(GeneratorMethodDefinition const& statement, int parent_id)
+void ASTVisualizer::visit(GeneratorMemberDefinition const& statement, int parent_id)
 {
 	const int id = id_counter++;
 	save(id, parent_id, L"Generator Method Definition " + statement.type_name + L"::" + statement.name);
@@ -558,8 +560,8 @@ void ASTVisualizer::visit(const Type_ptr type, int parent_id)
 		   [&](NoneType const& ty) { visit(ty, parent_id); },
 		   [&](FunctionType const& ty) { visit(ty, parent_id); },
 		   [&](GeneratorType const& ty) { visit(ty, parent_id); },
-		   [&](FunctionMethodType const& ty) { visit(ty, parent_id); },
-		   [&](GeneratorMethodType const& ty) { visit(ty, parent_id); },
+		   [&](FunctionMemberType const& ty) { visit(ty, parent_id); },
+		   [&](GeneratorMemberType const& ty) { visit(ty, parent_id); },
 		   [&](OperatorType const& ty) { visit(ty, parent_id); },
 
 		   [](auto) {FATAL("Never seen this Type before! So I cannot print it!"); }
@@ -701,12 +703,9 @@ void ASTVisualizer::visit(FunctionType const& type, int parent_id)
 		visit(type.input_types, input_types_id);
 	}
 
-	if (type.return_type.has_value())
-	{
-		const int return_type_id = id_counter++;
-		save(return_type_id, id, L"Return Type");
-		visit(type.return_type.value(), return_type_id);
-	}
+	const int return_type_id = id_counter++;
+	save(return_type_id, id, L"Return Type");
+	visit(type.return_type, return_type_id);
 }
 
 void ASTVisualizer::visit(GeneratorType const& type, int parent_id)
@@ -721,13 +720,10 @@ void ASTVisualizer::visit(GeneratorType const& type, int parent_id)
 		visit(type.input_types, input_types_id);
 	}
 
-	if (type.return_type.has_value())
-	{
-		visit(type.return_type.value(), id);
-	}
+	visit(type.return_type, id);
 }
 
-void ASTVisualizer::visit(FunctionMethodType const& type, int parent_id)
+void ASTVisualizer::visit(FunctionMemberType const& type, int parent_id)
 {
 	const int id = id_counter++;
 	save(id, parent_id, L"Function Method Type");
@@ -742,15 +738,12 @@ void ASTVisualizer::visit(FunctionMethodType const& type, int parent_id)
 		visit(type.input_types, input_types_id);
 	}
 
-	if (type.return_type.has_value())
-	{
-		const int return_type_id = id_counter++;
-		save(return_type_id, id, L"Return Type");
-		visit(type.return_type.value(), return_type_id);
-	}
+	const int return_type_id = id_counter++;
+	save(return_type_id, id, L"Return Type");
+	visit(type.return_type, return_type_id);
 }
 
-void ASTVisualizer::visit(GeneratorMethodType const& type, int parent_id)
+void ASTVisualizer::visit(GeneratorMemberType const& type, int parent_id)
 {
 	const int id = id_counter++;
 	save(id, parent_id, L"Generator Method Type");
@@ -765,12 +758,9 @@ void ASTVisualizer::visit(GeneratorMethodType const& type, int parent_id)
 		visit(type.input_types, input_types_id);
 	}
 
-	if (type.return_type.has_value())
-	{
-		const int return_type_id = id_counter++;
-		save(return_type_id, id, L"Return Type");
-		visit(type.return_type.value(), return_type_id);
-	}
+	const int return_type_id = id_counter++;
+	save(return_type_id, id, L"Return Type");
+	visit(type.return_type, return_type_id);
 }
 
 void ASTVisualizer::visit(OperatorType const& type, int parent_id)
@@ -779,11 +769,7 @@ void ASTVisualizer::visit(OperatorType const& type, int parent_id)
 	save(id, parent_id, L"Operator Type");
 
 	visit(type.input_types, id);
-
-	if (type.return_type.has_value())
-	{
-		visit(type.return_type.value(), id);
-	}
+	visit(type.return_type, id);
 }
 
 // Generate

@@ -42,8 +42,8 @@ class AST_API ASTVisualizer
 	void visit(FunctionDefinition const& statement, int parent_id);
 	void visit(GeneratorDefinition const& statement, int parent_id);
 	void visit(EnumDefinition const& statement, int parent_id);
-	void visit(FunctionMethodDefinition const& statement, int parent_id);
-	void visit(GeneratorMethodDefinition const& statement, int parent_id);
+	void visit(FunctionMemberDefinition const& statement, int parent_id);
+	void visit(GeneratorMemberDefinition const& statement, int parent_id);
 	void visit(ExpressionStatement const& statement, int parent_id);
 	void visit(Assert const& statement, int parent_id);
 	void visit(Implore const& statement, int parent_id);
@@ -102,8 +102,8 @@ class AST_API ASTVisualizer
 	void visit(NoneType const& expr, int parent_id);
 	void visit(FunctionType const& expr, int parent_id);
 	void visit(GeneratorType const& expr, int parent_id);
-	void visit(FunctionMethodType const& expr, int parent_id);
-	void visit(GeneratorMethodType const& expr, int parent_id);
+	void visit(FunctionMemberType const& expr, int parent_id);
+	void visit(GeneratorMemberType const& expr, int parent_id);
 	void visit(OperatorType const& expr, int parent_id);
 
 public:

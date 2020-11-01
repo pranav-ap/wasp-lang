@@ -3,8 +3,13 @@
 #include "Symbol.h"
 #include "SymbolScope.h"
 #include "Assertion.h"
+#include <algorithm>
 
 #define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr")
+
+using std::any_of;
+using std::begin;
+using std::end;
 
 void SymbolScope::define(std::wstring name, Symbol_ptr symbol)
 {
@@ -14,14 +19,13 @@ void SymbolScope::define(std::wstring name, Symbol_ptr symbol)
 	ASSERT(result.second, "Name already exists in scope!");
 }
 
-std::optional<Symbol_ptr> SymbolScope::lookup(std::wstring name)
+Symbol_ptr SymbolScope::lookup(std::wstring name)
 {
 	if (store.contains(name))
 	{
 		auto symbol = store.at(name);
 		NULL_CHECK(symbol);
-		ASSERT(symbol->index() != 0, "Info is a monostate");
-		return make_optional(symbol);
+		return symbol;
 	}
 
 	if (enclosing_scope.has_value())
@@ -49,13 +53,5 @@ bool SymbolScope::enclosed_in(ScopeType type)
 
 bool SymbolScope::enclosed_in(std::vector<ScopeType> types)
 {
-	for (auto const type : types)
-	{
-		if (enclosed_in(type))
-		{
-			return true;
-		}
-	}
-
-	return false;
+	return any_of(begin(types), end(types), [&](ScopeType scope_type) { return enclosed_in(scope_type); });
 }

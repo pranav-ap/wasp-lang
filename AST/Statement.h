@@ -34,8 +34,8 @@ struct FunctionDefinition;
 struct GeneratorDefinition;
 struct InterfaceDefinition;
 struct EnumDefinition;
-struct FunctionMethodDefinition;
-struct GeneratorMethodDefinition;
+struct FunctionMemberDefinition;
+struct GeneratorMemberDefinition;
 struct ExpressionStatement;
 struct Assert;
 struct Implore;
@@ -58,8 +58,8 @@ using Statement = AST_API std::variant <
 	ClassDefinition, AliasDefinition,
 	FunctionDefinition, GeneratorDefinition,
 	InterfaceDefinition, EnumDefinition,
-	FunctionMethodDefinition,
-	GeneratorMethodDefinition,
+	FunctionMemberDefinition,
+	GeneratorMemberDefinition,
 
 	InfixOperatorDefinition,
 	PrefixOperatorDefinition,
@@ -131,10 +131,14 @@ struct AST_API VariableDefinition
 {
 	bool is_public;
 	bool is_mutable;
-	Expression_ptr expression;
 
-	VariableDefinition(bool is_public, bool is_mutable, Expression_ptr expression)
-		: is_public(is_public), is_mutable(is_mutable), expression(std::move(expression)) {};
+	Type_ptr type;
+
+	Expression_ptr lhs_expression;
+	Expression_ptr rhs_expression;
+
+	VariableDefinition(bool is_public, bool is_mutable, Type_ptr type, Expression_ptr lhs_expression, Expression_ptr rhs_expression)
+		: is_public(is_public), is_mutable(is_mutable), type(type), lhs_expression(std::move(lhs_expression)), rhs_expression(std::move(rhs_expression)) {};
 };
 
 struct AST_API Definition
@@ -152,22 +156,22 @@ struct AST_API UDTDefinition : public Definition
 	StringVector base_types;
 
 	std::map<std::wstring, Type_ptr> member_types;
-	StringVector public_members;
+	std::map<std::wstring, bool> is_public_member;
 
-	UDTDefinition(bool is_public, std::wstring name, std::map<std::wstring, Type_ptr> member_types, StringVector public_members, std::vector<std::wstring> interfaces, std::vector<std::wstring> base_types)
-		: Definition(is_public, name), member_types(member_types), public_members(public_members), interfaces(interfaces), base_types(base_types) {};
+	UDTDefinition(bool is_public, std::wstring name, std::map<std::wstring, Type_ptr> member_types, std::map<std::wstring, bool> is_public_member, std::vector<std::wstring> interfaces, std::vector<std::wstring> base_types)
+		: Definition(is_public, name), member_types(member_types), is_public_member(is_public_member), interfaces(interfaces), base_types(base_types) {};
 };
 
 struct AST_API ClassDefinition : public UDTDefinition
 {
-	ClassDefinition(bool is_public, std::wstring name, std::map<std::wstring, Type_ptr> member_types, StringVector public_members, std::vector<std::wstring> interfaces, std::vector<std::wstring> base_types)
-		: UDTDefinition(is_public, name, member_types, public_members, interfaces, base_types) {};
+	ClassDefinition(bool is_public, std::wstring name, std::map<std::wstring, Type_ptr> member_types, std::map<std::wstring, bool> is_public_member, std::vector<std::wstring> interfaces, std::vector<std::wstring> base_types)
+		: UDTDefinition(is_public, name, member_types, is_public_member, interfaces, base_types) {};
 };
 
 struct AST_API InterfaceDefinition : public UDTDefinition
 {
-	InterfaceDefinition(bool is_public, std::wstring name, std::map<std::wstring, Type_ptr> member_types, StringVector public_members, std::vector<std::wstring> interfaces, std::vector<std::wstring> base_types)
-		: UDTDefinition(is_public, name, member_types, public_members, interfaces, base_types) {};
+	InterfaceDefinition(bool is_public, std::wstring name, std::map<std::wstring, Type_ptr> member_types, std::map<std::wstring, bool> is_public_member, std::vector<std::wstring> interfaces, std::vector<std::wstring> base_types)
+		: UDTDefinition(is_public, name, member_types, is_public_member, interfaces, base_types) {};
 };
 
 struct AST_API AliasDefinition : public Definition
@@ -247,24 +251,32 @@ struct AST_API MethodDefinition
 		: type_name(type_name), name(name), is_public(is_public), arguments(arguments), type(type), body(body) {};
 };
 
-struct AST_API FunctionMethodDefinition : public MethodDefinition
+struct AST_API FunctionMemberDefinition : public MethodDefinition
 {
-	FunctionMethodDefinition(std::wstring type_name, std::wstring name, bool is_public, StringVector arguments, Type_ptr type, Block body)
+	FunctionMemberDefinition(std::wstring type_name, std::wstring name, bool is_public, StringVector arguments, Type_ptr type, Block body)
 		: MethodDefinition(type_name, name, is_public, arguments, type, body) {};
 };
 
-struct AST_API GeneratorMethodDefinition : public MethodDefinition
+struct AST_API GeneratorMemberDefinition : public MethodDefinition
 {
-	GeneratorMethodDefinition(std::wstring type_name, std::wstring name, bool is_public, StringVector arguments, Type_ptr type, Block body)
+	GeneratorMemberDefinition(std::wstring type_name, std::wstring name, bool is_public, StringVector arguments, Type_ptr type, Block body)
 		: MethodDefinition(type_name, name, is_public, arguments, type, body) {};
 };
 
 struct AST_API EnumDefinition : public Definition
 {
-	StringVector members;
+	std::map<std::wstring, int> members;
 
-	EnumDefinition(bool is_public, std::wstring name, StringVector members)
-		: Definition(is_public, name), members(members) {};
+	EnumDefinition(bool is_public, std::wstring name, StringVector member_list) : Definition(is_public, name)
+	{
+		int index = 0;
+
+		for (auto const member : member_list)
+		{
+			members.insert({ member, index });
+			index++;
+		}
+	};
 };
 
 // Return and Yield

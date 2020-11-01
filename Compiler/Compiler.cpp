@@ -65,8 +65,8 @@ void Compiler::visit(const Statement_ptr statement)
 		[&](AliasDefinition const& stat) { visit(stat); },
 		[&](FunctionDefinition const& stat) { visit(stat); },
 		[&](GeneratorDefinition const& stat) { visit(stat); },
-		[&](FunctionMethodDefinition const& stat) { visit(stat); },
-		[&](GeneratorMethodDefinition const& stat) { visit(stat); },
+		[&](FunctionMemberDefinition const& stat) { visit(stat); },
+		[&](GeneratorMemberDefinition const& stat) { visit(stat); },
 		[&](EnumDefinition const& stat) { visit(stat); },
 		[&](ExpressionStatement const& stat) { visit(stat); },
 		[&](Assert const& stat) { visit(stat); },
@@ -281,16 +281,10 @@ void Compiler::visit(YieldStatement const& statement)
 
 void Compiler::visit(VariableDefinition const& statement)
 {
-	ASSERT(holds_alternative<Assignment>(*statement.expression), "Must be an Assignment");
-	auto assignment = get_if<Assignment>(&*statement.expression);
+	visit(statement.rhs_expression);
 
-	visit(assignment->rhs_expression);
-
-	ASSERT(holds_alternative<TypePattern>(*assignment->lhs_expression), "Must be a TypePattern");
-	auto type_pattern = get_if<TypePattern>(&*assignment->lhs_expression);
-
-	ASSERT(holds_alternative<Identifier>(*type_pattern->expression), "Must be an identifier");
-	auto identifier = get_if<Identifier>(&*type_pattern->expression);
+	ASSERT(holds_alternative<Identifier>(*statement.lhs_expression), "Must be an identifier");
+	auto identifier = get_if<Identifier>(&*statement.lhs_expression);
 
 	int id = define(identifier->name);
 	memory->variable_store->set(id, MAKE_OBJECT_VARIANT(NoneObject()));
@@ -367,7 +361,7 @@ void Compiler::visit(GeneratorDefinition const& statement)
 	memory->definition_store->name_store.insert({ generator_id, statement.name });
 }
 
-void Compiler::visit(FunctionMethodDefinition const& statement)
+void Compiler::visit(FunctionMemberDefinition const& statement)
 {
 	auto scope = scope_stack.top();
 	int id = scope->symbol_table->lookup(statement.type_name);
@@ -397,7 +391,7 @@ void Compiler::visit(FunctionMethodDefinition const& statement)
 	memory->definition_store->name_store.insert({ method_id, statement.name });
 }
 
-void Compiler::visit(GeneratorMethodDefinition const& statement)
+void Compiler::visit(GeneratorMemberDefinition const& statement)
 {
 	auto scope = scope_stack.top();
 	int id = scope->symbol_table->lookup(statement.type_name);

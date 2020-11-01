@@ -66,11 +66,7 @@ std::wstring stringify_type(Type_ptr type)
 		{
 			wstring str = L"_Operator";
 			str += stringify_type(type.input_types);
-
-			if (type.return_type.has_value())
-			{
-				str += stringify_type(type.return_type.value());
-			}
+			str += stringify_type(type.return_type);
 
 			return str;
 		},
