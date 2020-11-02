@@ -41,6 +41,8 @@ MEMORYSYSTEM_API int get_opcode_arity(OpCode opcode)
 	case OpCode::YIELD_VALUE:
 	case OpCode::PUSH_CONSTANT_TRUE:
 	case OpCode::PUSH_CONSTANT_FALSE:
+	case OpCode::GET_PROPERTY:
+	case OpCode::SET_PROPERTY:
 	{
 		return 0;
 	}
@@ -331,29 +333,13 @@ MEMORYSYSTEM_API std::wstring stringify_opcode(OpCode opcode)
 	{
 		return L"CALL_GENERATOR";
 	}
-	case OpCode::GET_CLASS_PROPERTY:
+	case OpCode::GET_PROPERTY:
 	{
-		return L"GET_CLASS_PROPERTY";
+		return L"GET_PROPERTY";
 	}
-	case OpCode::SET_CLASS_PROPERTY:
+	case OpCode::SET_PROPERTY:
 	{
-		return L"SET_CLASS_PROPERTY";
-	}
-	case OpCode::GET_CLASS_INSTANCE_PROPERTY:
-	{
-		return L"GET_CLASS_INSTANCE_PROPERTY";
-	}
-	case OpCode::SET_CLASS_INSTANCE_PROPERTY:
-	{
-		return L"SET_CLASS_INSTANCE_PROPERTY";
-	}
-	case OpCode::GET_CLASS_FUNCTION:
-	{
-		return L"GET_CLASS_FUNCTION";
-	}
-	case OpCode::GET_CLASS_GENERATOR:
-	{
-		return L"GET_CLASS_GENERATOR";
+		return L"SET_PROPERTY";
 	}
 	case OpCode::GET_ENUM_MEMBER:
 	{

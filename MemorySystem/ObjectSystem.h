@@ -21,6 +21,7 @@ struct StringObject;
 struct BooleanObject;
 struct ListObject;
 struct TupleObject;
+struct SetObject;
 struct MapObject;
 struct EnumMemberObject;
 struct VariantObject;
@@ -47,7 +48,7 @@ using Object = MEMORYSYSTEM_API std::variant <
 	NoneObject,
 
 	// Composite Objects
-	ListObject, TupleObject,
+	ListObject, TupleObject, SetObject,
 	EnumMemberObject,
 	MapObject,
 	VariantObject,
@@ -141,24 +142,28 @@ struct MEMORYSYSTEM_API GeneratorMethodObject : public DefinitionObject
 struct MEMORYSYSTEM_API ClassObject : public BaseObject
 {
 	std::wstring name;
-	std::map<std::wstring, int> static_fields;
-	std::map<std::wstring, int> methods;
+	std::map<std::wstring, int> members;
 
 	ClassObject() {};
-	ClassObject(std::wstring name, std::map<std::wstring, int> fields, std::map<std::wstring, int> methods)
-		: name(name), static_fields(static_fields), methods(methods) {};
+	ClassObject(std::wstring name, std::map<std::wstring, int> members)
+		: name(name), members(members) {};
+
+	int lookup_member_id(std::wstring name);
 
 	std::wstring stringify() const override;
 };
 
+using ClassObject_ptr = MEMORYSYSTEM_API std::shared_ptr<ClassObject>;
+
 struct MEMORYSYSTEM_API InstanceObject : public BaseObject
 {
-	std::wstring type_name;
-	std::map<std::wstring, int> fields;
+	ClassObject_ptr type;
+	std::map<std::wstring, int> members;
 
-	InstanceObject() {};
-	InstanceObject(std::wstring, std::map<std::wstring, int> fields)
-		: fields(fields) {};
+	InstanceObject(ClassObject_ptr type, std::map<std::wstring, int> members)
+		: type(type), members(members) {};
+
+	int lookup_member_id(std::wstring name);
 
 	std::wstring stringify() const override;
 };
@@ -166,10 +171,10 @@ struct MEMORYSYSTEM_API InstanceObject : public BaseObject
 struct MEMORYSYSTEM_API EnumObject : public BaseObject
 {
 	std::wstring name;
-	std::vector<std::wstring> members;
+	std::map<std::wstring, int> members;
 
 	EnumObject() {};
-	EnumObject(std::wstring name, std::vector<std::wstring> members)
+	EnumObject(std::wstring name, std::map<std::wstring, int> members)
 		: name(name), members(members) {};
 
 	std::wstring stringify() const override;
@@ -241,6 +246,20 @@ struct MEMORYSYSTEM_API TupleObject : public CompositeObject
 
 	Object_ptr get(Object_ptr index);
 	Object_ptr set(Object_ptr index, Object_ptr value);
+	Object_ptr set(std::vector<Object_ptr> values);
+
+	int get_length();
+
+	std::wstring stringify() const override;
+};
+
+struct MEMORYSYSTEM_API SetObject : public CompositeObject
+{
+	std::vector<Object_ptr> values;
+
+	SetObject(std::vector<Object_ptr> values) : values(values) {};
+
+	std::vector<Object_ptr> get();
 	Object_ptr set(std::vector<Object_ptr> values);
 
 	int get_length();

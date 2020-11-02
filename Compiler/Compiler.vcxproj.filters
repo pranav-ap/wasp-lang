@@ -24,9 +24,6 @@
     <ClInclude Include="Compiler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CSymbolTable.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="CScope.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -41,7 +38,7 @@
     <ClCompile Include="Compiler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SymbolTable.cpp">
+    <ClCompile Include="CScope.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

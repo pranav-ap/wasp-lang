@@ -238,6 +238,24 @@ int TupleObject::get_length()
 	return values.size();
 }
 
+// SetObject
+
+std::vector<Object_ptr> SetObject::get()
+{
+	return this->values;
+}
+
+Object_ptr SetObject::set(std::vector<Object_ptr> values)
+{
+	this->values = values;
+	return VOID;
+}
+
+int SetObject::get_length()
+{
+	return 0;
+}
+
 // VariantObject
 
 bool VariantObject::has_value()
@@ -260,6 +278,11 @@ std::wstring NoneObject::stringify() const
 std::wstring TupleObject::stringify() const
 {
 	return L"TupleObject";
+}
+
+std::wstring SetObject::stringify() const
+{
+	return L"SetObject";
 }
 
 std::wstring MapObject::stringify() const

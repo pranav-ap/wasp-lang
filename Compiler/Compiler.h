@@ -7,22 +7,22 @@
 #endif
 
 #include "OpCode.h"
-#include "Statement.h"
 #include "CScope.h"
+#include "Statement.h"
 #include "ObjectSystem.h"
-#include "CSymbolTable.h"
 #include "MemorySystem.h"
 
 #include <string>
 #include <vector>
 #include <map>
+#include <tuple>
 #include <memory>
 #include <optional>
 
 class COMPILER_API Compiler
 {
 	MemorySystem_ptr memory;
-	std::stack<CScope_ptr> scope_stack;
+	CScope_ptr current_scope;
 
 	int next_label;
 	int next_id;
@@ -40,10 +40,13 @@ class COMPILER_API Compiler
 
 	void visit(WhileLoop const& statement);
 	void visit(ForInLoop const& statement);
+
 	void visit(Break const& statement);
 	void visit(Continue const& statement);
+
 	void visit(Return const& statement);
 	void visit(YieldStatement const& statement);
+
 	void visit(VariableDefinition const& statement);
 	void visit(InterfaceDefinition const& statement);
 	void visit(ClassDefinition const& statement);
@@ -53,11 +56,14 @@ class COMPILER_API Compiler
 	void visit(FunctionMemberDefinition const& statement);
 	void visit(GeneratorMemberDefinition const& statement);
 	void visit(EnumDefinition const& statement);
+
 	void visit(ExpressionStatement const& statement);
 	void visit(Assert const& statement);
 	void visit(Implore const& statement);
 	void visit(Swear const& statement);
+
 	void visit(Namespace const& statement);
+
 	void visit(InfixOperatorDefinition const& statement);
 	void visit(PrefixOperatorDefinition const& statement);
 	void visit(PostfixOperatorDefinition const& statement);
@@ -96,7 +102,7 @@ class COMPILER_API Compiler
 
 	// Scope
 
-	CScope_ptr enter_scope();
+	void enter_scope();
 	ByteVector leave_scope();
 	ByteVector leave_subroutine_scope();
 
@@ -104,6 +110,9 @@ class COMPILER_API Compiler
 
 	int define(std::wstring name);
 	int create_label();
+
+	std::wstring concat(StringVector items, std::wstring middle);
+	std::wstring deconstruct_type_pattern(Expression_ptr expression);
 
 public:
 	Compiler(MemorySystem_ptr memory)

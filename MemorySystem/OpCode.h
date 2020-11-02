@@ -54,6 +54,9 @@ enum class MEMORYSYSTEM_API OpCode
 	PUSH_CONSTANT_TRUE,
 	PUSH_CONSTANT_FALSE,
 
+	GET_PROPERTY,
+	SET_PROPERTY,
+
 	PUSH_CONSTANT, // constant_pool_id
 
 	STORE_LOCAL, // variable_id - TOS to Table
@@ -97,15 +100,6 @@ enum class MEMORYSYSTEM_API OpCode
 
 	CALL_FUNCTION, // id, number of arguments
 	CALL_GENERATOR,
-
-	GET_CLASS_PROPERTY, // class id, property name
-	SET_CLASS_PROPERTY,
-
-	GET_CLASS_INSTANCE_PROPERTY, // instance id, property name
-	SET_CLASS_INSTANCE_PROPERTY,
-
-	GET_CLASS_FUNCTION, // instance id, method name
-	GET_CLASS_GENERATOR,
 
 	GET_ENUM_MEMBER // enum id, member id
 };

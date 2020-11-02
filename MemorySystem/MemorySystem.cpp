@@ -315,19 +315,14 @@ std::wstring InstructionPrinter::stringify_instruction(std::byte opcode, std::by
 	case OpCode::SET_PAIR_FROM_MAP:
 	case OpCode::GET_CHAR_FROM_STRING:
 	case OpCode::SET_CHAR_FROM_STRING:
-
-	case OpCode::GET_CLASS_INSTANCE_PROPERTY:
-	case OpCode::SET_CLASS_INSTANCE_PROPERTY:
-	case OpCode::GET_CLASS_FUNCTION:
-	case OpCode::GET_CLASS_GENERATOR:
 	{
 		wstring variable_name = variable_store->name_store.at(operand_1_int);
 		str_stream << std::right << setw(OPERAND_WIDTH) << L" (" << variable_name << L" , " << operand_2_int << L")";
 
 		return str_stream.str();
 	}
-	case OpCode::GET_CLASS_PROPERTY:
-	case OpCode::SET_CLASS_PROPERTY:
+	case OpCode::GET_PROPERTY:
+	case OpCode::SET_PROPERTY:
 	case OpCode::GET_ENUM_MEMBER:
 	case OpCode::CALL_FUNCTION:
 	case OpCode::CALL_GENERATOR:

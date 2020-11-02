@@ -1,34 +1,30 @@
 #pragma once
 #include "OpCode.h"
-#include "CSymbolTable.h"
 #include "MemorySystem.h"
 #include <memory>
 
+struct CScope;
+using CScope_ptr = std::shared_ptr<CScope>;
+
 struct CScope
 {
-	CSymbolTable_ptr symbol_table;
+	std::map<std::wstring, int> store;
+	std::optional<CScope_ptr> enclosing_scope;
+
 	CodeSection_ptr code_section;
 
 	int break_label;
 	int continue_label;
 
-	CScope()
-		: break_label(0),
-		continue_label(0),
-		symbol_table(std::make_shared<CSymbolTable>()),
-		code_section(std::make_shared<CodeSection>()) {};
+	bool is_rvalue;
 
-	CScope(CodeSection_ptr code_section)
+	CScope(std::optional<CScope_ptr> enclosing_scope, CodeSection_ptr code_section)
 		: break_label(0),
 		continue_label(0),
-		symbol_table(std::make_shared<CSymbolTable>()),
+		is_rvalue(true),
+		enclosing_scope(enclosing_scope),
 		code_section(code_section) {};
 
-	CScope(CSymbolTable_ptr enclosing_symbol_table)
-		: break_label(0),
-		continue_label(0),
-		symbol_table(std::make_shared<CSymbolTable>(enclosing_symbol_table)),
-		code_section(std::make_shared<CodeSection>()) {};
+	void define(std::wstring name, int label);
+	int lookup(std::wstring name);
 };
-
-using CScope_ptr = std::shared_ptr<CScope>;

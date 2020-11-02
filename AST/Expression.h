@@ -102,8 +102,8 @@ struct AST_API NewObject
 	std::wstring type_name;
 	ExpressionVector expressions;
 
-	NewObject(std::wstring UDT_name, ExpressionVector expressions)
-		: type_name(UDT_name), expressions(expressions) {};
+	NewObject(std::wstring type_name, ExpressionVector expressions)
+		: type_name(type_name), expressions(expressions) {};
 };
 
 struct AST_API EnumMember

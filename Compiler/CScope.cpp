@@ -1,17 +1,17 @@
 #pragma once
 #include "pch.h"
-#include "CSymbolTable.h"
+#include "CScope.h"
 #include "Assertion.h"
 
 #define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr")
 
-void CSymbolTable::define(std::wstring name, int id)
+void CScope::define(std::wstring name, int id)
 {
 	auto result = store.insert({ name, id });
 	ASSERT(result.second, "Name already exists in scope!");
 }
 
-int CSymbolTable::lookup(std::wstring name)
+int CScope::lookup(std::wstring name)
 {
 	if (store.contains(name))
 	{

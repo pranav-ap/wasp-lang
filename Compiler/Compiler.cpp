@@ -23,14 +23,18 @@ using std::byte;
 using std::wstring;
 using std::map;
 using std::make_shared;
+using std::make_optional;
 using std::holds_alternative;
 using std::get_if;
 using std::vector;
 using std::to_wstring;
+using std::begin;
+using std::end;
 
 void Compiler::execute(const File_ptr ast)
 {
 	next_label = 0;
+	current_scope = make_shared<CScope>(std::nullopt, memory->code_section);
 
 	enter_scope();
 
@@ -182,12 +186,11 @@ void Compiler::visit(WhileLoop const& statement)
 
 	visit(statement.expression);
 
-	auto scope = enter_scope();
-	scope->continue_label = condition_label;
+	current_scope->continue_label = condition_label;
 
 	int block_end_label = create_label();
 	emit(OpCode::POP_JUMP_IF_FALSE, block_end_label);
-	scope->break_label = block_end_label;
+	current_scope->break_label = block_end_label;
 
 	visit(statement.block);
 
@@ -207,14 +210,14 @@ void Compiler::visit(ForInLoop const& statement)
 	auto iterable = statement.rhs_expression;
 	visit(iterable);
 
-	auto scope = enter_scope();
+	enter_scope();
 
 	int block_begin_label = create_label();
 	emit(OpCode::LABEL, block_begin_label);
-	scope->continue_label = block_begin_label;
+	current_scope->continue_label = block_begin_label;
 
 	int block_end_label = create_label();
-	scope->break_label = block_end_label;
+	current_scope->break_label = block_end_label;
 
 	std::visit(overloaded{
 		[&](wstring const& expr) { emit(OpCode::ITERATE_OVER_STRING, block_end_label); },
@@ -243,14 +246,12 @@ void Compiler::visit(ForInLoop const& statement)
 
 void Compiler::visit(Break const& statement)
 {
-	auto scope = scope_stack.top();
-	emit(OpCode::JUMP, scope->break_label);
+	emit(OpCode::JUMP, current_scope->break_label);
 }
 
 void Compiler::visit(Continue const& statement)
 {
-	auto scope = scope_stack.top();
-	emit(OpCode::JUMP, scope->continue_label);
+	emit(OpCode::JUMP, current_scope->continue_label);
 }
 
 void Compiler::visit(Return const& statement)
@@ -294,17 +295,16 @@ void Compiler::visit(VariableDefinition const& statement)
 
 void Compiler::visit(ClassDefinition const& statement)
 {
-	map<wstring, int> static_fields;
-	map<wstring, int> methods;
+	map<wstring, int> members;
 
 	for (auto const& [member_name, type] : statement.member_types)
 	{
 		int id = define(statement.name + L"::" + member_name);
-		methods.insert({ member_name , id });
+		members.insert({ member_name , id });
 	}
 
 	auto class_id = define(statement.name);
-	auto class_object = MAKE_OBJECT_VARIANT(ClassObject(statement.name, static_fields, methods));
+	auto class_object = MAKE_OBJECT_VARIANT(ClassObject(statement.name, members));
 	memory->definition_store->set(class_id, move(class_object));
 	memory->definition_store->name_store.insert({ class_id, statement.name });
 }
@@ -363,15 +363,14 @@ void Compiler::visit(GeneratorDefinition const& statement)
 
 void Compiler::visit(FunctionMemberDefinition const& statement)
 {
-	auto scope = scope_stack.top();
-	int id = scope->symbol_table->lookup(statement.type_name);
+	int id = current_scope->lookup(statement.type_name);
 
 	Object_ptr object = memory->definition_store->get(id);
 	ASSERT(holds_alternative<ClassObject>(*object), "Expected class defintion object");
 	auto class_object = get_if<ClassObject>(&*object);
 
-	ASSERT(class_object->methods.contains(statement.name), "Method name is not found in class definition");
-	int method_id = class_object->methods.at(statement.name);
+	ASSERT(class_object->members.contains(statement.name), "Method name is not found in class definition");
+	int method_id = class_object->members.at(statement.name);
 
 	enter_scope();
 
@@ -393,15 +392,14 @@ void Compiler::visit(FunctionMemberDefinition const& statement)
 
 void Compiler::visit(GeneratorMemberDefinition const& statement)
 {
-	auto scope = scope_stack.top();
-	int id = scope->symbol_table->lookup(statement.type_name);
+	int id = current_scope->lookup(statement.type_name);
 
 	Object_ptr object = memory->definition_store->get(id);
 	ASSERT(holds_alternative<ClassObject>(*object), "Expected class defintion object");
 	auto class_object = get_if<ClassObject>(&*object);
 
-	ASSERT(class_object->methods.contains(statement.name), "Method name is not found in class definition");
-	int method_id = class_object->methods.at(statement.name);
+	ASSERT(class_object->members.contains(statement.name), "Method name is not found in class definition");
+	int method_id = class_object->members.at(statement.name);
 
 	enter_scope();
 
@@ -423,10 +421,7 @@ void Compiler::visit(GeneratorMemberDefinition const& statement)
 
 void Compiler::visit(EnumDefinition const& statement)
 {
-	auto enum_object = MAKE_OBJECT_VARIANT(EnumObject(
-		statement.name,
-		statement.members
-	));
+	auto enum_object = MAKE_OBJECT_VARIANT(EnumObject(statement.name, statement.members));
 
 	auto enum_id = define(statement.name);
 	memory->definition_store->set(enum_id, move(enum_object));
@@ -577,9 +572,7 @@ void Compiler::visit(NewObject const& expr)
 	visit(expr.expressions);
 
 	int count = expr.expressions.size();
-
-	auto scope = scope_stack.top();
-	auto class_id = scope->symbol_table->lookup(expr.type_name);
+	auto class_id = current_scope->lookup(expr.type_name);
 
 	emit(OpCode::MAKE_INSTANCE, class_id, count);
 }
@@ -591,15 +584,11 @@ void Compiler::visit(TernaryCondition const& expr)
 	std::visit(overloaded{
 		[&](Assignment const& assignment)
 		{
-			ASSERT(holds_alternative<TypePattern>(*assignment.lhs_expression), "Expected type pattern");
-			auto type_pattern = get_if<TypePattern>(&*assignment.lhs_expression);
-
-			ASSERT(holds_alternative<Identifier>(*type_pattern->expression), "Must be an identifier");
-			auto identifier = get_if<Identifier>(&*type_pattern->expression);
-
 			visit(assignment.rhs_expression);
 
-			int id = define(identifier->name);
+			auto identifier = deconstruct_type_pattern(assignment.lhs_expression);
+
+			int id = define(identifier);
 			emit(OpCode::STORE_LOCAL, id);
 			emit(OpCode::LOAD_LOCAL, id);
 		},
@@ -628,40 +617,27 @@ void Compiler::visit(TernaryCondition const& expr)
 void Compiler::visit(EnumMember const& expr)
 {
 	auto enum_name = expr.member_chain.front();
-
-	auto scope = scope_stack.top();
-	auto enum_id = scope->symbol_table->lookup(enum_name);
+	auto enum_id = current_scope->lookup(enum_name);
 
 	Object_ptr object = memory->definition_store->get(enum_id);
 	ASSERT(holds_alternative<EnumObject>(*object), "Expected Enum object");
 	auto enum_object = get_if<EnumObject>(&*object);
 
-	wstring enum_string = L"";
+	wstring enum_string = concat(expr.member_chain, L"::");
+	ASSERT(enum_object->members.contains(enum_string), "Enum does not contain this member");
+	int member_id = enum_object->members.at(enum_string);
 
-	for (const auto member : expr.member_chain)
-	{
-		enum_string.append(L"::");
-		enum_string.append(member);
-	}
-
-	enum_string = enum_string.substr(2, enum_string.size());
-
-	auto it = std::find(enum_object->members.begin(), enum_object->members.end(), enum_string);
-	ASSERT(it != enum_object->members.end(), "Enum does not contain this member");
-
-	int member_index = std::distance(enum_object->members.begin(), it);
-	emit(OpCode::GET_ENUM_MEMBER, enum_id, member_index);
+	emit(OpCode::GET_ENUM_MEMBER, enum_id, member_id);
 }
 
 void Compiler::visit(TypePattern const& expr)
 {
-	FATAL("TypePattern cannot be a standalone");
+	FATAL("TypePattern cannot be visited");
 }
 
 void Compiler::visit(Identifier const& expr)
 {
-	auto scope = scope_stack.top();
-	auto id = scope->symbol_table->lookup(expr.name);
+	auto id = current_scope->lookup(expr.name);
 	emit(OpCode::LOAD_LOCAL, id);
 }
 
@@ -671,16 +647,22 @@ void Compiler::visit(Spread const& expr)
 
 void Compiler::visit(MemberAccess const& expr)
 {
-	switch (expr.op->type)
+	visit(expr.left);
+
+	if (expr.op->type == WTokenType::QUESTION_DOT)
 	{
-	case WTokenType::DOT:
-	{
-		break;
+		// ?
 	}
-	case WTokenType::QUESTION_DOT:
+
+	visit(expr.right);
+
+	if (current_scope->is_rvalue)
 	{
-		break;
+		emit(OpCode::GET_PROPERTY);
 	}
+	else
+	{
+		emit(OpCode::SET_PROPERTY);
 	}
 }
 
@@ -688,10 +670,7 @@ void Compiler::visit(Call const& expr)
 {
 	visit(expr.arguments);
 	int count = expr.arguments.size();
-
-	auto scope = scope_stack.top();
-	auto class_id = scope->symbol_table->lookup(expr.name);
-
+	auto class_id = current_scope->lookup(expr.name);
 	emit(OpCode::CALL_FUNCTION, class_id, count);
 }
 
@@ -725,17 +704,6 @@ void Compiler::visit(Prefix const& expr)
 void Compiler::visit(Infix const& expr)
 {
 	visit(expr.right);
-
-	switch (expr.op->type)
-	{
-	case WTokenType::DOT:
-	case WTokenType::QUESTION_DOT:
-	{
-		// ?
-		return;
-	}
-	}
-
 	visit(expr.left);
 
 	switch (expr.op->type)
@@ -825,11 +793,14 @@ void Compiler::visit(Assignment const& statement)
 {
 	visit(statement.rhs_expression);
 
+	current_scope->is_rvalue = false;
+	visit(statement.lhs_expression);
+	current_scope->is_rvalue = true;
+
 	ASSERT(holds_alternative<Identifier>(*statement.lhs_expression), "Must be an identifier");
 	auto identifier = get_if<Identifier>(&*statement.lhs_expression);
 
-	auto scope = scope_stack.top();
-	int id = scope->symbol_table->lookup(identifier->name);
+	int id = current_scope->lookup(identifier->name);
 	emit(OpCode::STORE_LOCAL, id);
 }
 
@@ -837,67 +808,58 @@ void Compiler::visit(Assignment const& statement)
 
 void Compiler::emit(OpCode opcode)
 {
-	auto scope = scope_stack.top();
-	scope->code_section->emit(opcode);
+	NULL_CHECK(current_scope);
+	current_scope->code_section->emit(opcode);
 }
 
 void Compiler::emit(OpCode opcode, int operand)
 {
-	auto scope = scope_stack.top();
-	scope->code_section->emit(opcode, operand);
+	NULL_CHECK(current_scope);
+	current_scope->code_section->emit(opcode, operand);
 }
 
 void Compiler::emit(OpCode opcode, int operand_1, int operand_2)
 {
-	auto scope = scope_stack.top();
-	scope->code_section->emit(opcode, operand_1, operand_2);
+	NULL_CHECK(current_scope);
+	current_scope->code_section->emit(opcode, operand_1, operand_2);
 }
 
 // Scope
 
-CScope_ptr Compiler::enter_scope()
+void Compiler::enter_scope()
 {
-	if (scope_stack.size() > 0)
-	{
-		auto scope = scope_stack.top();
-		auto enclosing_symbol_table = scope->symbol_table;
-		scope_stack.push(make_shared<CScope>(enclosing_symbol_table));
-	}
-	else
-	{
-		scope_stack.push(make_shared<CScope>(memory->code_section));
-	}
+	NULL_CHECK(current_scope);
 
-	return scope_stack.top();
+	auto new_top_scope = make_shared<CScope>(make_optional(current_scope), make_shared<CodeSection>());
+	current_scope->enclosing_scope = new_top_scope;
+	current_scope = new_top_scope;
 }
 
 ByteVector Compiler::leave_scope()
 {
-	auto old_outer_scope = scope_stack.top();
-	scope_stack.pop();
+	NULL_CHECK(current_scope);
+	ByteVector instructions = current_scope->code_section->instructions;
 
-	ByteVector instructions = old_outer_scope->code_section->instructions;
+	OPT_CHECK(current_scope->enclosing_scope);
+	current_scope = current_scope->enclosing_scope.value();
 
-	if (scope_stack.size() > 0)
-	{
-		auto new_outer_scope = scope_stack.top();
-
-		new_outer_scope->code_section->instructions.insert(
-			std::end(new_outer_scope->code_section->instructions),
-			std::begin(instructions),
-			std::end(instructions)
-		);
-	}
+	current_scope->code_section->instructions.insert(
+		end(current_scope->code_section->instructions),
+		begin(instructions),
+		end(instructions)
+	);
 
 	return instructions;
 }
 
 ByteVector Compiler::leave_subroutine_scope()
 {
-	auto old_outer_scope = scope_stack.top();
-	scope_stack.pop();
+	NULL_CHECK(current_scope);
+	ByteVector instructions = current_scope->code_section->instructions;
 
-	ByteVector instructions = old_outer_scope->code_section->instructions;
+	OPT_CHECK(current_scope->enclosing_scope);
+	current_scope = current_scope->enclosing_scope.value();
+
 	return instructions;
 }
 
@@ -907,8 +869,8 @@ int Compiler::define(wstring name)
 {
 	int id = next_id++;
 
-	auto scope = scope_stack.top();
-	scope->symbol_table->define(name, id);
+	NULL_CHECK(current_scope);
+	current_scope->define(name, id);
 
 	return id;
 }
@@ -917,4 +879,29 @@ int Compiler::create_label()
 {
 	int label = next_label++;
 	return label;
+}
+
+wstring Compiler::concat(StringVector items, wstring middle)
+{
+	wstring final_string = L"";
+
+	for (const auto member : items)
+	{
+		final_string.append(middle);
+		final_string.append(member);
+	}
+
+	final_string = final_string.substr(2, final_string.size());
+	return final_string;
+}
+
+wstring Compiler::deconstruct_type_pattern(Expression_ptr expression)
+{
+	ASSERT(holds_alternative<TypePattern>(*expression), "Expected a TypePattern");
+	auto type_pattern = get_if<TypePattern>(&*expression);
+
+	ASSERT(holds_alternative<Identifier>(*type_pattern->expression), "Expected an Identifier");
+	auto identifier = get_if<Identifier>(&*type_pattern->expression);
+
+	return identifier->name;
 }
