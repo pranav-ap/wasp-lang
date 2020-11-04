@@ -4,9 +4,9 @@
 #include "Parser.h"
 #include "Statement.h"
 #include "ASTVisualizer.h"
-#include "SemanticAnalyzer.h"
-#include "MemorySystem.h"
-#include "Compiler.h"
+//#include "SemanticAnalyzer.h"
+//#include "MemorySystem.h"
+//#include "Compiler.h"
 //#include "CFGBuilder.h"
 #include <string>
 #include <memory>
@@ -30,13 +30,13 @@ int main()
 	ASTVisualizer_ptr vis = make_unique<ASTVisualizer>();
 	vis->generate_dot_file(ast);
 
-	SemanticAnalyzer_ptr semantic_analyser = make_unique<SemanticAnalyzer>();
-	semantic_analyser->execute(ast);
+	//semantic_analyser = make_unique<SemanticAnalyzer>();
+	//semantic_analyser->execute(ast);
 
-	MemorySystem_ptr memory = make_shared<MemorySystem>();
+	//MemorySystem_ptr memory = make_shared<MemorySystem>();
 
-	Compiler_ptr compiler = make_unique<Compiler>(memory);
-	compiler->execute(ast);
+	//Compiler_ptr compiler = make_unique<Compiler>(memory);
+	//compiler->execute(ast);
 
 	//CFGBuilder_ptr cfg_builder = make_unique<CFGBuilder>(memory);
 	//CFG_ptr cfg = cfg_builder->execute();
@@ -44,7 +44,7 @@ int main()
 	//ByteVector instructions = cfg_builder->assemble();
 	//memory->get_code_section()->set(instructions);
 
-	memory->print();
+	//memory->print();
 
 	return 0;
 }

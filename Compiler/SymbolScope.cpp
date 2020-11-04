@@ -15,15 +15,15 @@ void SymbolScope::define(std::wstring name, Symbol_ptr symbol)
 {
 	NULL_CHECK(symbol);
 
-	auto result = store.insert({ name, symbol });
+	auto result = symbols.insert({ name, symbol });
 	ASSERT(result.second, "Name already exists in scope!");
 }
 
 Symbol_ptr SymbolScope::lookup(std::wstring name)
 {
-	if (store.contains(name))
+	if (symbols.contains(name))
 	{
-		auto symbol = store.at(name);
+		auto symbol = symbols.at(name);
 		NULL_CHECK(symbol);
 		return symbol;
 	}

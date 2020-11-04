@@ -41,8 +41,7 @@ MEMORYSYSTEM_API int get_opcode_arity(OpCode opcode)
 	case OpCode::YIELD_VALUE:
 	case OpCode::PUSH_CONSTANT_TRUE:
 	case OpCode::PUSH_CONSTANT_FALSE:
-	case OpCode::GET_PROPERTY:
-	case OpCode::SET_PROPERTY:
+	case OpCode::ITERATE_OVER:
 	{
 		return 0;
 	}
@@ -61,26 +60,12 @@ MEMORYSYSTEM_API int get_opcode_arity(OpCode opcode)
 	case OpCode::POP_JUMP:
 	case OpCode::POP_JUMP_IF_FALSE:
 	case OpCode::LABEL:
-	case OpCode::ITERATE_OVER_LIST:
-	case OpCode::ITERATE_OVER_MAP:
-	case OpCode::ITERATE_OVER_STRING:
-	case OpCode::ITERATE_OVER_IDENTIFIER:
 	{
 		return 1;
 	}
 
-	case OpCode::GET_ELEMENT_FROM_LIST:
-	case OpCode::SET_ELEMENT_IN_LIST:
-	case OpCode::GET_VALUE_FROM_MAP:
-	case OpCode::SET_VALUE_FROM_MAP:
-	case OpCode::GET_PAIR_FROM_MAP:
-	case OpCode::SET_PAIR_FROM_MAP:
-	case OpCode::GET_CHAR_FROM_STRING:
-	case OpCode::SET_CHAR_FROM_STRING:
 	case OpCode::CALL_FUNCTION:
 	case OpCode::CALL_GENERATOR:
-	case OpCode::GET_ENUM_MEMBER:
-	case OpCode::MAKE_INSTANCE:
 	{
 		return 2;
 	}
@@ -277,53 +262,9 @@ MEMORYSYSTEM_API std::wstring stringify_opcode(OpCode opcode)
 	{
 		return L"LABEL";
 	}
-	case OpCode::ITERATE_OVER_LIST:
+	case OpCode::ITERATE_OVER:
 	{
-		return L"ITERATE_OVER_LIST";
-	}
-	case OpCode::ITERATE_OVER_MAP:
-	{
-		return L"ITERATE_OVER_MAP";
-	}
-	case OpCode::ITERATE_OVER_STRING:
-	{
-		return L"ITERATE_OVER_STRING";
-	}
-	case OpCode::ITERATE_OVER_IDENTIFIER:
-	{
-		return L"ITERATE_OVER_IDENTIFIER";
-	}
-	case OpCode::GET_ELEMENT_FROM_LIST:
-	{
-		return L"GET_ELEMENT_FROM_LIST";
-	}
-	case OpCode::SET_ELEMENT_IN_LIST:
-	{
-		return L"SET_ELEMENT_IN_LIST";
-	}
-	case OpCode::GET_VALUE_FROM_MAP:
-	{
-		return L"GET_VALUE_FROM_MAP";
-	}
-	case OpCode::SET_VALUE_FROM_MAP:
-	{
-		return L"SET_VALUE_FROM_MAP";
-	}
-	case OpCode::GET_PAIR_FROM_MAP:
-	{
-		return L"GET_PAIR_FROM_MAP";
-	}
-	case OpCode::SET_PAIR_FROM_MAP:
-	{
-		return L"SET_PAIR_FROM_MAP";
-	}
-	case OpCode::GET_CHAR_FROM_STRING:
-	{
-		return L"GET_CHAR_FROM_STRING";
-	}
-	case OpCode::SET_CHAR_FROM_STRING:
-	{
-		return L"SET_CHAR_FROM_STRING";
+		return L"ITERATE_OVER";
 	}
 	case OpCode::CALL_FUNCTION:
 	{
@@ -332,22 +273,6 @@ MEMORYSYSTEM_API std::wstring stringify_opcode(OpCode opcode)
 	case OpCode::CALL_GENERATOR:
 	{
 		return L"CALL_GENERATOR";
-	}
-	case OpCode::GET_PROPERTY:
-	{
-		return L"GET_PROPERTY";
-	}
-	case OpCode::SET_PROPERTY:
-	{
-		return L"SET_PROPERTY";
-	}
-	case OpCode::GET_ENUM_MEMBER:
-	{
-		return L"GET_ENUM_MEMBER";
-	}
-	case OpCode::MAKE_INSTANCE:
-	{
-		return L"MAKE_INSTANCE";
 	}
 	default:
 	{

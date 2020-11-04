@@ -20,8 +20,8 @@
 #define OPT_CHECK(x) ASSERT(x.has_value(), "Oh shit! Option is none")
 #define MAKE_STATEMENT(x) std::make_shared<Statement>(x)
 #define MAKE_EXPRESSION(x) std::make_shared<Expression>(x)
-#define MAKE_TYPE(x) std::make_shared<Type>(x)
-#define MAKE_OPTIONAL_TYPE(x) std::make_shared<Type>(VariantType({ std::make_shared<Type>(x), std::make_shared<Type>(NoneType()) }))
+#define MAKE_TYPE(x) std::make_shared<TypeNode>(x)
+#define MAKE_OPTIONAL_TYPE(x) std::make_shared<TypeNode>(VariantTypeNode({ std::make_shared<TypeNode>(x), std::make_shared<TypeNode>(NoneTypeNode()) }))
 
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
@@ -241,7 +241,7 @@ Expression_ptr AssignmentParselet::parse(Parser_ptr parser, Expression_ptr left,
 
 Expression_ptr TypePatternParselet::parse(Parser_ptr parser, Expression_ptr left, Token_ptr token)
 {
-	Type_ptr type = parser->parse_type();
+	TypeNode_ptr type = parser->parse_type();
 	return MAKE_EXPRESSION(TypePattern(left, type));
 }
 

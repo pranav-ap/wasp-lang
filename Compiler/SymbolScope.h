@@ -1,5 +1,6 @@
 #pragma once
 #include "Symbol.h"
+#include "MemorySystem.h"
 #include <map>
 #include <memory>
 #include <string>
@@ -21,19 +22,23 @@ enum class ScopeType
 class SymbolScope;
 using SymbolScope_ptr = std::shared_ptr<SymbolScope>;
 
-class SymbolScope
+struct SymbolScope
 {
 	ScopeType scope_type;
-	std::map<std::wstring, Symbol_ptr> store;
-
-public:
+	std::map<std::wstring, Symbol_ptr> symbols;
 	std::optional<SymbolScope_ptr> enclosing_scope;
 
-	SymbolScope()
-		: scope_type(ScopeType::FILE), enclosing_scope(std::nullopt) {};
+	CodeSection_ptr code_section;
 
-	SymbolScope(SymbolScope_ptr enclosing_scope, ScopeType scope_type)
-		: scope_type(scope_type), enclosing_scope(enclosing_scope) {};
+	int break_label;
+	int continue_label;
+
+	SymbolScope(SymbolScope_ptr enclosing_scope, ScopeType scope_type, CodeSection_ptr code_section)
+		: break_label(0),
+		continue_label(0),
+		scope_type(scope_type),
+		enclosing_scope(std::move(enclosing_scope)),
+		code_section(std::move(code_section)) {};
 
 	void define(std::wstring name, Symbol_ptr symbol);
 	Symbol_ptr lookup(std::wstring name);

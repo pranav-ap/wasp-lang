@@ -219,14 +219,7 @@ void Compiler::visit(ForInLoop const& statement)
 	int block_end_label = create_label();
 	current_scope->break_label = block_end_label;
 
-	std::visit(overloaded{
-		[&](wstring const& expr) { emit(OpCode::ITERATE_OVER_STRING, block_end_label); },
-		[&](ListLiteral const& expr) { emit(OpCode::ITERATE_OVER_LIST, block_end_label); },
-		[&](MapLiteral const& expr) { emit(OpCode::ITERATE_OVER_MAP, block_end_label); },
-		[&](Identifier const& expr) { emit(OpCode::ITERATE_OVER_IDENTIFIER, block_end_label); },
-
-		[](auto) { FATAL("Not an iterable!"); }
-		}, *iterable);
+	emit(OpCode::ITERATE_OVER, block_end_label);
 
 	ASSERT(holds_alternative<TypePattern>(*statement.lhs_expression), "Must be a TypePattern");
 	auto type_pattern = get_if<TypePattern>(&*statement.lhs_expression);
@@ -627,7 +620,7 @@ void Compiler::visit(EnumMember const& expr)
 	ASSERT(enum_object->members.contains(enum_string), "Enum does not contain this member");
 	int member_id = enum_object->members.at(enum_string);
 
-	emit(OpCode::GET_ENUM_MEMBER, enum_id, member_id);
+	emit(OpCode::PUSH_ENUM_MEMBER, enum_id, member_id);
 }
 
 void Compiler::visit(TypePattern const& expr)

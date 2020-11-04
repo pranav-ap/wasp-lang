@@ -37,17 +37,17 @@ class PARSER_API Parser
 	Statement_ptr parse_break();
 	Statement_ptr parse_continue();
 
-	// Type parsers
+	// TypeNode parsers
 
-	Type_ptr parse_list_type(bool is_optional);
-	Type_ptr parse_set_type(bool is_optional);
-	Type_ptr parse_tuple_type(bool is_optional);
-	Type_ptr parse_map_type(bool is_optional);
-	Type_ptr consume_datatype_word(bool is_optional);
+	TypeNode_ptr parse_list_type(bool is_optional);
+	TypeNode_ptr parse_set_type(bool is_optional);
+	TypeNode_ptr parse_tuple_type(bool is_optional);
+	TypeNode_ptr parse_map_type(bool is_optional);
+	TypeNode_ptr consume_datatype_word(bool is_optional);
 
-	std::tuple<TypeVector, std::optional<Type_ptr>> parse_callable_type();
-	Type_ptr parse_function_type(bool is_optional);
-	Type_ptr parse_generator_type(bool is_optional);
+	std::tuple<TypeNodeVector, std::optional<TypeNode_ptr>> parse_callable_type();
+	TypeNode_ptr parse_function_type(bool is_optional);
+	TypeNode_ptr parse_generator_type(bool is_optional);
 
 	// Blocks
 
@@ -62,7 +62,7 @@ class PARSER_API Parser
 	Statement_ptr parse_while_loop();
 	Statement_ptr parse_for_in_loop();
 
-	std::pair<std::wstring, Type_ptr> consume_identifier_type_pair();
+	std::pair<std::wstring, TypeNode_ptr> consume_identifier_type_pair();
 
 	// Definition Parsers
 
@@ -72,15 +72,15 @@ class PARSER_API Parser
 	Statement_ptr parse_variable_definition(bool is_public, bool is_mutable);
 
 	StringVector parse_comma_separated_identifiers();
-	std::tuple<std::map<std::wstring, Type_ptr>, std::map<std::wstring, bool>, StringVector, StringVector> parse_class_and_interface_definition();
+	std::tuple<std::map<std::wstring, TypeNode_ptr>, std::map<std::wstring, bool>, StringVector, StringVector> parse_class_and_interface_definition();
 	Statement_ptr parse_interface_definition(bool is_public);
 	Statement_ptr parse_class_definition(bool is_public);
 
-	std::tuple<std::wstring, std::wstring, bool, StringVector, TypeVector, std::optional<Type_ptr>, Block> parse_callable_definition();
+	std::tuple<std::wstring, std::wstring, bool, StringVector, TypeNodeVector, std::optional<TypeNode_ptr>, Block> parse_callable_definition();
 	Statement_ptr parse_function_definition(bool is_public);
 	Statement_ptr parse_generator_definition(bool is_public);
 
-	std::tuple<std::wstring, StringVector, TypeVector, std::optional<Type_ptr>, Block> parse_operator_definition();
+	std::tuple<std::wstring, StringVector, TypeNodeVector, std::optional<TypeNode_ptr>, Block> parse_operator_definition();
 	Statement_ptr parse_prefix_definition(bool is_public);
 	Statement_ptr parse_postfix_definition(bool is_public);
 	Statement_ptr parse_infix_definition(bool is_public);
@@ -104,7 +104,7 @@ public:
 	TokenPipe_ptr token_pipe;
 
 	Parser();
-	Type_ptr parse_type(bool is_optional = false);
+	TypeNode_ptr parse_type(bool is_optional = false);
 	Expression_ptr parse_expression();
 	Expression_ptr parse_expression(int precedence);
 	ExpressionVector parse_expressions();

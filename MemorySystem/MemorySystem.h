@@ -14,35 +14,20 @@
 #include <map>
 #include <string>
 
-// DefinitionStore
+// ObjectStore
 
-class MEMORYSYSTEM_API DefinitionStore
+class MEMORYSYSTEM_API ObjectStore
 {
-	std::map<int, Object_ptr> store;
+	std::map<int, Object_ptr> objects;
 
 public:
-	std::map<int, std::wstring> name_store;
+	std::map<int, std::wstring> name_map;
 
 	void set(int id, Object_ptr value);
 	Object_ptr get(int id);
 };
 
-using DefinitionStore_ptr = MEMORYSYSTEM_API std::shared_ptr<DefinitionStore>;
-
-// VariableStore
-
-class MEMORYSYSTEM_API VariableStore
-{
-	std::map<int, Object_ptr> store;
-
-public:
-	std::map<int, std::wstring> name_store;
-
-	void set(int id, Object_ptr value);
-	Object_ptr get(int id);
-};
-
-using VariableStore_ptr = MEMORYSYSTEM_API std::shared_ptr<VariableStore>;
+using ObjectStore_ptr = MEMORYSYSTEM_API std::shared_ptr<ObjectStore>;
 
 // ConstantPool
 
@@ -89,14 +74,12 @@ using CodeSection_ptr = MEMORYSYSTEM_API std::shared_ptr<CodeSection>;
 class MEMORYSYSTEM_API MemorySystem
 {
 public:
-	DefinitionStore_ptr definition_store;
-	VariableStore_ptr variable_store;
+	ObjectStore_ptr object_store;
 	ConstantPool_ptr constant_pool;
 	CodeSection_ptr code_section;
 
 	MemorySystem()
-		: definition_store(std::make_shared<DefinitionStore>()),
-		variable_store(std::make_shared<VariableStore>()),
+		: object_store(std::make_shared<ObjectStore>()),
 		constant_pool(std::make_shared<ConstantPool>()),
 		code_section(std::make_shared<CodeSection>()) {};
 
@@ -109,16 +92,15 @@ using MemorySystem_ptr = MEMORYSYSTEM_API std::shared_ptr<MemorySystem>;
 
 class MEMORYSYSTEM_API InstructionPrinter
 {
-	DefinitionStore_ptr definition_store;
-	VariableStore_ptr variable_store;
+	ObjectStore_ptr object_store;
 	ConstantPool_ptr constant_pool;
 
 	std::wstring stringify_instruction(std::byte opcode, std::byte operand);
 	std::wstring stringify_instruction(std::byte opcode, std::byte operand_1, std::byte operand_2);
 
 public:
-	InstructionPrinter(DefinitionStore_ptr definition_store, VariableStore_ptr variable_store, ConstantPool_ptr constant_pool)
-		: definition_store(definition_store), variable_store(variable_store), constant_pool(constant_pool) {};
+	InstructionPrinter(ObjectStore_ptr object_store, ConstantPool_ptr constant_pool)
+		: object_store(object_store), constant_pool(constant_pool) {};
 
 	void print(CodeSection_ptr code_section);
 };

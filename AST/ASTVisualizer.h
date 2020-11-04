@@ -7,7 +7,7 @@
 #endif
 
 #include "Statement.h"
-#include "Type.h"
+#include "TypeNode.h"
 #include "Expression.h"
 #include <string>
 #include <memory>
@@ -78,33 +78,33 @@ class AST_API ASTVisualizer
 	void visit(MemberAccess const& expr, int parent_id);
 	void visit(TernaryCondition const& expr, int parent_id);
 
-	// Type
+	// TypeNode
 
-	void visit(const Type_ptr type, int parent_id);
-	void visit(std::vector<Type_ptr> const& types, int parent_id);
+	void visit(const TypeNode_ptr type, int parent_id);
+	void visit(std::vector<TypeNode_ptr> const& types, int parent_id);
 
-	void visit(AnyType const& expr, int parent_id);
-	void visit(IntLiteralType const& expr, int parent_id);
-	void visit(FloatLiteralType const& expr, int parent_id);
-	void visit(StringLiteralType const& expr, int parent_id);
-	void visit(BooleanLiteralType const& expr, int parent_id);
-	void visit(IntType const& expr, int parent_id);
-	void visit(FloatType const& expr, int parent_id);
-	void visit(StringType const& expr, int parent_id);
-	void visit(BooleanType const& expr, int parent_id);
-	void visit(ListType const& expr, int parent_id);
-	void visit(TupleType const& expr, int parent_id);
-	void visit(SetType const& expr, int parent_id);
-	void visit(ClassType const& expr, int parent_id);
-	void visit(MapType const& expr, int parent_id);
-	void visit(EnumType const& expr, int parent_id);
-	void visit(VariantType const& expr, int parent_id);
-	void visit(NoneType const& expr, int parent_id);
-	void visit(FunctionType const& expr, int parent_id);
-	void visit(GeneratorType const& expr, int parent_id);
-	void visit(FunctionMemberType const& expr, int parent_id);
-	void visit(GeneratorMemberType const& expr, int parent_id);
-	void visit(OperatorType const& expr, int parent_id);
+	void visit(AnyTypeNode const& expr, int parent_id);
+	void visit(IntLiteralTypeNode const& expr, int parent_id);
+	void visit(FloatLiteralTypeNode const& expr, int parent_id);
+	void visit(StringLiteralTypeNode const& expr, int parent_id);
+	void visit(BooleanLiteralTypeNode const& expr, int parent_id);
+	void visit(IntTypeNode const& expr, int parent_id);
+	void visit(FloatTypeNode const& expr, int parent_id);
+	void visit(StringTypeNode const& expr, int parent_id);
+	void visit(BooleanTypeNode const& expr, int parent_id);
+	void visit(ListTypeNode const& expr, int parent_id);
+	void visit(TupleTypeNode const& expr, int parent_id);
+	void visit(SetTypeNode const& expr, int parent_id);
+	void visit(ClassTypeNode const& expr, int parent_id);
+	void visit(MapTypeNode const& expr, int parent_id);
+	void visit(EnumTypeNode const& expr, int parent_id);
+	void visit(VariantTypeNode const& expr, int parent_id);
+	void visit(NoneTypeNode const& expr, int parent_id);
+	void visit(FunctionTypeNode const& expr, int parent_id);
+	void visit(GeneratorTypeNode const& expr, int parent_id);
+	void visit(FunctionMemberTypeNode const& expr, int parent_id);
+	void visit(GeneratorMemberTypeNode const& expr, int parent_id);
+	void visit(OperatorTypeNode const& expr, int parent_id);
 
 public:
 	ASTVisualizer()

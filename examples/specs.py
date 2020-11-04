@@ -95,11 +95,9 @@ end
 
 type Castle ~ ICastle < Building
     const foo: int = 43
-
     name: string
-
+    
     constructor : ()
-    constructor : (name: string)
     repr : () => string
 end
 

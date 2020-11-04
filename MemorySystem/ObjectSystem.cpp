@@ -227,7 +227,7 @@ Object_ptr TupleObject::set(Object_ptr index_object, Object_ptr value)
 	}
 }
 
-Object_ptr TupleObject::set(std::vector<Object_ptr> values)
+Object_ptr TupleObject::set(ObjectVector values)
 {
 	this->values = values;
 	return VOID;
@@ -240,12 +240,12 @@ int TupleObject::get_length()
 
 // SetObject
 
-std::vector<Object_ptr> SetObject::get()
+ObjectVector SetObject::get()
 {
 	return this->values;
 }
 
-Object_ptr SetObject::set(std::vector<Object_ptr> values)
+Object_ptr SetObject::set(ObjectVector values)
 {
 	this->values = values;
 	return VOID;

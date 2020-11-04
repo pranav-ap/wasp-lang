@@ -7,7 +7,7 @@
 #endif
 
 #include "Expression.h"
-#include "Type.h"
+#include "TypeNode.h"
 
 #include <string>
 #include <vector>
@@ -132,12 +132,12 @@ struct AST_API VariableDefinition
 	bool is_public;
 	bool is_mutable;
 
-	Type_ptr type;
+	TypeNode_ptr type;
 
 	Expression_ptr lhs_expression;
 	Expression_ptr rhs_expression;
 
-	VariableDefinition(bool is_public, bool is_mutable, Type_ptr type, Expression_ptr lhs_expression, Expression_ptr rhs_expression)
+	VariableDefinition(bool is_public, bool is_mutable, TypeNode_ptr type, Expression_ptr lhs_expression, Expression_ptr rhs_expression)
 		: is_public(is_public), is_mutable(is_mutable), type(type), lhs_expression(std::move(lhs_expression)), rhs_expression(std::move(rhs_expression)) {};
 };
 
@@ -155,61 +155,61 @@ struct AST_API UDTDefinition : public Definition
 	StringVector interfaces;
 	StringVector base_types;
 
-	std::map<std::wstring, Type_ptr> member_types;
+	std::map<std::wstring, TypeNode_ptr> member_types;
 	std::map<std::wstring, bool> is_public_member;
 
-	UDTDefinition(bool is_public, std::wstring name, std::map<std::wstring, Type_ptr> member_types, std::map<std::wstring, bool> is_public_member, std::vector<std::wstring> interfaces, std::vector<std::wstring> base_types)
+	UDTDefinition(bool is_public, std::wstring name, std::map<std::wstring, TypeNode_ptr> member_types, std::map<std::wstring, bool> is_public_member, std::vector<std::wstring> interfaces, std::vector<std::wstring> base_types)
 		: Definition(is_public, name), member_types(member_types), is_public_member(is_public_member), interfaces(interfaces), base_types(base_types) {};
 };
 
 struct AST_API ClassDefinition : public UDTDefinition
 {
-	ClassDefinition(bool is_public, std::wstring name, std::map<std::wstring, Type_ptr> member_types, std::map<std::wstring, bool> is_public_member, std::vector<std::wstring> interfaces, std::vector<std::wstring> base_types)
+	ClassDefinition(bool is_public, std::wstring name, std::map<std::wstring, TypeNode_ptr> member_types, std::map<std::wstring, bool> is_public_member, std::vector<std::wstring> interfaces, std::vector<std::wstring> base_types)
 		: UDTDefinition(is_public, name, member_types, is_public_member, interfaces, base_types) {};
 };
 
 struct AST_API InterfaceDefinition : public UDTDefinition
 {
-	InterfaceDefinition(bool is_public, std::wstring name, std::map<std::wstring, Type_ptr> member_types, std::map<std::wstring, bool> is_public_member, std::vector<std::wstring> interfaces, std::vector<std::wstring> base_types)
+	InterfaceDefinition(bool is_public, std::wstring name, std::map<std::wstring, TypeNode_ptr> member_types, std::map<std::wstring, bool> is_public_member, std::vector<std::wstring> interfaces, std::vector<std::wstring> base_types)
 		: UDTDefinition(is_public, name, member_types, is_public_member, interfaces, base_types) {};
 };
 
 struct AST_API AliasDefinition : public Definition
 {
-	Type_ptr type;
+	TypeNode_ptr type;
 
-	AliasDefinition(bool is_public, std::wstring name, Type_ptr type)
+	AliasDefinition(bool is_public, std::wstring name, TypeNode_ptr type)
 		: Definition(is_public, name), type(std::move(type)) {};
 };
 
 struct AST_API CallableDefinition : public Definition
 {
 	StringVector arguments;
-	Type_ptr type;
+	TypeNode_ptr type;
 	Block block;
 
-	CallableDefinition(bool is_public, std::wstring name, StringVector arguments, Type_ptr type, Block body)
+	CallableDefinition(bool is_public, std::wstring name, StringVector arguments, TypeNode_ptr type, Block body)
 		: Definition(is_public, name), arguments(arguments), type(type), block(body) {};
 };
 
 struct AST_API FunctionDefinition : public CallableDefinition
 {
-	FunctionDefinition(bool is_public, std::wstring name, StringVector arguments, Type_ptr type, Block body)
+	FunctionDefinition(bool is_public, std::wstring name, StringVector arguments, TypeNode_ptr type, Block body)
 		: CallableDefinition(is_public, name, arguments, type, body) {};
 };
 
 struct AST_API GeneratorDefinition : public CallableDefinition
 {
-	GeneratorDefinition(bool is_public, std::wstring name, StringVector arguments, Type_ptr type, Block body)
+	GeneratorDefinition(bool is_public, std::wstring name, StringVector arguments, TypeNode_ptr type, Block body)
 		: CallableDefinition(is_public, name, arguments, type, body) {};
 };
 
 struct AST_API OperatorDefinition : public Definition
 {
-	Type_ptr type;
+	TypeNode_ptr type;
 	Block body;
 
-	OperatorDefinition(bool is_public, std::wstring operator_symbol, Type_ptr type, Block body)
+	OperatorDefinition(bool is_public, std::wstring operator_symbol, TypeNode_ptr type, Block body)
 		: Definition(is_public, operator_symbol), type(type), body(body) {};
 };
 
@@ -218,7 +218,7 @@ struct AST_API InfixOperatorDefinition : public OperatorDefinition
 	std::wstring lhs_argument;
 	std::wstring rhs_argument;
 
-	InfixOperatorDefinition(bool is_public, std::wstring operator_symbol, Type_ptr type, Block body, std::wstring lhs_argument, std::wstring rhs_argument)
+	InfixOperatorDefinition(bool is_public, std::wstring operator_symbol, TypeNode_ptr type, Block body, std::wstring lhs_argument, std::wstring rhs_argument)
 		: OperatorDefinition(is_public, operator_symbol, type, body), lhs_argument(lhs_argument), rhs_argument(rhs_argument) {};
 };
 
@@ -226,7 +226,7 @@ struct AST_API PrefixOperatorDefinition : public OperatorDefinition
 {
 	std::wstring argument;
 
-	PrefixOperatorDefinition(bool is_public, std::wstring operator_symbol, Type_ptr type, Block body, std::wstring argument)
+	PrefixOperatorDefinition(bool is_public, std::wstring operator_symbol, TypeNode_ptr type, Block body, std::wstring argument)
 		: OperatorDefinition(is_public, operator_symbol, type, body), argument(argument) {};
 };
 
@@ -234,7 +234,7 @@ struct AST_API PostfixOperatorDefinition : public OperatorDefinition
 {
 	std::wstring argument;
 
-	PostfixOperatorDefinition(bool is_public, std::wstring operator_symbol, Type_ptr type, Block body, std::wstring argument)
+	PostfixOperatorDefinition(bool is_public, std::wstring operator_symbol, TypeNode_ptr type, Block body, std::wstring argument)
 		: OperatorDefinition(is_public, operator_symbol, type, body), argument(argument) {};
 };
 
@@ -243,23 +243,23 @@ struct AST_API MethodDefinition
 	std::wstring type_name;
 	std::wstring name;
 	StringVector arguments;
-	Type_ptr type;
+	TypeNode_ptr type;
 	Block body;
 	bool is_public;
 
-	MethodDefinition(std::wstring type_name, std::wstring name, bool is_public, StringVector arguments, Type_ptr type, Block body)
+	MethodDefinition(std::wstring type_name, std::wstring name, bool is_public, StringVector arguments, TypeNode_ptr type, Block body)
 		: type_name(type_name), name(name), is_public(is_public), arguments(arguments), type(type), body(body) {};
 };
 
 struct AST_API FunctionMemberDefinition : public MethodDefinition
 {
-	FunctionMemberDefinition(std::wstring type_name, std::wstring name, bool is_public, StringVector arguments, Type_ptr type, Block body)
+	FunctionMemberDefinition(std::wstring type_name, std::wstring name, bool is_public, StringVector arguments, TypeNode_ptr type, Block body)
 		: MethodDefinition(type_name, name, is_public, arguments, type, body) {};
 };
 
 struct AST_API GeneratorMemberDefinition : public MethodDefinition
 {
-	GeneratorMemberDefinition(std::wstring type_name, std::wstring name, bool is_public, StringVector arguments, Type_ptr type, Block body)
+	GeneratorMemberDefinition(std::wstring type_name, std::wstring name, bool is_public, StringVector arguments, TypeNode_ptr type, Block body)
 		: MethodDefinition(type_name, name, is_public, arguments, type, body) {};
 };
 

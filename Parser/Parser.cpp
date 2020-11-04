@@ -21,8 +21,8 @@
 #define CASE(token_type, call) case token_type: { return call; }
 #define MAKE_STATEMENT(x) std::make_shared<Statement>(x)
 #define MAKE_EXPRESSION(x) std::make_shared<Expression>(x)
-#define MAKE_TYPE(x) std::make_shared<Type>(x)
-#define MAKE_OPTIONAL_TYPE(x) std::make_shared<Type>(VariantType({ std::make_shared<Type>(x), std::make_shared<Type>(NoneType()) }))
+#define MAKE_TYPE(x) std::make_shared<TypeNode>(x)
+#define MAKE_OPTIONAL_TYPE(x) std::make_shared<TypeNode>(VariantTypeNode({ std::make_shared<TypeNode>(x), std::make_shared<TypeNode>(NoneTypeNode()) }))
 
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
@@ -565,18 +565,18 @@ Statement_ptr Parser::parse_for_in_loop()
 	return MAKE_STATEMENT(ForInLoop(lhs_pattern, rhs_pattern, { statement }));
 }
 
-// Type Parsers
+// TypeNode Parsers
 
-Type_ptr Parser::parse_type(bool is_optional)
+TypeNode_ptr Parser::parse_type(bool is_optional)
 {
 	if (token_pipe->optional(WTokenType::OPT))
 		is_optional = true;
 
-	vector<Type_ptr> types;
+	vector<TypeNode_ptr> types;
 
 	while (true)
 	{
-		Type_ptr type;
+		TypeNode_ptr type;
 
 		if (token_pipe->optional(WTokenType::OPEN_SQUARE_BRACKET))
 		{
@@ -621,15 +621,15 @@ Type_ptr Parser::parse_type(bool is_optional)
 		}
 
 		if (types.size() > 1)
-			return MAKE_TYPE(VariantType(types));
+			return MAKE_TYPE(VariantTypeNode(types));
 
 		return move(types.front());
 	}
 }
 
-Type_ptr Parser::parse_list_type(bool is_optional)
+TypeNode_ptr Parser::parse_list_type(bool is_optional)
 {
-	vector<Type_ptr> types;
+	vector<TypeNode_ptr> types;
 
 	while (true)
 	{
@@ -645,15 +645,15 @@ Type_ptr Parser::parse_list_type(bool is_optional)
 
 	if (is_optional)
 	{
-		return MAKE_OPTIONAL_TYPE(ListType(move(types.front())));
+		return MAKE_OPTIONAL_TYPE(ListTypeNode(move(types.front())));
 	}
 
-	return MAKE_TYPE(ListType(move(types.front())));
+	return MAKE_TYPE(ListTypeNode(move(types.front())));
 }
 
-Type_ptr Parser::parse_set_type(bool is_optional)
+TypeNode_ptr Parser::parse_set_type(bool is_optional)
 {
-	vector<Type_ptr> types;
+	vector<TypeNode_ptr> types;
 
 	while (true)
 	{
@@ -669,15 +669,15 @@ Type_ptr Parser::parse_set_type(bool is_optional)
 
 	if (is_optional)
 	{
-		return MAKE_OPTIONAL_TYPE(ListType(move(types.front())));
+		return MAKE_OPTIONAL_TYPE(ListTypeNode(move(types.front())));
 	}
 
-	return MAKE_TYPE(ListType(move(types.front())));
+	return MAKE_TYPE(ListTypeNode(move(types.front())));
 }
 
-Type_ptr Parser::parse_tuple_type(bool is_optional)
+TypeNode_ptr Parser::parse_tuple_type(bool is_optional)
 {
-	vector<Type_ptr> types;
+	vector<TypeNode_ptr> types;
 
 	while (true)
 	{
@@ -693,13 +693,13 @@ Type_ptr Parser::parse_tuple_type(bool is_optional)
 
 	if (is_optional)
 	{
-		return MAKE_OPTIONAL_TYPE(TupleType(types));
+		return MAKE_OPTIONAL_TYPE(TupleTypeNode(types));
 	}
 
-	return MAKE_TYPE(TupleType(types));
+	return MAKE_TYPE(TupleTypeNode(types));
 }
 
-Type_ptr Parser::parse_map_type(bool is_optional)
+TypeNode_ptr Parser::parse_map_type(bool is_optional)
 {
 	auto key_type = parse_type();
 	token_pipe->require(WTokenType::ARROW);
@@ -709,15 +709,15 @@ Type_ptr Parser::parse_map_type(bool is_optional)
 
 	if (is_optional)
 	{
-		return MAKE_OPTIONAL_TYPE(MapType(move(key_type), move(value_type)));
+		return MAKE_OPTIONAL_TYPE(MapTypeNode(move(key_type), move(value_type)));
 	}
 
-	return MAKE_TYPE(MapType(move(key_type), move(value_type)));
+	return MAKE_TYPE(MapTypeNode(move(key_type), move(value_type)));
 }
 
-tuple<TypeVector, optional<Type_ptr>> Parser::parse_callable_type()
+tuple<TypeNodeVector, optional<TypeNode_ptr>> Parser::parse_callable_type()
 {
-	TypeVector input_types;
+	TypeNodeVector input_types;
 
 	if (!token_pipe->optional(WTokenType::CLOSE_PARENTHESIS))
 	{
@@ -740,7 +740,7 @@ tuple<TypeVector, optional<Type_ptr>> Parser::parse_callable_type()
 		}
 	}
 
-	std::optional<Type_ptr> return_type = std::nullopt;
+	std::optional<TypeNode_ptr> return_type = std::nullopt;
 
 	if (token_pipe->optional(WTokenType::ARROW))
 	{
@@ -751,31 +751,31 @@ tuple<TypeVector, optional<Type_ptr>> Parser::parse_callable_type()
 	return make_tuple(input_types, return_type);
 }
 
-Type_ptr Parser::parse_function_type(bool is_optional)
+TypeNode_ptr Parser::parse_function_type(bool is_optional)
 {
 	auto [input_types, return_type] = parse_callable_type();
 
 	if (is_optional)
 	{
-		return MAKE_OPTIONAL_TYPE(FunctionType(input_types, return_type));
+		return MAKE_OPTIONAL_TYPE(FunctionTypeNode(input_types, return_type));
 	}
 
-	return MAKE_TYPE(FunctionType(input_types, return_type));
+	return MAKE_TYPE(FunctionTypeNode(input_types, return_type));
 }
 
-Type_ptr Parser::parse_generator_type(bool is_optional)
+TypeNode_ptr Parser::parse_generator_type(bool is_optional)
 {
 	auto [input_types, return_type] = parse_callable_type();
 
 	if (is_optional)
 	{
-		return MAKE_OPTIONAL_TYPE(GeneratorType(input_types, return_type));
+		return MAKE_OPTIONAL_TYPE(GeneratorTypeNode(input_types, return_type));
 	}
 
-	return MAKE_TYPE(GeneratorType(input_types, return_type));
+	return MAKE_TYPE(GeneratorTypeNode(input_types, return_type));
 }
 
-Type_ptr Parser::consume_datatype_word(bool is_optional)
+TypeNode_ptr Parser::consume_datatype_word(bool is_optional)
 {
 	auto token = token_pipe->current();
 	OPT_CHECK(token);
@@ -791,71 +791,71 @@ Type_ptr Parser::consume_datatype_word(bool is_optional)
 		if (std::fmod(value, 1.0) == 0.0)
 		{
 			return is_optional
-				? MAKE_OPTIONAL_TYPE(IntLiteralType((int)value))
-				: MAKE_TYPE(IntLiteralType((int)value));
+				? MAKE_OPTIONAL_TYPE(IntLiteralTypeNode((int)value))
+				: MAKE_TYPE(IntLiteralTypeNode((int)value));
 		}
 
 		return is_optional
-			? MAKE_OPTIONAL_TYPE(FloatLiteralType(value))
-			: MAKE_TYPE(FloatLiteralType(value));
+			? MAKE_OPTIONAL_TYPE(FloatLiteralTypeNode(value))
+			: MAKE_TYPE(FloatLiteralTypeNode(value));
 	}
 	case WTokenType::STRING_LITERAL:
 	{
 		ADVANCE_PTR;
 		return is_optional
-			? MAKE_OPTIONAL_TYPE(StringLiteralType(token.value()->value))
-			: MAKE_TYPE(StringLiteralType(token.value()->value));
+			? MAKE_OPTIONAL_TYPE(StringLiteralTypeNode(token.value()->value))
+			: MAKE_TYPE(StringLiteralTypeNode(token.value()->value));
 	}
 	case WTokenType::TRUE_KEYWORD:
 	{
 		ADVANCE_PTR;
 		return is_optional
-			? MAKE_OPTIONAL_TYPE(BooleanLiteralType(true))
-			: MAKE_TYPE(BooleanLiteralType(true));
+			? MAKE_OPTIONAL_TYPE(BooleanLiteralTypeNode(true))
+			: MAKE_TYPE(BooleanLiteralTypeNode(true));
 	}
 	case WTokenType::FALSE_KEYWORD:
 	{
 		ADVANCE_PTR;
 		return is_optional
-			? MAKE_OPTIONAL_TYPE(BooleanLiteralType(false))
-			: MAKE_TYPE(BooleanLiteralType(false));
+			? MAKE_OPTIONAL_TYPE(BooleanLiteralTypeNode(false))
+			: MAKE_TYPE(BooleanLiteralTypeNode(false));
 	}
 	case WTokenType::INT:
 	{
 		ADVANCE_PTR;
-		return is_optional ? MAKE_OPTIONAL_TYPE(IntType()) : MAKE_TYPE(IntType());
+		return is_optional ? MAKE_OPTIONAL_TYPE(IntTypeNode()) : MAKE_TYPE(IntTypeNode());
 	}
 	case WTokenType::FLOAT:
 	{
 		ADVANCE_PTR;
-		return is_optional ? MAKE_OPTIONAL_TYPE(FloatType()) : MAKE_TYPE(FloatType());
+		return is_optional ? MAKE_OPTIONAL_TYPE(FloatTypeNode()) : MAKE_TYPE(FloatTypeNode());
 	}
 	case WTokenType::STRING_KEYWORD:
 	{
 		ADVANCE_PTR;
-		return is_optional ? MAKE_OPTIONAL_TYPE(StringType()) : MAKE_TYPE(StringType());
+		return is_optional ? MAKE_OPTIONAL_TYPE(StringTypeNode()) : MAKE_TYPE(StringTypeNode());
 	}
 	case WTokenType::BOOL:
 	{
 		ADVANCE_PTR;
-		return is_optional ? MAKE_OPTIONAL_TYPE(BooleanType()) : MAKE_TYPE(BooleanType());
+		return is_optional ? MAKE_OPTIONAL_TYPE(BooleanTypeNode()) : MAKE_TYPE(BooleanTypeNode());
 	}
 	case WTokenType::ANY:
 	{
 		ADVANCE_PTR;
-		return is_optional ? MAKE_OPTIONAL_TYPE(AnyType()) : MAKE_TYPE(AnyType());
+		return is_optional ? MAKE_OPTIONAL_TYPE(AnyTypeNode()) : MAKE_TYPE(AnyTypeNode());
 	}
 	case WTokenType::IDENTIFIER:
 	{
 		ADVANCE_PTR;
-		return is_optional ? MAKE_OPTIONAL_TYPE(TypeIdentifier(token.value()->value)) : MAKE_TYPE(TypeIdentifier(token.value()->value));
+		return is_optional ? MAKE_OPTIONAL_TYPE(TypeIdentifierNode(token.value()->value)) : MAKE_TYPE(TypeIdentifierNode(token.value()->value));
 	}
 	}
 
 	FATAL("EXPECTED_DATATYPE");
 }
 
-pair<wstring, Type_ptr> Parser::consume_identifier_type_pair()
+pair<wstring, TypeNode_ptr> Parser::consume_identifier_type_pair()
 {
 	auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
 	token_pipe->require(WTokenType::COLON);
@@ -942,9 +942,9 @@ StringVector Parser::parse_comma_separated_identifiers()
 	return identifiers;
 }
 
-tuple<map<wstring, Type_ptr>, std::map<std::wstring, bool>, StringVector, StringVector> Parser::parse_class_and_interface_definition()
+tuple<map<wstring, TypeNode_ptr>, std::map<std::wstring, bool>, StringVector, StringVector> Parser::parse_class_and_interface_definition()
 {
-	map<wstring, Type_ptr> member_types;
+	map<wstring, TypeNode_ptr> member_types;
 	std::map<std::wstring, bool> is_public_member;
 
 	StringVector interfaces;
@@ -1009,7 +1009,7 @@ Statement_ptr Parser::parse_class_definition(bool is_public)
 	return MAKE_STATEMENT(ClassDefinition(is_public, identifier->value, member_types, public_members, interfaces, base_types));
 }
 
-tuple<wstring, wstring, bool, StringVector, TypeVector, optional<Type_ptr>, Block> Parser::parse_callable_definition()
+tuple<wstring, wstring, bool, StringVector, TypeNodeVector, optional<TypeNode_ptr>, Block> Parser::parse_callable_definition()
 {
 	auto first_identifier = token_pipe->require(WTokenType::IDENTIFIER);
 	NULL_CHECK(first_identifier);
@@ -1026,7 +1026,7 @@ tuple<wstring, wstring, bool, StringVector, TypeVector, optional<Type_ptr>, Bloc
 	token_pipe->require(WTokenType::OPEN_PARENTHESIS);
 
 	StringVector arguments;
-	TypeVector argument_types;
+	TypeNodeVector argument_types;
 
 	if (!token_pipe->optional(WTokenType::CLOSE_PARENTHESIS))
 	{
@@ -1044,7 +1044,7 @@ tuple<wstring, wstring, bool, StringVector, TypeVector, optional<Type_ptr>, Bloc
 		}
 	}
 
-	optional<Type_ptr> optional_return_type = std::nullopt;
+	optional<TypeNode_ptr> optional_return_type = std::nullopt;
 
 	if (token_pipe->optional(WTokenType::ARROW))
 	{
@@ -1070,12 +1070,12 @@ Statement_ptr Parser::parse_function_definition(bool is_public)
 
 	if (is_method)
 	{
-		Type_ptr function_method_type = MAKE_TYPE(FunctionMemberType(first_identifier, argument_types, optional_return_type));
+		TypeNode_ptr function_method_type = MAKE_TYPE(FunctionMemberTypeNode(first_identifier, argument_types, optional_return_type));
 		//second_identifier += stringify_type(function_type);
 		return MAKE_STATEMENT(FunctionMemberDefinition(first_identifier, second_identifier, is_public, arguments, function_method_type, block));
 	}
 
-	Type_ptr function_type = MAKE_TYPE(FunctionType(argument_types, optional_return_type));
+	TypeNode_ptr function_type = MAKE_TYPE(FunctionTypeNode(argument_types, optional_return_type));
 	//first_identifier += stringify_type(function_type);
 	return MAKE_STATEMENT(FunctionDefinition(is_public, first_identifier, arguments, function_type, block));
 }
@@ -1086,17 +1086,17 @@ Statement_ptr Parser::parse_generator_definition(bool is_public)
 
 	if (is_method)
 	{
-		Type_ptr generator_method_type = MAKE_TYPE(GeneratorMemberType(first_identifier, argument_types, optional_return_type));
+		TypeNode_ptr generator_method_type = MAKE_TYPE(GeneratorMemberTypeNode(first_identifier, argument_types, optional_return_type));
 		//second_identifier += stringify_type(function_type);
 		return MAKE_STATEMENT(GeneratorMemberDefinition(first_identifier, second_identifier, is_public, arguments, generator_method_type, block));
 	}
 
-	Type_ptr function_type = std::make_shared<Type>(GeneratorType(argument_types, optional_return_type));
+	TypeNode_ptr function_type = std::make_shared<TypeNode>(GeneratorTypeNode(argument_types, optional_return_type));
 	//first_identifier += stringify_type(function_type);
 	return MAKE_STATEMENT(GeneratorDefinition(is_public, first_identifier, arguments, function_type, block));
 }
 
-tuple<wstring, StringVector, TypeVector, optional<Type_ptr>, Block> Parser::parse_operator_definition()
+tuple<wstring, StringVector, TypeNodeVector, optional<TypeNode_ptr>, Block> Parser::parse_operator_definition()
 {
 	auto op_token = token_pipe->current();
 	OPT_CHECK(op_token);
@@ -1105,7 +1105,7 @@ tuple<wstring, StringVector, TypeVector, optional<Type_ptr>, Block> Parser::pars
 	token_pipe->require(WTokenType::OPEN_PARENTHESIS);
 
 	StringVector arguments;
-	TypeVector argument_types;
+	TypeNodeVector argument_types;
 
 	if (!token_pipe->optional(WTokenType::CLOSE_PARENTHESIS))
 	{
@@ -1123,7 +1123,7 @@ tuple<wstring, StringVector, TypeVector, optional<Type_ptr>, Block> Parser::pars
 		}
 	}
 
-	optional<Type_ptr> optional_return_type = std::nullopt;
+	optional<TypeNode_ptr> optional_return_type = std::nullopt;
 
 	if (token_pipe->optional(WTokenType::ARROW))
 	{
@@ -1141,7 +1141,7 @@ tuple<wstring, StringVector, TypeVector, optional<Type_ptr>, Block> Parser::pars
 Statement_ptr Parser::parse_prefix_definition(bool is_public)
 {
 	auto [operator_symbol, arguments, argument_types, optional_return_type, body] = parse_operator_definition();
-	Type_ptr operator_type = MAKE_TYPE(OperatorType(OperatorPosition::Prefix, argument_types, optional_return_type));
+	TypeNode_ptr operator_type = MAKE_TYPE(OperatorTypeNode(OperatorPositionNode::Prefix, argument_types, optional_return_type));
 
 	ASSERT(arguments.size() == 1, "One input argument must be defined");
 	return MAKE_STATEMENT(PrefixOperatorDefinition(is_public, operator_symbol, operator_type, body, arguments.front()));
@@ -1150,7 +1150,7 @@ Statement_ptr Parser::parse_prefix_definition(bool is_public)
 Statement_ptr Parser::parse_postfix_definition(bool is_public)
 {
 	auto [operator_symbol, arguments, argument_types, optional_return_type, body] = parse_operator_definition();
-	Type_ptr operator_type = MAKE_TYPE(OperatorType(OperatorPosition::Postfix, argument_types, optional_return_type));
+	TypeNode_ptr operator_type = MAKE_TYPE(OperatorTypeNode(OperatorPositionNode::Postfix, argument_types, optional_return_type));
 
 	ASSERT(arguments.size() == 1, "One input argument must be defined");
 	return MAKE_STATEMENT(PrefixOperatorDefinition(is_public, operator_symbol, operator_type, body, arguments.front()));
@@ -1159,7 +1159,7 @@ Statement_ptr Parser::parse_postfix_definition(bool is_public)
 Statement_ptr Parser::parse_infix_definition(bool is_public)
 {
 	auto [operator_symbol, arguments, argument_types, optional_return_type, body] = parse_operator_definition();
-	Type_ptr operator_type = MAKE_TYPE(OperatorType(OperatorPosition::Infix, argument_types, optional_return_type));
+	TypeNode_ptr operator_type = MAKE_TYPE(OperatorTypeNode(OperatorPositionNode::Infix, argument_types, optional_return_type));
 
 	ASSERT(arguments.size() == 2, "Two input arguments must be defined");
 	return MAKE_STATEMENT(InfixOperatorDefinition(is_public, operator_symbol, operator_type, body, arguments[0], arguments[1]));

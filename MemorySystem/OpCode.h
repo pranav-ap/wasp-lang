@@ -9,6 +9,8 @@
 #include <vector>
 #include <string>
 
+using ByteVector = MEMORYSYSTEM_API std::vector<std::byte>;
+
 enum class MEMORYSYSTEM_API OpCode
 {
 	NO_OP,
@@ -54,15 +56,14 @@ enum class MEMORYSYSTEM_API OpCode
 	PUSH_CONSTANT_TRUE,
 	PUSH_CONSTANT_FALSE,
 
-	GET_PROPERTY,
-	SET_PROPERTY,
+	ITERATE_OVER,
 
 	PUSH_CONSTANT, // constant_pool_id
 
-	STORE_LOCAL, // variable_id - TOS to Table
+	STORE_LOCAL, // variable_id
 	STORE_GLOBAL,
 
-	LOAD_LOCAL, // variable_id - Table to TOS
+	LOAD_LOCAL, // variable_id
 	LOAD_GLOBAL,
 	LOAD_BUILTIN,
 
@@ -70,8 +71,6 @@ enum class MEMORYSYSTEM_API OpCode
 	MAKE_TUPLE,
 	MAKE_SET,
 	MAKE_MAP,
-
-	MAKE_INSTANCE, // class id, argument count
 
 	JUMP, // target
 	JUMP_IF_FALSE,
@@ -81,30 +80,9 @@ enum class MEMORYSYSTEM_API OpCode
 
 	LABEL, // label
 
-	ITERATE_OVER_LIST, // target
-	ITERATE_OVER_MAP,
-	ITERATE_OVER_STRING,
-	ITERATE_OVER_IDENTIFIER,
-
-	GET_ELEMENT_FROM_LIST, // variable_id, index
-	SET_ELEMENT_IN_LIST,
-
-	GET_VALUE_FROM_MAP,
-	SET_VALUE_FROM_MAP,
-
-	GET_PAIR_FROM_MAP,
-	SET_PAIR_FROM_MAP,
-
-	GET_CHAR_FROM_STRING,
-	SET_CHAR_FROM_STRING,
-
 	CALL_FUNCTION, // id, number of arguments
-	CALL_GENERATOR,
-
-	GET_ENUM_MEMBER // enum id, member id
+	CALL_GENERATOR
 };
-
-using ByteVector = MEMORYSYSTEM_API std::vector<std::byte>;
 
 MEMORYSYSTEM_API int get_opcode_arity(std::byte opcode);
 MEMORYSYSTEM_API int get_opcode_arity(OpCode opcode);

@@ -166,7 +166,7 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Statement.h" />
-    <ClInclude Include="Type.h" />
+    <ClInclude Include="TypeNode.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ASTVisualizer.cpp" />
@@ -178,7 +178,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Statement.cpp" />
-    <ClCompile Include="Type.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Token\Token.vcxproj">

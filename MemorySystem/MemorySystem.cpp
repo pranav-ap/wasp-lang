@@ -26,12 +26,13 @@ using std::setw;
 using std::wstring;
 using std::to_wstring;
 using std::to_string;
+using std::make_shared;
 
 // MemorySystem
 
 void MemorySystem::print()
 {
-	InstructionPrinter_ptr printer = make_shared<InstructionPrinter>(definition_store, variable_store, constant_pool);
+	InstructionPrinter_ptr printer = make_shared<InstructionPrinter>(object_store, constant_pool);
 	printer->print(code_section);
 }
 
@@ -262,10 +263,7 @@ std::wstring InstructionPrinter::stringify_instruction(std::byte opcode, std::by
 	case OpCode::POP_JUMP:
 	case OpCode::POP_JUMP_IF_FALSE:
 	case OpCode::LABEL:
-	case OpCode::ITERATE_OVER_LIST:
-	case OpCode::ITERATE_OVER_MAP:
-	case OpCode::ITERATE_OVER_STRING:
-	case OpCode::ITERATE_OVER_IDENTIFIER:
+	case OpCode::ITERATE_OVER:
 	{
 		wstring comment = stringify_object(constant_pool->get(operand_int));
 		str_stream << std::right << setw(OPERAND_WIDTH_2) << L" (" << comment << L")";
@@ -277,7 +275,7 @@ std::wstring InstructionPrinter::stringify_instruction(std::byte opcode, std::by
 	case OpCode::LOAD_LOCAL:
 	case OpCode::LOAD_GLOBAL:
 	{
-		wstring comment = variable_store->name_store.at(operand_int);
+		wstring comment = object_store->name_map.at(operand_int);
 		str_stream << std::right << setw(OPERAND_WIDTH_2) << L" (" << comment << L")";
 
 		return str_stream.str();
@@ -313,17 +311,15 @@ std::wstring InstructionPrinter::stringify_instruction(std::byte opcode, std::by
 	case OpCode::SET_VALUE_FROM_MAP:
 	case OpCode::GET_PAIR_FROM_MAP:
 	case OpCode::SET_PAIR_FROM_MAP:
-	case OpCode::GET_CHAR_FROM_STRING:
-	case OpCode::SET_CHAR_FROM_STRING:
 	{
-		wstring variable_name = variable_store->name_store.at(operand_1_int);
+		wstring variable_name = object_store->name_map.at(operand_1_int);
 		str_stream << std::right << setw(OPERAND_WIDTH) << L" (" << variable_name << L" , " << operand_2_int << L")";
 
 		return str_stream.str();
 	}
 	case OpCode::GET_PROPERTY:
 	case OpCode::SET_PROPERTY:
-	case OpCode::GET_ENUM_MEMBER:
+	case OpCode::PUSH_ENUM_MEMBER:
 	case OpCode::CALL_FUNCTION:
 	case OpCode::CALL_GENERATOR:
 	case OpCode::MAKE_INSTANCE:
@@ -393,16 +389,16 @@ Object_ptr DefinitionStore::get(int id)
 	return store.at(id);
 }
 
-// VariableStore
+// ObjectStore
 
-void VariableStore::set(int id, Object_ptr value)
+void ObjectStore::set(int id, Object_ptr value)
 {
-	ASSERT(!store.contains(id), "ID already exists in DefinitionStore");
-	store.insert({ id, move(value) });
+	ASSERT(!objects.contains(id), "ID already exists in DefinitionStore");
+	objects.insert({ id, move(value) });
 }
 
-Object_ptr VariableStore::get(int id)
+Object_ptr ObjectStore::get(int id)
 {
-	ASSERT(store.contains(id), "ID does not exist in VariableStore");
-	return store.at(id);
+	ASSERT(objects.contains(id), "ID does not exist in ObjectStore");
+	return objects.at(id);
 }

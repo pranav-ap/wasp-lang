@@ -7,7 +7,7 @@
 #endif
 
 #include "Token.h"
-#include "Type.h"
+#include "TypeNode.h"
 
 #include <string>
 #include <vector>
@@ -166,9 +166,9 @@ struct AST_API Postfix
 struct AST_API TypePattern
 {
 	Expression_ptr expression;
-	Type_ptr type;
+	TypeNode_ptr type;
 
-	TypePattern(Expression_ptr expression, Type_ptr type)
+	TypePattern(Expression_ptr expression, TypeNode_ptr type)
 		: expression(std::move(expression)), type(std::move(type)) {};
 };
 

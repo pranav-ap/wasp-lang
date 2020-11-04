@@ -23,11 +23,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{56
 		examples\specs.py = examples\specs.py
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SemanticAnalyzer", "SemanticAnalyzer\SemanticAnalyzer.vcxproj", "{99B2F141-32AF-45E8-BD00-17C7CAAC85D6}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Compiler", "Compiler\Compiler.vcxproj", "{E6D9A4A7-F218-46A7-B832-80742621E27F}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ControlFlowGraph", "ControlFlowGraph\ControlFlowGraph.vcxproj", "{26CE324F-4414-4DF2-8007-DF72A3580D9A}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MemorySystem", "MemorySystem\MemorySystem.vcxproj", "{20F70ED3-FD8E-4DF0-B96A-A7BC28800FE9}"
 EndProject
@@ -35,8 +31,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{636181
 	ProjectSection(SolutionItems) = preProject
 		SharedPropertySheet.props = SharedPropertySheet.props
 	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VM", "VM\VM.vcxproj", "{DD862E83-0347-41C5-BE49-BF99105DC946}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -94,14 +88,6 @@ Global
 		{ABF81544-54C4-45E3-A502-383E2EF061AF}.Release|x64.Build.0 = Release|x64
 		{ABF81544-54C4-45E3-A502-383E2EF061AF}.Release|x86.ActiveCfg = Release|Win32
 		{ABF81544-54C4-45E3-A502-383E2EF061AF}.Release|x86.Build.0 = Release|Win32
-		{99B2F141-32AF-45E8-BD00-17C7CAAC85D6}.Debug|x64.ActiveCfg = Debug|x64
-		{99B2F141-32AF-45E8-BD00-17C7CAAC85D6}.Debug|x64.Build.0 = Debug|x64
-		{99B2F141-32AF-45E8-BD00-17C7CAAC85D6}.Debug|x86.ActiveCfg = Debug|Win32
-		{99B2F141-32AF-45E8-BD00-17C7CAAC85D6}.Debug|x86.Build.0 = Debug|Win32
-		{99B2F141-32AF-45E8-BD00-17C7CAAC85D6}.Release|x64.ActiveCfg = Release|x64
-		{99B2F141-32AF-45E8-BD00-17C7CAAC85D6}.Release|x64.Build.0 = Release|x64
-		{99B2F141-32AF-45E8-BD00-17C7CAAC85D6}.Release|x86.ActiveCfg = Release|Win32
-		{99B2F141-32AF-45E8-BD00-17C7CAAC85D6}.Release|x86.Build.0 = Release|Win32
 		{E6D9A4A7-F218-46A7-B832-80742621E27F}.Debug|x64.ActiveCfg = Debug|x64
 		{E6D9A4A7-F218-46A7-B832-80742621E27F}.Debug|x64.Build.0 = Debug|x64
 		{E6D9A4A7-F218-46A7-B832-80742621E27F}.Debug|x86.ActiveCfg = Debug|Win32
@@ -110,14 +96,6 @@ Global
 		{E6D9A4A7-F218-46A7-B832-80742621E27F}.Release|x64.Build.0 = Release|x64
 		{E6D9A4A7-F218-46A7-B832-80742621E27F}.Release|x86.ActiveCfg = Release|Win32
 		{E6D9A4A7-F218-46A7-B832-80742621E27F}.Release|x86.Build.0 = Release|Win32
-		{26CE324F-4414-4DF2-8007-DF72A3580D9A}.Debug|x64.ActiveCfg = Debug|x64
-		{26CE324F-4414-4DF2-8007-DF72A3580D9A}.Debug|x64.Build.0 = Debug|x64
-		{26CE324F-4414-4DF2-8007-DF72A3580D9A}.Debug|x86.ActiveCfg = Debug|Win32
-		{26CE324F-4414-4DF2-8007-DF72A3580D9A}.Debug|x86.Build.0 = Debug|Win32
-		{26CE324F-4414-4DF2-8007-DF72A3580D9A}.Release|x64.ActiveCfg = Release|x64
-		{26CE324F-4414-4DF2-8007-DF72A3580D9A}.Release|x64.Build.0 = Release|x64
-		{26CE324F-4414-4DF2-8007-DF72A3580D9A}.Release|x86.ActiveCfg = Release|Win32
-		{26CE324F-4414-4DF2-8007-DF72A3580D9A}.Release|x86.Build.0 = Release|Win32
 		{20F70ED3-FD8E-4DF0-B96A-A7BC28800FE9}.Debug|x64.ActiveCfg = Debug|x64
 		{20F70ED3-FD8E-4DF0-B96A-A7BC28800FE9}.Debug|x64.Build.0 = Debug|x64
 		{20F70ED3-FD8E-4DF0-B96A-A7BC28800FE9}.Debug|x86.ActiveCfg = Debug|Win32
@@ -126,14 +104,6 @@ Global
 		{20F70ED3-FD8E-4DF0-B96A-A7BC28800FE9}.Release|x64.Build.0 = Release|x64
 		{20F70ED3-FD8E-4DF0-B96A-A7BC28800FE9}.Release|x86.ActiveCfg = Release|Win32
 		{20F70ED3-FD8E-4DF0-B96A-A7BC28800FE9}.Release|x86.Build.0 = Release|Win32
-		{DD862E83-0347-41C5-BE49-BF99105DC946}.Debug|x64.ActiveCfg = Debug|x64
-		{DD862E83-0347-41C5-BE49-BF99105DC946}.Debug|x64.Build.0 = Debug|x64
-		{DD862E83-0347-41C5-BE49-BF99105DC946}.Debug|x86.ActiveCfg = Debug|Win32
-		{DD862E83-0347-41C5-BE49-BF99105DC946}.Debug|x86.Build.0 = Debug|Win32
-		{DD862E83-0347-41C5-BE49-BF99105DC946}.Release|x64.ActiveCfg = Release|x64
-		{DD862E83-0347-41C5-BE49-BF99105DC946}.Release|x64.Build.0 = Release|x64
-		{DD862E83-0347-41C5-BE49-BF99105DC946}.Release|x86.ActiveCfg = Release|Win32
-		{DD862E83-0347-41C5-BE49-BF99105DC946}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
