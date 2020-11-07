@@ -33,9 +33,6 @@
     <ClInclude Include="SymbolScope.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TypeSystem.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="CodeGenerator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -54,9 +51,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SymbolScope.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TypeSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

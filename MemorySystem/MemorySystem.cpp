@@ -30,216 +30,20 @@ using std::make_shared;
 
 // MemorySystem
 
+MemorySystem::MemorySystem()
+{
+	next_id = 0;
+
+	object_store = std::make_shared<ObjectStore>();
+	constant_pool = std::make_shared<ConstantPool>();
+	code_section = std::make_shared<CodeSection>();
+	type_system = std::make_shared<TypeSystem>();
+}
+
 void MemorySystem::print()
 {
 	InstructionPrinter_ptr printer = make_shared<InstructionPrinter>(object_store, constant_pool);
 	printer->print(code_section);
-}
-
-// CodeSection
-
-int CodeSection::length()
-{
-	return instructions.size();
-}
-
-void CodeSection::push(ByteVector instruction)
-{
-	instructions.insert(
-		std::end(instructions),
-		std::begin(instruction),
-		std::end(instruction)
-	);
-}
-
-void CodeSection::replace(int index, std::byte replacement)
-{
-	instructions.at(index) = replacement;
-}
-
-void CodeSection::set(ByteVector instructions)
-{
-	this->instructions = instructions;
-}
-
-void CodeSection::emit(OpCode opcode)
-{
-	ByteVector instruction;
-	instruction.push_back(static_cast<byte>(opcode));
-
-	push(instruction);
-}
-
-void CodeSection::emit(OpCode opcode, int operand)
-{
-	ByteVector instruction;
-	instruction.push_back(static_cast<byte>(opcode));
-	instruction.push_back(static_cast<byte>(operand));
-
-	push(instruction);
-}
-
-void CodeSection::emit(OpCode opcode, int operand_1, int operand_2)
-{
-	ByteVector instruction;
-	instruction.push_back(static_cast<byte>(opcode));
-	instruction.push_back(static_cast<byte>(operand_1));
-	instruction.push_back(static_cast<byte>(operand_2));
-
-	push(instruction);
-}
-
-ByteVector CodeSection::instruction_at(int index)
-{
-	byte opcode = instructions.at(index);
-	ByteVector operands = operands_of(index);
-
-	ByteVector instruction{ opcode };
-	instruction.insert(
-		end(instruction),
-		begin(operands),
-		end(operands));
-
-	return instruction;
-}
-
-ByteVector CodeSection::operands_of(int opcode_index)
-{
-	byte opcode = instructions.at(opcode_index);
-	int arity = get_opcode_arity(opcode);
-
-	switch (arity)
-	{
-	case 0:
-	{
-		return {};
-	}
-	case 1:
-	{
-		byte operand = instructions.at(++opcode_index);
-		return { operand };
-	}
-	case 2:
-	{
-		byte operand_1 = instructions.at(++opcode_index);
-		byte operand_2 = instructions.at(++opcode_index);
-		return { operand_1, operand_2 };
-	}
-	default:
-	{
-		return {};
-	}
-	}
-}
-
-// ConstantPool
-
-int ConstantPool::allocate()
-{
-	int id = pool.size();
-	pool.insert({ id, move(MAKE_OBJECT_VARIANT(NoneObject())) });
-
-	return id;
-}
-
-int ConstantPool::allocate(int number)
-{
-	auto result = find_if(
-		pool.begin(),
-		pool.end(),
-		[number](const auto& p) {
-			if (holds_alternative<IntObject>(*p.second))
-			{
-				IntObject* x = get_if<IntObject>(&*p.second);
-				return x->value == number;
-			}
-
-			return false;
-		});
-
-	if (result != pool.end())
-	{
-		return result->first;
-	}
-
-	int id = pool.size();
-	auto value = MAKE_OBJECT_VARIANT(IntObject(number));
-	pool.insert({ id, value });
-
-	return id;
-}
-
-int ConstantPool::allocate(double number)
-{
-	auto result = find_if(
-		pool.begin(),
-		pool.end(),
-		[number](const auto& p) {
-			if (holds_alternative<FloatObject>(*p.second))
-			{
-				FloatObject* x = get_if<FloatObject>(&*p.second);
-				return x->value == number;
-			}
-
-			return false;
-		});
-
-	if (result != pool.end())
-	{
-		return result->first;
-	}
-
-	int id = pool.size();
-	auto value = MAKE_OBJECT_VARIANT(FloatObject(number));
-	pool.insert({ id, value });
-
-	return id;
-}
-
-int ConstantPool::allocate(std::wstring text)
-{
-	auto result = find_if(
-		pool.begin(),
-		pool.end(),
-		[text](const auto& p) {
-			if (holds_alternative<StringObject>(*p.second))
-			{
-				StringObject* x = get_if<StringObject>(&*p.second);
-				return x->value == text;
-			}
-
-			return false;
-		});
-
-	if (result != pool.end())
-	{
-		return result->first;
-	}
-
-	int id = pool.size();
-	auto value = MAKE_OBJECT_VARIANT(StringObject(text));
-	pool.insert({ id, value });
-
-	return id;
-}
-
-int ConstantPool::allocate(Object_ptr value)
-{
-	int id = pool.size();
-	pool.insert({ id, move(value) });
-
-	return id;
-}
-
-Object_ptr ConstantPool::get(int id)
-{
-	if (pool.contains(id))
-	{
-		auto value = pool.at(id);
-		return value;
-	}
-
-	return MAKE_OBJECT_VARIANT(ErrorObject(L"Constant does not exist in pool"));
 }
 
 // InstructionPrinter
@@ -274,16 +78,10 @@ std::wstring InstructionPrinter::stringify_instruction(std::byte opcode, std::by
 	case OpCode::STORE_GLOBAL:
 	case OpCode::LOAD_LOCAL:
 	case OpCode::LOAD_GLOBAL:
+	case OpCode::LOAD_BUILTIN:
 	{
 		wstring comment = object_store->name_map.at(operand_int);
 		str_stream << std::right << setw(OPERAND_WIDTH_2) << L" (" << comment << L")";
-
-		return str_stream.str();
-	}
-	case OpCode::LOAD_BUILTIN:
-	{
-		wstring name = definition_store->name_store.at(operand_int);
-		str_stream << std::right << setw(OPERAND_WIDTH_2) << L" (" << name << L")";
 
 		return str_stream.str();
 	}
@@ -305,26 +103,10 @@ std::wstring InstructionPrinter::stringify_instruction(std::byte opcode, std::by
 
 	switch ((OpCode)opcode)
 	{
-	case OpCode::GET_ELEMENT_FROM_LIST:
-	case OpCode::SET_ELEMENT_IN_LIST:
-	case OpCode::GET_VALUE_FROM_MAP:
-	case OpCode::SET_VALUE_FROM_MAP:
-	case OpCode::GET_PAIR_FROM_MAP:
-	case OpCode::SET_PAIR_FROM_MAP:
-	{
-		wstring variable_name = object_store->name_map.at(operand_1_int);
-		str_stream << std::right << setw(OPERAND_WIDTH) << L" (" << variable_name << L" , " << operand_2_int << L")";
-
-		return str_stream.str();
-	}
-	case OpCode::GET_PROPERTY:
-	case OpCode::SET_PROPERTY:
-	case OpCode::PUSH_ENUM_MEMBER:
 	case OpCode::CALL_FUNCTION:
 	case OpCode::CALL_GENERATOR:
-	case OpCode::MAKE_INSTANCE:
 	{
-		wstring name = definition_store->name_store.at(operand_1_int);
+		wstring name = object_store->name_map.at(operand_1_int);
 		str_stream << std::right << setw(OPERAND_WIDTH) << L" (" << name << L" , " << operand_2_int << L")";
 
 		return str_stream.str();
@@ -373,32 +155,4 @@ void InstructionPrinter::print(CodeSection_ptr code_section)
 		}
 		}
 	}
-}
-
-// DefinitionStore
-
-void DefinitionStore::set(int id, Object_ptr value)
-{
-	ASSERT(!store.contains(id), "ID already exists in DefinitionStore");
-	store.insert({ id, move(value) });
-}
-
-Object_ptr DefinitionStore::get(int id)
-{
-	ASSERT(store.contains(id), "ID does not exist in DefinitionStore");
-	return store.at(id);
-}
-
-// ObjectStore
-
-void ObjectStore::set(int id, Object_ptr value)
-{
-	ASSERT(!objects.contains(id), "ID already exists in DefinitionStore");
-	objects.insert({ id, move(value) });
-}
-
-Object_ptr ObjectStore::get(int id)
-{
-	ASSERT(objects.contains(id), "ID does not exist in ObjectStore");
-	return objects.at(id);
 }

@@ -164,7 +164,6 @@
     <ClInclude Include="SemanticAnalyzer.h" />
     <ClInclude Include="Symbol.h" />
     <ClInclude Include="SymbolScope.h" />
-    <ClInclude Include="TypeSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Compiler.cpp" />
@@ -177,7 +176,6 @@
     </ClCompile>
     <ClCompile Include="SemanticAnalyzer.cpp" />
     <ClCompile Include="SymbolScope.cpp" />
-    <ClCompile Include="TypeSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AST\AST.vcxproj">

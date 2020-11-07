@@ -1,6 +1,6 @@
 #pragma once
 #include "Symbol.h"
-#include "MemorySystem.h"
+#include "CodeSection.h"
 #include <map>
 #include <memory>
 #include <string>

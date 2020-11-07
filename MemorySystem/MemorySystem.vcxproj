@@ -156,15 +156,23 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="CodeSection.h" />
+    <ClInclude Include="ConstantPool.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="MemorySystem.h" />
+    <ClInclude Include="Objects.h" />
+    <ClInclude Include="ObjectStore.h" />
     <ClInclude Include="ObjectSystem.h" />
     <ClInclude Include="OpCode.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CodeSection.cpp" />
+    <ClCompile Include="ConstantPool.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="MemorySystem.cpp" />
+    <ClCompile Include="Objects.cpp" />
+    <ClCompile Include="ObjectStore.cpp" />
     <ClCompile Include="ObjectSystem.cpp" />
     <ClCompile Include="OpCode.cpp" />
     <ClCompile Include="pch.cpp">
@@ -173,7 +181,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Type.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Utils\Utils.vcxproj">
