@@ -2,7 +2,7 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros">
-    <WaspAdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)Utils;$(SolutionDir)Type_System;$(SolutionDir)Token;$(SolutionDir)SemanticAnalyzer;$(SolutionDir)Parser;$(SolutionDir)ObjectSystem;$(SolutionDir)MemorySystem;$(SolutionDir)Lexer;$(SolutionDir)ControlFlowGraph;$(SolutionDir)Compiler;$(SolutionDir)Bytecode;$(SolutionDir)AST;$(SolutionDir)VM</WaspAdditionalIncludeDirectories>
+    <WaspAdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)Utils;$(SolutionDir)Token;$(SolutionDir)SemanticAnalyzer;$(SolutionDir)Parser;$(SolutionDir)MemorySystem;$(SolutionDir)Lexer;$(SolutionDir)Compiler;$(SolutionDir)AST;$(SolutionDir)AnnotatedAST;$(SolutionDir)ObjectSystem;$(SolutionDir)VM;$(SolutionDir)Symbol;$(SolutionDir)TypeSystem;</WaspAdditionalIncludeDirectories>
   </PropertyGroup>
   <PropertyGroup />
   <ItemDefinitionGroup />

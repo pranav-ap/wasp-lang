@@ -1,8 +1,6 @@
 #pragma once
-
 #include "pch.h"
 #include "MemorySystem.h"
-#include "ObjectSystem.h"
 #include "Assertion.h"
 #include <string>
 #include <algorithm>
@@ -32,17 +30,13 @@ using std::make_shared;
 
 MemorySystem::MemorySystem()
 {
-	next_id = 0;
-
-	object_store = std::make_shared<ObjectStore>();
-	constant_pool = std::make_shared<ConstantPool>();
-	code_section = std::make_shared<CodeSection>();
-	type_system = std::make_shared<TypeSystem>();
+	object_system = std::make_shared<ObjectSystem>();
+	code_section = std::make_shared<CodeObject>();
 }
 
 void MemorySystem::print()
 {
-	InstructionPrinter_ptr printer = make_shared<InstructionPrinter>(object_store, constant_pool);
+	InstructionPrinter_ptr printer = make_shared<InstructionPrinter>(object_system->object_store);
 	printer->print(code_section);
 }
 
@@ -69,7 +63,7 @@ std::wstring InstructionPrinter::stringify_instruction(std::byte opcode, std::by
 	case OpCode::LABEL:
 	case OpCode::ITERATE_OVER:
 	{
-		wstring comment = stringify_object(constant_pool->get(operand_int));
+		wstring comment = stringify_object(object_store->get(operand_int));
 		str_stream << std::right << setw(OPERAND_WIDTH_2) << L" (" << comment << L")";
 
 		return str_stream.str();

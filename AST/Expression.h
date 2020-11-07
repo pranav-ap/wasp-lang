@@ -8,7 +8,6 @@
 
 #include "Token.h"
 #include "TypeNode.h"
-
 #include <string>
 #include <vector>
 #include <map>
@@ -129,10 +128,8 @@ struct AST_API Call
 	std::wstring name;
 	ExpressionVector arguments;
 
-	Call(std::wstring name)
-		: name(name) {};
-	Call(std::wstring name, ExpressionVector arguments)
-		: name(name), arguments(arguments) {};
+	Call(std::wstring name) : name(name) {};
+	Call(std::wstring name, ExpressionVector arguments) : name(name), arguments(arguments) {};
 };
 
 struct AST_API Prefix

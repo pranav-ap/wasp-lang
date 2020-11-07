@@ -69,6 +69,7 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\SharedPropertySheet.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -157,13 +158,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="CodeGenerator.h" />
     <ClInclude Include="Compiler.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="SemanticAnalyzer.h" />
-    <ClInclude Include="Symbol.h" />
-    <ClInclude Include="SymbolScope.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Compiler.cpp" />
@@ -174,13 +171,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="SemanticAnalyzer.cpp" />
-    <ClCompile Include="SymbolScope.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AST\AST.vcxproj">
-      <Project>{a287f968-bd00-4267-9ab3-115e709bccf0}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\MemorySystem\MemorySystem.vcxproj">
       <Project>{20f70ed3-fd8e-4df0-b96a-a7bc28800fe9}</Project>
     </ProjectReference>

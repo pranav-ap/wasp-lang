@@ -8,7 +8,7 @@
 
 #include "Expression.h"
 #include "TypeNode.h"
-
+#include "SymbolScope.h"
 #include <string>
 #include <vector>
 #include <map>
@@ -74,9 +74,15 @@ using Statement_ptr = AST_API std::shared_ptr<Statement>;
 using Block = AST_API std::vector<Statement_ptr>;
 using StringVector = AST_API std::vector<std::wstring>;
 
+struct AST_API AnnotatedNode
+{
+	SymbolScope_ptr scope;
+	AnnotatedNode() : scope(nullptr) {};
+};
+
 // Branching
 
-struct AST_API IfBranch
+struct AST_API IfBranch : public AnnotatedNode
 {
 	Expression_ptr test;
 	Block body;
@@ -89,7 +95,7 @@ struct AST_API IfBranch
 		: test(test), body(body), alternative(std::make_optional(alternative)) {};
 };
 
-struct AST_API ElseBranch
+struct AST_API ElseBranch : public AnnotatedNode
 {
 	Block body;
 
@@ -98,7 +104,7 @@ struct AST_API ElseBranch
 
 // Looping
 
-struct AST_API WhileLoop
+struct AST_API WhileLoop : public AnnotatedNode
 {
 	Expression_ptr expression;
 	Block block;
@@ -107,7 +113,7 @@ struct AST_API WhileLoop
 		: expression(std::move(expression)), block(block) {};
 };
 
-struct AST_API ForInLoop
+struct AST_API ForInLoop : public AnnotatedNode
 {
 	Expression_ptr lhs_expression;
 	Expression_ptr rhs_expression;
@@ -117,17 +123,17 @@ struct AST_API ForInLoop
 		: block(block), lhs_expression(std::move(lhs_expression)), rhs_expression(std::move(rhs_expression)) {};
 };
 
-struct AST_API Break
+struct AST_API Break : public AnnotatedNode
 {
 };
 
-struct AST_API Continue
+struct AST_API Continue : public AnnotatedNode
 {
 };
 
 // Definitions
 
-struct AST_API VariableDefinition
+struct AST_API VariableDefinition : public AnnotatedNode
 {
 	bool is_public;
 	bool is_mutable;
@@ -141,7 +147,7 @@ struct AST_API VariableDefinition
 		: is_public(is_public), is_mutable(is_mutable), type(type), lhs_expression(std::move(lhs_expression)), rhs_expression(std::move(rhs_expression)) {};
 };
 
-struct AST_API Definition
+struct AST_API Definition : public AnnotatedNode
 {
 	bool is_public;
 	std::wstring name;
@@ -238,7 +244,7 @@ struct AST_API PostfixOperatorDefinition : public OperatorDefinition
 		: OperatorDefinition(is_public, operator_symbol, type, body), argument(argument) {};
 };
 
-struct AST_API MethodDefinition
+struct AST_API MethodDefinition : public AnnotatedNode
 {
 	std::wstring type_name;
 	std::wstring name;
@@ -281,7 +287,7 @@ struct AST_API EnumDefinition : public Definition
 
 // Return and Yield
 
-struct AST_API Return
+struct AST_API Return : public AnnotatedNode
 {
 	std::optional<Expression_ptr> expression;
 
@@ -290,7 +296,7 @@ struct AST_API Return
 		: expression(std::make_optional(std::move(expression))) {};
 };
 
-struct AST_API YieldStatement
+struct AST_API YieldStatement : public AnnotatedNode
 {
 	std::optional<Expression_ptr> expression;
 
@@ -301,7 +307,7 @@ struct AST_API YieldStatement
 
 // Single Expression Statement
 
-struct AST_API SingleExpressionStatement
+struct AST_API SingleExpressionStatement : public AnnotatedNode
 {
 	Expression_ptr expression;
 
@@ -335,7 +341,7 @@ struct AST_API Swear : public SingleExpressionStatement
 
 // Other
 
-struct AST_API Namespace
+struct AST_API Namespace : public AnnotatedNode
 {
 	std::wstring name;
 	bool is_public;
@@ -345,7 +351,7 @@ struct AST_API Namespace
 		: name(name), statements(statements), is_public(is_public) { };
 };
 
-struct AST_API File
+struct AST_API File : public AnnotatedNode
 {
 	Block statements;
 	void add_statement(Statement_ptr node);

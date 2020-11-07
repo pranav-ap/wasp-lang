@@ -7,7 +7,7 @@
 #endif
 
 #include "OpCode.h"
-#include "CScope.h"
+#include "SymbolScope.h"
 #include "Statement.h"
 #include "ObjectSystem.h"
 #include "MemorySystem.h"
@@ -22,7 +22,7 @@
 class COMPILER_API Compiler
 {
 	MemorySystem_ptr memory;
-	CScope_ptr current_scope;
+	SymbolScope_ptr current_scope;
 
 	int next_label;
 	int next_id;
@@ -77,9 +77,9 @@ class COMPILER_API Compiler
 	void visit(const double expr);
 	void visit(const std::wstring expr);
 	void visit(const bool expr);
-	void visit(ListLiteral const& expr);
+	void visit(ListLiteralNode const& expr);
 	void visit(TupleLiteral const& expr);
-	void visit(MapLiteral const& expr);
+	void visit(MapLiteralNode const& expr);
 	void visit(SetLiteral const& expr);
 	void visit(NewObject const& expr);
 	void visit(TernaryCondition const& expr);
@@ -91,7 +91,7 @@ class COMPILER_API Compiler
 	void visit(Infix const& expr);
 	void visit(Postfix const& expr);
 	void visit(Identifier const& expr);
-	void visit(Spread const& expr);
+	void visit(SpreadNode const& expr);
 	void visit(MemberAccess const& expr);
 
 	// Emit

@@ -26,3 +26,6 @@
 /Compiler/x64/Debug
 /VM/x64/Debug
 /ControlFlowGraph/x64/Debug
+/AnnotatedAST/x64/Debug
+/Symbol/x64/Debug
+/TypeSystem/x64/Debug

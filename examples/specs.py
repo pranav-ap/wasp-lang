@@ -10,7 +10,6 @@ let x : { string } = { "1", "hello" }
 let x : ⟨ string => string ⟩ = ⟨ "a": "b", "c": "d" ⟩
 let x : Person = new Person("john", false)
 
-
 a = 1
 x.foo.age = 1
 x(123).foo(36, gg).age = 1

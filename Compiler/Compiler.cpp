@@ -470,9 +470,9 @@ void Compiler::visit(const Expression_ptr expression)
 		[&](double expr) { visit(expr); },
 		[&](std::wstring expr) { visit(expr); },
 		[&](bool expr) { visit(expr); },
-		[&](ListLiteral const& expr) { visit(expr); },
+		[&](ListLiteralNode const& expr) { visit(expr); },
 		[&](TupleLiteral const& expr) { visit(expr); },
-		[&](MapLiteral const& expr) { visit(expr); },
+		[&](MapLiteralNode const& expr) { visit(expr); },
 		[&](SetLiteral const& expr) { visit(expr); },
 		[&](NewObject const& expr) { visit(expr); },
 		[&](TernaryCondition const& expr) { visit(expr); },
@@ -531,7 +531,7 @@ void Compiler::visit(const bool boolean)
 	}
 }
 
-void Compiler::visit(ListLiteral const& expr)
+void Compiler::visit(ListLiteralNode const& expr)
 {
 	visit(expr.expressions);
 	emit(OpCode::MAKE_LIST, expr.expressions.size());
@@ -543,7 +543,7 @@ void Compiler::visit(TupleLiteral const& expr)
 	emit(OpCode::MAKE_TUPLE, expr.expressions.size());
 }
 
-void Compiler::visit(MapLiteral const& expr)
+void Compiler::visit(MapLiteralNode const& expr)
 {
 	for (const auto [key, value] : expr.pairs)
 	{
@@ -634,7 +634,7 @@ void Compiler::visit(Identifier const& expr)
 	emit(OpCode::LOAD_LOCAL, id);
 }
 
-void Compiler::visit(Spread const& expr)
+void Compiler::visit(SpreadNode const& expr)
 {
 }
 
