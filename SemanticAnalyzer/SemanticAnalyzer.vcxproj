@@ -188,11 +188,11 @@
     <ProjectReference Include="..\Token\Token.vcxproj">
       <Project>{abf81544-54c4-45e3-a502-383e2ef061af}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\TypeSystem\TypeSystem.vcxproj">
-      <Project>{3d547836-b75a-428a-8fe5-43afa9054827}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\Utils\Utils.vcxproj">
       <Project>{825d931e-a262-42d4-8af0-8e503ac06104}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\WaspTypeSystem\WaspTypeSystem.vcxproj">
+      <Project>{e6314a01-793d-43d1-ab1c-24fc6ba7116b}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -23,11 +23,10 @@ enum class SYMBOL_API ScopeType
 	GENERATOR,
 	CLASS_FUNCTION,
 	CLASS_GENERATOR,
-	OPERATOR_FUNCTION,
 	NAMESPACE
 };
 
-class SymbolScope;
+struct SymbolScope;
 using SymbolScope_ptr = SYMBOL_API std::shared_ptr<SymbolScope>;
 
 struct SYMBOL_API SymbolScope
@@ -39,7 +38,7 @@ struct SYMBOL_API SymbolScope
 	int break_label;
 	int continue_label;
 
-	SymbolScope(SymbolScope_ptr enclosing_scope, ScopeType scope_type)
+	SymbolScope(std::optional<SymbolScope_ptr> enclosing_scope, ScopeType scope_type)
 		: break_label(0),
 		continue_label(0),
 		scope_type(scope_type),

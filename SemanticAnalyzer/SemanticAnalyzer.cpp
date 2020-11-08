@@ -9,7 +9,7 @@
 
 #define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr")
 #define OPT_CHECK(x) ASSERT(x.has_value(), "Oh shit! Option is none")
-#define MAKE_SYMBOL(a, b, c, d) std::make_shared<Symbol>(a, b, c, d)
+#define MAKE_SYMBOL(a, b, c, d, e) std::make_shared<Symbol>(a, b, c, d, e)
 #define MAKE_OBJECT_VARIANT(x) std::make_shared<Object>(x)
 
 #define PUBLIC_SYMBOL true
@@ -29,6 +29,7 @@ using std::move;
 
 SemanticAnalyzer::SemanticAnalyzer()
 {
+	next_id = 0;
 	type_system = make_shared<TypeSystem>();
 }
 
@@ -47,7 +48,7 @@ void SemanticAnalyzer::execute(const File_ptr ast)
 
 // Statement
 
-void SemanticAnalyzer::visit(const Statement_ptr statement)
+void SemanticAnalyzer::visit(const Statement_ptr statement)	
 {
 	std::visit(overloaded{
 		[&](IfBranch const& stat) { visit(stat); },
@@ -72,11 +73,8 @@ void SemanticAnalyzer::visit(const Statement_ptr statement)
 		[&](Implore const& stat) { visit(stat); },
 		[&](Swear const& stat) { visit(stat); },
 		[&](Namespace const& stat) { visit(stat); },
-		[&](InfixOperatorDefinition const& stat) { visit(stat); },
-		[&](PrefixOperatorDefinition const& stat) { visit(stat); },
-		[&](PostfixOperatorDefinition const& stat) { visit(stat); },
 
-		[](auto) { FATAL("Never Seen this Statement before!"); }
+		[&](auto) { FATAL("Never Seen this Statement before!"); }
 		}, *statement);
 }
 
@@ -101,7 +99,7 @@ void SemanticAnalyzer::visit(IfBranch const& statement)
 			ASSERT(type_system->assignable(current_scope, left_type, right_type), "TypeNode mismatch in assignment");
 			type_system->expect_condition_type(current_scope, left_type);
 
-			auto symbol = MAKE_SYMBOL(identifier, left_type, PRIVATE_SYMBOL, MUTABLE_SYMBOL);
+			auto symbol = MAKE_SYMBOL(next_id++, identifier, left_type, PRIVATE_SYMBOL, MUTABLE_SYMBOL);
 			current_scope->define(identifier, symbol);
 		},
 
@@ -147,7 +145,7 @@ void SemanticAnalyzer::visit(ForInLoop const& statement)
 
 	const auto [identifier, left_type] = deconstruct_type_pattern(statement.lhs_expression);
 
-	auto symbol = MAKE_SYMBOL(identifier, left_type, PRIVATE_SYMBOL, MUTABLE_SYMBOL);
+	auto symbol = MAKE_SYMBOL(next_id++, identifier, left_type, PRIVATE_SYMBOL, MUTABLE_SYMBOL);
 	current_scope->define(identifier, symbol);
 
 	visit(statement.block);
@@ -202,7 +200,7 @@ void SemanticAnalyzer::visit(VariableDefinition const& statement)
 
 	ASSERT(type_system->assignable(current_scope, lhs_type, rhs_type), "TypeNode mismatch in assignment");
 
-	auto symbol = MAKE_SYMBOL(identifier->name, lhs_type, statement.is_public, statement.is_mutable);
+	auto symbol = MAKE_SYMBOL(next_id++, identifier->name, lhs_type, statement.is_public, statement.is_mutable);
 	current_scope->define(identifier->name, symbol);
 }
 
@@ -224,7 +222,7 @@ void SemanticAnalyzer::visit(ClassDefinition const& statement)
 		statement.is_public_member
 	));
 
-	auto symbol = MAKE_SYMBOL(statement.name, type, statement.is_public, CONST_SYMBOL);
+	auto symbol = MAKE_SYMBOL(next_id++, statement.name, type, statement.is_public, CONST_SYMBOL);
 	current_scope->define(statement.name, symbol);
 }
 
@@ -246,7 +244,7 @@ void SemanticAnalyzer::visit(InterfaceDefinition const& statement)
 		statement.is_public_member
 	));
 
-	auto symbol = MAKE_SYMBOL(statement.name, type, statement.is_public, CONST_SYMBOL);
+	auto symbol = MAKE_SYMBOL(next_id++, statement.name, type, statement.is_public, CONST_SYMBOL);
 	current_scope->define(statement.name, symbol);
 }
 
@@ -255,7 +253,7 @@ void SemanticAnalyzer::visit(AliasDefinition const& statement)
 	Object_ptr type = visit(statement.type);
 	Object_ptr alias_type = MAKE_OBJECT_VARIANT(AliasType(statement.name, type));
 
-	auto symbol = MAKE_SYMBOL(statement.name, type, statement.is_public, CONST_SYMBOL);
+	auto symbol = MAKE_SYMBOL(next_id++, statement.name, type, statement.is_public, CONST_SYMBOL);
 	current_scope->define(statement.name, symbol);
 }
 
@@ -264,7 +262,7 @@ void SemanticAnalyzer::visit(FunctionDefinition const& statement)
 	auto type = visit(statement.type);
 	auto function_type = type_system->extract_function_type(type);
 
-	auto symbol = MAKE_SYMBOL(statement.name, type, statement.is_public, CONST_SYMBOL);
+	auto symbol = MAKE_SYMBOL(next_id++, statement.name, type, statement.is_public, CONST_SYMBOL);
 	current_scope->define(statement.name, symbol);
 
 	enter_scope(ScopeType::FUNCTION);
@@ -274,7 +272,7 @@ void SemanticAnalyzer::visit(FunctionDefinition const& statement)
 	for (auto const arg_name : statement.arguments)
 	{
 		Object_ptr type = function_type->input_types.at(arg_index);
-		auto symbol = MAKE_SYMBOL(arg_name, type, PRIVATE_SYMBOL, MUTABLE_SYMBOL);
+		auto symbol = MAKE_SYMBOL(next_id++, arg_name, type, PRIVATE_SYMBOL, MUTABLE_SYMBOL);
 		current_scope->define(arg_name, symbol);
 
 		arg_index++;
@@ -289,7 +287,7 @@ void SemanticAnalyzer::visit(GeneratorDefinition const& statement)
 	auto type = visit(statement.type);
 	auto generator_type = type_system->extract_generator_type(type);
 
-	auto symbol = MAKE_SYMBOL(statement.name, type, statement.is_public, CONST_SYMBOL);
+	auto symbol = MAKE_SYMBOL(next_id++, statement.name, type, statement.is_public, CONST_SYMBOL);
 	current_scope->define(statement.name, symbol);
 
 	enter_scope(ScopeType::GENERATOR);
@@ -299,7 +297,7 @@ void SemanticAnalyzer::visit(GeneratorDefinition const& statement)
 	for (auto const arg_name : statement.arguments)
 	{
 		Object_ptr type = generator_type->input_types.at(arg_index);
-		auto symbol = MAKE_SYMBOL(arg_name, type, PRIVATE_SYMBOL, MUTABLE_SYMBOL);
+		auto symbol = MAKE_SYMBOL(next_id++, arg_name, type, PRIVATE_SYMBOL, MUTABLE_SYMBOL);
 		current_scope->define(arg_name, symbol);
 
 		arg_index++;
@@ -314,7 +312,7 @@ void SemanticAnalyzer::visit(FunctionMemberDefinition const& statement)
 	auto type = visit(statement.type);
 	auto function_method_type = type_system->extract_function_member_type(type);
 
-	auto symbol = MAKE_SYMBOL(statement.name, type, statement.is_public, CONST_SYMBOL);
+	auto symbol = MAKE_SYMBOL(next_id++, statement.name, type, statement.is_public, CONST_SYMBOL);
 	current_scope->define(statement.name, symbol);
 
 	enter_scope(ScopeType::CLASS_FUNCTION);
@@ -324,7 +322,7 @@ void SemanticAnalyzer::visit(FunctionMemberDefinition const& statement)
 	for (auto const arg_name : statement.arguments)
 	{
 		Object_ptr type = function_method_type->input_types.at(arg_index);
-		auto symbol = MAKE_SYMBOL(arg_name, type, PRIVATE_SYMBOL, MUTABLE_SYMBOL);
+		auto symbol = MAKE_SYMBOL(next_id++, arg_name, type, PRIVATE_SYMBOL, MUTABLE_SYMBOL);
 		current_scope->define(arg_name, symbol);
 
 		arg_index++;
@@ -337,7 +335,7 @@ void SemanticAnalyzer::visit(FunctionMemberDefinition const& statement)
 	auto class_type = type_system->extract_class_type(class_symbol->type);
 
 	ASSERT(class_type->members.contains(statement.name), "Member does not exist");
-	class_type->members.at(statement.name) = statement.type;
+	class_type->members.at(statement.name) = type;
 }
 
 void SemanticAnalyzer::visit(GeneratorMemberDefinition const& statement)
@@ -345,7 +343,7 @@ void SemanticAnalyzer::visit(GeneratorMemberDefinition const& statement)
 	auto type = visit(statement.type);
 	auto generator_method_type = type_system->extract_generator_member_type(type);
 
-	auto symbol = MAKE_SYMBOL(statement.name, type, statement.is_public, CONST_SYMBOL);
+	auto symbol = MAKE_SYMBOL(next_id++, statement.name, type, statement.is_public, CONST_SYMBOL);
 	current_scope->define(statement.name, symbol);
 
 	enter_scope(ScopeType::CLASS_GENERATOR);
@@ -355,7 +353,7 @@ void SemanticAnalyzer::visit(GeneratorMemberDefinition const& statement)
 	for (auto const arg_name : statement.arguments)
 	{
 		Object_ptr type = generator_method_type->input_types.at(arg_index);
-		auto symbol = MAKE_SYMBOL(arg_name, type, PRIVATE_SYMBOL, MUTABLE_SYMBOL);
+		auto symbol = MAKE_SYMBOL(next_id++, arg_name, type, PRIVATE_SYMBOL, MUTABLE_SYMBOL);
 		current_scope->define(arg_name, symbol);
 
 		arg_index++;
@@ -368,13 +366,13 @@ void SemanticAnalyzer::visit(GeneratorMemberDefinition const& statement)
 	auto class_type = type_system->extract_class_type(class_symbol->type);
 
 	ASSERT(class_type->members.contains(statement.name), "Member does not exist");
-	class_type->members.at(statement.name) = statement.type;
+	class_type->members.at(statement.name) = type;
 }
 
 void SemanticAnalyzer::visit(EnumDefinition const& statement)
 {
 	auto type = MAKE_OBJECT_VARIANT(EnumType(statement.name, statement.members));
-	auto symbol = MAKE_SYMBOL(statement.name, type, statement.is_public, CONST_SYMBOL);
+	auto symbol = MAKE_SYMBOL(next_id++, statement.name, type, statement.is_public, CONST_SYMBOL);
 	current_scope->define(statement.name, symbol);
 }
 
@@ -408,18 +406,6 @@ void SemanticAnalyzer::visit(Namespace const& statement)
 	leave_scope();
 }
 
-void SemanticAnalyzer::visit(InfixOperatorDefinition const& statement)
-{
-}
-
-void SemanticAnalyzer::visit(PrefixOperatorDefinition const& statement)
-{
-}
-
-void SemanticAnalyzer::visit(PostfixOperatorDefinition const& statement)
-{
-}
-
 // Expression
 
 Object_ptr SemanticAnalyzer::visit(const Expression_ptr expression)
@@ -448,8 +434,8 @@ Object_ptr SemanticAnalyzer::visit(const Expression_ptr expression)
 
 		[&](auto)
 		{
-			FATAL("Never Seen this Statement before!");
-			return MAKE_OBJECT_VARIANT(NoneType());
+			FATAL("Never Seen this Expression before!");
+			return type_system->type_pool->get_none_type();
 		}
 		}, *expression);
 
@@ -523,13 +509,13 @@ Object_ptr SemanticAnalyzer::visit(MapLiteral const& expr)
 	ObjectVector key_types;
 	ObjectVector value_types;
 
-	for (const auto [key, value] : expr.pairs)
+	for (const auto x : expr.pairs)
 	{
-		Object_ptr key_type = visit(key);
+		Object_ptr key_type = visit(x.first);
 		type_system->expect_key_type(current_scope, key_type);
 		key_types.push_back(move(key_type));
 
-		Object_ptr value_type = visit(value);
+		Object_ptr value_type = visit(x.second);
 		value_types.push_back(move(value_type));
 	}
 
@@ -584,8 +570,6 @@ Object_ptr SemanticAnalyzer::visit(NewObject const& expr)
 	ObjectVector types = visit(expr.expressions);
 
 	auto symbol = current_scope->lookup(expr.type_name);
-	NULL_CHECK(symbol);
-
 	auto class_type = type_system->extract_class_type(symbol->type);
 
 	wstring constructor_name = L"constructor";
@@ -598,8 +582,6 @@ Object_ptr SemanticAnalyzer::visit(NewObject const& expr)
 Object_ptr SemanticAnalyzer::visit(EnumMember const& expr)
 {
 	Symbol_ptr symbol = current_scope->lookup(expr.member_chain.front());
-	NULL_CHECK(symbol);
-
 	auto enum_type = type_system->extract_enum_type(symbol->type);
 	wstring enum_string = concat(expr.member_chain, L"::");
 	ASSERT(enum_type->members.contains(enum_string), "Enum does not contain this member");
@@ -616,12 +598,12 @@ Object_ptr SemanticAnalyzer::visit(Call const& expr)
 		[&](FunctionType const& type)
 		{
 			ASSERT(type_system->equal(current_scope, argument_types, type.input_types), "Argument mismatch in call");
-			return type.return_type;
+			return type.return_type.value_or(type_system->type_pool->get_none_type());
 		},
 		[&](GeneratorType const& type)
 		{
 			ASSERT(type_system->equal(current_scope, argument_types, type.input_types), "Argument mismatch in call");
-			return type.return_type;
+			return type.return_type.value_or(type_system->type_pool->get_none_type());
 		},
 		[&](auto)
 		{
@@ -657,7 +639,6 @@ Object_ptr SemanticAnalyzer::visit(Infix const& expr)
 Object_ptr SemanticAnalyzer::visit(Identifier const& expr)
 {
 	Symbol_ptr symbol = current_scope->lookup(expr.name);
-	NULL_CHECK(symbol);
 	return symbol->type;
 }
 
@@ -680,10 +661,22 @@ Object_ptr SemanticAnalyzer::visit(MemberAccess const& expr)
 			Object_ptr rhs_type = lhs_class_type->members.at(call.name);
 
 			return std::visit(overloaded{
-				[&](FunctionType const& type) { return type.return_type; },
-				[&](GeneratorType const& type) { return type.return_type; },
-				[&](FunctionMemberType const& type) { return type.return_type; },
-				[&](GeneratorMemberType const& type) { return type.return_type; },
+				[&](FunctionType const& type) 
+				{ 
+					return type.return_type.value_or(type_system->type_pool->get_none_type());
+				},
+				[&](GeneratorType const& type) 
+				{
+					return type.return_type.value_or(type_system->type_pool->get_none_type());
+				},
+				[&](FunctionMemberType const& type) 
+				{
+					return type.return_type.value_or(type_system->type_pool->get_none_type());
+				},
+				[&](GeneratorMemberType const& type) 
+				{
+					return type.return_type.value_or(type_system->type_pool->get_none_type());
+				},
 				[&](auto)
 				{
 					FATAL("Expected a FunctionTypeNode or GeneratorTypeNode");
@@ -925,7 +918,7 @@ std::tuple<std::wstring, Object_ptr> SemanticAnalyzer::deconstruct_type_pattern(
 	ASSERT(holds_alternative<TypePattern>(*expression), "Expected a TypePattern");
 	auto type_pattern = get_if<TypePattern>(&*expression);
 
-	Object_ptr type = visit(type_pattern->type);
+	Object_ptr type =  visit(type_pattern->type);
 
 	ASSERT(holds_alternative<Identifier>(*type_pattern->expression), "Expected an Identifier");
 	auto identifier = get_if<Identifier>(&*type_pattern->expression);

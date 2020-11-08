@@ -19,6 +19,7 @@
 
 class SEMANTICANALYZER_API SemanticAnalyzer
 {
+	int next_id;
 	TypeSystem_ptr type_system;
 	SymbolScope_ptr current_scope;
 
@@ -49,9 +50,6 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 	void visit(Implore const& statement);
 	void visit(Swear const& statement);
 	void visit(Namespace const& statement);
-	void visit(InfixOperatorDefinition const& statement);
-	void visit(PrefixOperatorDefinition const& statement);
-	void visit(PostfixOperatorDefinition const& statement);
 
 	// Expression
 

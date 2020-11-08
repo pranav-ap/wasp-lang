@@ -1,9 +1,9 @@
 #pragma once
 
-#ifdef TYPESYSTEM_EXPORTS
-#define TYPESYSTEM_API __declspec(dllexport)
+#ifdef WASPTYPESYSTEM_EXPORTS
+#define WASPTYPESYSTEM_API __declspec(dllexport)
 #else
-#define TYPESYSTEM_API __declspec(dllimport)
+#define WASPTYPESYSTEM_API __declspec(dllimport)
 #endif
 
 #include "Objects.h"
@@ -14,7 +14,7 @@
 #include <utility>
 #include <memory>
 
-struct TYPESYSTEM_API TypeSystem
+struct WASPTYPESYSTEM_API TypeSystem
 {
 	ObjectStore_ptr type_pool;
 
@@ -80,4 +80,4 @@ struct TYPESYSTEM_API TypeSystem
 	GeneratorMemberType* extract_generator_member_type(const Object_ptr type) const;
 };
 
-using TypeSystem_ptr = TYPESYSTEM_API std::shared_ptr<TypeSystem>;
+using TypeSystem_ptr = WASPTYPESYSTEM_API std::shared_ptr<TypeSystem>;

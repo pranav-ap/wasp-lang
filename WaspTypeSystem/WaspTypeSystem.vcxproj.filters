@@ -24,9 +24,6 @@
     <ClInclude Include="TypeSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TypeSystemUtils.cpp">
-      <Filter>Source Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -36,6 +33,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TypeSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TypeSystemUtils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
