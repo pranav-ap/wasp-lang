@@ -313,7 +313,6 @@ std::wstring stringify_object(Object_ptr value)
 		[&](GeneratorType const& obj) { return L"Object"; },
 		[&](FunctionMemberType const& obj) { return L"Object"; },
 		[&](GeneratorMemberType const& obj) { return L"Object"; },
-		[&](OperatorType const& obj) { return L"Object"; },
 		[&](auto) { return L" "; }
 		}, *value);
 }

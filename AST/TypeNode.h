@@ -25,9 +25,6 @@ struct BooleanTypeNode;
 struct ListTypeNode;
 struct TupleTypeNode;
 struct SetTypeNode;
-struct ClassTypeNode;
-struct AliasTypeNode;
-struct InterfaceTypeNode;
 struct MapTypeNode;
 struct EnumTypeNode;
 struct VariantTypeNode;
@@ -36,7 +33,6 @@ struct FunctionTypeNode;
 struct GeneratorTypeNode;
 struct FunctionMemberTypeNode;
 struct GeneratorMemberTypeNode;
-struct OperatorTypeNode;
 struct TypeIdentifierNode;
 
 using TypeNode = AST_API std::variant<
@@ -44,13 +40,11 @@ using TypeNode = AST_API std::variant<
 	AnyTypeNode,
 	IntLiteralTypeNode, FloatLiteralTypeNode, StringLiteralTypeNode, BooleanLiteralTypeNode,
 	IntTypeNode, FloatTypeNode, StringTypeNode, BooleanTypeNode,
-	ListTypeNode, TupleTypeNode, SetTypeNode,
-	ClassTypeNode, AliasTypeNode, InterfaceTypeNode, MapTypeNode,
-	EnumTypeNode, TypeIdentifierNode,
+	ListTypeNode, TupleTypeNode, SetTypeNode, MapTypeNode,
+	TypeIdentifierNode,
 	VariantTypeNode, NoneTypeNode,
 	FunctionTypeNode, GeneratorTypeNode,
-	FunctionMemberTypeNode, GeneratorMemberTypeNode,
-	OperatorTypeNode
+	FunctionMemberTypeNode, GeneratorMemberTypeNode
 >;
 
 using TypeNode_ptr = AST_API std::shared_ptr<TypeNode>;
@@ -169,15 +163,6 @@ struct AST_API MapTypeNode : public CompositeTypeNode
 		: key_type(std::move(key_type)), value_type(std::move(value_type)) {};
 };
 
-struct AST_API AliasTypeNode : public CompositeTypeNode
-{
-	std::wstring name;
-	TypeNode_ptr type;
-
-	AliasTypeNode(std::wstring name, TypeNode_ptr type)
-		: name(name), type(type) {};
-};
-
 struct AST_API UserDefinedTypeNode : public CompositeTypeNode
 {
 	std::wstring name;
@@ -190,27 +175,6 @@ struct AST_API UserDefinedTypeNode : public CompositeTypeNode
 
 	UserDefinedTypeNode(std::wstring name, StringVector interfaces, StringVector base_types, std::map<std::wstring, TypeNode_ptr> members, std::map<std::wstring, bool> is_public_member)
 		: name(name), interfaces(interfaces), base_types(base_types), members(members), is_public_member(is_public_member) {};
-};
-
-struct AST_API ClassTypeNode : public UserDefinedTypeNode
-{
-	ClassTypeNode(std::wstring name, StringVector interfaces, StringVector base_types, std::map<std::wstring, TypeNode_ptr> members, std::map<std::wstring, bool> is_public_member)
-		: UserDefinedTypeNode(name, interfaces, base_types, members, is_public_member) {};
-};
-
-struct AST_API InterfaceTypeNode : public UserDefinedTypeNode
-{
-	InterfaceTypeNode(std::wstring name, StringVector interfaces, StringVector base_types, std::map<std::wstring, TypeNode_ptr> members, std::map<std::wstring, bool> is_public_member)
-		: UserDefinedTypeNode(name, interfaces, base_types, members, is_public_member) {};
-};
-
-struct AST_API EnumTypeNode : public CompositeTypeNode
-{
-	std::wstring enum_name;
-	std::map<std::wstring, int> members;
-
-	EnumTypeNode(std::wstring enum_name, std::map<std::wstring, int> members)
-		: enum_name(enum_name), members(members) {};
 };
 
 struct AST_API VariantTypeNode : public CompositeTypeNode
@@ -247,19 +211,4 @@ struct AST_API GeneratorMemberTypeNode : public CallableTypeNode
 
 	GeneratorMemberTypeNode(std::wstring type_name, TypeNodeVector input_types, std::optional<TypeNode_ptr> return_type)
 		: CallableTypeNode(input_types, return_type), type_name(type_name) {};
-};
-
-enum class AST_API OperatorPositionNode
-{
-	Infix,
-	Prefix,
-	Postfix
-};
-
-struct AST_API OperatorTypeNode : public CallableTypeNode
-{
-	OperatorPositionNode position;
-
-	OperatorTypeNode(OperatorPositionNode position, TypeNodeVector input_types, std::optional<TypeNode_ptr> return_type)
-		: CallableTypeNode(input_types, return_type), position(position) {};
 };

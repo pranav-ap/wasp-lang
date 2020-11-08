@@ -39,12 +39,6 @@ struct SYMBOL_API SymbolScope
 	int break_label;
 	int continue_label;
 
-	SymbolScope()
-		: break_label(0),
-		continue_label(0),
-		scope_type(ScopeType::NONE),
-		enclosing_scope(std::nullopt) {};
-
 	SymbolScope(SymbolScope_ptr enclosing_scope, ScopeType scope_type)
 		: break_label(0),
 		continue_label(0),

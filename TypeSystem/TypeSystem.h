@@ -14,9 +14,8 @@
 #include <utility>
 #include <memory>
 
-struct TypeSystem
+struct TYPESYSTEM_API TypeSystem
 {
-	int next_id;
 	ObjectStore_ptr type_pool;
 
 	TypeSystem();
@@ -29,15 +28,6 @@ struct TypeSystem
 
 	Object_ptr infer(SymbolScope_ptr scope, Object_ptr left_type, WTokenType op, Object_ptr right_type);
 	Object_ptr infer(SymbolScope_ptr scope, Object_ptr left_type, WTokenType op);
-
-	// get 
-
-	Object_ptr get_any_type();
-	Object_ptr get_int_type();
-	Object_ptr get_float_type();
-	Object_ptr get_string_type();
-	Object_ptr get_boolean_type();
-	Object_ptr get_none_type();
 
 	// Is _ type?
 
@@ -90,4 +80,4 @@ struct TypeSystem
 	GeneratorMemberType* extract_generator_member_type(const Object_ptr type) const;
 };
 
-using TypeSystem_ptr = std::shared_ptr<TypeSystem>;
+using TypeSystem_ptr = TYPESYSTEM_API std::shared_ptr<TypeSystem>;

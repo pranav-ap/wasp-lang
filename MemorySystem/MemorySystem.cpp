@@ -30,14 +30,14 @@ using std::make_shared;
 
 MemorySystem::MemorySystem()
 {
-	object_system = std::make_shared<ObjectSystem>();
-	code_section = std::make_shared<CodeObject>();
+	object_store = std::make_shared<ObjectStore>();
+	code_object = std::make_shared<CodeObject>();
 }
 
 void MemorySystem::print()
 {
-	InstructionPrinter_ptr printer = make_shared<InstructionPrinter>(object_system->object_store);
-	printer->print(code_section);
+	InstructionPrinter_ptr printer = make_shared<InstructionPrinter>(object_store);
+	printer->print(code_object);
 }
 
 // InstructionPrinter
@@ -113,14 +113,14 @@ std::wstring InstructionPrinter::stringify_instruction(std::byte opcode, std::by
 	}
 }
 
-void InstructionPrinter::print(CodeSection_ptr code_section)
+void InstructionPrinter::print(CodeObject_ptr code_object)
 {
-	int length = code_section->length();
+	int length = code_object->length();
 	int index_width = to_string(length).size() + 2;
 
 	for (int index = 0; index < length; index++)
 	{
-		ByteVector instruction = code_section->instruction_at(index);
+		ByteVector instruction = code_object->instruction_at(index);
 
 		int arity = instruction.size() - 1;
 

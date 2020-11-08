@@ -95,16 +95,13 @@ class AST_API ASTVisualizer
 	void visit(ListTypeNode const& expr, int parent_id);
 	void visit(TupleTypeNode const& expr, int parent_id);
 	void visit(SetTypeNode const& expr, int parent_id);
-	void visit(ClassTypeNode const& expr, int parent_id);
 	void visit(MapTypeNode const& expr, int parent_id);
-	void visit(EnumTypeNode const& expr, int parent_id);
 	void visit(VariantTypeNode const& expr, int parent_id);
 	void visit(NoneTypeNode const& expr, int parent_id);
 	void visit(FunctionTypeNode const& expr, int parent_id);
 	void visit(GeneratorTypeNode const& expr, int parent_id);
 	void visit(FunctionMemberTypeNode const& expr, int parent_id);
 	void visit(GeneratorMemberTypeNode const& expr, int parent_id);
-	void visit(OperatorTypeNode const& expr, int parent_id);
 
 public:
 	ASTVisualizer()

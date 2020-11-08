@@ -80,11 +80,6 @@ class PARSER_API Parser
 	Statement_ptr parse_function_definition(bool is_public);
 	Statement_ptr parse_generator_definition(bool is_public);
 
-	std::tuple<std::wstring, StringVector, TypeNodeVector, std::optional<TypeNode_ptr>, Block> parse_operator_definition();
-	Statement_ptr parse_prefix_definition(bool is_public);
-	Statement_ptr parse_postfix_definition(bool is_public);
-	Statement_ptr parse_infix_definition(bool is_public);
-
 	// Pratt Parser
 
 	std::map<WTokenType, IPrefixParselet_ptr> prefix_parselets;

@@ -553,16 +553,13 @@ void ASTVisualizer::visit(const TypeNode_ptr type, int parent_id)
 		   [&](ListTypeNode const& ty) { visit(ty, parent_id); },
 		   [&](TupleTypeNode const& ty) { visit(ty, parent_id); },
 		   [&](SetTypeNode const& ty) { visit(ty, parent_id); },
-		   [&](ClassTypeNode const& ty) { visit(ty, parent_id); },
 		   [&](MapTypeNode const& ty) { visit(ty, parent_id); },
-		   [&](EnumTypeNode const& ty) { visit(ty, parent_id); },
 		   [&](VariantTypeNode const& ty) { visit(ty, parent_id); },
 		   [&](NoneTypeNode const& ty) { visit(ty, parent_id); },
 		   [&](FunctionTypeNode const& ty) { visit(ty, parent_id); },
 		   [&](GeneratorTypeNode const& ty) { visit(ty, parent_id); },
 		   [&](FunctionMemberTypeNode const& ty) { visit(ty, parent_id); },
 		   [&](GeneratorMemberTypeNode const& ty) { visit(ty, parent_id); },
-		   [&](OperatorTypeNode const& ty) { visit(ty, parent_id); },
 
 		   [](auto) {FATAL("Never seen this TypeNode before! So I cannot print it!"); }
 		}, *type);
@@ -656,26 +653,12 @@ void ASTVisualizer::visit(SetTypeNode const& type, int parent_id)
 	visit(type.element_types, id);
 }
 
-void ASTVisualizer::visit(ClassTypeNode const& type, int parent_id)
-{
-	const int id = id_counter++;
-	save(id, parent_id, L"UDT TypeNode");
-	visit(type.name, id);
-}
-
 void ASTVisualizer::visit(MapTypeNode const& type, int parent_id)
 {
 	const int id = id_counter++;
 	save(id, parent_id, L"Map TypeNode");
 	visit(type.key_type, id);
 	visit(type.value_type, id);
-}
-
-void ASTVisualizer::visit(EnumTypeNode const& type, int parent_id)
-{
-	const int id = id_counter++;
-	save(id, parent_id, L"Enum TypeNode");
-	visit(type.enum_name, id);
 }
 
 void ASTVisualizer::visit(VariantTypeNode const& type, int parent_id)
@@ -772,19 +755,6 @@ void ASTVisualizer::visit(GeneratorMemberTypeNode const& type, int parent_id)
 		const int return_type_id = id_counter++;
 		save(return_type_id, id, L"Return TypeNode");
 		visit(type.return_type.value(), return_type_id);
-	}
-}
-
-void ASTVisualizer::visit(OperatorTypeNode const& type, int parent_id)
-{
-	const int id = id_counter++;
-	save(id, parent_id, L"Operator TypeNode");
-
-	visit(type.input_types, id);
-
-	if (type.return_type.has_value())
-	{
-		visit(type.return_type.value(), id);
 	}
 }
 

@@ -1,7 +1,6 @@
 #pragma once
 #include "pch.h"
 #include "TypeSystem.h"
-#include "SymbolScope.h"
 #include "Assertion.h"
 #include <memory>
 #include <algorithm>
@@ -25,17 +24,16 @@ using std::end;
 
 TypeSystem::TypeSystem()
 {
-	next_id = 0;
 	type_pool = std::make_shared<ObjectStore>();
 
 	// add common type objects to pool
 
-	type_pool->set(next_id++, MAKE_OBJECT_VARIANT(AnyType()));	   // 0
-	type_pool->set(next_id++, MAKE_OBJECT_VARIANT(IntType()));	   // 1
-	type_pool->set(next_id++, MAKE_OBJECT_VARIANT(FloatType()));   // 2
-	type_pool->set(next_id++, MAKE_OBJECT_VARIANT(StringType()));  // 3
-	type_pool->set(next_id++, MAKE_OBJECT_VARIANT(BooleanType())); // 4
-	type_pool->set(next_id++, MAKE_OBJECT_VARIANT(NoneType()));    // 5
+	type_pool->set(type_pool->next_id++, MAKE_OBJECT_VARIANT(AnyType()));	   // 0
+	type_pool->set(type_pool->next_id++, MAKE_OBJECT_VARIANT(IntType()));	   // 1
+	type_pool->set(type_pool->next_id++, MAKE_OBJECT_VARIANT(FloatType()));   // 2
+	type_pool->set(type_pool->next_id++, MAKE_OBJECT_VARIANT(StringType()));  // 3
+	type_pool->set(type_pool->next_id++, MAKE_OBJECT_VARIANT(BooleanType())); // 4
+	type_pool->set(type_pool->next_id++, MAKE_OBJECT_VARIANT(NoneType()));    // 5
 }
 
 // equal
@@ -129,8 +127,6 @@ bool TypeSystem::equal(SymbolScope_ptr scope, const Object_ptr type_1, const Obj
 
 		[&](FunctionMemberType const& type_1, FunctionMemberType const& type_2) { return true; },
 		[&](GeneratorMemberType const& type_1, GeneratorMemberType const& type_2) { return true; },
-
-		[&](OperatorType const& type_1, OperatorType const& type_2) { return true; },
 
 		[](auto, auto) { return false; }
 		}, *type_1, *type_2);
@@ -250,12 +246,12 @@ Object_ptr TypeSystem::infer(SymbolScope_ptr scope, Object_ptr left_type, WToken
 		if (is_number_type(left_type))
 		{
 			expect_number_type(right_type);
-			return is_int_type(right_type) ? get_int_type() : get_float_type();
+			return is_int_type(right_type) ? type_pool->get_int_type() : type_pool->get_float_type();
 		}
 		else if (is_string_type(left_type))
 		{
 			ASSERT(is_number_type(right_type) || is_string_type(right_type), "Number or string operand is expected");
-			return get_string_type();
+			return type_pool->get_string_type();
 		}
 
 		FATAL("Number or string operand is expected");
@@ -270,10 +266,10 @@ Object_ptr TypeSystem::infer(SymbolScope_ptr scope, Object_ptr left_type, WToken
 
 		if (is_float_type(left_type) || is_float_type(right_type))
 		{
-			return get_float_type();
+			return type_pool->get_float_type();
 		}
 
-		return get_int_type();
+		return type_pool->get_int_type();
 	}
 	case WTokenType::LESSER_THAN:
 	case WTokenType::LESSER_THAN_EQUAL:
@@ -282,7 +278,7 @@ Object_ptr TypeSystem::infer(SymbolScope_ptr scope, Object_ptr left_type, WToken
 	{
 		expect_number_type(left_type);
 		expect_number_type(right_type);
-		return get_boolean_type();
+		return type_pool->get_boolean_type();
 	}
 	case WTokenType::EQUAL_EQUAL:
 	case WTokenType::BANG_EQUAL:
@@ -290,17 +286,17 @@ Object_ptr TypeSystem::infer(SymbolScope_ptr scope, Object_ptr left_type, WToken
 		if (is_number_type(left_type))
 		{
 			expect_number_type(right_type);
-			return get_boolean_type();
+			return type_pool->get_boolean_type();
 		}
 		else if (is_string_type(left_type))
 		{
 			expect_string_type(right_type);
-			return get_boolean_type();
+			return type_pool->get_boolean_type();
 		}
 		else if (is_boolean_type(left_type))
 		{
 			expect_boolean_type(right_type);
-			return get_boolean_type();
+			return type_pool->get_boolean_type();
 		}
 
 		FATAL("Number or string or boolean operand is expected");
@@ -311,7 +307,7 @@ Object_ptr TypeSystem::infer(SymbolScope_ptr scope, Object_ptr left_type, WToken
 	{
 		expect_boolean_type(left_type);
 		expect_boolean_type(right_type);
-		return get_boolean_type();
+		return type_pool->get_boolean_type();
 	}
 	case WTokenType::QUESTION_QUESTION:
 	{
@@ -326,7 +322,7 @@ Object_ptr TypeSystem::infer(SymbolScope_ptr scope, Object_ptr left_type, WToken
 	}
 	case WTokenType::IS:
 	{
-		return get_boolean_type();
+		return type_pool->get_boolean_type();
 	}
 	default:
 	{
@@ -335,7 +331,7 @@ Object_ptr TypeSystem::infer(SymbolScope_ptr scope, Object_ptr left_type, WToken
 	}
 	}
 
-	return get_none_type();
+	return type_pool->get_none_type();
 }
 
 Object_ptr TypeSystem::infer(SymbolScope_ptr scope, Object_ptr operand_type, WTokenType op)
@@ -346,12 +342,12 @@ Object_ptr TypeSystem::infer(SymbolScope_ptr scope, Object_ptr operand_type, WTo
 	case WTokenType::MINUS:
 	{
 		expect_number_type(operand_type);
-		return is_int_type(operand_type) ? get_int_type() : get_float_type();
+		return is_int_type(operand_type) ? type_pool->get_int_type() : type_pool->get_float_type();
 	}
 	case WTokenType::BANG:
 	{
 		expect_boolean_type(operand_type);
-		return get_boolean_type();
+		return type_pool->get_boolean_type();
 	}
 	case WTokenType::TYPE_OF:
 	{
@@ -364,6 +360,6 @@ Object_ptr TypeSystem::infer(SymbolScope_ptr scope, Object_ptr operand_type, WTo
 	}
 	}
 
-	return get_none_type();
+	return type_pool->get_none_type();
 }
 

@@ -40,7 +40,6 @@ struct FunctionType;
 struct GeneratorType;
 struct FunctionMemberType;
 struct GeneratorMemberType;
-struct OperatorType;
 
 // Object
 
@@ -105,16 +104,13 @@ using Object = OBJECTSYSTEM_API std::variant <
 	IntLiteralType, FloatLiteralType, StringLiteralType, BooleanLiteralType,
 	IntType, FloatType, StringType, BooleanType,
 
-	ListType, TupleType, SetType,
+	ListType, TupleType, SetType, MapType,
 
-	ClassType, AliasType, InterfaceType, MapType,
-	EnumType,
-
-	VariantType, NoneType,
+	ClassType, AliasType, InterfaceType, 
+	EnumType, VariantType, NoneType,
 
 	FunctionType, GeneratorType,
-	FunctionMemberType, GeneratorMemberType,
-	OperatorType
+	FunctionMemberType, GeneratorMemberType
 > ;
 
 using Object_ptr = OBJECTSYSTEM_API std::shared_ptr<Object>;
@@ -193,8 +189,6 @@ struct OBJECTSYSTEM_API ClassObject : public AbstractObject, public TypedObject
 	ClassObject(std::wstring name, std::map<std::wstring, int> members, Object_ptr type)
 		: TypedObject(type), name(name), members(members) {};
 };
-
-using ClassObject_ptr = OBJECTSYSTEM_API std::shared_ptr<ClassObject>;
 
 struct OBJECTSYSTEM_API InstanceObject : public AbstractObject, public TypedObject
 {
@@ -535,21 +529,6 @@ struct OBJECTSYSTEM_API GeneratorMemberType : public CallableType
 
 	GeneratorMemberType(std::wstring type_name, ObjectVector input_types, std::optional<Object_ptr> return_type)
 		: CallableType(input_types, return_type), type_name(type_name) {};
-};
-
-enum class OBJECTSYSTEM_API OperatorPosition
-{
-	Infix,
-	Prefix,
-	Postfix
-};
-
-struct OBJECTSYSTEM_API OperatorType : public CallableType
-{
-	OperatorPosition position;
-
-	OperatorType(OperatorPosition position, ObjectVector input_types, std::optional<Object_ptr> return_type)
-		: CallableType(input_types, return_type), position(position) {};
 };
 
 // Utils

@@ -6,6 +6,7 @@
 #define SEMANTICANALYZER_API __declspec(dllimport)
 #endif
 
+#include "Objects.h"
 #include "TypeSystem.h"
 #include "Statement.h"
 #include "Expression.h"
@@ -54,37 +55,63 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 
 	// Expression
 
-	TypeNode_ptr visit(const Expression_ptr expr);
-	TypeNodeVector visit(std::vector<Expression_ptr> const& expressions);
+	Object_ptr visit(const Expression_ptr expr);
+	ObjectVector visit(std::vector<Expression_ptr> const& expressions);
 
-	TypeNode_ptr visit(const int expr);
-	TypeNode_ptr visit(const double expr);
-	TypeNode_ptr visit(const std::wstring expr);
-	TypeNode_ptr visit(const bool expr);
-	TypeNode_ptr visit(ListLiteral const& expr);
-	TypeNode_ptr visit(TupleLiteral const& expr);
-	TypeNode_ptr visit(MapLiteral const& expr);
-	TypeNode_ptr visit(SetLiteral const& expr);
-	TypeNode_ptr visit(NewObject const& expr);
-	TypeNode_ptr visit(TernaryCondition const& expr);
-	TypeNode_ptr visit(Spread const& expr);
-	TypeNode_ptr visit(TypePattern const& expr);
-	TypeNode_ptr visit(Assignment const& expr);
-	TypeNode_ptr visit(EnumMember const& expr);
-	TypeNode_ptr visit(Call const& expr);
-	TypeNode_ptr visit(Prefix const& expr);
-	TypeNode_ptr visit(Infix const& expr);
-	TypeNode_ptr visit(Postfix const& expr);
-	TypeNode_ptr visit(Identifier const& expr);
-	TypeNode_ptr visit(MemberAccess const& expr);
+	Object_ptr visit(const int expr);
+	Object_ptr visit(const double expr);
+	Object_ptr visit(const std::wstring expr);
+	Object_ptr visit(const bool expr);
+	Object_ptr visit(ListLiteral const& expr);
+	Object_ptr visit(TupleLiteral const& expr);
+	Object_ptr visit(MapLiteral const& expr);
+	Object_ptr visit(SetLiteral const& expr);
+	Object_ptr visit(NewObject const& expr);
+	Object_ptr visit(TernaryCondition const& expr);
+	Object_ptr visit(Spread const& expr);
+	Object_ptr visit(TypePattern const& expr);
+	Object_ptr visit(Assignment const& expr);
+	Object_ptr visit(EnumMember const& expr);
+	Object_ptr visit(Call const& expr);
+	Object_ptr visit(Prefix const& expr);
+	Object_ptr visit(Infix const& expr);
+	Object_ptr visit(Postfix const& expr);
+	Object_ptr visit(Identifier const& expr);
+	Object_ptr visit(MemberAccess const& expr);
+
+	// Types
+
+	Object_ptr visit(const TypeNode_ptr type_node);
+	ObjectVector visit(std::vector<TypeNode_ptr> const& type_nodes);
+
+	Object_ptr visit(AnyTypeNode const& expr);
+	Object_ptr visit(IntLiteralTypeNode const& expr);
+	Object_ptr visit(FloatLiteralTypeNode const& expr);
+	Object_ptr visit(StringLiteralTypeNode const& expr);
+	Object_ptr visit(BooleanLiteralTypeNode const& expr);
+	Object_ptr visit(IntTypeNode const& expr);
+	Object_ptr visit(FloatTypeNode const& expr);
+	Object_ptr visit(StringTypeNode const& expr);
+	Object_ptr visit(BooleanTypeNode const& expr);
+	Object_ptr visit(ListTypeNode const& expr);
+	Object_ptr visit(TupleTypeNode const& expr);
+	Object_ptr visit(SetTypeNode const& expr);
+	Object_ptr visit(MapTypeNode const& expr);
+	Object_ptr visit(VariantTypeNode const& expr);
+	Object_ptr visit(NoneTypeNode const& expr);
+	Object_ptr visit(FunctionTypeNode const& expr);
+	Object_ptr visit(GeneratorTypeNode const& expr);
+	Object_ptr visit(FunctionMemberTypeNode const& expr);
+	Object_ptr visit(GeneratorMemberTypeNode const& expr);
+	Object_ptr visit(TypeIdentifierNode const& expr);
 
 	// Utils
 
-	void enter_scope(ScopeType scope_type);
+	void enter_scope(ScopeType scope_type);	
 	void leave_scope();
 
 	std::wstring concat(StringVector items, std::wstring middle);
-	std::tuple<std::wstring, TypeNode_ptr> deconstruct_type_pattern(Expression_ptr expression);
+	std::tuple<std::wstring, Object_ptr> deconstruct_type_pattern(Expression_ptr expression);
 
 public:
 	SemanticAnalyzer();
@@ -92,3 +119,5 @@ public:
 };
 
 using SemanticAnalyzer_ptr = SEMANTICANALYZER_API std::unique_ptr<SemanticAnalyzer>;
+
+

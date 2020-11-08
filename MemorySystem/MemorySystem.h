@@ -7,8 +7,8 @@
 #endif
 
 #include "OpCode.h"
-#include "ObjectSystem.h"
-#include "CodeSection.h"
+#include "ObjectStore.h"
+#include "CodeObject.h"
 #include <memory>
 
 // MemorySystem
@@ -16,8 +16,8 @@
 class MEMORYSYSTEM_API MemorySystem
 {
 public:
-	CodeSection_ptr code_section;
-	ObjectSystem_ptr object_system;
+	CodeObject_ptr code_object;
+	ObjectStore_ptr object_store;
 
 	MemorySystem();
 	void print();
@@ -37,7 +37,7 @@ class MEMORYSYSTEM_API InstructionPrinter
 public:
 	InstructionPrinter(ObjectStore_ptr object_store) : object_store(object_store) {};
 
-	void print(CodeSection_ptr code_section);
+	void print(CodeObject_ptr code_object);
 };
 
 using InstructionPrinter_ptr = MEMORYSYSTEM_API std::shared_ptr<InstructionPrinter>;

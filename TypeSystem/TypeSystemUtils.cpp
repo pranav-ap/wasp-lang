@@ -1,7 +1,6 @@
 #pragma once
 #include "pch.h"
 #include "TypeSystem.h"
-#include "SymbolScope.h"
 #include "Assertion.h"
 #include <memory>
 #include <algorithm>
@@ -22,36 +21,6 @@ using std::move;
 using std::all_of;
 using std::begin;
 using std::end;
-
-Object_ptr TypeSystem::get_any_type()
-{
-	return type_pool->get(0);
-}
-
-Object_ptr TypeSystem::get_int_type()
-{
-	return type_pool->get(1);
-}
-
-Object_ptr TypeSystem::get_float_type()
-{
-	return type_pool->get(2);
-}
-
-Object_ptr TypeSystem::get_string_type()
-{
-	return type_pool->get(3);
-}
-
-Object_ptr TypeSystem::get_boolean_type()
-{
-	return type_pool->get(4);
-}
-
-Object_ptr TypeSystem::get_none_type()
-{
-	return type_pool->get(5);
-}
 
 // Is _ type?
 
@@ -92,7 +61,6 @@ bool TypeSystem::is_condition_type(SymbolScope_ptr scope, const Object_ptr condi
 		[&](GeneratorType const& type) { return false; },
 		[&](FunctionMemberType const& type) { return false; },
 		[&](GeneratorMemberType const& type) { return false; },
-		[&](OperatorType const& type) { return false; },
 
 		[&](VariantType const& type)
 		{
