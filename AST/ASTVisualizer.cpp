@@ -65,10 +65,6 @@ void ASTVisualizer::visit(const Statement_ptr statement, int parent_id)
 		[&](Swear const& stat) { visit(stat, parent_id); },
 		[&](Namespace const& stat) { visit(stat, parent_id); },
 
-		[&](InfixOperatorDefinition const& stat) { visit(stat, parent_id); },
-		[&](PrefixOperatorDefinition const& stat) { visit(stat, parent_id); },
-		[&](PostfixOperatorDefinition const& stat) { visit(stat, parent_id); },
-
 		[](auto) { FATAL("Never seen this Statement before! So I cannot print it!"); }
 		}, *statement);
 }
@@ -108,7 +104,7 @@ void ASTVisualizer::visit(WhileLoop const& statement, int parent_id)
 	save(id, parent_id, L"while");
 
 	visit(statement.expression, id);
-	visit(statement.block, id);
+	visit(statement.body, id);
 }
 
 void ASTVisualizer::visit(ForInLoop const& statement, int parent_id)
@@ -118,7 +114,7 @@ void ASTVisualizer::visit(ForInLoop const& statement, int parent_id)
 
 	visit(statement.lhs_expression, id);
 	visit(statement.rhs_expression, id);
-	visit(statement.block, id);
+	visit(statement.body, id);
 }
 
 void ASTVisualizer::visit(Break const& statement, int parent_id)
@@ -211,9 +207,9 @@ void ASTVisualizer::visit(FunctionDefinition const& statement, int parent_id)
 
 	visit(statement.type, id);
 
-	if (statement.block.size() > 0)
+	if (statement.body.size() > 0)
 	{
-		visit(statement.block, id);
+		visit(statement.body, id);
 	}
 }
 
@@ -229,9 +225,9 @@ void ASTVisualizer::visit(GeneratorDefinition const& statement, int parent_id)
 
 	visit(statement.type, id);
 
-	if (statement.block.size() > 0)
+	if (statement.body.size() > 0)
 	{
-		visit(statement.block, id);
+		visit(statement.body, id);
 	}
 }
 
@@ -308,45 +304,6 @@ void ASTVisualizer::visit(Namespace const& statement, int parent_id)
 	const int id = id_counter++;
 	save(id, parent_id, L"Module " + statement.name);
 	visit(statement.statements, id);
-}
-
-void ASTVisualizer::visit(InfixOperatorDefinition const& statement, int parent_id)
-{
-	const int id = id_counter++;
-	save(id, parent_id, L"Infix Operator Definition " + statement.name);
-
-	visit(statement.type, id);
-
-	if (statement.body.size() > 0)
-	{
-		visit(statement.body, id);
-	}
-}
-
-void ASTVisualizer::visit(PrefixOperatorDefinition const& statement, int parent_id)
-{
-	const int id = id_counter++;
-	save(id, parent_id, L"Prefix Operator Definition " + statement.name);
-
-	visit(statement.type, id);
-
-	if (statement.body.size() > 0)
-	{
-		visit(statement.body, id);
-	}
-}
-
-void ASTVisualizer::visit(PostfixOperatorDefinition const& statement, int parent_id)
-{
-	const int id = id_counter++;
-	save(id, parent_id, L"Postfix Operator Definition " + statement.name);
-
-	visit(statement.type, id);
-
-	if (statement.body.size() > 0)
-	{
-		visit(statement.body, id);
-	}
 }
 
 // Expression

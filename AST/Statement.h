@@ -40,9 +40,6 @@ struct ExpressionStatement;
 struct Assert;
 struct Implore;
 struct Swear;
-struct InfixOperatorDefinition;
-struct PrefixOperatorDefinition;
-struct PostfixOperatorDefinition;
 
 using Statement = AST_API std::variant <
 	std::monostate,
@@ -60,10 +57,6 @@ using Statement = AST_API std::variant <
 	InterfaceDefinition, EnumDefinition,
 	FunctionMemberDefinition,
 	GeneratorMemberDefinition,
-
-	InfixOperatorDefinition,
-	PrefixOperatorDefinition,
-	PostfixOperatorDefinition,
 
 	ExpressionStatement,
 	Assert,
@@ -107,20 +100,20 @@ struct AST_API ElseBranch : public AnnotatedNode
 struct AST_API WhileLoop : public AnnotatedNode
 {
 	Expression_ptr expression;
-	Block block;
+	Block body;
 
-	WhileLoop(Expression_ptr expression, Block block)
-		: expression(std::move(expression)), block(block) {};
+	WhileLoop(Expression_ptr expression, Block body)
+		: expression(std::move(expression)), body(body) {};
 };
 
 struct AST_API ForInLoop : public AnnotatedNode
 {
 	Expression_ptr lhs_expression;
 	Expression_ptr rhs_expression;
-	Block block;
+	Block body;
 
-	ForInLoop(Expression_ptr lhs_expression, Expression_ptr rhs_expression, Block block)
-		: block(block), lhs_expression(std::move(lhs_expression)), rhs_expression(std::move(rhs_expression)) {};
+	ForInLoop(Expression_ptr lhs_expression, Expression_ptr rhs_expression, Block body)
+		: body(body), lhs_expression(std::move(lhs_expression)), rhs_expression(std::move(rhs_expression)) {};
 };
 
 struct AST_API Break : public AnnotatedNode
@@ -192,10 +185,10 @@ struct AST_API CallableDefinition : public Definition
 {
 	StringVector arguments;
 	TypeNode_ptr type;
-	Block block;
+	Block body;
 
 	CallableDefinition(bool is_public, std::wstring name, StringVector arguments, TypeNode_ptr type, Block body)
-		: Definition(is_public, name), arguments(arguments), type(type), block(body) {};
+		: Definition(is_public, name), arguments(arguments), type(type), body(body) {};
 };
 
 struct AST_API FunctionDefinition : public CallableDefinition
@@ -210,51 +203,12 @@ struct AST_API GeneratorDefinition : public CallableDefinition
 		: CallableDefinition(is_public, name, arguments, type, body) {};
 };
 
-struct AST_API OperatorDefinition : public Definition
-{
-	TypeNode_ptr type;
-	Block body;
-
-	OperatorDefinition(bool is_public, std::wstring operator_symbol, TypeNode_ptr type, Block body)
-		: Definition(is_public, operator_symbol), type(type), body(body) {};
-};
-
-struct AST_API InfixOperatorDefinition : public OperatorDefinition
-{
-	std::wstring lhs_argument;
-	std::wstring rhs_argument;
-
-	InfixOperatorDefinition(bool is_public, std::wstring operator_symbol, TypeNode_ptr type, Block body, std::wstring lhs_argument, std::wstring rhs_argument)
-		: OperatorDefinition(is_public, operator_symbol, type, body), lhs_argument(lhs_argument), rhs_argument(rhs_argument) {};
-};
-
-struct AST_API PrefixOperatorDefinition : public OperatorDefinition
-{
-	std::wstring argument;
-
-	PrefixOperatorDefinition(bool is_public, std::wstring operator_symbol, TypeNode_ptr type, Block body, std::wstring argument)
-		: OperatorDefinition(is_public, operator_symbol, type, body), argument(argument) {};
-};
-
-struct AST_API PostfixOperatorDefinition : public OperatorDefinition
-{
-	std::wstring argument;
-
-	PostfixOperatorDefinition(bool is_public, std::wstring operator_symbol, TypeNode_ptr type, Block body, std::wstring argument)
-		: OperatorDefinition(is_public, operator_symbol, type, body), argument(argument) {};
-};
-
-struct AST_API MethodDefinition : public AnnotatedNode
+struct AST_API MethodDefinition : public CallableDefinition
 {
 	std::wstring type_name;
-	std::wstring name;
-	StringVector arguments;
-	TypeNode_ptr type;
-	Block body;
-	bool is_public;
 
 	MethodDefinition(std::wstring type_name, std::wstring name, bool is_public, StringVector arguments, TypeNode_ptr type, Block body)
-		: type_name(type_name), name(name), is_public(is_public), arguments(arguments), type(type), body(body) {};
+		: CallableDefinition(is_public, name, arguments, type, body), type_name(type_name) {};
 };
 
 struct AST_API FunctionMemberDefinition : public MethodDefinition

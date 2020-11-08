@@ -49,9 +49,6 @@ class AST_API ASTVisualizer
 	void visit(Implore const& statement, int parent_id);
 	void visit(Swear const& statement, int parent_id);
 	void visit(Namespace const& statement, int parent_id);
-	void visit(InfixOperatorDefinition const& statement, int parent_id);
-	void visit(PrefixOperatorDefinition const& statement, int parent_id);
-	void visit(PostfixOperatorDefinition const& statement, int parent_id);
 
 	// Expression
 

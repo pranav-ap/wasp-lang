@@ -182,7 +182,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AST\AST.vcxproj">
-      <Project>{a287f968-bd00-4267-9ab3-115e709bccf0}</Project>
+      <Project>{9a7284b0-a65b-4ca1-b540-d37514eb58a2}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Token\Token.vcxproj">
       <Project>{abf81544-54c4-45e3-a502-383e2ef061af}</Project>

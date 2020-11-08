@@ -78,9 +78,9 @@ void SemanticAnalyzer::visit(const Statement_ptr statement)
 		}, *statement);
 }
 
-void SemanticAnalyzer::visit(std::vector<Statement_ptr> const& block)
+void SemanticAnalyzer::visit(std::vector<Statement_ptr> const& body)
 {
-	for (const auto stat : block)
+	for (const auto stat : body)
 	{
 		visit(stat);
 	}
@@ -132,7 +132,7 @@ void SemanticAnalyzer::visit(WhileLoop const& statement)
 	type_system->expect_condition_type(current_scope, condition_type);
 
 	enter_scope(ScopeType::LOOP);
-	visit(statement.block);
+	visit(statement.body);
 	leave_scope();
 }
 
@@ -148,18 +148,18 @@ void SemanticAnalyzer::visit(ForInLoop const& statement)
 	auto symbol = MAKE_SYMBOL(next_id++, identifier, left_type, PRIVATE_SYMBOL, MUTABLE_SYMBOL);
 	current_scope->define(identifier, symbol);
 
-	visit(statement.block);
+	visit(statement.body);
 	leave_scope();
 }
 
 void SemanticAnalyzer::visit(Break const& statement)
 {
-	ASSERT(current_scope->enclosed_in(ScopeType::LOOP), "Break is not expected in this block");
+	ASSERT(current_scope->enclosed_in(ScopeType::LOOP), "Break is not expected in this body");
 }
 
 void SemanticAnalyzer::visit(Continue const& statement)
 {
-	ASSERT(current_scope->enclosed_in(ScopeType::LOOP), "Continue is not expected in this block");
+	ASSERT(current_scope->enclosed_in(ScopeType::LOOP), "Continue is not expected in this body");
 }
 
 void SemanticAnalyzer::visit(Return const& statement)
@@ -169,7 +169,7 @@ void SemanticAnalyzer::visit(Return const& statement)
 		ScopeType::GENERATOR,
 		ScopeType::CLASS_FUNCTION,
 		ScopeType::CLASS_GENERATOR
-		}), "Return is not expected in this block");
+		}), "Return is not expected in this body");
 
 	if (statement.expression.has_value())
 	{
@@ -182,7 +182,7 @@ void SemanticAnalyzer::visit(YieldStatement const& statement)
 	ASSERT(current_scope->enclosed_in({
 		   ScopeType::GENERATOR,
 		   ScopeType::CLASS_GENERATOR
-		}), "Yield is not expected in this block");
+		}), "Yield is not expected in this body");
 
 	if (statement.expression.has_value())
 	{
@@ -278,7 +278,7 @@ void SemanticAnalyzer::visit(FunctionDefinition const& statement)
 		arg_index++;
 	}
 
-	visit(statement.block);
+	visit(statement.body);
 	leave_scope();
 }
 
@@ -303,7 +303,7 @@ void SemanticAnalyzer::visit(GeneratorDefinition const& statement)
 		arg_index++;
 	}
 
-	visit(statement.block);
+	visit(statement.body);
 	leave_scope();
 }
 

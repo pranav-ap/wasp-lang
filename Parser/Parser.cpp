@@ -468,8 +468,8 @@ Statement_ptr Parser::parse_condition_and_consequence()
 	token_pipe->require(WTokenType::THEN);
 	token_pipe->require(WTokenType::EOL);
 
-	auto block = parse_conditional_block();
-	return MAKE_STATEMENT(IfBranch(move(condition), block));
+	auto body = parse_conditional_block();
+	return MAKE_STATEMENT(IfBranch(move(condition), body));
 }
 
 Expression_ptr Parser::parse_ternary_condition(Expression_ptr condition)
@@ -495,8 +495,8 @@ Statement_ptr Parser::parse_branching(WTokenType token_type)
 		return MAKE_STATEMENT(ExpressionStatement(move(ternary)));
 	}
 
-	Block block = parse_conditional_block();
-	auto if_branch = IfBranch(condition, block);
+	Block body = parse_conditional_block();
+	auto if_branch = IfBranch(condition, body);
 
 	if (token_pipe->optional(WTokenType::ELIF))
 	{
@@ -525,8 +525,8 @@ Statement_ptr Parser::parse_while_loop()
 
 	if (token_pipe->optional(WTokenType::EOL))
 	{
-		auto block = parse_block();
-		return MAKE_STATEMENT(WhileLoop(condition, block));
+		auto body = parse_block();
+		return MAKE_STATEMENT(WhileLoop(condition, body));
 	}
 
 	auto statement = parse_non_block_statement();
@@ -549,8 +549,8 @@ Statement_ptr Parser::parse_for_in_loop()
 
 	if (token_pipe->optional(WTokenType::EOL))
 	{
-		auto block = parse_block();
-		return MAKE_STATEMENT(ForInLoop(lhs_pattern, rhs_pattern, block));
+		auto body = parse_block();
+		return MAKE_STATEMENT(ForInLoop(lhs_pattern, rhs_pattern, body));
 	}
 
 	auto statement = parse_non_block_statement();
@@ -1046,44 +1046,44 @@ tuple<wstring, wstring, bool, StringVector, TypeNodeVector, optional<TypeNode_pt
 
 	token_pipe->require(WTokenType::EOL);
 
-	Block block = parse_block();
+	Block body = parse_block();
 
 	if (is_method)
 	{
-		return make_tuple(first_identifier->value, second_identifier->value, is_method, arguments, argument_types, optional_return_type, block);
+		return make_tuple(first_identifier->value, second_identifier->value, is_method, arguments, argument_types, optional_return_type, body);
 	}
 
-	return make_tuple(first_identifier->value, L"", is_method, arguments, argument_types, optional_return_type, block);
+	return make_tuple(first_identifier->value, L"", is_method, arguments, argument_types, optional_return_type, body);
 }
 
 Statement_ptr Parser::parse_function_definition(bool is_public)
 {
-	auto [first_identifier, second_identifier, is_method, arguments, argument_types, optional_return_type, block] = parse_callable_definition();
+	auto [first_identifier, second_identifier, is_method, arguments, argument_types, optional_return_type, body] = parse_callable_definition();
 
 	if (is_method)
 	{
 		TypeNode_ptr function_method_type = MAKE_TYPE(FunctionMemberTypeNode(first_identifier, argument_types, optional_return_type));
 		//second_identifier += stringify_type(function_type);
-		return MAKE_STATEMENT(FunctionMemberDefinition(first_identifier, second_identifier, is_public, arguments, function_method_type, block));
+		return MAKE_STATEMENT(FunctionMemberDefinition(first_identifier, second_identifier, is_public, arguments, function_method_type, body));
 	}
 
 	TypeNode_ptr function_type = MAKE_TYPE(FunctionTypeNode(argument_types, optional_return_type));
 	//first_identifier += stringify_type(function_type);
-	return MAKE_STATEMENT(FunctionDefinition(is_public, first_identifier, arguments, function_type, block));
+	return MAKE_STATEMENT(FunctionDefinition(is_public, first_identifier, arguments, function_type, body));
 }
 
 Statement_ptr Parser::parse_generator_definition(bool is_public)
 {
-	auto [first_identifier, second_identifier, is_method, arguments, argument_types, optional_return_type, block] = parse_callable_definition();
+	auto [first_identifier, second_identifier, is_method, arguments, argument_types, optional_return_type, body] = parse_callable_definition();
 
 	if (is_method)
 	{
 		TypeNode_ptr generator_method_type = MAKE_TYPE(GeneratorMemberTypeNode(first_identifier, argument_types, optional_return_type));
 		//second_identifier += stringify_type(function_type);
-		return MAKE_STATEMENT(GeneratorMemberDefinition(first_identifier, second_identifier, is_public, arguments, generator_method_type, block));
+		return MAKE_STATEMENT(GeneratorMemberDefinition(first_identifier, second_identifier, is_public, arguments, generator_method_type, body));
 	}
 
 	TypeNode_ptr function_type = std::make_shared<TypeNode>(GeneratorTypeNode(argument_types, optional_return_type));
 	//first_identifier += stringify_type(function_type);
-	return MAKE_STATEMENT(GeneratorDefinition(is_public, first_identifier, arguments, function_type, block));
+	return MAKE_STATEMENT(GeneratorDefinition(is_public, first_identifier, arguments, function_type, body));
 }
