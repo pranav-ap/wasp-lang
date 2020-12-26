@@ -6,6 +6,7 @@ enum class Precedence : int
 	ASSIGNMENT,
 	TERNARY_CONDITION,
 	TYPE_PATTERN, // :
+	COALESE, // ??
 	OR,
 	AND,
 	EQUALITY, // == !=

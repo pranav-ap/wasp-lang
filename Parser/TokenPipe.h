@@ -4,7 +4,7 @@
 #include <vector>
 #include <memory>
 #include <optional>
-
+ 
 class TokenPipe
 {
 	std::vector<Token_ptr> tokens;

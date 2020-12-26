@@ -48,6 +48,7 @@ void ASTVisualizer::visit(const Statement_ptr statement, int parent_id)
 		[&](ForInLoop const& stat) { visit(stat, parent_id); },
 		[&](Break const& stat) { visit(stat, parent_id); },
 		[&](Continue const& stat) { visit(stat, parent_id); },
+		[&](Redo const& stat) { visit(stat, parent_id); },
 		[&](Return const& stat) { visit(stat, parent_id); },
 		[&](YieldStatement const& stat) { visit(stat, parent_id); },
 		[&](VariableDefinition const& stat) { visit(stat, parent_id); },
@@ -129,6 +130,12 @@ void ASTVisualizer::visit(Continue const& statement, int parent_id)
 	save(id, parent_id, L"continue");
 }
 
+void ASTVisualizer::visit(Redo const& statement, int parent_id)
+{
+	const int id = id_counter++;
+	save(id, parent_id, L"redo");
+}
+
 void ASTVisualizer::visit(Return const& statement, int parent_id)
 {
 	const int id = id_counter++;
@@ -156,7 +163,7 @@ void ASTVisualizer::visit(VariableDefinition const& statement, int parent_id)
 	const int id = id_counter++;
 	save(id, parent_id, L"VariableDefinition");
 	visit(statement.lhs_expression, id);
-	visit(statement.type, id);
+	visit(statement.type.value(), id);
 	visit(statement.rhs_expression, id);
 }
 
@@ -307,6 +314,11 @@ void ASTVisualizer::visit(Namespace const& statement, int parent_id)
 }
 
 // Expression
+
+void ASTVisualizer::visit(const ScopedExpression_ptr expression, int parent_id)
+{
+	visit(expression->expression, parent_id);
+}
 
 void ASTVisualizer::visit(const Expression_ptr expression, int parent_id)
 {

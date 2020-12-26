@@ -34,6 +34,7 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 	void visit(ForInLoop const& statement);
 	void visit(Break const& statement);
 	void visit(Continue const& statement);
+	void visit(Redo const& statement);
 	void visit(Return const& statement);
 	void visit(YieldStatement const& statement);
 	void visit(VariableDefinition const& statement);
@@ -53,6 +54,7 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 
 	// Expression
 
+	Object_ptr visit(const ScopedExpression_ptr expr);
 	Object_ptr visit(const Expression_ptr expr);
 	ObjectVector visit(std::vector<Expression_ptr> const& expressions);
 
@@ -101,7 +103,7 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 	Object_ptr visit(GeneratorTypeNode const& expr);
 	Object_ptr visit(FunctionMemberTypeNode const& expr);
 	Object_ptr visit(GeneratorMemberTypeNode const& expr);
-	Object_ptr visit(TypeIdentifierNode const& expr);
+	Object_ptr visit(TypeIdentifierTypeNode const& expr);
 
 	// Utils
 

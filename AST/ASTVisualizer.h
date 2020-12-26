@@ -33,6 +33,7 @@ class AST_API ASTVisualizer
 	void visit(ForInLoop const& statement, int parent_id);
 	void visit(Break const& statement, int parent_id);
 	void visit(Continue const& statement, int parent_id);
+	void visit(Redo const& statement, int parent_id);
 	void visit(Return const& statement, int parent_id);
 	void visit(YieldStatement const& statement, int parent_id);
 	void visit(VariableDefinition const& statement, int parent_id);
@@ -52,6 +53,7 @@ class AST_API ASTVisualizer
 
 	// Expression
 
+	void visit(const ScopedExpression_ptr expr, int parent_id);
 	void visit(const Expression_ptr expr, int parent_id);
 	void visit(std::vector<Expression_ptr> const& expressions, int parent_id);
 

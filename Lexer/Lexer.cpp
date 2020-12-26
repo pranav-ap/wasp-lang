@@ -100,6 +100,8 @@ vector<Token_ptr> Lexer::execute(std::wstring raw_source)
 			switch (current_char)
 			{
 			case '\\':
+			case '#':
+			case '@':
 			case '$':
 			case '~':
 			case ',':
@@ -170,6 +172,11 @@ Token_ptr Lexer::consume_number_literal(wchar_t ch)
 		if (iswdigit(ch))
 		{
 			number_literal.push_back(ch);
+			next();
+			continue;
+		}
+		else if (ch == '_')
+		{
 			next();
 			continue;
 		}
@@ -273,24 +280,6 @@ Token_ptr Lexer::consume_division()
 	{
 		return MAKE_TOKEN(WTokenType::DIVISION_EQUAL, L"/=", LINE_NUM, COL_NUM);
 	}
-	else if (expect_current_char('/'))
-	{
-		std::wstring comment;
-
-		while (wchar_t ch = get_current_char())
-		{
-			if (ch != '\n')
-			{
-				comment.push_back(ch);
-				next();
-				continue;
-			}
-
-			break;
-		}
-
-		return MAKE_TOKEN(WTokenType::COMMENT, comment, LINE_NUM, COL_NUM);
-	}
 
 	return MAKE_TOKEN(WTokenType::DIVISION, L"/", LINE_NUM, COL_NUM);
 }
@@ -378,9 +367,6 @@ Token_ptr Lexer::consume_dot()
 
 Token_ptr Lexer::consume_vertical_bar()
 {
-	if (expect_current_char('>'))
-		return MAKE_TOKEN(WTokenType::VERTICAL_BAR_GREATER_THAN, L"|>", LINE_NUM, COL_NUM);
-
 	return MAKE_TOKEN(WTokenType::VERTICAL_BAR, L"|", LINE_NUM, COL_NUM);
 }
 
@@ -403,6 +389,8 @@ Token_ptr Lexer::consume_single_char_punctuation(wchar_t ch)
 		return MAKE_TOKEN(WTokenType::BACKWARD_SLASH, L"\\", LINE_NUM, COL_NUM);
 	case '$':
 		return MAKE_TOKEN(WTokenType::DOLLAR, L"$", LINE_NUM, COL_NUM);
+	case '@':
+		return MAKE_TOKEN(WTokenType::AT_SIGN, L"@", LINE_NUM, COL_NUM);
 	case '~':
 		return MAKE_TOKEN(WTokenType::TILDE, L"~", LINE_NUM, COL_NUM);
 	case ',':
@@ -427,7 +415,24 @@ Token_ptr Lexer::consume_single_char_punctuation(wchar_t ch)
 		return MAKE_TOKEN(WTokenType::OPEN_FLOOR_BRACKET, L"⌊", LINE_NUM, COL_NUM);
 	case RIGHT_FLOOR_BRACKET:
 		return MAKE_TOKEN(WTokenType::CLOSE_FLOOR_BRACKET, L"⌋", LINE_NUM, COL_NUM);
+	case '#':
+	{
+		std::wstring comment;
 
+		while (wchar_t ch = get_current_char())
+		{
+			if (ch != '\n')
+			{
+				comment.push_back(ch);
+				next();
+				continue;
+			}
+
+			break;
+		}
+
+		return MAKE_TOKEN(WTokenType::COMMENT, comment, LINE_NUM, COL_NUM);
+	}
 	default:
 		return MAKE_TOKEN(WTokenType::UNKNOWN, L"", LINE_NUM, COL_NUM);
 	}

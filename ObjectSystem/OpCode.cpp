@@ -16,7 +16,6 @@ OBJECTSYSTEM_API int get_opcode_arity(OpCode opcode)
 	case OpCode::STOP:
 	case OpCode::PUSH_TO_STACK:
 	case OpCode::POP_FROM_STACK:
-	case OpCode::POP_N_FROM_STACK:
 	case OpCode::UNARY_POSITIVE:
 	case OpCode::UNARY_NEGATIVE:
 	case OpCode::UNARY_NOT:
@@ -105,10 +104,6 @@ OBJECTSYSTEM_API std::wstring stringify_opcode(OpCode opcode)
 	case OpCode::POP_FROM_STACK:
 	{
 		return L"POP_FROM_STACK";
-	}
-	case OpCode::POP_N_FROM_STACK:
-	{
-		return L"POP_N_FROM_STACK";
 	}
 	case OpCode::UNARY_POSITIVE:
 	{

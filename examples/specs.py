@@ -1,19 +1,15 @@
-﻿let { io } = import("std/io")
+﻿# Its more of a comment really
 
-// Its more of a comment really
 
 let x : int = 34
 let x : string = "hello"
 let x : [int] = [ 1, 2, 3 ]
-let x : ⌊ string ⌋ = ⌊ "1", "hello" ⌋
-let x : { string } = { "1", "hello" }
+let x : ⌊ string ⌋ = ⌊ "1", "hello" ⌋ # tuple
+let x : { string } = { "1", "hello" } # set
 let x : ⟨ string => string ⟩ = ⟨ "a": "b", "c": "d" ⟩
-let x : Person = new Person("john", false)
+
 
 a = 1
-x.foo.age = 1
-x(123).foo(36, gg).age = 1
-
 
 
 if a > 3 then
@@ -26,13 +22,6 @@ end
 
 
 if a > 3 then call() else 4
-
-
-if x : int = call() then
-    x = 1
-else
-    3
-end
 
 
 for x : int in [1, 2, 3] do call(x)
@@ -59,6 +48,7 @@ fn add(a : int, b : int) => int
     return a + b
 end
 
+
 enum Animal
 	DOG
 	CAT
@@ -70,7 +60,6 @@ end
 
 
 NAME::ID1
-NAME::LASTNAME
 NAME::LASTNAME::ID3
 
 
@@ -79,44 +68,24 @@ type length = int | string
 type WindowStates = "open" | "closed" | "minimized"
 
 
-interface ICastle
-    const foo: int = 43
+# Planned Features
 
-    lng: int
-    lat: int
+import { io } from 'io'
 
-    tileSize: 8 | 16 | 32
+x.foo.age = 1
+x(123).foo(36, gg).age = 1
 
-    open_gates: (speed: int) => bool
-    close_gates: gen (speed: int) => bool
+
+if x : int = call() then
+    x = 1
+else
+    3
 end
 
 
-type Castle ~ ICastle < Building
-    const foo: int = 43
-    name: string
-    
-    constructor : ()
-    repr : () => string
-end
 
+let x : Person = new Person("john", false)
 
-fn Castle::constructor(name: string)
-    self.name = name
-end
-
-
-fn Castle::defend() => any
-    x = 43
-end
-
-
-infix + (a : num, b : num) => num
-    return a + b
-end
-
-
-// Planned Features
 
 namepace Hello
 end
@@ -131,6 +100,7 @@ match { thing, another, third } then
         echo "bye"
 end
 
+
 try
 catch
 else
@@ -138,5 +108,43 @@ finally
 end
 
 
-let [a : int, ...b : string, c : string] = some_list
-[a, ...b, c] = some_list
+let [a, ...b, c] = some_list
+
+
+infix + (a : num, b : num) => num
+    return a + b
+end
+
+
+interface ICastle
+    lng: int
+    lat: int
+
+    tileSize: 8 | 16 | 32
+
+    open_gates: (speed: int) => bool
+    close_gates: gen (speed: int) => bool
+end
+
+
+type Castle ~ ICastle < Building
+    name: string
+    constructor : ()
+    repr : () => string
+end
+
+
+fn Castle::constructor(name: string)
+    self.name = name
+end
+
+
+fn Castle::fire() => any
+    self.defend()
+end
+
+
+fn Castle::defend() => any
+    x = 43
+end
+

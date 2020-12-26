@@ -7,6 +7,7 @@
 #endif
 
 #include "Symbol.h"
+#include "CodeObject.h"
 #include <map>
 #include <vector>
 #include <memory>
@@ -32,8 +33,13 @@ using SymbolScope_ptr = SYMBOL_API std::shared_ptr<SymbolScope>;
 struct SYMBOL_API SymbolScope
 {
 	ScopeType scope_type;
+	std::map<std::wstring, std::vector<std::wstring>> function_overloads;
 	std::map<std::wstring, Symbol_ptr> symbols;
 	std::optional<SymbolScope_ptr> enclosing_scope;
+
+	CodeObject_ptr code_object;
+
+	bool is_rvalue;
 
 	int break_label;
 	int continue_label;
@@ -41,10 +47,15 @@ struct SYMBOL_API SymbolScope
 	SymbolScope(std::optional<SymbolScope_ptr> enclosing_scope, ScopeType scope_type)
 		: break_label(0),
 		continue_label(0),
+		is_rvalue(true),
 		scope_type(scope_type),
-		enclosing_scope(std::move(enclosing_scope)) {};
+		enclosing_scope(std::move(enclosing_scope)),
+		code_object(nullptr) {};
 
 	void define(std::wstring name, Symbol_ptr symbol);
+	void define_subroutine(std::wstring name, Symbol_ptr symbol);
+
+	Symbol_ptr lookup_all(std::wstring name);
 	Symbol_ptr lookup(std::wstring name);
 
 	bool enclosed_in(ScopeType type);

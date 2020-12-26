@@ -33,7 +33,7 @@ struct FunctionTypeNode;
 struct GeneratorTypeNode;
 struct FunctionMemberTypeNode;
 struct GeneratorMemberTypeNode;
-struct TypeIdentifierNode;
+struct TypeIdentifierTypeNode;
 
 using TypeNode = AST_API std::variant<
 	std::monostate,
@@ -41,7 +41,7 @@ using TypeNode = AST_API std::variant<
 	IntLiteralTypeNode, FloatLiteralTypeNode, StringLiteralTypeNode, BooleanLiteralTypeNode,
 	IntTypeNode, FloatTypeNode, StringTypeNode, BooleanTypeNode,
 	ListTypeNode, TupleTypeNode, SetTypeNode, MapTypeNode,
-	TypeIdentifierNode,
+	TypeIdentifierTypeNode,
 	VariantTypeNode, NoneTypeNode,
 	FunctionTypeNode, GeneratorTypeNode,
 	FunctionMemberTypeNode, GeneratorMemberTypeNode
@@ -84,10 +84,10 @@ struct AST_API CallableTypeNode : public AnyTypeNode
 
 // Parser does not know whether type identifier is class, enum or interface
 
-struct AST_API TypeIdentifierNode : public AnyTypeNode
+struct AST_API TypeIdentifierTypeNode : public AnyTypeNode
 {
 	std::wstring name;
-	TypeIdentifierNode(std::wstring name) : name(name) {};
+	TypeIdentifierTypeNode(std::wstring name) : name(name) {};
 };
 
 // Scalar Types

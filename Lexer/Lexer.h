@@ -34,6 +34,7 @@ const std::map<std::wstring, WTokenType> keyword_map =
 	{ L"in", WTokenType::IN_KEYWORD },
 	{ L"break", WTokenType::BREAK },
 	{ L"continue", WTokenType::CONTINUE },
+	{ L"redo", WTokenType::REDO },
 
 	{ L"interface", WTokenType::INTERFACE },
 	{ L"fn", WTokenType::FN },

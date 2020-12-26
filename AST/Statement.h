@@ -9,6 +9,7 @@
 #include "Expression.h"
 #include "TypeNode.h"
 #include "SymbolScope.h"
+#include "AnnotatedNode.h"
 #include <string>
 #include <vector>
 #include <map>
@@ -25,6 +26,7 @@ struct WhileLoop;
 struct ForInLoop;
 struct Break;
 struct Continue;
+struct Redo;
 struct Return;
 struct YieldStatement;
 struct VariableDefinition;
@@ -46,32 +48,28 @@ using Statement = AST_API std::variant <
 
 	File,
 	Namespace,
+	
 	IfBranch, ElseBranch,
 	WhileLoop, ForInLoop,
-	Break, Continue,
+
+	Break, Continue, Redo,
 	Return, YieldStatement,
 
 	VariableDefinition,
 	ClassDefinition, AliasDefinition,
-	FunctionDefinition, GeneratorDefinition,
 	InterfaceDefinition, EnumDefinition,
-	FunctionMemberDefinition,
-	GeneratorMemberDefinition,
+
+	FunctionDefinition, GeneratorDefinition,
+	FunctionMemberDefinition, GeneratorMemberDefinition,
 
 	ExpressionStatement,
-	Assert,
-	Implore, Swear
+
+	Assert, Implore, Swear
 > ;
 
 using Statement_ptr = AST_API std::shared_ptr<Statement>;
 using Block = AST_API std::vector<Statement_ptr>;
 using StringVector = AST_API std::vector<std::wstring>;
-
-struct AST_API AnnotatedNode
-{
-	SymbolScope_ptr scope;
-	AnnotatedNode() : scope(nullptr) {};
-};
 
 // Branching
 
@@ -113,7 +111,7 @@ struct AST_API ForInLoop : public AnnotatedNode
 	Block body;
 
 	ForInLoop(Expression_ptr lhs_expression, Expression_ptr rhs_expression, Block body)
-		: body(body), lhs_expression(std::move(lhs_expression)), rhs_expression(std::move(rhs_expression)) {};
+		: lhs_expression(std::move(lhs_expression)), rhs_expression(std::move(rhs_expression)), body(body) {};
 };
 
 struct AST_API Break : public AnnotatedNode
@@ -124,6 +122,11 @@ struct AST_API Continue : public AnnotatedNode
 {
 };
 
+struct AST_API Redo : public AnnotatedNode
+{
+};
+
+
 // Definitions
 
 struct AST_API VariableDefinition : public AnnotatedNode
@@ -131,13 +134,16 @@ struct AST_API VariableDefinition : public AnnotatedNode
 	bool is_public;
 	bool is_mutable;
 
-	TypeNode_ptr type;
+	std::optional<TypeNode_ptr> type;
 
-	Expression_ptr lhs_expression;
+	Expression_ptr lhs_expression; // identifier, [a, ...b, c] and others
 	Expression_ptr rhs_expression;
 
+	VariableDefinition(bool is_public, bool is_mutable, Expression_ptr lhs_expression, Expression_ptr rhs_expression)
+		: is_public(is_public), is_mutable(is_mutable), type(std::nullopt), lhs_expression(std::move(lhs_expression)), rhs_expression(std::move(rhs_expression)) {};
+
 	VariableDefinition(bool is_public, bool is_mutable, TypeNode_ptr type, Expression_ptr lhs_expression, Expression_ptr rhs_expression)
-		: is_public(is_public), is_mutable(is_mutable), type(type), lhs_expression(std::move(lhs_expression)), rhs_expression(std::move(rhs_expression)) {};
+		: is_public(is_public), is_mutable(is_mutable), type(std::make_optional(type)), lhs_expression(std::move(lhs_expression)), rhs_expression(std::move(rhs_expression)) {};
 };
 
 struct AST_API Definition : public AnnotatedNode

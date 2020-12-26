@@ -157,6 +157,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="AnnotatedNode.h" />
     <ClInclude Include="ASTVisualizer.h" />
     <ClInclude Include="Expression.h" />
     <ClInclude Include="framework.h" />

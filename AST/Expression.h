@@ -8,6 +8,7 @@
 
 #include "Token.h"
 #include "TypeNode.h"
+#include "AnnotatedNode.h"
 #include <string>
 #include <vector>
 #include <map>
@@ -38,8 +39,8 @@ using Expression = AST_API std::variant<
 	ListLiteral, TupleLiteral, SetLiteral,
 	MapLiteral, NewObject, EnumMember,
 	Identifier, Call,
-	Assignment, Spread,
-	Prefix, Infix, Postfix,
+	Assignment, 
+	Spread,	Prefix, Infix, Postfix,
 	TypePattern, TernaryCondition,
 	MemberAccess
 >;
@@ -47,6 +48,14 @@ using Expression = AST_API std::variant<
 using Expression_ptr = AST_API std::shared_ptr<Expression>;
 using ExpressionVector = AST_API std::vector<Expression_ptr>;
 using ExpressionStack = AST_API std::stack<Expression_ptr>;
+
+struct AST_API ScopedExpression : public AnnotatedNode
+{
+	Expression_ptr expression;
+	ScopedExpression(Expression_ptr expression) : expression(expression) {};
+};
+
+using ScopedExpression_ptr = AST_API std::shared_ptr<ScopedExpression>;
 
 struct AST_API Identifier
 {
@@ -171,12 +180,14 @@ struct AST_API TypePattern
 
 struct AST_API TernaryCondition
 {
-	Expression_ptr condition;
-	Expression_ptr true_expression;
-	Expression_ptr false_expression;
+	ScopedExpression_ptr condition;
+	ScopedExpression_ptr true_expression;
+	ScopedExpression_ptr false_expression;
 
 	TernaryCondition(Expression_ptr condition, Expression_ptr true_expression, Expression_ptr false_expression)
-		: condition(std::move(condition)), true_expression(std::move(true_expression)), false_expression(std::move(false_expression)) {};
+		: condition(std::move(std::make_shared<ScopedExpression>(condition))), 
+		true_expression(std::move(std::make_shared<ScopedExpression>(true_expression))),
+		false_expression(std::move(std::make_shared<ScopedExpression>(false_expression))) {};
 };
 
 struct AST_API Spread

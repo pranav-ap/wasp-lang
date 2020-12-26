@@ -70,8 +70,8 @@ Parser::Parser()
 	register_prefix(WTokenType::MINUS, Precedence::PREFIX);
 	register_prefix(WTokenType::BANG, Precedence::PREFIX);
 	register_prefix(WTokenType::TYPE_OF, Precedence::PREFIX);
+	register_prefix(WTokenType::AT_SIGN, Precedence::PREFIX);
 
-	register_infix_left(WTokenType::QUESTION_QUESTION, Precedence::MEMBER_ACCESS);
 	register_infix_left(WTokenType::PLUS, Precedence::TERM);
 	register_infix_left(WTokenType::MINUS, Precedence::TERM);
 	register_infix_left(WTokenType::STAR, Precedence::PRODUCT);
@@ -85,6 +85,7 @@ Parser::Parser()
 	register_infix_left(WTokenType::GREATER_THAN_EQUAL, Precedence::COMPARISON);
 	register_infix_left(WTokenType::IN_KEYWORD, Precedence::COMPARISON);
 	register_infix_left(WTokenType::IS, Precedence::COMPARISON);
+	register_infix_left(WTokenType::QUESTION_QUESTION, Precedence::COALESE);
 	register_infix_left(WTokenType::AND, Precedence::AND);
 	register_infix_left(WTokenType::OR, Precedence::OR);
 
@@ -248,6 +249,7 @@ Statement_ptr Parser::parse_statement(bool is_public)
 		CASE(WTokenType::SWEAR, parse_swear());
 		CASE(WTokenType::BREAK, parse_break());
 		CASE(WTokenType::CONTINUE, parse_continue());
+		CASE(WTokenType::REDO, parse_redo());
 
 	default:
 	{
@@ -357,6 +359,12 @@ Statement_ptr Parser::parse_continue()
 	return MAKE_STATEMENT(Continue());
 }
 
+Statement_ptr Parser::parse_redo()
+{
+	token_pipe->require(WTokenType::EOL);
+	return MAKE_STATEMENT(Redo());
+}
+
 // Blocks
 
 Statement_ptr Parser::parse_namespace(bool is_public)
@@ -416,6 +424,7 @@ Statement_ptr Parser::parse_non_block_statement()
 		CASE(WTokenType::YIELD_KEYWORD, parse_yield());
 		CASE(WTokenType::BREAK, parse_break());
 		CASE(WTokenType::CONTINUE, parse_continue());
+		CASE(WTokenType::REDO, parse_redo());
 		CASE(WTokenType::ASSERT, parse_assert());
 		CASE(WTokenType::IMPLORE, parse_implore());
 		CASE(WTokenType::SWEAR, parse_swear());
@@ -479,7 +488,7 @@ Expression_ptr Parser::parse_ternary_condition(Expression_ptr condition)
 	token_pipe->require(WTokenType::ELSE);
 	Expression_ptr else_arm = parse_expression((int)Precedence::TERNARY_CONDITION - 1);
 
-	return MAKE_EXPRESSION(TernaryCondition(move(condition), move(then_arm), move(else_arm)));
+	return MAKE_EXPRESSION(TernaryCondition(condition, then_arm, else_arm));
 }
 
 Statement_ptr Parser::parse_branching(WTokenType token_type)
@@ -840,7 +849,7 @@ TypeNode_ptr Parser::consume_datatype_word(bool is_optional)
 	case WTokenType::IDENTIFIER:
 	{
 		ADVANCE_PTR;
-		return is_optional ? MAKE_OPTIONAL_TYPE(TypeIdentifierNode(token.value()->value)) : MAKE_TYPE(TypeIdentifierNode(token.value()->value));
+		return is_optional ? MAKE_OPTIONAL_TYPE(TypeIdentifierTypeNode(token.value()->value)) : MAKE_TYPE(TypeIdentifierTypeNode(token.value()->value));
 	}
 	}
 
@@ -906,10 +915,14 @@ Statement_ptr Parser::parse_variable_definition(bool is_public, bool is_mutable)
 	ASSERT(holds_alternative<Assignment>(*expression), "Must be an Assignment");
 	auto assignment = get_if<Assignment>(&*expression);
 
-	ASSERT(holds_alternative<TypePattern>(*assignment->lhs_expression), "Must be a TypePattern");
-	auto type_pattern = get_if<TypePattern>(&*assignment->lhs_expression);
+	if (holds_alternative<TypePattern>(*assignment->lhs_expression), "Must be a TypePattern")
+	{
+		auto type_pattern = get_if<TypePattern>(&*assignment->lhs_expression);
+		return MAKE_STATEMENT(VariableDefinition(is_public, is_mutable, move(type_pattern->type), move(type_pattern->expression), move(assignment->rhs_expression)));
+	}
 
-	return MAKE_STATEMENT(VariableDefinition(is_public, is_mutable, move(type_pattern->type), move(type_pattern->expression), move(assignment->rhs_expression)));
+	ASSERT(holds_alternative<Identifier>(*assignment->lhs_expression), "Must be a Identifier or TypePattern");
+	return MAKE_STATEMENT(VariableDefinition(is_public, is_mutable, move(assignment->lhs_expression), move(assignment->rhs_expression)));
 }
 
 StringVector Parser::parse_comma_separated_identifiers()

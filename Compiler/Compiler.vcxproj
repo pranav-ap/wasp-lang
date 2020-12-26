@@ -165,16 +165,21 @@
   <ItemGroup>
     <ClCompile Include="Compiler.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="ExpressionCompiler.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MemorySystem\MemorySystem.vcxproj">
-      <Project>{20f70ed3-fd8e-4df0-b96a-a7bc28800fe9}</Project>
+    <ProjectReference Include="..\ObjectSystem\ObjectSystem.vcxproj">
+      <Project>{e9dc52f7-d707-4884-b448-75f812bd4326}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Symbol\Symbol.vcxproj">
+      <Project>{f80a3e16-b52a-410d-9fe7-bb9c46105710}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Utils\Utils.vcxproj">
       <Project>{825d931e-a262-42d4-8af0-8e503ac06104}</Project>

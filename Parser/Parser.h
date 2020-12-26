@@ -36,6 +36,7 @@ class PARSER_API Parser
 	Statement_ptr parse_swear();
 	Statement_ptr parse_break();
 	Statement_ptr parse_continue();
+	Statement_ptr parse_redo();	
 
 	// TypeNode parsers
 
