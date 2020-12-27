@@ -18,10 +18,10 @@ using std::pair;
 using std::byte;
 using std::to_integer;
 
-CFG_ptr CFGBuilder::execute()
-{
-	cfg = std::make_shared<CFG>(memory->get_constant_pool());
+// API
 
+CFG_ptr CFGBuilder::create()
+{
 	split_into_basic_blocks();
 	connect_basic_blocks();
 
@@ -33,24 +33,23 @@ ByteVector CFGBuilder::assemble()
 	ByteVector instructions;
 	map<int, pair<int, int>> block_locations; // id -> (start, end)
 
-	for (auto const& [id, block] : cfg->node_id_to_basic_blocks)
+	for (auto const& [id, block] : cfg->basic_blocks)
 	{
 		int start = instructions.size();
-		int end = start + block->code_section->instructions.size();
+		int end = start + block->code_object->instructions.size();
 
 		block_locations[id] = { start, end };
 
 		instructions.insert(
 			std::end(instructions),
-			std::begin(block->code_section->instructions),
-			std::end(block->code_section->instructions)
+			std::begin(block->code_object->instructions),
+			std::end(block->code_object->instructions)
 		);
 	}
 
 	for (int index = 0; index < instructions.size(); index++)
 	{
 		const byte opcode = instructions.at(index);
-
 		int arity = get_opcode_arity(opcode);
 
 		switch ((OpCode)opcode)
@@ -59,18 +58,12 @@ ByteVector CFGBuilder::assemble()
 		case OpCode::JUMP_IF_FALSE:
 		case OpCode::POP_JUMP:
 		case OpCode::POP_JUMP_IF_FALSE:
-		case OpCode::ITERATE_OVER_LIST:
-		case OpCode::ITERATE_OVER_MAP:
-		case OpCode::ITERATE_OVER_STRING:
-		case OpCode::ITERATE_OVER_IDENTIFIER:
 		{
 			int label = to_integer<int>(instructions.at(index + (size_t)1));
 			int block_id = label_to_node_id[label];
 
-			int start = block_locations[block_id].first;
-			byte new_label = static_cast<byte>(start);
-
-			instructions.at(index + (size_t)1) = new_label;
+			int block_start_index = block_locations[block_id].first;
+			instructions.at(index + (size_t)1) = static_cast<byte>(block_start_index);
 			break;
 		}
 
@@ -86,11 +79,12 @@ ByteVector CFGBuilder::assemble()
 	return instructions;
 }
 
+// Operations
+
 void CFGBuilder::split_into_basic_blocks()
 {
-	ByteVector instructions = memory->get_code_section()->instructions;
+	auto instructions = code_object->instructions;
 	int length = instructions.size();
-
 	bool previous_instruction_was_leader = false;
 
 	for (int code_pointer = 0; code_pointer < length; code_pointer++)
@@ -104,6 +98,7 @@ void CFGBuilder::split_into_basic_blocks()
 		{
 			IS_A_LEADER;
 			enter_empty_node();
+			current_node->type = BlockType::Start;
 			cfg->start_node_id = current_node_id;
 			emit(opcode);
 			break;
@@ -133,7 +128,7 @@ void CFGBuilder::split_into_basic_blocks()
 			IS_A_LEADER;
 			std::byte operand = instructions.at(++code_pointer);
 			emit(opcode, operand);
-			current_node->type = BlockType::UnconditionalJump;
+			mark_node_as_unconditional_jump();
 			enter_empty_node();
 			break;
 		}
@@ -170,7 +165,6 @@ void CFGBuilder::split_into_basic_blocks()
 		case OpCode::NO_OP:
 		case OpCode::PUSH_TO_STACK:
 		case OpCode::POP_FROM_STACK:
-		case OpCode::POP_N_FROM_STACK:
 		case OpCode::UNARY_POSITIVE:
 		case OpCode::UNARY_NEGATIVE:
 		case OpCode::UNARY_NOT:
@@ -189,6 +183,7 @@ void CFGBuilder::split_into_basic_blocks()
 		case OpCode::GREATER_THAN_EQUAL:
 		case OpCode::AND:
 		case OpCode::OR:
+		case OpCode::NULLISH_COALESE:
 		case OpCode::PUSH_CONSTANT_TRUE:
 		case OpCode::PUSH_CONSTANT_FALSE:
 		{
@@ -208,10 +203,7 @@ void CFGBuilder::split_into_basic_blocks()
 		case OpCode::MAKE_LIST:
 		case OpCode::MAKE_TUPLE:
 		case OpCode::MAKE_MAP:
-		case OpCode::ITERATE_OVER_LIST:
-		case OpCode::ITERATE_OVER_MAP:
-		case OpCode::ITERATE_OVER_STRING:
-		case OpCode::ITERATE_OVER_IDENTIFIER:
+		case OpCode::MAKE_ENUM:
 		{
 			IS_A_FOLLOWER;
 			std::byte operand = instructions.at(++code_pointer);
@@ -221,14 +213,6 @@ void CFGBuilder::split_into_basic_blocks()
 
 		// Non-Leader with arity 2
 
-		case OpCode::GET_ELEMENT_FROM_LIST:
-		case OpCode::SET_ELEMENT_IN_LIST:
-		case OpCode::GET_VALUE_FROM_MAP:
-		case OpCode::SET_VALUE_FROM_MAP:
-		case OpCode::GET_PAIR_FROM_MAP:
-		case OpCode::SET_PAIR_FROM_MAP:
-		case OpCode::GET_CHAR_FROM_STRING:
-		case OpCode::SET_CHAR_FROM_STRING:
 		case OpCode::CALL_FUNCTION:
 		case OpCode::CALL_GENERATOR:
 		{
@@ -249,28 +233,27 @@ void CFGBuilder::split_into_basic_blocks()
 
 void CFGBuilder::connect_basic_blocks()
 {
-	for (auto const& [id, block] : cfg->node_id_to_basic_blocks)
+	for (auto const& [id, block] : cfg->basic_blocks)
 	{
 		if (block->type == BlockType::ConditionalJump)
 		{
-			int to_label = to_integer<int>(block->code_section->instructions.back());
+			int to_label = to_integer<int>(block->code_object->instructions.back());
 
 			int true_successor_id = id + 1;
 			int false_successor_id = label_to_node_id[to_label];
 
 			cfg->adjacency_list[id] = { true_successor_id, false_successor_id };
 		}
-		else if (block->type == BlockType::Unconditional)
+		else if (block->type == BlockType::UnconditionalJump)
 		{
-			int unique_successor_id = id + 1;
+			int to_label = to_integer<int>(block->code_object->instructions.back());
+			int unique_successor_id = label_to_node_id[to_label];
 
 			cfg->adjacency_list[id] = { unique_successor_id, -1 };
 		}
-		else if (block->type == BlockType::UnconditionalJump)
+		else if (block->type == BlockType::Unconditional)
 		{
-			int to_label = to_integer<int>(block->code_section->instructions.back());
-			int unique_successor_id = label_to_node_id[to_label];
-
+			int unique_successor_id = id + 1;
 			cfg->adjacency_list[id] = { unique_successor_id, -1 };
 		}
 		else if (block->type == BlockType::Stop)
@@ -285,10 +268,9 @@ void CFGBuilder::connect_basic_blocks()
 
 void CFGBuilder::enter_empty_node()
 {
-	current_node_id = cfg->node_id_to_basic_blocks.size();
-
+	current_node_id = cfg->basic_blocks.size();
 	current_node = make_shared<BasicBlock>();
-	cfg->node_id_to_basic_blocks[current_node_id] = current_node;
+	cfg->basic_blocks[current_node_id] = current_node;
 }
 
 void CFGBuilder::mark_node_as_conditional()
@@ -299,6 +281,11 @@ void CFGBuilder::mark_node_as_conditional()
 void CFGBuilder::mark_node_as_unconditional()
 {
 	current_node->type = BlockType::Unconditional;
+}
+
+void CFGBuilder::mark_node_as_unconditional_jump()
+{
+	current_node->type = BlockType::UnconditionalJump;
 }
 
 void CFGBuilder::emit(std::byte opcode)

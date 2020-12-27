@@ -20,7 +20,7 @@ void CodeObject::push(ByteVector instruction)
 		std::end(instructions),
 		std::begin(instruction),
 		std::end(instruction)
-	);
+	);	
 }
 
 void CodeObject::replace(int index, std::byte replacement)
@@ -35,28 +35,19 @@ void CodeObject::set(ByteVector instructions)
 
 void CodeObject::emit(OpCode opcode)
 {
-	ByteVector instruction;
-	instruction.push_back(static_cast<byte>(opcode));
-
+	ByteVector instruction = { static_cast<byte>(opcode) };
 	push(instruction);
 }
 
 void CodeObject::emit(OpCode opcode, int operand)
 {
-	ByteVector instruction;
-	instruction.push_back(static_cast<byte>(opcode));
-	instruction.push_back(static_cast<byte>(operand));
-
+	ByteVector instruction = { static_cast<byte>(opcode), static_cast<byte>(operand) };
 	push(instruction);
 }
 
 void CodeObject::emit(OpCode opcode, int operand_1, int operand_2)
 {
-	ByteVector instruction;
-	instruction.push_back(static_cast<byte>(opcode));
-	instruction.push_back(static_cast<byte>(operand_1));
-	instruction.push_back(static_cast<byte>(operand_2));
-
+	ByteVector instruction = { static_cast<byte>(opcode), static_cast<byte>(operand_1), static_cast<byte>(operand_2) };
 	push(instruction);
 }
 

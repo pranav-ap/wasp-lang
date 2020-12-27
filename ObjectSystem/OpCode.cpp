@@ -63,6 +63,7 @@ OBJECTSYSTEM_API int get_opcode_arity(OpCode opcode)
 		return 1;
 	}
 
+	case OpCode::MAKE_ENUM:
 	case OpCode::CALL_FUNCTION:
 	case OpCode::CALL_GENERATOR:
 	{
@@ -169,6 +170,10 @@ OBJECTSYSTEM_API std::wstring stringify_opcode(OpCode opcode)
 	{
 		return L"GREATER_THAN_EQUAL";
 	}
+	case OpCode::NULLISH_COALESE:
+	{
+		return L"NULLISH_COALESE";
+	}
 	case OpCode::AND:
 	{
 		return L"AND";
@@ -236,6 +241,10 @@ OBJECTSYSTEM_API std::wstring stringify_opcode(OpCode opcode)
 	case OpCode::MAKE_MAP:
 	{
 		return L"MAKE_MAP";
+	}
+	case OpCode::MAKE_ENUM:
+	{
+		return L"MAKE_ENUM";
 	}
 	case OpCode::JUMP:
 	{

@@ -30,6 +30,10 @@ using std::to_wstring;
 using std::begin;
 using std::end;
 
+void Compiler::visit(const ScopedExpression_ptr expr)
+{
+	visit(expr->expression);
+}
 
 void Compiler::visit(const Expression_ptr expression)
 {
@@ -171,6 +175,9 @@ void Compiler::visit(TernaryCondition const& expr)
 
 void Compiler::visit(EnumMember const& expr)
 {
+	auto member = concat(expr.member_chain, L"::");
+	auto id = current_scope->lookup(member)->id;
+	emit(OpCode::LOAD_LOCAL, id);
 }
 
 void Compiler::visit(TypePattern const& expr)
@@ -311,6 +318,11 @@ void Compiler::visit(Infix const& expr)
 		emit(OpCode::GREATER_THAN_EQUAL);
 		break;
 	}
+	case WTokenType::QUESTION_QUESTION:
+	{
+		emit(OpCode::NULLISH_COALESE);
+		break;
+	}
 	case WTokenType::AND:
 	{
 		emit(OpCode::AND);
@@ -335,10 +347,6 @@ void Compiler::visit(Postfix const& expr)
 void Compiler::visit(Assignment const& statement)
 {
 	visit(statement.rhs_expression);
-
-	current_scope->is_rvalue = false;
-	visit(statement.lhs_expression);
-	current_scope->is_rvalue = true;
 
 	ASSERT(holds_alternative<Identifier>(*statement.lhs_expression), "Must be an identifier");
 	auto identifier = get_if<Identifier>(&*statement.lhs_expression);

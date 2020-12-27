@@ -81,6 +81,7 @@ std::wstring InstructionPrinter::stringify_instruction(std::byte opcode, std::by
 
 	switch ((OpCode)opcode)
 	{
+	case OpCode::MAKE_ENUM:
 	case OpCode::CALL_FUNCTION:
 	case OpCode::CALL_GENERATOR:
 	{

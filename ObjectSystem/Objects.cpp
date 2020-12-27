@@ -13,6 +13,7 @@
 #define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr")
 #define THROW(message) return std::make_shared<Object>(ErrorObject(message));
 #define THROW_IF(condition, message) if (!condition) { return std::make_shared<Object>(ErrorObject(message)); }
+#define STR(x) to_wstring(x)
 
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
@@ -264,55 +265,63 @@ bool VariantObject::has_value()
 
 std::wstring stringify_object(Object_ptr value)
 {
-	return std::visit(overloaded{
-		[&](IntObject const& obj) { return L"Object"; },
-		[&](FloatObject const& obj) { return L"Object"; },
-		[&](StringObject const& obj) { return L"Object"; },
-		[&](BooleanObject const& obj) { return L"Object"; },
-		[&](ListObject const& obj) { return L"Object"; },
-		[&](TupleObject const& obj) { return L"Object"; },
-		[&](SetObject const& obj) { return L"Object"; },
-		[&](MapObject const& obj) { return L"Object"; },
-		[&](EnumMemberObject const& obj) { return L"Object"; },
-		[&](VariantObject const& obj) { return L"Object"; },
-		[&](FunctionObject const& obj) { return L"Object"; },
-		[&](GeneratorObject const& obj) { return L"Object"; },
-		[&](FunctionMethodObject const& obj) { return L"Object"; },
-		[&](GeneratorMethodObject const& obj) { return L"Object"; },
-		[&](ReturnObject const& obj) { return L"Object"; },
-		[&](YieldObject const& obj) { return L"Object"; },
-		[&](ErrorObject const& obj) { return L"Object"; },
-		[&](BreakObject const& obj) { return L"Object"; },
-		[&](ContinueObject const& obj) { return L"Object"; },
-		[&](BuiltInsObject const& obj) { return L"Object"; },
-		[&](NoneObject const& obj) { return L"Object"; },
-		[&](EnumObject const& obj) { return L"Object"; },
-		[&](ClassObject const& obj) { return L"Object"; },
-		[&](InstanceObject const& obj) { return L"Object"; },
+	auto s = wstring(L"Object");
 
-		[&](AnyType const& obj) { return L"Object"; },
-		[&](IntLiteralType const& obj) { return L"Object"; },
-		[&](FloatLiteralType const& obj) { return L"Object"; },
-		[&](StringLiteralType const& obj) { return L"Object"; },
-		[&](BooleanLiteralType const& obj) { return L"Object"; },
-		[&](IntType const& obj) { return L"Object"; },
-		[&](FloatType const& obj) { return L"Object"; },
-		[&](StringType const& obj) { return L"Object"; },
-		[&](BooleanType const& obj) { return L"Object"; },
-		[&](ListType const& obj) { return L"Object"; },
-		[&](TupleType const& obj) { return L"Object"; },
-		[&](SetType const& obj) { return L"Object"; },
-		[&](MapType const& obj) { return L"Object"; },
-		[&](ClassType const& obj) { return L"Object"; },
-		[&](AliasType const& obj) { return L"Object"; },
-		[&](InterfaceType const& obj) { return L"Object"; },
-		[&](EnumType const& obj) { return L"Object"; },
-		[&](VariantType const& obj) { return L"Object"; },
-		[&](NoneType const& obj) { return L"Object"; },
-		[&](FunctionType const& obj) { return L"Object"; },
-		[&](GeneratorType const& obj) { return L"Object"; },
-		[&](FunctionMemberType const& obj) { return L"Object"; },
-		[&](GeneratorMemberType const& obj) { return L"Object"; },
-		[&](auto) { return L" "; }
+	return std::visit(overloaded{
+		[&](IntObject const& obj) { return STR(obj.value); },
+		[&](FloatObject const& obj) { return STR(obj.value); },
+		[&](StringObject const& obj) { return obj.value; },
+		[&](BooleanObject const& obj) { return STR(obj.value); },
+
+		[&](ListObject const& obj) { return s; },
+		[&](TupleObject const& obj) { return s; },
+		[&](SetObject const& obj) { return s; },
+		
+		[&](EnumMemberObject const& obj) { return s; },
+		[&](MapObject const& obj) { return s; },
+
+		[&](VariantObject const& obj) { return s; },
+		[&](FunctionObject const& obj) { return s; },
+		[&](GeneratorObject const& obj) { return s; },
+		[&](FunctionMethodObject const& obj) { return s; },
+		[&](GeneratorMethodObject const& obj) { return s; },
+		[&](ReturnObject const& obj) { return s; },
+		[&](YieldObject const& obj) { return s; },
+		[&](ErrorObject const& obj) { return s; },
+		[&](BreakObject const& obj) { return wstring(L"break"); },
+		[&](ContinueObject const& obj) { return wstring(L"continue"); },
+		[&](RedoObject const& obj) { return wstring(L"redo"); },
+		[&](NoneObject const& obj) { return wstring(L"none"); },
+		[&](BuiltInsObject const& obj) { return s; },
+		[&](EnumObject const& obj) { return s; },
+		[&](ClassObject const& obj) { return s; },
+		[&](InstanceObject const& obj) { return s; },
+
+		// Types
+
+		[&](AnyType const& obj) { return s; },
+		[&](IntLiteralType const& obj) { return s; },
+		[&](FloatLiteralType const& obj) { return s; },
+		[&](StringLiteralType const& obj) { return s; },
+		[&](BooleanLiteralType const& obj) { return s; },
+		[&](IntType const& obj) { return s; },
+		[&](FloatType const& obj) { return s; },
+		[&](StringType const& obj) { return s; },
+		[&](BooleanType const& obj) { return s; },
+		[&](ListType const& obj) { return s; },
+		[&](TupleType const& obj) { return s; },
+		[&](SetType const& obj) { return s; },
+		[&](MapType const& obj) { return s; },
+		[&](ClassType const& obj) { return s; },
+		[&](AliasType const& obj) { return s; },
+		[&](InterfaceType const& obj) { return s; },
+		[&](EnumType const& obj) { return s; },
+		[&](VariantType const& obj) { return s; },
+		[&](NoneType const& obj) { return s; },
+		[&](FunctionType const& obj) { return s; },
+		[&](GeneratorType const& obj) { return s; },
+		[&](FunctionMemberType const& obj) { return s; },
+		[&](GeneratorMemberType const& obj) { return s; },
+		[&](auto) { return wstring(L" "); }
 		}, *value);
 }

@@ -1,38 +1,31 @@
 #pragma once
 
-#ifdef COMPILER_EXPORTS
-#define COMPILER_API __declspec(dllexport)
-#else
-#define COMPILER_API __declspec(dllimport)
-#endif
-
-
-#include "MemorySystem.h"
+#include "CodeObject.h"
 #include "OpCode.h"
 #include <memory>
 
-enum class COMPILER_API BlockType
+enum class BlockType
 {
 	Unknown,
 	ConditionalJump,
 	Unconditional,
 	UnconditionalJump,
+	Start,
 	Stop
 };
 
-struct COMPILER_API BasicBlock
+struct BasicBlock
 {
 	int label;
-
 	BlockType type;
-	CodeSection_ptr code_section;
+	CodeObject_ptr code_object;
 
 	BasicBlock()
 		: label(-1),
 		type(BlockType::Unknown),
-		code_section(std::make_shared<CodeSection>()) {};
+		code_object(std::make_shared<CodeObject>()) {};
 
 	void push(ByteVector instruction);
 };
 
-using BasicBlock_ptr = COMPILER_API std::shared_ptr<BasicBlock>;
+using BasicBlock_ptr = std::shared_ptr<BasicBlock>;

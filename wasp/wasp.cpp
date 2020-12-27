@@ -6,6 +6,7 @@
 #include "ASTVisualizer.h"
 #include "SemanticAnalyzer.h"
 #include "Compiler.h"
+#include "InstructionPrinter.h"
 
 #include <string>
 #include <memory>
@@ -34,6 +35,7 @@ int main()
 
 	Compiler_ptr compiler = make_unique<Compiler>();
 	ByteVector instructions = compiler->execute(ast);
+
 
 	return 0;
 }

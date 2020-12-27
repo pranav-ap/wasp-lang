@@ -81,7 +81,9 @@ enum class OBJECTSYSTEM_API OpCode
 	LABEL, // label
 
 	CALL_FUNCTION, // id, number of arguments
-	CALL_GENERATOR
+	CALL_GENERATOR,
+
+	MAKE_ENUM // enumn id, number of members 
 };
 
 OBJECTSYSTEM_API int get_opcode_arity(std::byte opcode);

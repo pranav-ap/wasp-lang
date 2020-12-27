@@ -10,7 +10,7 @@
 #include "Statement.h"
 #include "ObjectStore.h"
 #include "Objects.h"
-//#include "CFGBuilder.h"
+#include "CFGBuilder.h"
 
 #include <string>
 #include <vector>
@@ -21,14 +21,10 @@
 
 class COMPILER_API Compiler
 {
-	CodeObject_ptr code_object;
 	ObjectStore_ptr object_store;
-
 	SymbolScope_ptr current_scope;
 	int next_label;
-
-	void compile(const File_ptr ast);
-	
+		
 	// Statement
 
 	void visit(const Statement_ptr statement);
@@ -62,6 +58,7 @@ class COMPILER_API Compiler
 
 	// Expression
 
+	void visit(const ScopedExpression_ptr expr);
 	void visit(const Expression_ptr expr);
 	void visit(std::vector<Expression_ptr> const& expressions);
 
@@ -107,8 +104,8 @@ class COMPILER_API Compiler
 public:
 	Compiler()
 		: next_label(0), 
-		object_store(std::make_shared<ObjectStore>()),
-		code_object(std::make_shared<CodeObject>()) {};
+		current_scope(std::make_shared<SymbolScope>()),
+		object_store(std::make_shared<ObjectStore>()) {};
 
 	ByteVector execute(const File_ptr ast);
 };

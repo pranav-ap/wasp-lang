@@ -58,6 +58,7 @@ struct YieldObject;
 struct ErrorObject;
 struct BreakObject;
 struct ContinueObject;
+struct RedoObject;
 struct BuiltInsObject;
 struct NoneObject;
 struct FunctionObject;
@@ -86,7 +87,7 @@ using Object = OBJECTSYSTEM_API std::variant <
 	// Action Objects
 
 	ReturnObject, YieldObject,
-	ErrorObject,
+	ErrorObject, RedoObject,
 	BreakObject, ContinueObject,
 	BuiltInsObject,
 
@@ -316,6 +317,10 @@ struct OBJECTSYSTEM_API BreakObject : public ActionObject
 };
 
 struct OBJECTSYSTEM_API ContinueObject : public ActionObject
+{
+};
+
+struct OBJECTSYSTEM_API RedoObject : public ActionObject
 {
 };
 

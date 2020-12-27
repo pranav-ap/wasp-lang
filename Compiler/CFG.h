@@ -1,38 +1,29 @@
 #pragma once
-
-#ifdef COMPILER_EXPORTS
-#define COMPILER_API __declspec(dllexport)
-#else
-#define COMPILER_API __declspec(dllimport)
-#endif
-
-
 #include "OpCode.h"
 #include "BasicBlock.h"
-#include "MemorySystem.h"
+#include "ObjectStore.h"
 #include <memory>
 #include <string>
 #include <map>
 
-class COMPILER_API CFG
+class CFG
 {
-	ConstantPool_ptr constant_pool;
+	ObjectStore_ptr object_store;
 
 public:
 	int start_node_id;
-
 	std::map<int, std::pair<int, int>> adjacency_list; // id -> (id, id)
-	std::map<int, BasicBlock_ptr> node_id_to_basic_blocks;
+	std::map<int, BasicBlock_ptr> basic_blocks;
 
 	CFG()
 		: start_node_id(0),
-		constant_pool(std::make_shared<ConstantPool>()) {};
+		object_store(std::make_shared<ObjectStore>()) {};
 
-	CFG(ConstantPool_ptr constant_pool)
+	CFG(ObjectStore_ptr object_store)
 		: start_node_id(0),
-		constant_pool(constant_pool) {};
+		object_store(object_store) {};
 
 	void print();
 };
 
-using CFG_ptr = COMPILER_API std::shared_ptr<CFG>;
+using CFG_ptr = std::shared_ptr<CFG>;

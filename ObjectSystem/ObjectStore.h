@@ -17,8 +17,6 @@ struct OBJECTSYSTEM_API ObjectStore
 	std::map<int, Object_ptr> objects;
 	std::map<int, std::wstring> name_map;
 
-	ObjectStore() : next_id(0) {};
-
 	int allocate();
 	int allocate(int value);
 	int allocate(double value);
@@ -34,6 +32,8 @@ struct OBJECTSYSTEM_API ObjectStore
 	Object_ptr get_string_type();
 	Object_ptr get_boolean_type();
 	Object_ptr get_none_type();
+	
+	ObjectStore();
 };
 
 using ObjectStore_ptr = OBJECTSYSTEM_API std::shared_ptr<ObjectStore>;

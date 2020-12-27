@@ -25,15 +25,6 @@ using std::end;
 TypeSystem::TypeSystem()
 {
 	type_pool = std::make_shared<ObjectStore>();
-
-	// add common type objects to pool
-
-	type_pool->set(type_pool->next_id++, MAKE_OBJECT_VARIANT(AnyType()));	   // 0
-	type_pool->set(type_pool->next_id++, MAKE_OBJECT_VARIANT(IntType()));	   // 1
-	type_pool->set(type_pool->next_id++, MAKE_OBJECT_VARIANT(FloatType()));   // 2
-	type_pool->set(type_pool->next_id++, MAKE_OBJECT_VARIANT(StringType()));  // 3
-	type_pool->set(type_pool->next_id++, MAKE_OBJECT_VARIANT(BooleanType())); // 4
-	type_pool->set(type_pool->next_id++, MAKE_OBJECT_VARIANT(NoneType()));    // 5
 }
 
 // equal

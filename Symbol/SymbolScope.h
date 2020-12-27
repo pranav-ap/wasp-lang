@@ -44,13 +44,21 @@ struct SYMBOL_API SymbolScope
 	int break_label;
 	int continue_label;
 
+	SymbolScope()
+		: break_label(0),
+		continue_label(0),
+		is_rvalue(true),
+		scope_type(ScopeType::NONE),
+		enclosing_scope(std::nullopt),
+		code_object(std::make_shared<CodeObject>()) {};
+
 	SymbolScope(std::optional<SymbolScope_ptr> enclosing_scope, ScopeType scope_type)
 		: break_label(0),
 		continue_label(0),
 		is_rvalue(true),
 		scope_type(scope_type),
 		enclosing_scope(std::move(enclosing_scope)),
-		code_object(nullptr) {};
+		code_object(std::make_shared<CodeObject>()) {};
 
 	void define(std::wstring name, Symbol_ptr symbol);
 	void define_subroutine(std::wstring name, Symbol_ptr symbol);

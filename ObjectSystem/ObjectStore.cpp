@@ -15,6 +15,18 @@ using std::vector;
 using std::move;
 using std::make_shared;
 
+ObjectStore::ObjectStore()
+{
+	next_id = 0;
+
+	objects.insert({ 0, MAKE_OBJECT_VARIANT(AnyType()) });
+	objects.insert({ 1, MAKE_OBJECT_VARIANT(IntType()) });
+	objects.insert({ 2, MAKE_OBJECT_VARIANT(FloatType()) });
+	objects.insert({ 3, MAKE_OBJECT_VARIANT(StringType()) });
+	objects.insert({ 4, MAKE_OBJECT_VARIANT(BooleanType()) });
+	objects.insert({ 5, MAKE_OBJECT_VARIANT(NoneType()) });
+}
+
 void ObjectStore::set(int id, Object_ptr value)
 {
 	ASSERT(!objects.contains(id), "ID already exists in ObjectStore");

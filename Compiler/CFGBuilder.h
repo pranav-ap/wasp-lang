@@ -1,26 +1,19 @@
 #pragma once
 
-#ifdef COMPILER_EXPORTS
-#define COMPILER_API __declspec(dllexport)
-#else
-#define COMPILER_API __declspec(dllimport)
-#endif
-
-
-#include "MemorySystem.h"
 #include "BasicBlock.h"
 #include "CFG.h"
 #include <memory>
 #include <map>
 
-class COMPILER_API CFGBuilder
+class CFGBuilder
 {
-	MemorySystem_ptr memory;
+	CodeObject_ptr code_object;
+	ObjectStore_ptr object_store;
+
 	CFG_ptr cfg;
-
 	BasicBlock_ptr current_node;
-	int current_node_id;
 
+	int current_node_id;
 	std::map<int, int> label_to_node_id;
 
 	void split_into_basic_blocks();
@@ -29,6 +22,7 @@ class COMPILER_API CFGBuilder
 	void enter_empty_node();
 	void mark_node_as_conditional();
 	void mark_node_as_unconditional();
+	void mark_node_as_unconditional_jump();
 
 	// Emit
 
@@ -37,11 +31,17 @@ class COMPILER_API CFGBuilder
 	void emit(std::byte opcode, std::byte operand_1, std::byte operand_2);
 
 public:
-	CFGBuilder() : current_node_id(0), memory(std::make_shared<MemorySystem>()) {};
-	CFGBuilder(MemorySystem_ptr memory) : current_node_id(0), memory(memory) {};
-	CFG_ptr execute();
+	CFGBuilder()
+		: current_node_id(0) {};
 
+	CFGBuilder(CodeObject_ptr code_object, ObjectStore_ptr object_store) 
+		: current_node_id(0), 
+		code_object(code_object), 
+		object_store(object_store), 
+		cfg(std::make_shared<CFG>(object_store)) {};
+
+	CFG_ptr create();
 	ByteVector assemble();
 };
 
-using CFGBuilder_ptr = COMPILER_API std::unique_ptr<CFGBuilder>;
+using CFGBuilder_ptr = std::unique_ptr<CFGBuilder>;
