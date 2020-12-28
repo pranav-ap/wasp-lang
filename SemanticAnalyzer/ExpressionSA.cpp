@@ -180,6 +180,12 @@ Object_ptr SemanticAnalyzer::visit(Assignment const& expression)
 
 Object_ptr SemanticAnalyzer::visit(TernaryCondition const& expression)
 {
+	enter_scope(ScopeType::CONDITIONAL);
+
+	expression.condition->scope = current_scope;
+	expression.true_expression->scope = current_scope;
+	expression.false_expression->scope = current_scope;
+
 	Object_ptr condition_type = visit(expression.condition);
 	type_system->expect_condition_type(current_scope, condition_type);
 

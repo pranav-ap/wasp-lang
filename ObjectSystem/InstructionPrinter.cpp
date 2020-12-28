@@ -40,16 +40,18 @@ std::wstring InstructionPrinter::stringify_instruction(std::byte opcode, std::by
 	case OpCode::MAKE_TUPLE:
 	case OpCode::MAKE_MAP:
 	case OpCode::MAKE_SET:
+	case OpCode::ITERATE_OVER:
+	{
+		wstring comment = stringify_object(object_store->get(operand_int));
+		str_stream << std::right << setw(OPERAND_WIDTH_2) << L" (" << comment << L")";
+		return str_stream.str();
+	}
 	case OpCode::JUMP:
 	case OpCode::JUMP_IF_FALSE:
 	case OpCode::POP_JUMP:
 	case OpCode::POP_JUMP_IF_FALSE:
 	case OpCode::LABEL:
-	case OpCode::ITERATE_OVER:
 	{
-		wstring comment = stringify_object(object_store->get(operand_int));
-		str_stream << std::right << setw(OPERAND_WIDTH_2) << L" (" << comment << L")";
-
 		return str_stream.str();
 	}
 	case OpCode::STORE_LOCAL:
@@ -60,7 +62,6 @@ std::wstring InstructionPrinter::stringify_instruction(std::byte opcode, std::by
 	{
 		wstring comment = object_store->name_map.at(operand_int);
 		str_stream << std::right << setw(OPERAND_WIDTH_2) << L" (" << comment << L")";
-
 		return str_stream.str();
 	}
 	default:

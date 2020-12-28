@@ -36,7 +36,7 @@ ByteVector CFGBuilder::assemble()
 	for (auto const& [id, block] : cfg->basic_blocks)
 	{
 		int start = instructions.size();
-		int end = start + block->code_object->instructions.size();
+		int end = start + block->code_object->instructions.size() - 1;
 
 		block_locations[id] = { start, end };
 

@@ -1,2 +1,4 @@
-let x : int = 3
-x = 4 + 32
+let x : int = 1
+x = 2 + 3
+
+if x > 4 then 5 else 6

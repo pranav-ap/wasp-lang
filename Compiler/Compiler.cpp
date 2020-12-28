@@ -55,6 +55,10 @@ ByteVector Compiler::execute(const File_ptr ast)
 
 	ByteVector instructions = cfg_builder->assemble();
 
+	// Print
+
+	current_scope->code_object->set(instructions);
+
 	InstructionPrinter_ptr printer = std::make_unique<InstructionPrinter>(object_store);
 	printer->print(current_scope->code_object);
 
