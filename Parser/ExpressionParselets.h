@@ -160,7 +160,7 @@ public:
 	int get_precedence();
 };
 
-class TypePatternParselet : public IInfixParselet
+class TagPatternParselet : public IInfixParselet
 {
 public:
 	Expression_ptr parse(Parser_ptr parser, Expression_ptr left, Token_ptr token);

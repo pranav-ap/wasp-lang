@@ -30,9 +30,6 @@
     <ClInclude Include="Statement.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TypeNode.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="AnnotatedNode.h">
       <Filter>Header Files</Filter>
     </ClInclude>

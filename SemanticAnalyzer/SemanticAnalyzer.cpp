@@ -30,13 +30,8 @@ using std::vector;
 using std::make_shared;
 using std::move;
 
-SemanticAnalyzer::SemanticAnalyzer()
-{
-	next_id = 0;
-	type_system = make_shared<TypeSystem>();
-}
 
-void SemanticAnalyzer::execute(const File_ptr ast)
+void SemanticAnalyzer::execute(Module_ptr ast)
 {
 	current_scope = make_shared<SymbolScope>(std::nullopt, ScopeType::FILE);
 	ast->scope = current_scope;
@@ -51,38 +46,59 @@ void SemanticAnalyzer::execute(const File_ptr ast)
 
 // Statement
 
-void SemanticAnalyzer::visit(const Statement_ptr statement)	
+void SemanticAnalyzer::visit(Statement_ptr statement)	
 {
 	std::visit(overloaded{
-		[&](IfBranch const& stat) { visit(stat); },
-		[&](ElseBranch const& stat) { visit(stat); },
-		[&](WhileLoop const& stat) { visit(stat); },
-		[&](ForInLoop const& stat) { visit(stat); },
-		[&](Break const& stat) { visit(stat); },
-		[&](Continue const& stat) { visit(stat); },
-		[&](Redo const& stat) { visit(stat); },
-		[&](Return const& stat) { visit(stat); },
-		[&](YieldStatement const& stat) { visit(stat); },
-		[&](VariableDefinition const& stat) { visit(stat); },
-		[&](ClassDefinition const& stat) { visit(stat); },
-		[&](InterfaceDefinition const& stat) { visit(stat); },
-		[&](AliasDefinition const& stat) { visit(stat); },
-		[&](FunctionDefinition const& stat) { visit(stat); },
-		[&](GeneratorDefinition const& stat) { visit(stat); },
-		[&](FunctionMemberDefinition const& stat) { visit(stat); },
-		[&](GeneratorMemberDefinition const& stat) { visit(stat); },
-		[&](EnumDefinition const& stat) { visit(stat); },
-		[&](ExpressionStatement const& stat) { visit(stat); },
-		[&](Assert const& stat) { visit(stat); },
-		[&](Implore const& stat) { visit(stat); },
-		[&](Swear const& stat) { visit(stat); },
-		[&](Namespace const& stat) { visit(stat); },
+		[&](IfBranch& stat) { visit(stat); },
+		[&](ElseBranch& stat) { visit(stat); },
+		[&](WhileLoop& stat) { visit(stat); },
+		[&](ForInLoop& stat) { visit(stat); },
+		[&](Break& stat) { visit(stat); },
+		[&](Continue& stat) { visit(stat); },
+		[&](Redo& stat) { visit(stat); },
+		[&](Return& stat) { visit(stat); },
+		[&](YieldStatement& stat) { visit(stat); },
+		[&](VariableDefinition& stat) { visit(stat); },
+		[&](ClassDefinition& stat) { visit(stat); },
+		[&](InterfaceDefinition& stat) { visit(stat); },
+		[&](AliasDefinition& stat) { visit(stat); },
+		[&](FunctionDefinition& stat) { visit(stat); },
+		[&](GeneratorDefinition& stat) { visit(stat); },
+		[&](FunctionMemberDefinition& stat) { visit(stat); },
+		[&](GeneratorMemberDefinition& stat) { visit(stat); },
+		[&](EnumDefinition& stat) { visit(stat); },
+		[&](ExpressionStatement& stat) { visit(stat); },
+		[&](Assert& stat) { visit(stat); },
+		[&](Implore& stat) { visit(stat); },
+		[&](Swear& stat) { visit(stat); },
+		[&](Namespace& stat) { visit(stat); },
+
+		[&](AnyTypeNode const& node) { return visit(node); },
+		[&](IntLiteralTypeNode const& node) { return visit(node); },
+		[&](FloatLiteralTypeNode const& node) { return visit(node); },
+		[&](StringLiteralTypeNode const& node) { return visit(node); },
+		[&](BooleanLiteralTypeNode const& node) { return visit(node); },
+		[&](IntTypeNode const& node) { return visit(node); },
+		[&](FloatTypeNode const& node) { return visit(node); },
+		[&](StringTypeNode const& node) { return visit(node); },
+		[&](BooleanTypeNode const& node) { return visit(node); },
+		[&](NoneTypeNode const& node) { return visit(node); },
+		[&](ListTypeNode const& node) { return visit(node); },
+		[&](TupleTypeNode const& node) { return visit(node); },
+		[&](SetTypeNode const& node) { return visit(node); },
+		[&](MapTypeNode const& node) { return visit(node); },
+		[&](VariantTypeNode const& node) { return visit(node); },
+		[&](FunctionTypeNode const& node) { return visit(node); },
+		[&](GeneratorTypeNode const& node) { return visit(node); },
+		[&](FunctionMemberTypeNode const& node) { return visit(node); },
+		[&](GeneratorMemberTypeNode const& node) { return visit(node); },
+		[&](TypeIdentifierTypeNode const& node) { return visit(node); },
 
 		[&](auto) { FATAL("Never Seen this Statement before!"); }
 		}, *statement);
 }
 
-void SemanticAnalyzer::visit(std::vector<Statement_ptr> const& body)
+void SemanticAnalyzer::visit(std::vector<Statement_ptr>& body)
 {
 	for (const auto stat : body)
 	{
@@ -92,41 +108,13 @@ void SemanticAnalyzer::visit(std::vector<Statement_ptr> const& body)
 
 // Branching 
  
-void SemanticAnalyzer::visit(IfBranch const& statement)
+void SemanticAnalyzer::visit(IfBranch& statement)
 {
 	enter_scope(ScopeType::CONDITIONAL);
+	statement.scope = current_scope;
 
-	std::visit(overloaded{
-		[&](Assignment const& expr)
-		{
-			if (holds_alternative<Identifier>(*expr.lhs_expression))
-			{
-				auto identifier = get_if<Identifier>(&*expr.lhs_expression);
-				auto left_type = visit(expr.rhs_expression);
-				type_system->expect_condition_type(current_scope, left_type);
-
-				auto symbol = MAKE_SYMBOL(next_id++, identifier->name, left_type, PRIVATE_SYMBOL, MUTABLE_SYMBOL);
-				current_scope->define(identifier->name, symbol);
-			}
-			else
-			{
-				Object_ptr right_type = visit(expr.rhs_expression);
-
-				const auto [identifier, left_type] = deconstruct_type_pattern(expr.lhs_expression);
-				ASSERT(type_system->assignable(current_scope, left_type, right_type), "TypeNode mismatch in assignment");
-				type_system->expect_condition_type(current_scope, left_type);
-
-				auto symbol = MAKE_SYMBOL(next_id++, identifier, left_type, PRIVATE_SYMBOL, MUTABLE_SYMBOL);
-				current_scope->define(identifier, symbol);
-			}
-		},
-
-		[&](auto)
-		{
-			Object_ptr condition_type = visit(statement.test);
-			type_system->expect_condition_type(current_scope, condition_type);
-		}
-		}, *statement.test);
+	Object_ptr condition_type = visit(statement.test);
+	type_system->expect_condition_type(current_scope, condition_type);
 
 	visit(statement.body);
 	leave_scope();
@@ -137,33 +125,36 @@ void SemanticAnalyzer::visit(IfBranch const& statement)
 	}
 }
 
-void SemanticAnalyzer::visit(ElseBranch const& statement)
+void SemanticAnalyzer::visit(ElseBranch& statement)
 {
 	enter_scope(ScopeType::CONDITIONAL);
+	statement.scope = current_scope;
 	visit(statement.body);
 	leave_scope();
 }
 
 // Looping
 
-void SemanticAnalyzer::visit(WhileLoop const& statement)
+void SemanticAnalyzer::visit(WhileLoop& statement)
 {
 	Object_ptr condition_type = visit(statement.expression);
 	type_system->expect_condition_type(current_scope, condition_type);
 
 	enter_scope(ScopeType::LOOP);
+	statement.scope = current_scope;
 	visit(statement.body);
 	leave_scope();
 }
 
-void SemanticAnalyzer::visit(ForInLoop const& statement)
+void SemanticAnalyzer::visit(ForInLoop& statement)
 {
 	Object_ptr right_type = visit(statement.rhs_expression);
 	type_system->expect_iterable_type(current_scope, right_type);
 
 	enter_scope(ScopeType::LOOP);
+	statement.scope = current_scope;
 
-	const auto [identifier, left_type] = deconstruct_type_pattern(statement.lhs_expression);
+	const auto [identifier, left_type] = deconstruct_tag_pattern(statement.lhs_expression);
 
 	auto symbol = MAKE_SYMBOL(next_id++, identifier, left_type, PRIVATE_SYMBOL, MUTABLE_SYMBOL);
 	current_scope->define(identifier, symbol);
@@ -174,29 +165,29 @@ void SemanticAnalyzer::visit(ForInLoop const& statement)
 
 // Other
 
-void SemanticAnalyzer::visit(Namespace const& statement)
+void SemanticAnalyzer::visit(Namespace& statement)
 {
 	/*enter_scope(ScopeType::NAMESPACE);
 	visit(statement.statements);
 	leave_scope();*/
 }
 
-void SemanticAnalyzer::visit(Break const& statement)
+void SemanticAnalyzer::visit(Break& statement)
 {
 	ASSERT(current_scope->enclosed_in(ScopeType::LOOP), "Break is not expected in this body");
 }
 
-void SemanticAnalyzer::visit(Continue const& statement)
+void SemanticAnalyzer::visit(Continue& statement)
 {
 	ASSERT(current_scope->enclosed_in(ScopeType::LOOP), "Continue is not expected in this body");
 }
 
-void SemanticAnalyzer::visit(Redo const& statement)
+void SemanticAnalyzer::visit(Redo& statement)
 {
 	ASSERT(current_scope->enclosed_in(ScopeType::LOOP), "Redo is not expected in this body");
 }
 
-void SemanticAnalyzer::visit(Return const& statement)
+void SemanticAnalyzer::visit(Return& statement)
 {
 	ASSERT(current_scope->enclosed_in({
 		ScopeType::FUNCTION,
@@ -211,7 +202,7 @@ void SemanticAnalyzer::visit(Return const& statement)
 	}
 }
 
-void SemanticAnalyzer::visit(YieldStatement const& statement)
+void SemanticAnalyzer::visit(YieldStatement& statement)
 {
 	ASSERT(current_scope->enclosed_in({
 		   ScopeType::GENERATOR,
@@ -224,25 +215,25 @@ void SemanticAnalyzer::visit(YieldStatement const& statement)
 	}
 }
 
-void SemanticAnalyzer::visit(Assert const& statement)
+void SemanticAnalyzer::visit(Assert& statement)
 {
 	Object_ptr type = visit(statement.expression);
 	type_system->expect_condition_type(current_scope, type);
 }
 
-void SemanticAnalyzer::visit(Implore const& statement)
+void SemanticAnalyzer::visit(Implore& statement)
 {
 	Object_ptr type = visit(statement.expression);
 	type_system->expect_condition_type(current_scope, type);
 }
 
-void SemanticAnalyzer::visit(Swear const& statement)
+void SemanticAnalyzer::visit(Swear& statement)
 {
 	Object_ptr type = visit(statement.expression);
 	type_system->expect_condition_type(current_scope, type);
 }
 
-void SemanticAnalyzer::visit(ExpressionStatement const& statement)
+void SemanticAnalyzer::visit(ExpressionStatement& statement)
 {
 	Object_ptr type = visit(statement.expression);
 }

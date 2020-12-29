@@ -7,7 +7,7 @@
 
 class CFGBuilder
 {
-	CodeObject_ptr code_object;
+	ByteVector instructions;
 	ObjectStore_ptr object_store;
 
 	CFG_ptr cfg;
@@ -34,9 +34,9 @@ public:
 	CFGBuilder()
 		: current_node_id(0) {};
 
-	CFGBuilder(CodeObject_ptr code_object, ObjectStore_ptr object_store) 
+	CFGBuilder(ByteVector instructions, ObjectStore_ptr object_store)
 		: current_node_id(0), 
-		code_object(code_object), 
+		instructions(instructions),
 		object_store(object_store), 
 		cfg(std::make_shared<CFG>(object_store)) {};
 

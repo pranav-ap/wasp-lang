@@ -30,38 +30,29 @@ using std::vector;
 using std::make_shared;
 using std::move;
 
-
-Object_ptr SemanticAnalyzer::visit(const ScopedExpression_ptr expression)
-{
-	enter_scope(ScopeType::CONDITIONAL);
-	auto result = visit(expression->expression);
-	leave_scope();
-	return result;
-}
-
-Object_ptr SemanticAnalyzer::visit(const Expression_ptr expression)
+Object_ptr SemanticAnalyzer::visit(Expression_ptr expression)
 {
 	Object_ptr type = std::visit(overloaded{
 		[&](int expr) { return visit(expr); },
 		[&](double expr) { return visit(expr); },
 		[&](std::wstring expr) { return visit(expr); },
 		[&](bool expr) { return visit(expr); },
-		[&](ListLiteral const& expr) { return visit(expr); },
-		[&](TupleLiteral const& expr) {return  visit(expr); },
-		[&](MapLiteral const& expr) { return visit(expr); },
-		[&](SetLiteral const& expr) { return visit(expr); },
-		[&](NewObject const& expr) { return visit(expr); },
-		[&](TernaryCondition const& expr) { return visit(expr); },
-		[&](EnumMember const& expr) { return visit(expr); },
-		[&](MemberAccess const& expr) { return visit(expr); },
-		[&](Identifier const& expr) { return visit(expr); },
-		[&](Prefix const& expr) { return visit(expr); },
-		[&](Infix const& expr) { return visit(expr); },
-		[&](Postfix const& expr) { return visit(expr); },
-		[&](Call const& expr) { return visit(expr); },
-		[&](TypePattern const& expr) { return visit(expr); },
-		[&](Assignment const& expr) { return visit(expr); },
-		[&](Spread const& expr) { return visit(expr); },
+		[&](ListLiteral& expr) { return visit(expr); },
+		[&](TupleLiteral& expr) {return  visit(expr); },
+		[&](MapLiteral& expr) { return visit(expr); },
+		[&](SetLiteral& expr) { return visit(expr); },
+		[&](NewObject& expr) { return visit(expr); },
+		[&](EnumMember& expr) { return visit(expr); },
+		[&](MemberAccess& expr) { return visit(expr); },
+		[&](Identifier& expr) { return visit(expr); },
+		[&](Prefix& expr) { return visit(expr); },
+		[&](Infix& expr) { return visit(expr); },
+		[&](Postfix& expr) { return visit(expr); },
+		[&](Call& expr) { return visit(expr); },
+		[&](TagPattern& expr) { return visit(expr); },
+		[&](Assignment& expr) { return visit(expr); },
+		[&](Spread& expr) { return visit(expr); },
+		[&](TernaryCondition& expr) { return visit(expr); },
 
 		[&](auto)
 		{
@@ -73,11 +64,11 @@ Object_ptr SemanticAnalyzer::visit(const Expression_ptr expression)
 	return type;
 }
 
-ObjectVector SemanticAnalyzer::visit(ExpressionVector const& expressions)
+ObjectVector SemanticAnalyzer::visit(ExpressionVector& expressions)
 {
 	ObjectVector types;
 
-	for (auto const& argument : expressions)
+	for (auto &argument : expressions)
 	{
 		Object_ptr type = visit(argument);
 		types.push_back(type);
@@ -86,27 +77,27 @@ ObjectVector SemanticAnalyzer::visit(ExpressionVector const& expressions)
 	return types;
 }
 
-Object_ptr SemanticAnalyzer::visit(const int expr)
+Object_ptr SemanticAnalyzer::visit(int expr)
 {
 	return type_system->type_pool->get_int_type();
 }
 
-Object_ptr SemanticAnalyzer::visit(const double expr)
+Object_ptr SemanticAnalyzer::visit(double expr)
 {
 	return type_system->type_pool->get_float_type();
 }
 
-Object_ptr SemanticAnalyzer::visit(const std::wstring expr)
+Object_ptr SemanticAnalyzer::visit(std::wstring expr)
 {
 	return type_system->type_pool->get_string_type();
 }
 
-Object_ptr SemanticAnalyzer::visit(const bool expr)
+Object_ptr SemanticAnalyzer::visit(bool expr)
 {
 	return type_system->type_pool->get_boolean_type();
 }
 
-Object_ptr SemanticAnalyzer::visit(ListLiteral const& expr)
+Object_ptr SemanticAnalyzer::visit(ListLiteral& expr)
 {
 	ObjectVector types = visit(expr.expressions);
 
@@ -121,21 +112,21 @@ Object_ptr SemanticAnalyzer::visit(ListLiteral const& expr)
 	return list_type;
 }
 
-Object_ptr SemanticAnalyzer::visit(TupleLiteral const& expr)
+Object_ptr SemanticAnalyzer::visit(TupleLiteral& expr)
 {
 	ObjectVector types = visit(expr.expressions);
 	Object_ptr tuple_type = MAKE_OBJECT_VARIANT(TupleType(types));
 	return tuple_type;
 }
 
-Object_ptr SemanticAnalyzer::visit(SetLiteral const& expr)
+Object_ptr SemanticAnalyzer::visit(SetLiteral& expr)
 {
 	ObjectVector types = visit(expr.expressions);
 	Object_ptr set_type = MAKE_OBJECT_VARIANT(SetType(types));
 	return set_type;
 }
 
-Object_ptr SemanticAnalyzer::visit(MapLiteral const& expr)
+Object_ptr SemanticAnalyzer::visit(MapLiteral& expr)
 {
 	ObjectVector key_types;
 	ObjectVector value_types;
@@ -168,23 +159,20 @@ Object_ptr SemanticAnalyzer::visit(MapLiteral const& expr)
 	return map_type;
 }
 
-Object_ptr SemanticAnalyzer::visit(Assignment const& expression)
+Object_ptr SemanticAnalyzer::visit(Assignment& expression)
 {
 	Object_ptr lhs_type = visit(expression.lhs_expression);
 	Object_ptr rhs_type = visit(expression.rhs_expression);
 
-	ASSERT(type_system->assignable(current_scope, lhs_type, rhs_type), "TypeNode mismatch in assignment");
+	ASSERT(type_system->assignable(current_scope, lhs_type, rhs_type), "Expression mismatch in assignment");
 
 	return rhs_type;
 }
 
-Object_ptr SemanticAnalyzer::visit(TernaryCondition const& expression)
+Object_ptr SemanticAnalyzer::visit(TernaryCondition& expression)
 {
 	enter_scope(ScopeType::CONDITIONAL);
-
-	expression.condition->scope = current_scope;
-	expression.true_expression->scope = current_scope;
-	expression.false_expression->scope = current_scope;
+	expression.scope = current_scope;
 
 	Object_ptr condition_type = visit(expression.condition);
 	type_system->expect_condition_type(current_scope, condition_type);
@@ -200,7 +188,7 @@ Object_ptr SemanticAnalyzer::visit(TernaryCondition const& expression)
 	return MAKE_OBJECT_VARIANT(VariantType({ true_type, false_type }));
 }
 
-Object_ptr SemanticAnalyzer::visit(Spread const& expr)
+Object_ptr SemanticAnalyzer::visit(Spread& expr)
 {
 	Object_ptr operand_type = visit(expr.expression);
 	type_system->expect_spreadable_type(current_scope, operand_type);
@@ -209,13 +197,13 @@ Object_ptr SemanticAnalyzer::visit(Spread const& expr)
 	return operand_type;
 }
 
-Object_ptr SemanticAnalyzer::visit(TypePattern const& expr)
+Object_ptr SemanticAnalyzer::visit(TagPattern& expr)
 {
-	FATAL("TypePattern must be handled by parent nodes");
+	FATAL("TagPattern must be handled by parent nodes");
 	return type_system->type_pool->get_none_type();
 }
 
-Object_ptr SemanticAnalyzer::visit(NewObject const& expr)
+Object_ptr SemanticAnalyzer::visit(NewObject& expr)
 {
 	ObjectVector types = visit(expr.expressions);
 
@@ -229,7 +217,7 @@ Object_ptr SemanticAnalyzer::visit(NewObject const& expr)
 	return symbol->type;
 }
 
-Object_ptr SemanticAnalyzer::visit(EnumMember const& expr)
+Object_ptr SemanticAnalyzer::visit(EnumMember& expr)
 {
 	Symbol_ptr symbol = current_scope->lookup(expr.member_chain.front());
 	auto enum_type = type_system->extract_enum_type(symbol->type);
@@ -239,18 +227,18 @@ Object_ptr SemanticAnalyzer::visit(EnumMember const& expr)
 	return symbol->type;
 }
 
-Object_ptr SemanticAnalyzer::visit(Call const& expr)
+Object_ptr SemanticAnalyzer::visit(Call& expr)
 {
 	Symbol_ptr symbol = current_scope->lookup(expr.name);
 	ObjectVector argument_types = visit(expr.arguments);
 
 	Object_ptr return_type = std::visit(overloaded{
-		[&](FunctionType const& type)
+		[&](FunctionType& type)
 		{
 			ASSERT(type_system->equal(current_scope, argument_types, type.input_types), "Argument mismatch in call");
 			return type.return_type.value_or(type_system->type_pool->get_none_type());
 		},
-		[&](GeneratorType const& type)
+		[&](GeneratorType& type)
 		{
 			ASSERT(type_system->equal(current_scope, argument_types, type.input_types), "Argument mismatch in call");
 			return type.return_type.value_or(type_system->type_pool->get_none_type());
@@ -265,20 +253,20 @@ Object_ptr SemanticAnalyzer::visit(Call const& expr)
 	return return_type;
 }
 
-Object_ptr SemanticAnalyzer::visit(Prefix const& expr)
+Object_ptr SemanticAnalyzer::visit(Prefix& expr)
 {
 	Object_ptr operand_type = visit(expr.operand);
 	Object_ptr result_type = type_system->infer(current_scope, operand_type, expr.op->type);
 	return result_type;
 }
 
-Object_ptr SemanticAnalyzer::visit(Postfix const& expr)
+Object_ptr SemanticAnalyzer::visit(Postfix& expr)
 {
 	Object_ptr operand_type = visit(expr.operand);
 	return type_system->type_pool->get_none_type();
 }
 
-Object_ptr SemanticAnalyzer::visit(Infix const& expr)
+Object_ptr SemanticAnalyzer::visit(Infix& expr)
 {
 	Object_ptr lhs_operand_type = visit(expr.left);
 	Object_ptr rhs_operand_type = visit(expr.right);
@@ -287,13 +275,13 @@ Object_ptr SemanticAnalyzer::visit(Infix const& expr)
 	return result_type;
 }
 
-Object_ptr SemanticAnalyzer::visit(Identifier const& expr)
+Object_ptr SemanticAnalyzer::visit(Identifier& expr)
 {
 	Symbol_ptr symbol = current_scope->lookup(expr.name);
 	return symbol->type;
 }
 
-Object_ptr SemanticAnalyzer::visit(MemberAccess const& expr)
+Object_ptr SemanticAnalyzer::visit(MemberAccess& expr)
 {
 	Object_ptr lhs_operand_type = visit(expr.left);
 	auto lhs_class_type = type_system->extract_class_type(lhs_operand_type);

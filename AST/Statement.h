@@ -7,7 +7,6 @@
 #endif
 
 #include "Expression.h"
-#include "TypeNode.h"
 #include "SymbolScope.h"
 #include "AnnotatedNode.h"
 #include <string>
@@ -18,7 +17,7 @@
 #include <variant>
 #include <utility>
 
-struct File;
+struct Module;
 struct Namespace;
 struct IfBranch;
 struct ElseBranch;
@@ -46,24 +45,18 @@ struct Swear;
 using Statement = AST_API std::variant <
 	std::monostate,
 
-	File,
-	Namespace,
-	
+	Module,
+	Namespace,	
 	IfBranch, ElseBranch,
 	WhileLoop, ForInLoop,
-
 	Break, Continue, Redo,
 	Return, YieldStatement,
-
 	VariableDefinition,
 	ClassDefinition, AliasDefinition,
 	InterfaceDefinition, EnumDefinition,
-
 	FunctionDefinition, GeneratorDefinition,
 	FunctionMemberDefinition, GeneratorMemberDefinition,
-
 	ExpressionStatement,
-
 	Assert, Implore, Swear
 > ;
 
@@ -89,7 +82,6 @@ struct AST_API IfBranch : public AnnotatedNode
 struct AST_API ElseBranch : public AnnotatedNode
 {
 	Block body;
-
 	ElseBranch(Block body) : body(body) {};
 };
 
@@ -126,7 +118,6 @@ struct AST_API Redo : public AnnotatedNode
 {
 };
 
-
 // Definitions
 
 struct AST_API VariableDefinition : public AnnotatedNode
@@ -134,7 +125,7 @@ struct AST_API VariableDefinition : public AnnotatedNode
 	bool is_public;
 	bool is_mutable;
 
-	std::optional<TypeNode_ptr> type;
+	std::optional<Expression_ptr> type;
 
 	Expression_ptr lhs_expression; // identifier, [a, ...b, c] and others
 	Expression_ptr rhs_expression;
@@ -142,7 +133,7 @@ struct AST_API VariableDefinition : public AnnotatedNode
 	VariableDefinition(bool is_public, bool is_mutable, Expression_ptr lhs_expression, Expression_ptr rhs_expression)
 		: is_public(is_public), is_mutable(is_mutable), type(std::nullopt), lhs_expression(std::move(lhs_expression)), rhs_expression(std::move(rhs_expression)) {};
 
-	VariableDefinition(bool is_public, bool is_mutable, TypeNode_ptr type, Expression_ptr lhs_expression, Expression_ptr rhs_expression)
+	VariableDefinition(bool is_public, bool is_mutable, Expression_ptr type, Expression_ptr lhs_expression, Expression_ptr rhs_expression)
 		: is_public(is_public), is_mutable(is_mutable), type(std::make_optional(type)), lhs_expression(std::move(lhs_expression)), rhs_expression(std::move(rhs_expression)) {};
 };
 
@@ -160,52 +151,52 @@ struct AST_API UDTDefinition : public Definition
 	StringVector interfaces;
 	StringVector base_types;
 
-	std::map<std::wstring, TypeNode_ptr> member_types;
+	std::map<std::wstring, Expression_ptr> member_types;
 	std::map<std::wstring, bool> is_public_member;
 
-	UDTDefinition(bool is_public, std::wstring name, std::map<std::wstring, TypeNode_ptr> member_types, std::map<std::wstring, bool> is_public_member, std::vector<std::wstring> interfaces, std::vector<std::wstring> base_types)
+	UDTDefinition(bool is_public, std::wstring name, std::map<std::wstring, Expression_ptr> member_types, std::map<std::wstring, bool> is_public_member, std::vector<std::wstring> interfaces, std::vector<std::wstring> base_types)
 		: Definition(is_public, name), member_types(member_types), is_public_member(is_public_member), interfaces(interfaces), base_types(base_types) {};
 };
 
 struct AST_API ClassDefinition : public UDTDefinition
 {
-	ClassDefinition(bool is_public, std::wstring name, std::map<std::wstring, TypeNode_ptr> member_types, std::map<std::wstring, bool> is_public_member, std::vector<std::wstring> interfaces, std::vector<std::wstring> base_types)
+	ClassDefinition(bool is_public, std::wstring name, std::map<std::wstring, Expression_ptr> member_types, std::map<std::wstring, bool> is_public_member, std::vector<std::wstring> interfaces, std::vector<std::wstring> base_types)
 		: UDTDefinition(is_public, name, member_types, is_public_member, interfaces, base_types) {};
 };
 
 struct AST_API InterfaceDefinition : public UDTDefinition
 {
-	InterfaceDefinition(bool is_public, std::wstring name, std::map<std::wstring, TypeNode_ptr> member_types, std::map<std::wstring, bool> is_public_member, std::vector<std::wstring> interfaces, std::vector<std::wstring> base_types)
+	InterfaceDefinition(bool is_public, std::wstring name, std::map<std::wstring, Expression_ptr> member_types, std::map<std::wstring, bool> is_public_member, std::vector<std::wstring> interfaces, std::vector<std::wstring> base_types)
 		: UDTDefinition(is_public, name, member_types, is_public_member, interfaces, base_types) {};
 };
 
 struct AST_API AliasDefinition : public Definition
 {
-	TypeNode_ptr type;
+	Expression_ptr type;
 
-	AliasDefinition(bool is_public, std::wstring name, TypeNode_ptr type)
+	AliasDefinition(bool is_public, std::wstring name, Expression_ptr type)
 		: Definition(is_public, name), type(std::move(type)) {};
 };
 
 struct AST_API CallableDefinition : public Definition
 {
 	StringVector arguments;
-	TypeNode_ptr type;
+	Expression_ptr type;
 	Block body;
 
-	CallableDefinition(bool is_public, std::wstring name, StringVector arguments, TypeNode_ptr type, Block body)
+	CallableDefinition(bool is_public, std::wstring name, StringVector arguments, Expression_ptr type, Block body)
 		: Definition(is_public, name), arguments(arguments), type(type), body(body) {};
 };
 
 struct AST_API FunctionDefinition : public CallableDefinition
 {
-	FunctionDefinition(bool is_public, std::wstring name, StringVector arguments, TypeNode_ptr type, Block body)
+	FunctionDefinition(bool is_public, std::wstring name, StringVector arguments, Expression_ptr type, Block body)
 		: CallableDefinition(is_public, name, arguments, type, body) {};
 };
 
 struct AST_API GeneratorDefinition : public CallableDefinition
 {
-	GeneratorDefinition(bool is_public, std::wstring name, StringVector arguments, TypeNode_ptr type, Block body)
+	GeneratorDefinition(bool is_public, std::wstring name, StringVector arguments, Expression_ptr type, Block body)
 		: CallableDefinition(is_public, name, arguments, type, body) {};
 };
 
@@ -213,19 +204,19 @@ struct AST_API MethodDefinition : public CallableDefinition
 {
 	std::wstring type_name;
 
-	MethodDefinition(std::wstring type_name, std::wstring name, bool is_public, StringVector arguments, TypeNode_ptr type, Block body)
+	MethodDefinition(std::wstring type_name, std::wstring name, bool is_public, StringVector arguments, Expression_ptr type, Block body)
 		: CallableDefinition(is_public, name, arguments, type, body), type_name(type_name) {};
 };
 
 struct AST_API FunctionMemberDefinition : public MethodDefinition
 {
-	FunctionMemberDefinition(std::wstring type_name, std::wstring name, bool is_public, StringVector arguments, TypeNode_ptr type, Block body)
+	FunctionMemberDefinition(std::wstring type_name, std::wstring name, bool is_public, StringVector arguments, Expression_ptr type, Block body)
 		: MethodDefinition(type_name, name, is_public, arguments, type, body) {};
 };
 
 struct AST_API GeneratorMemberDefinition : public MethodDefinition
 {
-	GeneratorMemberDefinition(std::wstring type_name, std::wstring name, bool is_public, StringVector arguments, TypeNode_ptr type, Block body)
+	GeneratorMemberDefinition(std::wstring type_name, std::wstring name, bool is_public, StringVector arguments, Expression_ptr type, Block body)
 		: MethodDefinition(type_name, name, is_public, arguments, type, body) {};
 };
 
@@ -267,7 +258,7 @@ struct AST_API YieldStatement : public AnnotatedNode
 
 // Single Expression Statement
 
-struct AST_API SingleExpressionStatement : public AnnotatedNode
+struct AST_API SingleExpressionStatement
 {
 	Expression_ptr expression;
 
@@ -311,10 +302,10 @@ struct AST_API Namespace : public AnnotatedNode
 		: name(name), statements(statements), is_public(is_public) { };
 };
 
-struct AST_API File : public AnnotatedNode
+struct AST_API Module : public AnnotatedNode
 {
 	Block statements;
 	void add_statement(Statement_ptr node);
 };
 
-using File_ptr = AST_API std::shared_ptr<File>;
+using Module_ptr = AST_API std::shared_ptr<Module>;

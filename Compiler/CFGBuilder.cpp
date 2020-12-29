@@ -83,7 +83,6 @@ ByteVector CFGBuilder::assemble()
 
 void CFGBuilder::split_into_basic_blocks()
 {
-	auto instructions = code_object->instructions;
 	int length = instructions.size();
 	bool previous_instruction_was_leader = false;
 

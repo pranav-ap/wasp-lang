@@ -20,8 +20,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{56
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Compiler", "Compiler\Compiler.vcxproj", "{E6D9A4A7-F218-46A7-B832-80742621E27F}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MemorySystem", "MemorySystem\MemorySystem.vcxproj", "{20F70ED3-FD8E-4DF0-B96A-A7BC28800FE9}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{63618117-BF52-4645-BDD6-3FC03F202232}"
 	ProjectSection(SolutionItems) = preProject
 		SharedPropertySheet.props = SharedPropertySheet.props
@@ -87,14 +85,6 @@ Global
 		{E6D9A4A7-F218-46A7-B832-80742621E27F}.Release|x64.Build.0 = Release|x64
 		{E6D9A4A7-F218-46A7-B832-80742621E27F}.Release|x86.ActiveCfg = Release|Win32
 		{E6D9A4A7-F218-46A7-B832-80742621E27F}.Release|x86.Build.0 = Release|Win32
-		{20F70ED3-FD8E-4DF0-B96A-A7BC28800FE9}.Debug|x64.ActiveCfg = Debug|x64
-		{20F70ED3-FD8E-4DF0-B96A-A7BC28800FE9}.Debug|x64.Build.0 = Debug|x64
-		{20F70ED3-FD8E-4DF0-B96A-A7BC28800FE9}.Debug|x86.ActiveCfg = Debug|Win32
-		{20F70ED3-FD8E-4DF0-B96A-A7BC28800FE9}.Debug|x86.Build.0 = Debug|Win32
-		{20F70ED3-FD8E-4DF0-B96A-A7BC28800FE9}.Release|x64.ActiveCfg = Release|x64
-		{20F70ED3-FD8E-4DF0-B96A-A7BC28800FE9}.Release|x64.Build.0 = Release|x64
-		{20F70ED3-FD8E-4DF0-B96A-A7BC28800FE9}.Release|x86.ActiveCfg = Release|Win32
-		{20F70ED3-FD8E-4DF0-B96A-A7BC28800FE9}.Release|x86.Build.0 = Release|Win32
 		{9C2D6D6A-C32E-4139-8830-D48B81C2D810}.Debug|x64.ActiveCfg = Debug|x64
 		{9C2D6D6A-C32E-4139-8830-D48B81C2D810}.Debug|x64.Build.0 = Debug|x64
 		{9C2D6D6A-C32E-4139-8830-D48B81C2D810}.Debug|x86.ActiveCfg = Debug|Win32

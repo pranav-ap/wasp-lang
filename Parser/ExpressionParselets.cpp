@@ -20,8 +20,8 @@
 #define OPT_CHECK(x) ASSERT(x.has_value(), "Oh shit! Option is none")
 #define MAKE_STATEMENT(x) std::make_shared<Statement>(x)
 #define MAKE_EXPRESSION(x) std::make_shared<Expression>(x)
-#define MAKE_TYPE(x) std::make_shared<TypeNode>(x)
-#define MAKE_OPTIONAL_TYPE(x) std::make_shared<TypeNode>(VariantTypeNode({ std::make_shared<TypeNode>(x), std::make_shared<TypeNode>(NoneTypeNode()) }))
+
+#define MAKE_OPTIONAL_EXPRESSION(x) std::make_shared<Expression>(VariantTypeNode({ std::make_shared<Expression>(x), std::make_shared<Expression>(NoneTypeNode()) }))
 
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
@@ -220,7 +220,7 @@ Expression_ptr EnumMemberParselet::parse(Parser_ptr parser, Expression_ptr left,
 	ASSERT(holds_alternative<Identifier>(*left), "Expect enum member name");
 	auto identifier = get_if<Identifier>(&*left);
 
-	std::vector<std::wstring> chain = { identifier->name };
+	StringVector chain = { identifier->name };
 
 	while (auto member_identifier = parser->token_pipe->require(WTokenType::IDENTIFIER))
 	{
@@ -239,10 +239,27 @@ Expression_ptr AssignmentParselet::parse(Parser_ptr parser, Expression_ptr left,
 	return MAKE_EXPRESSION(Assignment(left, right));
 }
 
-Expression_ptr TypePatternParselet::parse(Parser_ptr parser, Expression_ptr left, Token_ptr token)
+Expression_ptr TagPatternParselet::parse(Parser_ptr parser, Expression_ptr left, Token_ptr token)
 {
-	TypeNode_ptr type = parser->parse_type();
-	return MAKE_EXPRESSION(TypePattern(left, type));
+	auto next_token = parser->token_pipe->lookahead();
+	OPT_CHECK(next_token);
+
+	switch (next_token.value()->type)
+	{
+		case WTokenType::OPEN_PARENTHESIS:
+		case WTokenType::OPEN_SQUARE_BRACKET:
+		case WTokenType::OPEN_ANGLE_BRACKET:
+		case WTokenType::OPEN_FLOOR_BRACKET:
+		case WTokenType::OPEN_CURLY_BRACE:
+		{
+			ADVANCE_PTR;
+			Expression_ptr tag = parser->parse_expression();
+			return MAKE_EXPRESSION(TagPattern(left, tag));
+		}
+	} 
+
+	Expression_ptr type = parser->parse_type();
+	return MAKE_EXPRESSION(TagPattern(left, MAKE_EXPRESSION(type)));
 }
 
 Expression_ptr TernaryConditionParselet::parse(Parser_ptr parser, Token_ptr token)
@@ -311,7 +328,7 @@ int AssignmentParselet::get_precedence()
 	return (int)Precedence::ASSIGNMENT;
 }
 
-int TypePatternParselet::get_precedence()
+int TagPatternParselet::get_precedence()
 {
 	return (int)Precedence::TYPE_PATTERN;
 }

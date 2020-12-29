@@ -168,6 +168,8 @@
     <ClInclude Include="TokenPipe.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BlocksParsers.cpp" />
+    <ClCompile Include="DefinitionParsers.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="ExpressionParselets.cpp" />
     <ClCompile Include="Parser.cpp" />
@@ -179,6 +181,7 @@
     </ClCompile>
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="TokenPipe.cpp" />
+    <ClCompile Include="TypeNodeParsers.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AST\AST.vcxproj">

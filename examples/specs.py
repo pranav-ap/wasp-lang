@@ -8,6 +8,8 @@ let x : ⌊ string ⌋ = ⌊ "1", "hello" ⌋ # tuple
 let x : { string } = { "1", "hello" } # set
 let x : ⟨ string => string ⟩ = ⟨ "a": "b", "c": "d" ⟩
 
+let [a : int, b : str] = something
+
 
 a = 1
 
@@ -40,15 +42,6 @@ end
 while expr do a = a + 4
 
 
-fn add(a : int, b : int) => int
-    if a > b then
-        return a + b + 4
-    end
-
-    return a + b
-end
-
-
 enum Animal
 	DOG
 	CAT
@@ -70,7 +63,21 @@ type WindowStates = "open" | "closed" | "minimized"
 
 # Planned Features
 
+
 import { io } from 'io'
+
+
+fn add(a : int, b : int) => int
+    implore a == 4
+    swear c > 43
+
+    if a > b then
+        return a + b + 4
+    end
+
+    return a + b
+end
+
 
 x.foo.age = 1
 x(123).foo(36, gg).age = 1
@@ -83,7 +90,6 @@ else
 end
 
 
-
 let x : Person = new Person("john", false)
 
 
@@ -91,8 +97,8 @@ namepace Hello
 end
 
 
-match { thing, another, third } then
-    case { "open", a is int, _ } then
+match { thing, another, third } with
+    case { "open", a : int, _ } then
         echo "open"
     case "closed" then
         echo "closed"
@@ -108,6 +114,7 @@ finally
 end
 
 
+let x : (a: int) => int = a + 43
 let [a, ...b, c] = some_list
 
 
@@ -129,18 +136,13 @@ end
 
 type Castle ~ ICastle < Building
     name: string
-    constructor : ()
+    init : ()
     repr : () => string
 end
 
 
-fn Castle::constructor(name: string)
+fn Castle::init(name: string)
     self.name = name
-end
-
-
-fn Castle::fire() => any
-    self.defend()
 end
 
 

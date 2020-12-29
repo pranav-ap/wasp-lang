@@ -23,6 +23,8 @@ class COMPILER_API Compiler
 {
 	ObjectStore_ptr object_store;
 	SymbolScope_ptr current_scope;
+
+	std::vector<int> subroutines;
 	int next_label;
 		
 	// Statement
@@ -58,7 +60,6 @@ class COMPILER_API Compiler
 
 	// Expression
 
-	void visit(const ScopedExpression_ptr expr);
 	void visit(const Expression_ptr expr);
 	void visit(std::vector<Expression_ptr> const& expressions);
 
@@ -72,7 +73,7 @@ class COMPILER_API Compiler
 	void visit(SetLiteral const& expr);
 	void visit(NewObject const& expr);
 	void visit(TernaryCondition const& expr);
-	void visit(TypePattern const& expr);
+	void visit(TagPattern const& expr);
 	void visit(Assignment const& expr);
 	void visit(EnumMember const& expr);
 	void visit(Call const& expr);
@@ -99,7 +100,7 @@ class COMPILER_API Compiler
 
 	int create_label();
 	std::wstring concat(StringVector items, std::wstring middle);
-	std::wstring extract_identifier_from_type_pattern(Expression_ptr expression);
+	std::wstring extract_identifier_from_tag_pattern(Expression_ptr expression);
 
 public:
 	Compiler()
@@ -107,7 +108,7 @@ public:
 		current_scope(std::make_shared<SymbolScope>()),
 		object_store(std::make_shared<ObjectStore>()) {};
 
-	ByteVector execute(const File_ptr ast);
+	ByteVector execute(const Module_ptr ast);
 };
 
 using Compiler_ptr = std::shared_ptr<Compiler>;

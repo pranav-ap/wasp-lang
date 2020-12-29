@@ -163,7 +163,6 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Statement.h" />
-    <ClInclude Include="TypeNode.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ASTVisualizer.cpp" />

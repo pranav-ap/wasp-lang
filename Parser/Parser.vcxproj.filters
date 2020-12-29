@@ -53,5 +53,14 @@
     <ClCompile Include="ExpressionParselets.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DefinitionParsers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TypeNodeParsers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BlocksParsers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

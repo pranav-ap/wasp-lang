@@ -31,7 +31,7 @@ using std::to_wstring;
 using std::begin;
 using std::end;
 
-ByteVector Compiler::execute(const File_ptr ast)
+ByteVector Compiler::execute(const Module_ptr ast)
 {
 	// Compile 
 
@@ -46,9 +46,24 @@ ByteVector Compiler::execute(const File_ptr ast)
 
 	emit(OpCode::STOP);
 
+	// Create CFGs for function 
+
+	for (const auto id : subroutines)
+	{
+		auto func_object = object_store->get(id);
+		ASSERT(holds_alternative<FunctionObject>(*func_object), "Must be a FunctionObject");
+		auto function_object = get_if<FunctionObject>(&*func_object);
+
+		CFGBuilder_ptr cfg_builder = std::make_unique<CFGBuilder>(function_object->instructions, object_store);
+		CFG_ptr cfg = cfg_builder->create();
+
+		ByteVector instructions = cfg_builder->assemble();
+		function_object->instructions = instructions;
+	}
+
 	// Create CFG
 
-	CFGBuilder_ptr cfg_builder = std::make_unique<CFGBuilder>(current_scope->code_object, object_store);
+	CFGBuilder_ptr cfg_builder = std::make_unique<CFGBuilder>(current_scope->code_object->instructions, object_store);
 	CFG_ptr cfg = cfg_builder->create();
 
 	// Assemble CFG
@@ -129,7 +144,7 @@ void Compiler::visit(IfBranch const& statement, int exit_tree_label, int branch_
 			}
 			else
 			{
-				name = extract_identifier_from_type_pattern(expr.lhs_expression);
+				name = extract_identifier_from_tag_pattern(expr.lhs_expression);
 			}
 
 			visit(expr.rhs_expression);
@@ -246,7 +261,7 @@ void Compiler::visit(ForInLoop const& statement)
 	}
 	else
 	{
-		name = extract_identifier_from_type_pattern(statement.lhs_expression);
+		name = extract_identifier_from_tag_pattern(statement.lhs_expression);
 	}
 
 	int item_id = current_scope->lookup(name)->id;

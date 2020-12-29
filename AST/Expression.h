@@ -7,7 +7,6 @@
 #endif
 
 #include "Token.h"
-#include "TypeNode.h"
 #include "AnnotatedNode.h"
 #include <string>
 #include <vector>
@@ -18,7 +17,7 @@
 
 struct Spread;
 struct TernaryCondition;
-struct TypePattern;
+struct TagPattern;
 struct Assignment;
 struct ListLiteral;
 struct TupleLiteral;
@@ -33,6 +32,28 @@ struct Infix;
 struct Postfix;
 struct MemberAccess;
 
+struct AnyTypeNode;
+struct IntLiteralTypeNode;
+struct FloatLiteralTypeNode;
+struct StringLiteralTypeNode;
+struct BooleanLiteralTypeNode;
+struct IntTypeNode;
+struct FloatTypeNode;
+struct StringTypeNode;
+struct BooleanTypeNode;
+struct ListTypeNode;
+struct TupleTypeNode;
+struct SetTypeNode;
+struct MapTypeNode;
+struct EnumTypeNode;
+struct VariantTypeNode;
+struct NoneTypeNode;
+struct FunctionTypeNode;
+struct GeneratorTypeNode;
+struct FunctionMemberTypeNode;
+struct GeneratorMemberTypeNode;
+struct TypeIdentifierTypeNode;
+
 using Expression = AST_API std::variant<
 	std::monostate,
 	int, double, std::wstring, bool,
@@ -41,21 +62,23 @@ using Expression = AST_API std::variant<
 	Identifier, Call,
 	Assignment, 
 	Spread,	Prefix, Infix, Postfix,
-	TypePattern, TernaryCondition,
-	MemberAccess
+	TagPattern, TernaryCondition,
+	MemberAccess,
+
+	AnyTypeNode,
+	IntLiteralTypeNode, FloatLiteralTypeNode, StringLiteralTypeNode, BooleanLiteralTypeNode,
+	IntTypeNode, FloatTypeNode, StringTypeNode, BooleanTypeNode,
+	ListTypeNode, TupleTypeNode, SetTypeNode, MapTypeNode,
+	TypeIdentifierTypeNode,
+	VariantTypeNode, NoneTypeNode,
+	FunctionTypeNode, GeneratorTypeNode,
+	FunctionMemberTypeNode, GeneratorMemberTypeNode
 >;
 
 using Expression_ptr = AST_API std::shared_ptr<Expression>;
 using ExpressionVector = AST_API std::vector<Expression_ptr>;
 using ExpressionStack = AST_API std::stack<Expression_ptr>;
-
-struct AST_API ScopedExpression : public AnnotatedNode
-{
-	Expression_ptr expression;
-	ScopedExpression(Expression_ptr expression) : expression(expression) {};
-};
-
-using ScopedExpression_ptr = AST_API std::shared_ptr<ScopedExpression>;
+using StringVector = std::vector<std::wstring>;
 
 struct AST_API Identifier
 {
@@ -169,25 +192,25 @@ struct AST_API Postfix
 		: operand(std::move(operand)), op(std::move(op)) {};
 };
 
-struct AST_API TypePattern
+struct AST_API TagPattern
 {
 	Expression_ptr expression;
-	TypeNode_ptr type;
+	Expression_ptr tag;
 
-	TypePattern(Expression_ptr expression, TypeNode_ptr type)
-		: expression(std::move(expression)), type(std::move(type)) {};
+	TagPattern(Expression_ptr expression, Expression_ptr tag)
+		: expression(std::move(expression)), tag(std::move(tag)) {};
 };
 
-struct AST_API TernaryCondition
+struct AST_API TernaryCondition : public AnnotatedNode
 {
-	ScopedExpression_ptr condition;
-	ScopedExpression_ptr true_expression;
-	ScopedExpression_ptr false_expression;
+	Expression_ptr condition;
+	Expression_ptr true_expression;
+	Expression_ptr false_expression;
 
 	TernaryCondition(Expression_ptr condition, Expression_ptr true_expression, Expression_ptr false_expression)
-		: condition(std::move(std::make_shared<ScopedExpression>(condition))), 
-		true_expression(std::move(std::make_shared<ScopedExpression>(true_expression))),
-		false_expression(std::move(std::make_shared<ScopedExpression>(false_expression))) {};
+		: condition(std::move(std::make_shared<Expression>(condition))), 
+		true_expression(std::move(std::make_shared<Expression>(true_expression))),
+		false_expression(std::move(std::make_shared<Expression>(false_expression))) {};
 };
 
 struct AST_API Spread
@@ -196,4 +219,167 @@ struct AST_API Spread
 
 	Spread(Expression_ptr expression)
 		: expression(std::move(expression)) {};
+};
+
+
+// Type nodes
+
+struct AST_API AnyTypeNode
+{
+};
+
+struct AST_API ScalarTypeNode : public AnyTypeNode
+{
+};
+
+struct AST_API LiteralTypeNode : public AnyTypeNode
+{
+};
+
+struct AST_API CompositeTypeNode : public AnyTypeNode
+{
+};
+
+struct AST_API NoneTypeNode : public AnyTypeNode
+{
+};
+
+struct AST_API CallableTypeNode : public AnyTypeNode
+{
+	ExpressionVector input_types;
+	std::optional<Expression_ptr> return_type;
+
+	CallableTypeNode(ExpressionVector input_types, std::optional<Expression_ptr> return_type)
+		: input_types(input_types), return_type(return_type) {};
+};
+
+// Parser does not know whether type identifier is class, enum or interface
+
+struct AST_API TypeIdentifierTypeNode : public AnyTypeNode
+{
+	std::wstring name;
+	TypeIdentifierTypeNode(std::wstring name) : name(name) {};
+};
+
+// Scalar Types
+
+struct AST_API IntTypeNode : public ScalarTypeNode
+{
+};
+
+struct AST_API FloatTypeNode : public ScalarTypeNode
+{
+};
+
+struct AST_API StringTypeNode : public ScalarTypeNode
+{
+};
+
+struct AST_API BooleanTypeNode : public ScalarTypeNode
+{
+};
+
+// Literal Types
+
+struct AST_API IntLiteralTypeNode : public LiteralTypeNode
+{
+	int value;
+	IntLiteralTypeNode(int value) : value(value) {};
+};
+
+struct AST_API FloatLiteralTypeNode : public LiteralTypeNode
+{
+	double value;
+	FloatLiteralTypeNode(double value) : value(value) {};
+};
+
+struct AST_API StringLiteralTypeNode : public LiteralTypeNode
+{
+	std::wstring value;
+	StringLiteralTypeNode(std::wstring value) : value(value) {};
+};
+
+struct AST_API BooleanLiteralTypeNode : public LiteralTypeNode
+{
+	bool value;
+	BooleanLiteralTypeNode(bool value) : value(value) {};
+};
+
+// Composite Types
+
+struct AST_API ListTypeNode : public CompositeTypeNode
+{
+	Expression_ptr element_type;
+	ListTypeNode(Expression_ptr element_type) : element_type(std::move(element_type)) {};
+};
+
+struct AST_API TupleTypeNode : public CompositeTypeNode
+{
+	ExpressionVector element_types;
+	TupleTypeNode(ExpressionVector element_types) : element_types(element_types) {};
+};
+
+struct AST_API SetTypeNode : public CompositeTypeNode
+{
+	ExpressionVector element_types;
+	SetTypeNode(ExpressionVector element_types) : element_types(element_types) {};
+};
+
+struct AST_API MapTypeNode : public CompositeTypeNode
+{
+	Expression_ptr key_type;
+	Expression_ptr value_type;
+
+	MapTypeNode(Expression_ptr key_type, Expression_ptr value_type)
+		: key_type(std::move(key_type)), value_type(std::move(value_type)) {};
+};
+
+struct AST_API UserDefinedTypeNode : public CompositeTypeNode
+{
+	std::wstring name;
+
+	StringVector interfaces;
+	StringVector base_types;
+
+	std::map<std::wstring, Expression_ptr> members;
+	std::map<std::wstring, bool> is_public_member;
+
+	UserDefinedTypeNode(std::wstring name, StringVector interfaces, StringVector base_types, std::map<std::wstring, Expression_ptr> members, std::map<std::wstring, bool> is_public_member)
+		: name(name), interfaces(interfaces), base_types(base_types), members(members), is_public_member(is_public_member) {};
+};
+
+struct AST_API VariantTypeNode : public CompositeTypeNode
+{
+	ExpressionVector types;
+	VariantTypeNode(ExpressionVector types) : types(types) {};
+};
+
+// Callable Expression
+
+struct AST_API FunctionTypeNode : public CallableTypeNode
+{
+	FunctionTypeNode(ExpressionVector input_types, std::optional<Expression_ptr> return_type)
+		: CallableTypeNode(input_types, return_type) {};
+};
+
+struct AST_API GeneratorTypeNode : public CallableTypeNode
+{
+	GeneratorTypeNode(ExpressionVector input_types, std::optional<Expression_ptr> return_type)
+		: CallableTypeNode(input_types, return_type) {};
+};
+
+struct AST_API FunctionMemberTypeNode : public CallableTypeNode
+{
+	std::wstring type_name;
+
+	FunctionMemberTypeNode(std::wstring type_name, ExpressionVector input_types, std::optional<Expression_ptr> return_type)
+		: CallableTypeNode(input_types, return_type), type_name(type_name) {};
+};
+
+struct AST_API GeneratorMemberTypeNode : public CallableTypeNode
+{
+	std::wstring type_name;
+
+	GeneratorMemberTypeNode(std::wstring type_name, ExpressionVector input_types, std::optional<Expression_ptr> return_type)
+		: CallableTypeNode(input_types, return_type), type_name(type_name) {};
 };

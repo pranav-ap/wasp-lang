@@ -30,52 +30,6 @@ using std::vector;
 using std::make_shared;
 using std::move;
 
-Object_ptr SemanticAnalyzer::visit(const TypeNode_ptr type_node)
-{
-	Object_ptr type = std::visit(overloaded{
-		[&](AnyTypeNode const& node) { return visit(node); },
-		[&](IntLiteralTypeNode const& node) { return visit(node); },
-		[&](FloatLiteralTypeNode const& node) { return visit(node); },
-		[&](StringLiteralTypeNode const& node) { return visit(node); },
-		[&](BooleanLiteralTypeNode const& node) { return visit(node); },
-		[&](IntTypeNode const& node) { return visit(node); },
-		[&](FloatTypeNode const& node) { return visit(node); },
-		[&](StringTypeNode const& node) { return visit(node); },
-		[&](BooleanTypeNode const& node) { return visit(node); },
-		[&](NoneTypeNode const& node) { return visit(node); },
-		[&](ListTypeNode const& node) { return visit(node); },
-		[&](TupleTypeNode const& node) { return visit(node); },
-		[&](SetTypeNode const& node) { return visit(node); },
-		[&](MapTypeNode const& node) { return visit(node); },
-		[&](VariantTypeNode const& node) { return visit(node); },
-		[&](FunctionTypeNode const& node) { return visit(node); },
-		[&](GeneratorTypeNode const& node) { return visit(node); },
-		[&](FunctionMemberTypeNode const& node) { return visit(node); },
-		[&](GeneratorMemberTypeNode const& node) { return visit(node); },
-		[&](TypeIdentifierTypeNode const& node) { return visit(node); },
-
-		[&](auto)
-		{
-			FATAL("Never Seen this TypeNode before!");
-			return type_system->type_pool->get_none_type();
-		}
-		}, *type_node);
-
-	return type;
-}
-
-ObjectVector SemanticAnalyzer::visit(std::vector<TypeNode_ptr> const& type_nodes)
-{
-	ObjectVector types;
-
-	for (const auto type_node : type_nodes)
-	{
-		auto type = visit(type_node);
-		types.push_back(type);
-	}
-
-	return types;
-}
 
 Object_ptr SemanticAnalyzer::visit(AnyTypeNode const& expr)
 {

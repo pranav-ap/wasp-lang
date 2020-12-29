@@ -103,6 +103,7 @@ void Compiler::visit(FunctionDefinition const& statement)
 	auto function_object = MAKE_OBJECT_VARIANT(FunctionObject(statement.name, instructions, parameter_count, function_symbol->type));
 	object_store->set(function_id, move(function_object));
 	object_store->name_map.insert({ function_id, statement.name });
+	subroutines.push_back(function_id);
 }
 
 void Compiler::visit(GeneratorDefinition const& statement)

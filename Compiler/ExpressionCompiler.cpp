@@ -30,11 +30,6 @@ using std::to_wstring;
 using std::begin;
 using std::end;
 
-void Compiler::visit(const ScopedExpression_ptr expr)
-{
-	visit(expr->expression);
-}
-
 void Compiler::visit(const Expression_ptr expression)
 {
 	std::visit(overloaded{
@@ -55,7 +50,7 @@ void Compiler::visit(const Expression_ptr expression)
 		[&](Infix const& expr) { visit(expr); },
 		[&](Postfix const& expr) { visit(expr); },
 		[&](Call const& expr) { visit(expr); },
-		[&](TypePattern const& expr) { visit(expr); },
+		[&](TagPattern const& expr) { visit(expr); },
 		[&](Assignment const& expr) { visit(expr); },
 
 		[&](auto)
@@ -138,14 +133,14 @@ void Compiler::visit(NewObject const& expr)
 
 void Compiler::visit(TernaryCondition const& expr)
 {
-	set_current_scope(expr.condition->scope);
+	set_current_scope(expr.scope);
 
 	std::visit(overloaded{
 		[&](Assignment const& assignment)
 		{
 			visit(assignment.rhs_expression);
 
-			auto identifier = extract_identifier_from_type_pattern(assignment.lhs_expression);
+			auto identifier = extract_identifier_from_tag_pattern(assignment.lhs_expression);
 
 			int id = current_scope->lookup(identifier)->id;
 			emit(OpCode::STORE_LOCAL, id);
@@ -154,9 +149,9 @@ void Compiler::visit(TernaryCondition const& expr)
 
 		[&](auto)
 		{
-			visit(expr.condition->expression);
+			visit(expr.condition);
 		}
-		}, *expr.condition->expression);
+		}, *expr.condition);
 
 	int	alternative_branch_label = create_label();
 	int	exit_branch_label = create_label();
@@ -180,9 +175,9 @@ void Compiler::visit(EnumMember const& expr)
 	emit(OpCode::LOAD_LOCAL, id);
 }
 
-void Compiler::visit(TypePattern const& expr)
+void Compiler::visit(TagPattern const& expr)
 {
-	FATAL("TypePattern cannot be visited");
+	FATAL("TagPattern cannot be visited");
 }
 
 void Compiler::visit(Identifier const& expr)

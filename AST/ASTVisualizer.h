@@ -7,7 +7,7 @@
 #endif
 
 #include "Statement.h"
-#include "TypeNode.h"
+
 #include "Expression.h"
 #include <string>
 #include <memory>
@@ -53,7 +53,6 @@ class AST_API ASTVisualizer
 
 	// Expression
 
-	void visit(const ScopedExpression_ptr expr, int parent_id);
 	void visit(const Expression_ptr expr, int parent_id);
 	void visit(std::vector<Expression_ptr> const& expressions, int parent_id);
 
@@ -72,15 +71,12 @@ class AST_API ASTVisualizer
 	void visit(Prefix const& expr, int parent_id);
 	void visit(Infix const& expr, int parent_id);
 	void visit(Postfix const& expr, int parent_id);
-	void visit(TypePattern const& expr, int parent_id);
+	void visit(TagPattern const& expr, int parent_id);
 	void visit(Assignment const& expr, int parent_id);
 	void visit(MemberAccess const& expr, int parent_id);
 	void visit(TernaryCondition const& expr, int parent_id);
 
-	// TypeNode
-
-	void visit(const TypeNode_ptr type, int parent_id);
-	void visit(std::vector<TypeNode_ptr> const& types, int parent_id);
+	// Type Nodes
 
 	void visit(AnyTypeNode const& expr, int parent_id);
 	void visit(IntLiteralTypeNode const& expr, int parent_id);
@@ -106,7 +102,7 @@ public:
 	ASTVisualizer()
 		: content(L""), id_counter(0) {};
 
-	void generate_dot_file(File_ptr mod);
+	void generate_dot_file(Module_ptr mod);
 };
 
 using ASTVisualizer_ptr = AST_API std::unique_ptr<ASTVisualizer>;

@@ -10,7 +10,7 @@
 #include "TypeSystem.h"
 #include "Statement.h"
 #include "Expression.h"
-#include "TypeNode.h"
+
 #include "SymbolScope.h"
 #include <memory>
 #include <stack>
@@ -25,64 +25,60 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 
 	// Statement
 
-	void visit(const Statement_ptr statement);
-	void visit(std::vector<Statement_ptr> const& statements);
+	void visit(Statement_ptr statement);
+	void visit(std::vector<Statement_ptr>& statements);
 
-	void visit(IfBranch const& statement);
-	void visit(ElseBranch const& statement);
-	void visit(WhileLoop const& statement);
-	void visit(ForInLoop const& statement);
-	void visit(Break const& statement);
-	void visit(Continue const& statement);
-	void visit(Redo const& statement);
-	void visit(Return const& statement);
-	void visit(YieldStatement const& statement);
-	void visit(VariableDefinition const& statement);
-	void visit(ClassDefinition const& statement);
-	void visit(InterfaceDefinition const& statement);
-	void visit(AliasDefinition const& statement);
-	void visit(FunctionDefinition const& statement);
-	void visit(GeneratorDefinition const& statement);
-	void visit(FunctionMemberDefinition const& statement);
-	void visit(GeneratorMemberDefinition const& statement);
-	void visit(EnumDefinition const& statement);
-	void visit(ExpressionStatement const& statement);
-	void visit(Assert const& statement);
-	void visit(Implore const& statement);
-	void visit(Swear const& statement);
-	void visit(Namespace const& statement);
+	void visit(IfBranch& statement);
+	void visit(ElseBranch& statement);
+	void visit(WhileLoop& statement);
+	void visit(ForInLoop& statement);
+	void visit(Break& statement);
+	void visit(Continue& statement);
+	void visit(Redo& statement);
+	void visit(Return& statement);
+	void visit(YieldStatement& statement);
+	void visit(VariableDefinition& statement);
+	void visit(ClassDefinition& statement);
+	void visit(InterfaceDefinition& statement);
+	void visit(AliasDefinition& statement);
+	void visit(FunctionDefinition& statement);
+	void visit(GeneratorDefinition& statement);
+	void visit(FunctionMemberDefinition& statement);
+	void visit(GeneratorMemberDefinition& statement);
+	void visit(EnumDefinition& statement);
+	void visit(ExpressionStatement& statement);
+	void visit(Assert& statement);
+	void visit(Implore& statement);
+	void visit(Swear& statement);
+	void visit(Namespace& statement);
 
 	// Expression
 
-	Object_ptr visit(const ScopedExpression_ptr expr);
-	Object_ptr visit(const Expression_ptr expr);
-	ObjectVector visit(std::vector<Expression_ptr> const& expressions);
+	Object_ptr visit(Expression_ptr expr);
+	ObjectVector visit(std::vector<Expression_ptr>& expressions);
 
-	Object_ptr visit(const int expr);
-	Object_ptr visit(const double expr);
-	Object_ptr visit(const std::wstring expr);
-	Object_ptr visit(const bool expr);
-	Object_ptr visit(ListLiteral const& expr);
-	Object_ptr visit(TupleLiteral const& expr);
-	Object_ptr visit(MapLiteral const& expr);
-	Object_ptr visit(SetLiteral const& expr);
-	Object_ptr visit(NewObject const& expr);
-	Object_ptr visit(TernaryCondition const& expr);
-	Object_ptr visit(Spread const& expr);
-	Object_ptr visit(TypePattern const& expr);
-	Object_ptr visit(Assignment const& expr);
-	Object_ptr visit(EnumMember const& expr);
-	Object_ptr visit(Call const& expr);
-	Object_ptr visit(Prefix const& expr);
-	Object_ptr visit(Infix const& expr);
-	Object_ptr visit(Postfix const& expr);
-	Object_ptr visit(Identifier const& expr);
-	Object_ptr visit(MemberAccess const& expr);
+	Object_ptr visit(int expr);
+	Object_ptr visit(double expr);
+	Object_ptr visit(std::wstring expr);
+	Object_ptr visit(bool expr);
+	Object_ptr visit(ListLiteral& expr);
+	Object_ptr visit(TupleLiteral& expr);
+	Object_ptr visit(MapLiteral& expr);
+	Object_ptr visit(SetLiteral& expr);
+	Object_ptr visit(NewObject& expr);
+	Object_ptr visit(Spread& expr);
+	Object_ptr visit(TagPattern& expr);
+	Object_ptr visit(Assignment& expr);
+	Object_ptr visit(EnumMember& expr);
+	Object_ptr visit(Call& expr);
+	Object_ptr visit(Prefix& expr);
+	Object_ptr visit(Infix& expr);
+	Object_ptr visit(Postfix& expr);
+	Object_ptr visit(Identifier& expr);
+	Object_ptr visit(MemberAccess& expr);
+	Object_ptr visit(TernaryCondition& expr);
 
 	// Types
-
-	Object_ptr visit(const TypeNode_ptr type_node);
-	ObjectVector visit(std::vector<TypeNode_ptr> const& type_nodes);
 
 	Object_ptr visit(AnyTypeNode const& expr);
 	Object_ptr visit(IntLiteralTypeNode const& expr);
@@ -111,11 +107,14 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 	void leave_scope();
 
 	std::wstring concat(StringVector items, std::wstring middle);
-	std::tuple<std::wstring, Object_ptr> deconstruct_type_pattern(Expression_ptr expression);
+	std::tuple<std::wstring, Object_ptr> deconstruct_tag_pattern(Expression_ptr expression);
 
 public:
-	SemanticAnalyzer();
-	void execute(const File_ptr ast);
+	SemanticAnalyzer() :
+		next_id(0),
+		type_system(std::make_shared<TypeSystem>()) {};
+
+	void execute(Module_ptr ast);
 };
 
 using SemanticAnalyzer_ptr = SEMANTICANALYZER_API std::unique_ptr<SemanticAnalyzer>;

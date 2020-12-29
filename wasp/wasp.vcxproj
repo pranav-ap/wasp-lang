@@ -161,9 +161,6 @@
     <ProjectReference Include="..\Lexer\Lexer.vcxproj">
       <Project>{02fa6bd4-8ed3-468e-a9c0-37b08e202905}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\MemorySystem\MemorySystem.vcxproj">
-      <Project>{20f70ed3-fd8e-4df0-b96a-a7bc28800fe9}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\Parser\Parser.vcxproj">
       <Project>{381ffacd-7a95-4757-96f6-2826a3e28d86}</Project>
     </ProjectReference>

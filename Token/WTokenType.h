@@ -10,7 +10,6 @@ enum class TOKEN_API WTokenType
 {
 	NUMBER_LITERAL,
 	STRING_LITERAL,
-
 	IDENTIFIER,
 
 	// Punctuations
@@ -25,7 +24,6 @@ enum class TOKEN_API WTokenType
 	CLOSE_ANGLE_BRACKET,
 	OPEN_FLOOR_BRACKET,
 	CLOSE_FLOOR_BRACKET,
-
 	BACKWARD_SLASH,
 	COMMA,
 	COLON,
@@ -37,12 +35,10 @@ enum class TOKEN_API WTokenType
 	QUESTION,
 	QUESTION_QUESTION,
 	QUESTION_DOT,
-
 	HASH,
 	TILDE,
 	AT_SIGN,
 	DOLLAR,
-
 	PLUS,
 	PLUS_EQUAL,
 	MINUS,
@@ -71,13 +67,10 @@ enum class TOKEN_API WTokenType
 	ELSE,
 	THEN,
 	DO,
-
 	AND,
 	OR,
-
 	LET,
 	CONST_KEYWORD,
-
 	WHILE,
 	FOR,
 	BREAK,
@@ -87,27 +80,21 @@ enum class TOKEN_API WTokenType
 	MATCH,
 	CASE,
 	END,
-
 	NAMESPACE,
-
 	ASSERT,
 	IMPLORE,
 	SWEAR,
-
 	TYPE_OF,
 	IS,
 	NEW,
 	PUB,
-
 	FN,
 	RETURN_KEYWORD,
 	GEN,
 	YIELD_KEYWORD,
-
 	INFIX,
 	POSTFIX,
 	PREFIX,
-
 	INTERFACE,
 	TYPE,
 	NONE,
@@ -118,11 +105,8 @@ enum class TOKEN_API WTokenType
 	ENUM,
 	ANY,
 	OPT,
-
-
 	TRUE_KEYWORD,
 	FALSE_KEYWORD,
-
 
 	// Whitespace
 

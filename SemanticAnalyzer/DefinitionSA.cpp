@@ -30,8 +30,10 @@ using std::vector;
 using std::make_shared;
 using std::move;
 
-void SemanticAnalyzer::visit(VariableDefinition const& statement)
+void SemanticAnalyzer::visit(VariableDefinition& statement)
 {
+	statement.scope = current_scope;
+
 	ASSERT(holds_alternative<Identifier>(*statement.lhs_expression), "Must be an Identifier");
 	auto identifier = get_if<Identifier>(&*statement.lhs_expression);
 
@@ -54,15 +56,19 @@ void SemanticAnalyzer::visit(VariableDefinition const& statement)
 	current_scope->define(identifier->name, symbol);
 }
 
-void SemanticAnalyzer::visit(EnumDefinition const& statement)
+void SemanticAnalyzer::visit(EnumDefinition& statement)
 {
+	statement.scope = current_scope;
+
 	auto type = MAKE_OBJECT_VARIANT(EnumType(statement.name, statement.members));
 	auto symbol = MAKE_SYMBOL(next_id++, statement.name, type, statement.is_public, CONST_SYMBOL);
 	current_scope->define(statement.name, symbol);
 }
 
-void SemanticAnalyzer::visit(AliasDefinition const& statement)
+void SemanticAnalyzer::visit(AliasDefinition& statement)
 {
+	statement.scope = current_scope;
+
 	Object_ptr type = visit(statement.type);
 	Object_ptr alias_type = MAKE_OBJECT_VARIANT(AliasType(statement.name, type));
 
@@ -70,8 +76,10 @@ void SemanticAnalyzer::visit(AliasDefinition const& statement)
 	current_scope->define(statement.name, symbol);
 }
 
-void SemanticAnalyzer::visit(ClassDefinition const& statement)
+void SemanticAnalyzer::visit(ClassDefinition& statement)
 {
+	statement.scope = current_scope;
+
 	std::map<std::wstring, Object_ptr> members;
 
 	for (const auto x : statement.member_types)
@@ -92,8 +100,10 @@ void SemanticAnalyzer::visit(ClassDefinition const& statement)
 	current_scope->define(statement.name, symbol);
 }
 
-void SemanticAnalyzer::visit(InterfaceDefinition const& statement)
+void SemanticAnalyzer::visit(InterfaceDefinition& statement)
 {
+	statement.scope = current_scope;
+
 	std::map<std::wstring, Object_ptr> members;
 
 	for (const auto x : statement.member_types)
@@ -114,8 +124,9 @@ void SemanticAnalyzer::visit(InterfaceDefinition const& statement)
 	current_scope->define(statement.name, symbol);
 }
 
-void SemanticAnalyzer::visit(FunctionDefinition const& statement)
+void SemanticAnalyzer::visit(FunctionDefinition& statement)
 {
+
 	auto type = visit(statement.type);
 	auto function_type = type_system->extract_function_type(type);
 
@@ -123,7 +134,8 @@ void SemanticAnalyzer::visit(FunctionDefinition const& statement)
 	current_scope->define(statement.name, symbol);
 
 	enter_scope(ScopeType::FUNCTION);
-
+	statement.scope = current_scope;
+	
 	int arg_index = 0;
 
 	for (auto const arg_name : statement.arguments)
@@ -139,7 +151,7 @@ void SemanticAnalyzer::visit(FunctionDefinition const& statement)
 	leave_scope();
 }
 
-void SemanticAnalyzer::visit(GeneratorDefinition const& statement)
+void SemanticAnalyzer::visit(GeneratorDefinition& statement)
 {
 	auto type = visit(statement.type);
 	auto generator_type = type_system->extract_generator_type(type);
@@ -148,6 +160,7 @@ void SemanticAnalyzer::visit(GeneratorDefinition const& statement)
 	current_scope->define(statement.name, symbol);
 
 	enter_scope(ScopeType::GENERATOR);
+	statement.scope = current_scope;
 
 	int arg_index = 0;
 
@@ -164,7 +177,7 @@ void SemanticAnalyzer::visit(GeneratorDefinition const& statement)
 	leave_scope();
 }
 
-void SemanticAnalyzer::visit(FunctionMemberDefinition const& statement)
+void SemanticAnalyzer::visit(FunctionMemberDefinition& statement)
 {
 	auto type = visit(statement.type);
 	auto function_method_type = type_system->extract_function_member_type(type);
@@ -173,6 +186,7 @@ void SemanticAnalyzer::visit(FunctionMemberDefinition const& statement)
 	current_scope->define(statement.name, symbol);
 
 	enter_scope(ScopeType::CLASS_FUNCTION);
+	statement.scope = current_scope;
 
 	int arg_index = 0;
 
@@ -195,7 +209,7 @@ void SemanticAnalyzer::visit(FunctionMemberDefinition const& statement)
 	class_type->members.at(statement.name) = type;
 }
 
-void SemanticAnalyzer::visit(GeneratorMemberDefinition const& statement)
+void SemanticAnalyzer::visit(GeneratorMemberDefinition& statement)
 {
 	auto type = visit(statement.type);
 	auto generator_method_type = type_system->extract_generator_member_type(type);
@@ -204,6 +218,7 @@ void SemanticAnalyzer::visit(GeneratorMemberDefinition const& statement)
 	current_scope->define(statement.name, symbol);
 
 	enter_scope(ScopeType::CLASS_GENERATOR);
+	statement.scope = current_scope;
 
 	int arg_index = 0;
 

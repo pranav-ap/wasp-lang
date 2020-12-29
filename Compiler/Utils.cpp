@@ -107,13 +107,13 @@ wstring Compiler::concat(StringVector items, wstring connector)
 	return final_string;
 }
 
-wstring Compiler::extract_identifier_from_type_pattern(Expression_ptr expression)
+wstring Compiler::extract_identifier_from_tag_pattern(Expression_ptr expression)
 {
-	ASSERT(holds_alternative<TypePattern>(*expression), "Expected a TypePattern");
-	auto type_pattern = get_if<TypePattern>(&*expression);
+	ASSERT(holds_alternative<TagPattern>(*expression), "Expected a TagPattern");
+	auto tag_pattern = get_if<TagPattern>(&*expression);
 
-	ASSERT(holds_alternative<Identifier>(*type_pattern->expression), "Expected an Identifier");
-	auto identifier = get_if<Identifier>(&*type_pattern->expression);
+	ASSERT(holds_alternative<Identifier>(*tag_pattern->expression), "Expected an Identifier");
+	auto identifier = get_if<Identifier>(&*tag_pattern->expression);
 
 	return identifier->name;
 }
