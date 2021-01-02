@@ -14,10 +14,10 @@ struct SYMBOL_API Symbol
 {
 	int id;
 	std::wstring name;
-
+	
 	bool is_public;
 	bool is_mutable;
-
+	
 	Object_ptr type;
 
 	Symbol(int id, std::wstring name, Object_ptr type, bool is_public, bool is_mutable)

@@ -158,17 +158,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="BasicBlock.h" />
-    <ClInclude Include="CFG.h" />
-    <ClInclude Include="CFGBuilder.h" />
     <ClInclude Include="Compiler.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="BasicBlock.cpp" />
-    <ClCompile Include="CFG.cpp" />
-    <ClCompile Include="CFGBuilder.cpp" />
     <ClCompile Include="Compiler.cpp" />
     <ClCompile Include="DefinitionCompiler.cpp" />
     <ClCompile Include="dllmain.cpp" />
@@ -179,11 +173,15 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="StatementCompiler.cpp" />
     <ClCompile Include="Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AST\AST.vcxproj">
       <Project>{9a7284b0-a65b-4ca1-b540-d37514eb58a2}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\CFGraph\CFGraph.vcxproj">
+      <Project>{af57e1c6-d6e6-4581-8f17-a04bf0e9bd77}</Project>
     </ProjectReference>
     <ProjectReference Include="..\ObjectSystem\ObjectSystem.vcxproj">
       <Project>{e9dc52f7-d707-4884-b448-75f812bd4326}</Project>

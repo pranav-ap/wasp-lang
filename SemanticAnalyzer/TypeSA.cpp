@@ -30,76 +30,117 @@ using std::vector;
 using std::make_shared;
 using std::move;
 
+Object_ptr SemanticAnalyzer::visit(const TypeNode_ptr type_node)
+{
+	Object_ptr type = std::visit(overloaded{
+		[&](AnyTypeNode& node) { return visit(node); },
+		[&](IntLiteralTypeNode& node) { return visit(node); },
+		[&](FloatLiteralTypeNode& node) { return visit(node); },
+		[&](StringLiteralTypeNode& node) { return visit(node); },
+		[&](BooleanLiteralTypeNode& node) { return visit(node); },
+		[&](IntTypeNode& node) { return visit(node); },
+		[&](FloatTypeNode& node) { return visit(node); },
+		[&](StringTypeNode& node) { return visit(node); },
+		[&](BooleanTypeNode& node) { return visit(node); },
+		[&](NoneTypeNode& node) { return visit(node); },
+		[&](ListTypeNode& node) { return visit(node); },
+		[&](TupleTypeNode& node) { return visit(node); },
+		[&](SetTypeNode& node) { return visit(node); },
+		[&](MapTypeNode& node) { return visit(node); },
+		[&](VariantTypeNode& node) { return visit(node); },
 
-Object_ptr SemanticAnalyzer::visit(AnyTypeNode const& expr)
+		[&](auto)
+		{
+			FATAL("Never Seen this TypeNode before!");
+			return type_system->type_pool->get_none_type();
+		}
+		}, *type_node);
+
+	return type;
+}
+
+ObjectVector SemanticAnalyzer::visit(std::vector<TypeNode_ptr>& type_nodes)
+{
+	ObjectVector types;
+
+	for (const auto type_node : type_nodes)
+	{
+		auto type = visit(type_node);
+		types.push_back(type);
+	}
+
+	return types;
+}
+
+Object_ptr SemanticAnalyzer::visit(AnyTypeNode& expr)
 {
 	return type_system->type_pool->get_any_type();
 }
 
-Object_ptr SemanticAnalyzer::visit(IntLiteralTypeNode const& expr)
+Object_ptr SemanticAnalyzer::visit(IntLiteralTypeNode& expr)
 {
 	return MAKE_OBJECT_VARIANT(IntLiteralType(expr.value));
 }
 
-Object_ptr SemanticAnalyzer::visit(FloatLiteralTypeNode const& expr)
+Object_ptr SemanticAnalyzer::visit(FloatLiteralTypeNode& expr)
 {
 	return MAKE_OBJECT_VARIANT(FloatLiteralType(expr.value));
 }
 
-Object_ptr SemanticAnalyzer::visit(StringLiteralTypeNode const& expr)
+Object_ptr SemanticAnalyzer::visit(StringLiteralTypeNode& expr)
 {
 	return MAKE_OBJECT_VARIANT(StringLiteralType(expr.value));
 }
 
-Object_ptr SemanticAnalyzer::visit(BooleanLiteralTypeNode const& expr)
+Object_ptr SemanticAnalyzer::visit(BooleanLiteralTypeNode& expr)
 {
 	return MAKE_OBJECT_VARIANT(BooleanLiteralType(expr.value));
 }
 
-Object_ptr SemanticAnalyzer::visit(IntTypeNode const& expr)
+Object_ptr SemanticAnalyzer::visit(IntTypeNode& expr)
 {
 	return type_system->type_pool->get_int_type();
 }
 
-Object_ptr SemanticAnalyzer::visit(FloatTypeNode const& expr)
+Object_ptr SemanticAnalyzer::visit(FloatTypeNode& expr)
 {
 	return type_system->type_pool->get_float_type();
 }
 
-Object_ptr SemanticAnalyzer::visit(StringTypeNode const& expr)
+Object_ptr SemanticAnalyzer::visit(StringTypeNode& expr)
 {
 	return type_system->type_pool->get_string_type();
 }
 
-Object_ptr SemanticAnalyzer::visit(BooleanTypeNode const& expr)
+Object_ptr SemanticAnalyzer::visit(BooleanTypeNode& expr)
 {
 	return type_system->type_pool->get_boolean_type();
 }
 
-Object_ptr SemanticAnalyzer::visit(NoneTypeNode const& expr)
+Object_ptr SemanticAnalyzer::visit(NoneTypeNode& expr)
 {
 	return type_system->type_pool->get_none_type();
 }
 
-Object_ptr SemanticAnalyzer::visit(ListTypeNode const& expr)
+Object_ptr SemanticAnalyzer::visit(ListTypeNode& expr)
 {
 	auto type = visit(expr.element_type);
 	return MAKE_OBJECT_VARIANT(ListType(type));
 }
 
-Object_ptr SemanticAnalyzer::visit(TupleTypeNode const& expr)
+Object_ptr SemanticAnalyzer::visit(TupleTypeNode& expr)
 {
 	auto type = visit(expr.element_types);
 	return MAKE_OBJECT_VARIANT(TupleType(type));
 }
 
-Object_ptr SemanticAnalyzer::visit(SetTypeNode const& expr)
+Object_ptr SemanticAnalyzer::visit(SetTypeNode& expr)
 {
-	auto type = visit(expr.element_types);
+	auto type = visit(expr.element_type);
 	return MAKE_OBJECT_VARIANT(SetType(type));
 }
 
-Object_ptr SemanticAnalyzer::visit(MapTypeNode const& expr)
+Object_ptr SemanticAnalyzer::visit(MapTypeNode& expr)
 {
 	auto key_type = visit(expr.key_type);
 	auto value_type = visit(expr.value_type);
@@ -107,67 +148,8 @@ Object_ptr SemanticAnalyzer::visit(MapTypeNode const& expr)
 	return MAKE_OBJECT_VARIANT(MapType(key_type, value_type));
 }
 
-Object_ptr SemanticAnalyzer::visit(VariantTypeNode const& expr)
+Object_ptr SemanticAnalyzer::visit(VariantTypeNode& expr)
 {
 	auto types = visit(expr.types);
 	return MAKE_OBJECT_VARIANT(VariantType(types));
 }
-
-Object_ptr SemanticAnalyzer::visit(FunctionTypeNode const& expr)
-{
-	auto input_types = visit(expr.input_types);
-
-	if (expr.return_type.has_value())
-	{
-		auto return_type = visit(expr.return_type.value());
-		return MAKE_OBJECT_VARIANT(FunctionType(input_types, return_type));
-	}
-
-	return MAKE_OBJECT_VARIANT(FunctionType(input_types, std::nullopt));
-}
-
-Object_ptr SemanticAnalyzer::visit(GeneratorTypeNode const& expr)
-{
-	auto input_types = visit(expr.input_types);
-
-	if (expr.return_type.has_value())
-	{
-		auto return_type = visit(expr.return_type.value());
-		return MAKE_OBJECT_VARIANT(GeneratorType(input_types, return_type));
-	}
-
-	return MAKE_OBJECT_VARIANT(GeneratorType(input_types, std::nullopt));
-}
-
-Object_ptr SemanticAnalyzer::visit(FunctionMemberTypeNode const& expr)
-{
-	auto input_types = visit(expr.input_types);
-
-	if (expr.return_type.has_value())
-	{
-		auto return_type = visit(expr.return_type.value());
-		return MAKE_OBJECT_VARIANT(FunctionMemberType(expr.type_name, input_types, return_type));
-	}
-
-	return MAKE_OBJECT_VARIANT(FunctionMemberType(expr.type_name, input_types, std::nullopt));
-}
-
-Object_ptr SemanticAnalyzer::visit(GeneratorMemberTypeNode const& expr)
-{
-	auto input_types = visit(expr.input_types);
-
-	if (expr.return_type.has_value())
-	{
-		auto return_type = visit(expr.return_type.value());
-		return MAKE_OBJECT_VARIANT(GeneratorMemberType(expr.type_name, input_types, return_type));
-	}
-
-	return MAKE_OBJECT_VARIANT(GeneratorMemberType(expr.type_name, input_types, std::nullopt));
-}
-
-Object_ptr SemanticAnalyzer::visit(TypeIdentifierTypeNode const& expr)
-{
-	Symbol_ptr symbol = current_scope->lookup(expr.name);
-	return symbol->type;
-}
-

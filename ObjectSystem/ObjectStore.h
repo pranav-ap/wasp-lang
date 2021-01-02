@@ -32,6 +32,16 @@ struct OBJECTSYSTEM_API ObjectStore
 	Object_ptr get_string_type();
 	Object_ptr get_boolean_type();
 	Object_ptr get_none_type();
+
+	Object_ptr get_true_object();
+	Object_ptr get_false_object();
+
+	Object_ptr make_object(bool value);
+	Object_ptr make_object(int value);
+	Object_ptr make_object(double value);
+	Object_ptr make_object(std::wstring value);
+	
+	Object_ptr make_error_object(std::wstring text);
 	
 	ObjectStore();
 };

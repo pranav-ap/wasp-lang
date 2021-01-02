@@ -122,6 +122,14 @@ int ListObject::get_length()
 	return values.size();
 }
 
+ListObject::ListObject(ObjectVector values)
+{
+	for (auto value : values)
+	{
+		this->values.push_back(value);
+	}
+}
+
 // MapObject
 
 Object_ptr MapObject::insert(Object_ptr key, Object_ptr value)
@@ -159,9 +167,7 @@ Object_ptr MapObject::get_pair(Object_ptr key)
 		auto value = pairs.at(key);
 		NULL_CHECK(value);
 
-		auto map_type = get_if<MapType>(&*type);
-		auto tuple_type = MAKE_OBJECT_VARIANT(TupleType({ map_type->key_type, map_type->value_type }));
-		return MAKE_OBJECT_VARIANT(TupleObject({ key, value }, tuple_type));
+		return MAKE_OBJECT_VARIANT(TupleObject({ key, value }));
 	}
 	catch (std::out_of_range&)
 	{
@@ -254,6 +260,21 @@ int SetObject::get_length()
 	return 0;
 }
 
+// IteratorObject
+
+std::optional<Object_ptr> IteratorObject::get_next()
+{
+	it++;
+
+	if (it == std::end(vec))
+	{
+		return std::nullopt;
+	}
+
+	Object_ptr obj = *it;
+	return std::make_optional(obj);
+}
+
 // VariantObject
 
 bool VariantObject::has_value()
@@ -272,31 +293,20 @@ std::wstring stringify_object(Object_ptr value)
 		[&](FloatObject const& obj) { return STR(obj.value); },
 		[&](StringObject const& obj) { return obj.value; },
 		[&](BooleanObject const& obj) { return STR(obj.value); },
-
-		[&](ListObject const& obj) { return s; },
-		[&](TupleObject const& obj) { return s; },
-		[&](SetObject const& obj) { return s; },
-		
-		[&](EnumMemberObject const& obj) { return s; },
-		[&](MapObject const& obj) { return s; },
-
-		[&](VariantObject const& obj) { return s; },
-		[&](FunctionObject const& obj) { return s; },
-		[&](GeneratorObject const& obj) { return s; },
-		[&](FunctionMethodObject const& obj) { return s; },
-		[&](GeneratorMethodObject const& obj) { return s; },
-		[&](ReturnObject const& obj) { return s; },
-		[&](YieldObject const& obj) { return s; },
-		[&](ErrorObject const& obj) { return s; },
-		[&](BreakObject const& obj) { return wstring(L"break"); },
-		[&](ContinueObject const& obj) { return wstring(L"continue"); },
-		[&](RedoObject const& obj) { return wstring(L"redo"); },
+		[&](ListObject const& obj) { return wstring(L"List Object"); },
+		[&](TupleObject const& obj) { return wstring(L"Tuple Object"); },
+		[&](SetObject const& obj) { return wstring(L"Set Object"); },
+		[&](MapObject const& obj) { return wstring(L"Map Object"); },
+		[&](VariantObject const& obj) { return wstring(L"Variant Object"); },
+		[&](ReturnObject const& obj) { return wstring(L"Return Object"); },
+		[&](YieldObject const& obj) { return wstring(L"Yield Object"); },
+		[&](BuiltInsObject const& obj) { return wstring(L"BuiltIns Object"); },
+		[&](ErrorObject const& obj) { return obj.message; },
 		[&](NoneObject const& obj) { return wstring(L"none"); },
-		[&](BuiltInsObject const& obj) { return s; },
-		[&](EnumObject const& obj) { return s; },
-		[&](ClassObject const& obj) { return s; },
-		[&](InstanceObject const& obj) { return s; },
-
+		[&](BreakObject const& obj) { return wstring(L"break"); },
+		[&](RedoObject const& obj) { return wstring(L"redo"); },
+		[&](ContinueObject const& obj) { return wstring(L"continue"); },
+		
 		// Types
 
 		[&](AnyType const& obj) { return s; },
@@ -312,16 +322,9 @@ std::wstring stringify_object(Object_ptr value)
 		[&](TupleType const& obj) { return s; },
 		[&](SetType const& obj) { return s; },
 		[&](MapType const& obj) { return s; },
-		[&](ClassType const& obj) { return s; },
-		[&](AliasType const& obj) { return s; },
-		[&](InterfaceType const& obj) { return s; },
-		[&](EnumType const& obj) { return s; },
 		[&](VariantType const& obj) { return s; },
 		[&](NoneType const& obj) { return s; },
-		[&](FunctionType const& obj) { return s; },
-		[&](GeneratorType const& obj) { return s; },
-		[&](FunctionMemberType const& obj) { return s; },
-		[&](GeneratorMemberType const& obj) { return s; },
+
 		[&](auto) { return wstring(L" "); }
 		}, *value);
 }

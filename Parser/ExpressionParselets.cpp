@@ -20,8 +20,8 @@
 #define OPT_CHECK(x) ASSERT(x.has_value(), "Oh shit! Option is none")
 #define MAKE_STATEMENT(x) std::make_shared<Statement>(x)
 #define MAKE_EXPRESSION(x) std::make_shared<Expression>(x)
-
-#define MAKE_OPTIONAL_EXPRESSION(x) std::make_shared<Expression>(VariantTypeNode({ std::make_shared<Expression>(x), std::make_shared<Expression>(NoneTypeNode()) }))
+#define MAKE_TYPE(x) std::make_shared<TypeNode>(x)
+#define MAKE_OPTIONAL_TYPE(x) std::make_shared<TypeNode>(VariantTypeNode({ std::make_shared<TypeNode>(x), std::make_shared<TypeNode>(NoneTypeNode()) }))
 
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
@@ -41,8 +41,6 @@ using std::make_tuple;
 using std::optional;
 using std::make_optional;
 using std::holds_alternative;
-
-// parse
 
 Expression_ptr IdentifierParselet::parse(Parser_ptr parser, Token_ptr token)
 {
@@ -106,48 +104,6 @@ Expression_ptr PostfixOperatorParselet::parse(Parser_ptr parser, Expression_ptr 
 	return MAKE_EXPRESSION(Postfix(left, token));
 }
 
-Expression_ptr CallParselet::parse(Parser_ptr parser, Identifier* identifier)
-{
-	ExpressionVector arguments;
-
-	if (parser->token_pipe->optional(WTokenType::CLOSE_PARENTHESIS))
-	{
-		return MAKE_EXPRESSION(Call(identifier->name, arguments));
-	}
-
-	arguments = parser->parse_expressions();
-	parser->token_pipe->require(WTokenType::CLOSE_PARENTHESIS);
-
-	return MAKE_EXPRESSION(Call(identifier->name, arguments));
-}
-
-Expression_ptr CallParselet::parse(Parser_ptr parser, Expression_ptr left, Token_ptr token)
-{
-	Expression_ptr result;
-
-	std::visit(overloaded{
-		[&](Identifier& expr)
-		{
-			result = parse(parser, &expr);
-		},
-		[&](MemberAccess& expr)
-		{
-			Expression_ptr right_expr = expr.right;
-			ASSERT(holds_alternative<Identifier>(*right_expr), "Function name is supposed to be an identifier");
-			auto identifier = get_if<Identifier>(&*right_expr);
-
-			expr.right = parse(parser, identifier);
-			result = MAKE_EXPRESSION(expr);
-		},
-		[&](auto)
-		{
-			FATAL("Function Call syntax error");
-		}
-		}, *left);
-
-	return result;
-}
-
 Expression_ptr GroupParselet::parse(Parser_ptr parser, Token_ptr token)
 {
 	ADVANCE_PTR;
@@ -186,80 +142,45 @@ Expression_ptr MapParselet::parse(Parser_ptr parser, Token_ptr token)
 
 	map<Expression_ptr, Expression_ptr> pairs;
 
+	if (parser->token_pipe->optional(WTokenType::CLOSE_ANGLE_BRACKET))
+		return MAKE_EXPRESSION(MapLiteral(pairs));
+
 	while (true)
 	{
 		parser->token_pipe->ignore_whitespace();
 
+		auto key = parser->parse_expression();
+		auto value = (parser->token_pipe->optional(WTokenType::ARROW)) ? parser->parse_expression() : key;
+		pairs.insert_or_assign(key, value);
+
+
 		if (parser->token_pipe->optional(WTokenType::CLOSE_ANGLE_BRACKET))
 			return MAKE_EXPRESSION(MapLiteral(pairs));
 
-		auto key = parser->parse_expression();
-		auto value = (parser->token_pipe->optional(WTokenType::COLON)) ? parser->parse_expression() : key;
-		pairs.insert_or_assign(key, value);
-
-		parser->token_pipe->require(WTokenType::COMMA);
+		parser->token_pipe->require(WTokenType::COMMA);		
 	}
-}
-
-Expression_ptr NewParselet::parse(Parser_ptr parser, Token_ptr token)
-{
-	ADVANCE_PTR;
-	auto next_token = parser->token_pipe->require(WTokenType::IDENTIFIER);
-	NULL_CHECK(next_token);
-	ASSERT(next_token->type == WTokenType::IDENTIFIER, "Expect name of a UDT");
-
-	parser->token_pipe->require(WTokenType::OPEN_PARENTHESIS);
-	ExpressionVector arguments = parser->parse_expressions();
-	parser->token_pipe->require(WTokenType::CLOSE_PARENTHESIS);
-
-	return MAKE_EXPRESSION(NewObject(next_token->value, arguments));
-}
-
-Expression_ptr EnumMemberParselet::parse(Parser_ptr parser, Expression_ptr left, Token_ptr token)
-{
-	ASSERT(holds_alternative<Identifier>(*left), "Expect enum member name");
-	auto identifier = get_if<Identifier>(&*left);
-
-	StringVector chain = { identifier->name };
-
-	while (auto member_identifier = parser->token_pipe->require(WTokenType::IDENTIFIER))
-	{
-		chain.push_back(member_identifier->value);
-
-		if (!parser->token_pipe->optional(WTokenType::COLON_COLON))
-			break;
-	}
-
-	return MAKE_EXPRESSION(EnumMember(chain));
 }
 
 Expression_ptr AssignmentParselet::parse(Parser_ptr parser, Expression_ptr left, Token_ptr token)
 {
 	Expression_ptr right = parser->parse_expression((int)Precedence::ASSIGNMENT - 1);
-	return MAKE_EXPRESSION(Assignment(left, right));
+
+	if (holds_alternative<TypePattern>(*left))
+	{
+		auto type_pattern = get_if<TypePattern>(&*left);
+		auto lhs = type_pattern->expression;
+		auto type_node = type_pattern->type_node;
+
+		return MAKE_EXPRESSION(TypedAssignment(lhs, right, type_node));
+	}
+
+	return MAKE_EXPRESSION(UntypedAssignment(left, right));
 }
 
-Expression_ptr TagPatternParselet::parse(Parser_ptr parser, Expression_ptr left, Token_ptr token)
+Expression_ptr TypePatternParselet::parse(Parser_ptr parser, Expression_ptr left, Token_ptr token)
 {
-	auto next_token = parser->token_pipe->lookahead();
-	OPT_CHECK(next_token);
-
-	switch (next_token.value()->type)
-	{
-		case WTokenType::OPEN_PARENTHESIS:
-		case WTokenType::OPEN_SQUARE_BRACKET:
-		case WTokenType::OPEN_ANGLE_BRACKET:
-		case WTokenType::OPEN_FLOOR_BRACKET:
-		case WTokenType::OPEN_CURLY_BRACE:
-		{
-			ADVANCE_PTR;
-			Expression_ptr tag = parser->parse_expression();
-			return MAKE_EXPRESSION(TagPattern(left, tag));
-		}
-	} 
-
-	Expression_ptr type = parser->parse_type();
-	return MAKE_EXPRESSION(TagPattern(left, MAKE_EXPRESSION(type)));
+	TypeNode_ptr type = parser->parse_type();
+	return MAKE_EXPRESSION(TypePattern(left, type));
 }
 
 Expression_ptr TernaryConditionParselet::parse(Parser_ptr parser, Token_ptr token)
@@ -284,13 +205,6 @@ Expression_ptr SpreadParselet::parse(Parser_ptr parser, Token_ptr token)
 	return MAKE_EXPRESSION(Spread(expression));
 }
 
-Expression_ptr MemberAccessParselet::parse(Parser_ptr parser, Expression_ptr left, Token_ptr token)
-{
-	int precedence = get_precedence();
-	Expression_ptr right = parser->parse_expression(precedence);
-	return MAKE_EXPRESSION(MemberAccess(left, token, right));
-}
-
 // get_precedence
 
 int PrefixOperatorParselet::get_precedence()
@@ -308,27 +222,12 @@ int PostfixOperatorParselet::get_precedence()
 	return precedence;
 }
 
-int CallParselet::get_precedence()
-{
-	return (int)Precedence::CALL;
-}
-
-int EnumMemberParselet::get_precedence()
-{
-	return (int)Precedence::MEMBER_ACCESS;
-}
-
-int NewParselet::get_precedence()
-{
-	return (int)Precedence::CALL;
-}
-
 int AssignmentParselet::get_precedence()
 {
 	return (int)Precedence::ASSIGNMENT;
 }
 
-int TagPatternParselet::get_precedence()
+int TypePatternParselet::get_precedence()
 {
 	return (int)Precedence::TYPE_PATTERN;
 }
@@ -341,9 +240,4 @@ int TernaryConditionParselet::get_precedence()
 int SpreadParselet::get_precedence()
 {
 	return (int)Precedence::PREFIX;
-}
-
-int MemberAccessParselet::get_precedence()
-{
-	return (int)Precedence::MEMBER_ACCESS;
 }

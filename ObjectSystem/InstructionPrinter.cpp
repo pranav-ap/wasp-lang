@@ -11,9 +11,8 @@
 #define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr")
 #define OPT_CHECK(x) ASSERT(x.has_value(), "Oh shit! Option is none")
 #define MAKE_OBJECT_VARIANT(x) std::make_shared<Object>(x)
-#define OPCODE_WIDTH 23
-#define OPERAND_WIDTH 12
-#define OPERAND_WIDTH_2 14
+#define OPCODE_WIDTH 27
+#define OPERAND_WIDTH 15
 
 using std::byte;
 using std::vector;
@@ -36,32 +35,29 @@ std::wstring InstructionPrinter::stringify_instruction(std::byte opcode, std::by
 	switch ((OpCode)opcode)
 	{
 	case OpCode::PUSH_CONSTANT:
+	{
+		wstring comment = stringify_object(object_store->get(operand_int));
+		str_stream << std::right << setw(OPERAND_WIDTH) << L" (" << comment << L")";
+		return str_stream.str();
+	}
 	case OpCode::MAKE_LIST:
 	case OpCode::MAKE_TUPLE:
 	case OpCode::MAKE_MAP:
 	case OpCode::MAKE_SET:
-	case OpCode::ITERATE_OVER:
-	{
-		wstring comment = stringify_object(object_store->get(operand_int));
-		str_stream << std::right << setw(OPERAND_WIDTH_2) << L" (" << comment << L")";
-		return str_stream.str();
-	}
 	case OpCode::JUMP:
-	case OpCode::JUMP_IF_FALSE:
 	case OpCode::POP_JUMP:
+	case OpCode::JUMP_IF_FALSE:
 	case OpCode::POP_JUMP_IF_FALSE:
 	case OpCode::LABEL:
+	case OpCode::GET_NEXT_OR_JUMP:
 	{
 		return str_stream.str();
 	}
 	case OpCode::STORE_LOCAL:
-	case OpCode::STORE_GLOBAL:
 	case OpCode::LOAD_LOCAL:
-	case OpCode::LOAD_GLOBAL:
-	case OpCode::LOAD_BUILTIN:
 	{
 		wstring comment = object_store->name_map.at(operand_int);
-		str_stream << std::right << setw(OPERAND_WIDTH_2) << L" (" << comment << L")";
+		str_stream << std::right << setw(OPERAND_WIDTH) << L" (" << comment << L")";
 		return str_stream.str();
 	}
 	default:
@@ -82,7 +78,6 @@ std::wstring InstructionPrinter::stringify_instruction(std::byte opcode, std::by
 
 	switch ((OpCode)opcode)
 	{
-	case OpCode::MAKE_ENUM:
 	case OpCode::CALL_FUNCTION:
 	case OpCode::CALL_GENERATOR:
 	{

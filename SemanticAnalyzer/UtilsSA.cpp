@@ -58,15 +58,36 @@ wstring SemanticAnalyzer::concat(StringVector items, wstring middle)
 	return final_string;
 }
 
-std::tuple<std::wstring, Object_ptr> SemanticAnalyzer::deconstruct_tag_pattern(Expression_ptr expression)
+std::tuple<std::wstring, Object_ptr> SemanticAnalyzer::deconstruct_type_pattern(Expression_ptr expression)
 {
-	ASSERT(holds_alternative<TagPattern>(*expression), "Expected a TagPattern");
-	auto tag_pattern = get_if<TagPattern>(&*expression);
+	ASSERT(holds_alternative<TypePattern>(*expression), "Expected a TypePattern");
+	auto type_pattern = get_if<TypePattern>(&*expression);
 
-	Object_ptr type = visit(tag_pattern->tag);
+	Object_ptr type = visit(type_pattern->type_node);
 
-	ASSERT(holds_alternative<Identifier>(*tag_pattern->expression), "Expected an Identifier");
-	auto identifier = get_if<Identifier>(&*tag_pattern->expression);
+	ASSERT(holds_alternative<Identifier>(*type_pattern->expression), "Expected an Identifier");
+	auto identifier = get_if<Identifier>(&*type_pattern->expression);
 
 	return std::make_tuple(identifier->name, type);
 }
+
+bool SemanticAnalyzer::any_eq(ObjectVector vec, Object_ptr x)
+{
+	return std::any_of(begin(vec), end(vec), [&](auto k) { return type_system->equal(current_scope, x, k); });
+}
+
+ObjectVector SemanticAnalyzer::remove_duplicates(ObjectVector vec)
+{
+	ObjectVector uniq_vec;
+
+	for (const auto x : vec)
+	{
+		if (!any_eq(uniq_vec, x))
+		{
+			uniq_vec.push_back(x);
+		}
+	}
+
+	return uniq_vec;
+}
+

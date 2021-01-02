@@ -14,12 +14,9 @@ OBJECTSYSTEM_API int get_opcode_arity(OpCode opcode)
 	case OpCode::NO_OP:
 	case OpCode::START:
 	case OpCode::STOP:
-	case OpCode::PUSH_TO_STACK:
 	case OpCode::POP_FROM_STACK:
-	case OpCode::UNARY_POSITIVE:
 	case OpCode::UNARY_NEGATIVE:
 	case OpCode::UNARY_NOT:
-	case OpCode::ASSERT:
 	case OpCode::ADD:
 	case OpCode::SUBTRACT:
 	case OpCode::MULTIPLY:
@@ -34,23 +31,24 @@ OBJECTSYSTEM_API int get_opcode_arity(OpCode opcode)
 	case OpCode::GREATER_THAN_EQUAL:
 	case OpCode::AND:
 	case OpCode::OR:
+	case OpCode::NULLISH_COALESE:
 	case OpCode::RETURN_VOID:
 	case OpCode::RETURN_VALUE:
 	case OpCode::YIELD_VOID:
 	case OpCode::YIELD_VALUE:
 	case OpCode::PUSH_CONSTANT_TRUE:
 	case OpCode::PUSH_CONSTANT_FALSE:
-	case OpCode::ITERATE_OVER:
+	case OpCode::ASSERT:
+	case OpCode::SWEAR:
+	case OpCode::IMPLORE:
+	case OpCode::MAKE_ITERABLE:
 	{
 		return 0;
 	}
 
 	case OpCode::PUSH_CONSTANT:
 	case OpCode::STORE_LOCAL:
-	case OpCode::STORE_GLOBAL:
 	case OpCode::LOAD_LOCAL:
-	case OpCode::LOAD_GLOBAL:
-	case OpCode::LOAD_BUILTIN:
 	case OpCode::MAKE_LIST:
 	case OpCode::MAKE_TUPLE:
 	case OpCode::MAKE_MAP:
@@ -59,11 +57,11 @@ OBJECTSYSTEM_API int get_opcode_arity(OpCode opcode)
 	case OpCode::POP_JUMP:
 	case OpCode::POP_JUMP_IF_FALSE:
 	case OpCode::LABEL:
+	case OpCode::GET_NEXT_OR_JUMP:
 	{
 		return 1;
 	}
 
-	case OpCode::MAKE_ENUM:
 	case OpCode::CALL_FUNCTION:
 	case OpCode::CALL_GENERATOR:
 	{
@@ -98,17 +96,9 @@ OBJECTSYSTEM_API std::wstring stringify_opcode(OpCode opcode)
 	{
 		return L"STOP";
 	}
-	case OpCode::PUSH_TO_STACK:
-	{
-		return L"PUSH_TO_STACK";
-	}
 	case OpCode::POP_FROM_STACK:
 	{
 		return L"POP_FROM_STACK";
-	}
-	case OpCode::UNARY_POSITIVE:
-	{
-		return L"UNARY_POSITIVE";
 	}
 	case OpCode::UNARY_NEGATIVE:
 	{
@@ -117,10 +107,6 @@ OBJECTSYSTEM_API std::wstring stringify_opcode(OpCode opcode)
 	case OpCode::UNARY_NOT:
 	{
 		return L"UNARY_NOT";
-	}
-	case OpCode::ASSERT:
-	{
-		return L"ASSERT";
 	}
 	case OpCode::ADD:
 	{
@@ -214,21 +200,9 @@ OBJECTSYSTEM_API std::wstring stringify_opcode(OpCode opcode)
 	{
 		return L"STORE_LOCAL";
 	}
-	case OpCode::STORE_GLOBAL:
-	{
-		return L"STORE_GLOBAL";
-	}
 	case OpCode::LOAD_LOCAL:
 	{
 		return L"LOAD_LOCAL";
-	}
-	case OpCode::LOAD_GLOBAL:
-	{
-		return L"LOAD_GLOBAL";
-	}
-	case OpCode::LOAD_BUILTIN:
-	{
-		return L"LOAD_BUILTIN";
 	}
 	case OpCode::MAKE_LIST:
 	{
@@ -241,10 +215,6 @@ OBJECTSYSTEM_API std::wstring stringify_opcode(OpCode opcode)
 	case OpCode::MAKE_MAP:
 	{
 		return L"MAKE_MAP";
-	}
-	case OpCode::MAKE_ENUM:
-	{
-		return L"MAKE_ENUM";
 	}
 	case OpCode::JUMP:
 	{
@@ -266,9 +236,9 @@ OBJECTSYSTEM_API std::wstring stringify_opcode(OpCode opcode)
 	{
 		return L"LABEL";
 	}
-	case OpCode::ITERATE_OVER:
+	case OpCode::GET_NEXT_OR_JUMP:
 	{
-		return L"ITERATE_OVER";
+		return L"GET_NEXT_OR_JUMP";
 	}
 	case OpCode::CALL_FUNCTION:
 	{
@@ -278,6 +248,22 @@ OBJECTSYSTEM_API std::wstring stringify_opcode(OpCode opcode)
 	{
 		return L"CALL_GENERATOR";
 	}
+	case OpCode::ASSERT:
+	{
+		return L"ASSERT";
+	}
+	case OpCode::SWEAR:
+	{
+		return L"SWEAR";
+	}
+	case OpCode::IMPLORE:
+	{
+		return L"IMPLORE";
+	}
+	case OpCode::MAKE_ITERABLE:
+	{
+		return L"MAKE_ITERABLE";
+	}	
 	default:
 	{
 		std::wstring empty = L"";

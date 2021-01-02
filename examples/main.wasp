@@ -1,2 +1,7 @@
-let x : int = 1
+﻿let x : [int] = [5, 6]
 
+for a in [1, 2] do
+	x
+end
+
+for a in [3, 4] do x

@@ -54,7 +54,7 @@ void CodeObject::emit(OpCode opcode, int operand_1, int operand_2)
 ByteVector CodeObject::instruction_at(int index)
 {
 	byte opcode = instructions.at(index);
-	ByteVector operands = operands_of(index);
+	ByteVector operands = operands_of_opcode_at(index);
 
 	ByteVector instruction{ opcode };
 	instruction.insert(
@@ -65,7 +65,7 @@ ByteVector CodeObject::instruction_at(int index)
 	return instruction;
 }
 
-ByteVector CodeObject::operands_of(int opcode_index)
+ByteVector CodeObject::operands_of_opcode_at(int opcode_index)
 {
 	byte opcode = instructions.at(opcode_index);
 	int arity = get_opcode_arity(opcode);

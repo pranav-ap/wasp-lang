@@ -7,9 +7,6 @@
 #include <string>
 #include <iomanip>
 
-#define GET_OPCODE (OpCode) std::to_integer<int>(block->instructions.at(index))
-#define INC_INDEX index++
-
 using std::wcout;
 using std::cout;
 using std::endl;
@@ -30,18 +27,18 @@ void CFG::print()
 
 		printer->print(block->code_object);
 
-		if (block->type == BlockType::ConditionalJump)
+		if (block->type == BlockType::JumpOnFalse)
 		{
 			int true_successor_id = adjacency_list[id].first;
 			int false_successor_id = adjacency_list[id].second;
 
-			wcout << L"\n > If true, go to : " << true_successor_id;
-			wcout << L"\n > If false, go to : " << false_successor_id << endl;
+			wcout << L"\n > If true, go to : Block " << true_successor_id;
+			wcout << L"\n > If false, go to : Block " << false_successor_id << endl;
 		}
-		else if (block->type == BlockType::UnconditionalJump || block->type == BlockType::Unconditional)
+		else if (block->type == BlockType::JustJump || block->type == BlockType::ConnectToFollowingBlock)
 		{
 			int unique_successor_id = adjacency_list[id].first;
-			wcout << L"\n > Go to :  " << unique_successor_id << endl;;
+			wcout << L"\n > Go to :  " << unique_successor_id << endl;
 		}
 	}
 }

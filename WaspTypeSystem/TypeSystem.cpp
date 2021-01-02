@@ -51,7 +51,7 @@ bool TypeSystem::equal(SymbolScope_ptr scope, const Object_ptr type_1, const Obj
 
 		[&](SetType const& type_1, SetType const& type_2)
 		{
-			return equal(scope, type_1.element_types, type_2.element_types);
+			return equal(scope, type_1.element_type, type_2.element_type);
 		},
 
 		[&](TupleType const& type_1, TupleType const& type_2)
@@ -71,53 +71,7 @@ bool TypeSystem::equal(SymbolScope_ptr scope, const Object_ptr type_1, const Obj
 			return key_compare && value_compare;
 		},
 
-		[&](ClassType const& type_1, ClassType const& type_2)
-		{
-			Symbol_ptr symbol_1 = scope->lookup(type_1.name);
-			NULL_CHECK(symbol_1);
-			Symbol_ptr symbol_2 = scope->lookup(type_2.name);
-			NULL_CHECK(symbol_2);
-
-			return symbol_1->name == symbol_2->name;
-		},
-
-		[&](AliasType const& type_1, AliasType const& type_2)
-		{
-			Symbol_ptr symbol_1 = scope->lookup(type_1.name);
-			NULL_CHECK(symbol_1);
-			Symbol_ptr symbol_2 = scope->lookup(type_2.name);
-			NULL_CHECK(symbol_2);
-
-			return symbol_1->name == symbol_2->name;
-		},
-
-		[&](InterfaceType const& type_1, InterfaceType const& type_2)
-		{
-			Symbol_ptr symbol_1 = scope->lookup(type_1.name);
-			NULL_CHECK(symbol_1);
-			Symbol_ptr symbol_2 = scope->lookup(type_2.name);
-			NULL_CHECK(symbol_2);
-
-			return symbol_1->name == symbol_2->name;
-		},
-
-		[&](EnumType const& type_1, EnumType const& type_2)
-		{
-			Symbol_ptr symbol_1 = scope->lookup(type_1.enum_name);
-			NULL_CHECK(symbol_1);
-			Symbol_ptr symbol_2 = scope->lookup(type_2.enum_name);
-			NULL_CHECK(symbol_2);
-
-			return symbol_1->name == symbol_2->name;
-		},
-
 		[&](NoneType const& type_1, NoneType const& type_2) { return true; },
-
-		[&](FunctionType const& type_1, FunctionType const& type_2) { return true; },
-		[&](GeneratorType const& type_1, GeneratorType const& type_2) { return true; },
-
-		[&](FunctionMemberType const& type_1, FunctionMemberType const& type_2) { return true; },
-		[&](GeneratorMemberType const& type_1, GeneratorMemberType const& type_2) { return true; },
 
 		[](auto, auto) { return false; }
 		}, *type_1, *type_2);
@@ -176,7 +130,7 @@ bool TypeSystem::assignable(SymbolScope_ptr scope, const Object_ptr lhs_type, co
 
 		[&](SetType const& type_1, SetType const& type_2)
 		{
-			return assignable(scope, type_1.element_types, type_2.element_types);
+			return assignable(scope, type_1.element_type, type_2.element_type);
 		},
 
 		[&](TupleType const& type_1, TupleType const& type_2)

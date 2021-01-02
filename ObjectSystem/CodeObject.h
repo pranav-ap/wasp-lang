@@ -25,7 +25,7 @@ struct OBJECTSYSTEM_API CodeObject
 	void emit(OpCode opcode, int operand_1, int operand_2);
 
 	ByteVector instruction_at(int index);
-	ByteVector operands_of(int opcode_index);
+	ByteVector operands_of_opcode_at(int opcode_index);
 };
 
 using CodeObject_ptr = OBJECTSYSTEM_API std::shared_ptr<CodeObject>;

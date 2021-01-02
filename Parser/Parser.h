@@ -25,9 +25,20 @@ class PARSER_API Parser
 
 	Statement_ptr parse_statement(bool is_public = false);
 	Statement_ptr parse_public_statement();
-	Statement_ptr parse_non_block_statement();
-
 	Statement_ptr parse_expression_statement();
+
+	// Block parsers
+
+	Expression_ptr parse_ternary_condition(Expression_ptr condition);
+	Block parse_conditional_block();
+	Statement_ptr parse_else();
+	Statement_ptr parse_branching(WTokenType token_type);
+
+	Statement_ptr parse_non_block_statement();
+	Block parse_block();
+
+	Statement_ptr parse_while_loop();
+	Statement_ptr parse_for_in_loop();
 
 	Statement_ptr parse_return();
 	Statement_ptr parse_yield();
@@ -36,50 +47,19 @@ class PARSER_API Parser
 	Statement_ptr parse_swear();
 	Statement_ptr parse_break();
 	Statement_ptr parse_continue();
-	Statement_ptr parse_redo();	
+	Statement_ptr parse_redo();
 
-	// Expression parsers
+	// TypeNode parsers
 
-	Expression_ptr parse_list_type(bool is_optional);
-	Expression_ptr parse_set_type(bool is_optional);
-	Expression_ptr parse_tuple_type(bool is_optional);
-	Expression_ptr parse_map_type(bool is_optional);
-	Expression_ptr consume_datatype_word(bool is_optional);
-
-	std::tuple<ExpressionVector, std::optional<Expression_ptr>> parse_callable_type();
-	Expression_ptr parse_function_type(bool is_optional);
-	Expression_ptr parse_generator_type(bool is_optional);
-
-	// Blocks
-
-	Statement_ptr parse_namespace(bool is_public);
-
-	Block parse_block();
-	Block parse_conditional_block();
-	Statement_ptr parse_condition_and_consequence();
-
-	Expression_ptr parse_ternary_condition(Expression_ptr condition);
-	Statement_ptr parse_branching(WTokenType token_type);
-	Statement_ptr parse_while_loop();
-	Statement_ptr parse_for_in_loop();
-
-	std::pair<std::wstring, Expression_ptr> consume_identifier_type_pair();
+	TypeNode_ptr parse_list_type(bool is_optional);
+	TypeNode_ptr parse_set_type(bool is_optional);
+	TypeNode_ptr parse_tuple_type(bool is_optional);
+	TypeNode_ptr parse_map_type(bool is_optional);
+	TypeNode_ptr consume_datatype_word(bool is_optional);
 
 	// Definition Parsers
 
-	Statement_ptr parse_enum_definition(bool is_public);
-	StringVector parse_enum_members(std::wstring stem);
-
 	Statement_ptr parse_variable_definition(bool is_public, bool is_mutable);
-
-	StringVector parse_comma_separated_identifiers();
-	std::tuple<std::map<std::wstring, Expression_ptr>, std::map<std::wstring, bool>, StringVector, StringVector> parse_class_and_interface_definition();
-	Statement_ptr parse_interface_definition(bool is_public);
-	Statement_ptr parse_class_definition(bool is_public);
-
-	std::tuple<std::wstring, std::wstring, bool, StringVector, ExpressionVector, std::optional<Expression_ptr>, Block> parse_callable_definition();
-	Statement_ptr parse_function_definition(bool is_public);
-	Statement_ptr parse_generator_definition(bool is_public);
 
 	// Pratt Parser
 
@@ -96,16 +76,23 @@ class PARSER_API Parser
 
 	int get_next_operator_precedence();
 
+	// Utils
+
+	std::tuple<Expression_ptr, TypeNode_ptr> deconstruct_type_pattern(Expression_ptr expr);
+	std::tuple<Expression_ptr, Expression_ptr> deconstruct_UntypedAssignment(Expression_ptr expr);
+	std::tuple<Expression_ptr, Expression_ptr, TypeNode_ptr> deconstruct_TypedAssignment(Expression_ptr expr);
+
 public:
 	TokenPipe_ptr token_pipe;
 
 	Parser();
-	Expression_ptr parse_type(bool is_optional = false);
+	
+	TypeNode_ptr parse_type(bool is_optional = false);
 	Expression_ptr parse_expression();
 	Expression_ptr parse_expression(int precedence);
 	ExpressionVector parse_expressions();
 
-	Module_ptr execute(std::vector<Token_ptr>& tokens);
+	Module_ptr run(std::vector<Token_ptr>& tokens);
 };
 
 using Parser_ptr = PARSER_API Parser*;

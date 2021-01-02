@@ -161,6 +161,9 @@
     <ProjectReference Include="..\Lexer\Lexer.vcxproj">
       <Project>{02fa6bd4-8ed3-468e-a9c0-37b08e202905}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\ObjectSystem\ObjectSystem.vcxproj">
+      <Project>{e9dc52f7-d707-4884-b448-75f812bd4326}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\Parser\Parser.vcxproj">
       <Project>{381ffacd-7a95-4757-96f6-2826a3e28d86}</Project>
     </ProjectReference>
@@ -172,6 +175,9 @@
     </ProjectReference>
     <ProjectReference Include="..\Utils\Utils.vcxproj">
       <Project>{825d931e-a262-42d4-8af0-8e503ac06104}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\VirtualMachine\VirtualMachine.vcxproj">
+      <Project>{2c02ab63-f113-4649-bb9b-f6b89851fb86}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

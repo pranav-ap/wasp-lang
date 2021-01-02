@@ -41,17 +41,14 @@ void Compiler::visit(const Expression_ptr expression)
 		[&](TupleLiteral const& expr) { visit(expr); },
 		[&](MapLiteral const& expr) { visit(expr); },
 		[&](SetLiteral const& expr) { visit(expr); },
-		[&](NewObject const& expr) { visit(expr); },
 		[&](TernaryCondition const& expr) { visit(expr); },
-		[&](EnumMember const& expr) { visit(expr); },
-		[&](MemberAccess const& expr) { visit(expr); },
 		[&](Identifier const& expr) { visit(expr); },
 		[&](Prefix const& expr) { visit(expr); },
 		[&](Infix const& expr) { visit(expr); },
 		[&](Postfix const& expr) { visit(expr); },
-		[&](Call const& expr) { visit(expr); },
-		[&](TagPattern const& expr) { visit(expr); },
-		[&](Assignment const& expr) { visit(expr); },
+		[&](TypePattern const& expr) { visit(expr); },
+		[&](UntypedAssignment const& expr) { visit(expr); },
+		[&](TypedAssignment const& expr) { visit(expr); },
 
 		[&](auto)
 		{
@@ -127,31 +124,10 @@ void Compiler::visit(SetLiteral const& expr)
 	emit(OpCode::MAKE_SET, expr.expressions.size());
 }
 
-void Compiler::visit(NewObject const& expr)
-{
-}
-
 void Compiler::visit(TernaryCondition const& expr)
 {
 	set_current_scope(expr.scope);
-
-	std::visit(overloaded{
-		[&](Assignment const& assignment)
-		{
-			visit(assignment.rhs_expression);
-
-			auto identifier = extract_identifier_from_tag_pattern(assignment.lhs_expression);
-
-			int id = current_scope->lookup(identifier)->id;
-			emit(OpCode::STORE_LOCAL, id);
-			emit(OpCode::LOAD_LOCAL, id);
-		},
-
-		[&](auto)
-		{
-			visit(expr.condition);
-		}
-		}, *expr.condition);
+	visit(expr.condition);
 
 	int	alternative_branch_label = create_label();
 	int	exit_branch_label = create_label();
@@ -168,16 +144,9 @@ void Compiler::visit(TernaryCondition const& expr)
 	leave_scope();
 }
 
-void Compiler::visit(EnumMember const& expr)
+void Compiler::visit(TypePattern const& expr)
 {
-	auto member = concat(expr.member_chain, L"::");
-	auto id = current_scope->lookup(member)->id;
-	emit(OpCode::LOAD_LOCAL, id);
-}
-
-void Compiler::visit(TagPattern const& expr)
-{
-	FATAL("TagPattern cannot be visited");
+	FATAL("TypePattern cannot be visited");
 }
 
 void Compiler::visit(Identifier const& expr)
@@ -188,35 +157,6 @@ void Compiler::visit(Identifier const& expr)
 
 void Compiler::visit(Spread const& expr)
 {
-}
-
-void Compiler::visit(MemberAccess const& expr)
-{
-	visit(expr.left);
-
-	if (expr.op->type == WTokenType::QUESTION_DOT)
-	{
-		// ?
-	}
-
-	visit(expr.right);
-
-	if (current_scope->is_rvalue)
-	{
-		//emit(OpCode::GET_PROPERTY);
-	}
-	else
-	{
-		//emit(OpCode::SET_PROPERTY);
-	}
-}
-
-void Compiler::visit(Call const& expr)
-{
-	visit(expr.arguments);
-	int count = expr.arguments.size();
-	auto id = current_scope->lookup(expr.name)->id;
-	emit(OpCode::CALL_FUNCTION, id, count);
 }
 
 void Compiler::visit(Prefix const& expr)
@@ -237,7 +177,7 @@ void Compiler::visit(Prefix const& expr)
 	}
 	case WTokenType::PLUS:
 	{
-		emit(OpCode::UNARY_POSITIVE);
+		// do nothing
 		break;
 	}
 	default: {
@@ -339,7 +279,7 @@ void Compiler::visit(Postfix const& expr)
 {
 }
 
-void Compiler::visit(Assignment const& statement)
+void Compiler::visit(UntypedAssignment const& statement)
 {
 	visit(statement.rhs_expression);
 
@@ -349,4 +289,10 @@ void Compiler::visit(Assignment const& statement)
 	int id = current_scope->lookup(identifier->name)->id;
 	emit(OpCode::STORE_LOCAL, id);
 }
+
+void Compiler::visit(TypedAssignment const& statement)
+{
+	FATAL("TypedAssignment must be handled by parent nodes");
+}
+
 

@@ -28,67 +28,16 @@ CFG_ptr CFGBuilder::create()
 	return cfg;
 }
 
-ByteVector CFGBuilder::assemble()
-{
-	ByteVector instructions;
-	map<int, pair<int, int>> block_locations; // id -> (start, end)
-
-	for (auto const& [id, block] : cfg->basic_blocks)
-	{
-		int start = instructions.size();
-		int end = start + block->code_object->instructions.size() - 1;
-
-		block_locations[id] = { start, end };
-
-		instructions.insert(
-			std::end(instructions),
-			std::begin(block->code_object->instructions),
-			std::end(block->code_object->instructions)
-		);
-	}
-
-	for (int index = 0; index < instructions.size(); index++)
-	{
-		const byte opcode = instructions.at(index);
-		int arity = get_opcode_arity(opcode);
-
-		switch ((OpCode)opcode)
-		{
-		case OpCode::JUMP:
-		case OpCode::JUMP_IF_FALSE:
-		case OpCode::POP_JUMP:
-		case OpCode::POP_JUMP_IF_FALSE:
-		{
-			int label = to_integer<int>(instructions.at(index + (size_t)1));
-			int block_id = label_to_node_id[label];
-
-			int block_start_index = block_locations[block_id].first;
-			instructions.at(index + (size_t)1) = static_cast<byte>(block_start_index);
-			break;
-		}
-
-		default:
-		{
-			break;
-		}
-		}
-
-		index += arity;
-	}
-
-	return instructions;
-}
-
 // Operations
 
 void CFGBuilder::split_into_basic_blocks()
 {
-	int length = instructions.size();
 	bool previous_instruction_was_leader = false;
+	int length = unrefined_code_object->instructions.size();
 
 	for (int code_pointer = 0; code_pointer < length; code_pointer++)
 	{
-		std::byte opcode = instructions.at(code_pointer);
+		std::byte opcode = unrefined_code_object->instructions.at(code_pointer);
 		OpCode op = (OpCode)opcode;
 
 		switch (op)
@@ -96,16 +45,17 @@ void CFGBuilder::split_into_basic_blocks()
 		case OpCode::START:
 		{
 			IS_A_LEADER;
-			enter_empty_node();
-			current_node->type = BlockType::Start;
-			cfg->start_node_id = current_node_id;
+			enter_empty_node(BlockType::Start); // type will get overwritten when we reach next leader
 			emit(opcode);
+			cfg->start_block_id = code_pointer;
+			enter_empty_node();
 			break;
 		}
 		case OpCode::STOP:
 		{
 			IS_A_LEADER;
-			current_node->type = BlockType::Stop;
+			current_basic_block->type = BlockType::Stop;
+			cfg->end_block_id = code_pointer;
 			emit(opcode);
 
 			return;
@@ -125,7 +75,7 @@ void CFGBuilder::split_into_basic_blocks()
 		case OpCode::POP_JUMP:
 		{
 			IS_A_LEADER;
-			std::byte operand = instructions.at(++code_pointer);
+			std::byte operand = unrefined_code_object->instructions.at(++code_pointer);
 			emit(opcode, operand);
 			mark_node_as_unconditional_jump();
 			enter_empty_node();
@@ -135,7 +85,7 @@ void CFGBuilder::split_into_basic_blocks()
 		case OpCode::POP_JUMP_IF_FALSE:
 		{
 			IS_A_LEADER;
-			std::byte operand = instructions.at(++code_pointer);
+			std::byte operand = unrefined_code_object->instructions.at(++code_pointer);
 			emit(opcode, operand);
 			mark_node_as_conditional();
 			enter_empty_node();
@@ -143,7 +93,7 @@ void CFGBuilder::split_into_basic_blocks()
 		}
 		case OpCode::LABEL:
 		{
-			std::byte operand = instructions.at(++code_pointer);
+			std::byte operand = unrefined_code_object->instructions.at(++code_pointer);
 			int label = to_integer<int>(operand);
 
 			if (!previous_instruction_was_leader)
@@ -152,22 +102,18 @@ void CFGBuilder::split_into_basic_blocks()
 				enter_empty_node();
 			}
 
-			current_node->label = label;
-			label_to_node_id[label] = current_node_id;
 			IS_A_LEADER;
+			cfg->label_to_block_id[label] = current_block_id;
 
 			break;
 		}
 
-		// Non-Leader with arity 1
+		// Non-Leader with arity 0
 
 		case OpCode::NO_OP:
-		case OpCode::PUSH_TO_STACK:
 		case OpCode::POP_FROM_STACK:
-		case OpCode::UNARY_POSITIVE:
 		case OpCode::UNARY_NEGATIVE:
 		case OpCode::UNARY_NOT:
-		case OpCode::ASSERT:
 		case OpCode::ADD:
 		case OpCode::SUBTRACT:
 		case OpCode::MULTIPLY:
@@ -185,6 +131,7 @@ void CFGBuilder::split_into_basic_blocks()
 		case OpCode::NULLISH_COALESE:
 		case OpCode::PUSH_CONSTANT_TRUE:
 		case OpCode::PUSH_CONSTANT_FALSE:
+		case OpCode::MAKE_ITERABLE:			
 		{
 			IS_A_FOLLOWER;
 			emit(opcode);
@@ -195,17 +142,14 @@ void CFGBuilder::split_into_basic_blocks()
 
 		case OpCode::PUSH_CONSTANT:
 		case OpCode::STORE_LOCAL:
-		case OpCode::STORE_GLOBAL:
 		case OpCode::LOAD_LOCAL:
-		case OpCode::LOAD_GLOBAL:
-		case OpCode::LOAD_BUILTIN:
 		case OpCode::MAKE_LIST:
 		case OpCode::MAKE_TUPLE:
 		case OpCode::MAKE_MAP:
-		case OpCode::MAKE_ENUM:
+		case OpCode::GET_NEXT_OR_JUMP:
 		{
 			IS_A_FOLLOWER;
-			std::byte operand = instructions.at(++code_pointer);
+			std::byte operand = unrefined_code_object->instructions.at(++code_pointer);
 			emit(opcode, operand);
 			break;
 		}
@@ -216,8 +160,8 @@ void CFGBuilder::split_into_basic_blocks()
 		case OpCode::CALL_GENERATOR:
 		{
 			IS_A_FOLLOWER;
-			std::byte operand_1 = instructions.at(++code_pointer);
-			std::byte operand_2 = instructions.at(++code_pointer);
+			std::byte operand_1 = unrefined_code_object->instructions.at(++code_pointer);
+			std::byte operand_2 = unrefined_code_object->instructions.at(++code_pointer);
 			emit(opcode, operand_1, operand_2);
 			break;
 		}
@@ -234,23 +178,23 @@ void CFGBuilder::connect_basic_blocks()
 {
 	for (auto const& [id, block] : cfg->basic_blocks)
 	{
-		if (block->type == BlockType::ConditionalJump)
+		if (block->type == BlockType::JumpOnFalse)
 		{
-			int to_label = to_integer<int>(block->code_object->instructions.back());
-
 			int true_successor_id = id + 1;
-			int false_successor_id = label_to_node_id[to_label];
+
+			int to_label = to_integer<int>(block->code_object->instructions.back());
+			int false_successor_id = cfg->label_to_block_id[to_label];
 
 			cfg->adjacency_list[id] = { true_successor_id, false_successor_id };
 		}
-		else if (block->type == BlockType::UnconditionalJump)
+		else if (block->type == BlockType::JustJump)
 		{
 			int to_label = to_integer<int>(block->code_object->instructions.back());
-			int unique_successor_id = label_to_node_id[to_label];
+			int unique_successor_id = cfg->label_to_block_id[to_label];
 
 			cfg->adjacency_list[id] = { unique_successor_id, -1 };
 		}
-		else if (block->type == BlockType::Unconditional)
+		else if (block->type == BlockType::ConnectToFollowingBlock)
 		{
 			int unique_successor_id = id + 1;
 			cfg->adjacency_list[id] = { unique_successor_id, -1 };
@@ -267,40 +211,47 @@ void CFGBuilder::connect_basic_blocks()
 
 void CFGBuilder::enter_empty_node()
 {
-	current_node_id = cfg->basic_blocks.size();
-	current_node = make_shared<BasicBlock>();
-	cfg->basic_blocks[current_node_id] = current_node;
+	current_block_id = cfg->basic_blocks.size();
+	current_basic_block = make_shared<BasicBlock>();
+	cfg->basic_blocks[current_block_id] = current_basic_block;
+}
+
+void CFGBuilder::enter_empty_node(BlockType type)
+{
+	current_block_id = cfg->basic_blocks.size();
+	current_basic_block = make_shared<BasicBlock>(type);
+	cfg->basic_blocks[current_block_id] = current_basic_block;
 }
 
 void CFGBuilder::mark_node_as_conditional()
 {
-	current_node->type = BlockType::ConditionalJump;
+	current_basic_block->type = BlockType::JumpOnFalse;
 }
 
 void CFGBuilder::mark_node_as_unconditional()
 {
-	current_node->type = BlockType::Unconditional;
+	current_basic_block->type = BlockType::ConnectToFollowingBlock;
 }
 
 void CFGBuilder::mark_node_as_unconditional_jump()
 {
-	current_node->type = BlockType::UnconditionalJump;
+	current_basic_block->type = BlockType::JustJump;
 }
 
 void CFGBuilder::emit(std::byte opcode)
 {
 	ByteVector ins{ opcode };
-	current_node->push(ins);
+	current_basic_block->code_object->push(ins);
 }
 
 void CFGBuilder::emit(std::byte opcode, std::byte operand)
 {
 	ByteVector ins{ opcode , operand };
-	current_node->push(ins);
+	current_basic_block->code_object->push(ins);
 }
 
 void CFGBuilder::emit(std::byte opcode, std::byte operand_1, std::byte operand_2)
 {
 	ByteVector ins{ opcode , operand_1, operand_2 };
-	current_node->push(ins);
+	current_basic_block->code_object->push(ins);
 }

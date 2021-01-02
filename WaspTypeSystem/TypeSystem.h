@@ -29,6 +29,8 @@ struct WASPTYPESYSTEM_API TypeSystem
 	Object_ptr infer(SymbolScope_ptr scope, Object_ptr left_type, WTokenType op, Object_ptr right_type);
 	Object_ptr infer(SymbolScope_ptr scope, Object_ptr left_type, WTokenType op);
 
+	Object_ptr spread_type(Object_ptr type);
+
 	// Is _ type?
 
 	bool is_boolean_type(const Object_ptr type) const;
@@ -37,13 +39,6 @@ struct WASPTYPESYSTEM_API TypeSystem
 	bool is_float_type(const Object_ptr type) const;
 	bool is_string_type(const Object_ptr type) const;
 	bool is_none_type(const Object_ptr type) const;
-	bool is_class_type(const Object_ptr type) const;
-	bool is_interface_type(const Object_ptr type) const;
-	bool is_enum_type(const Object_ptr type) const;
-	bool is_function_type(const Object_ptr type) const;
-	bool is_generator_type(const Object_ptr type) const;
-	bool is_function_method_type(const Object_ptr type) const;
-	bool is_generator_method_type(const Object_ptr type) const;
 	bool is_condition_type(SymbolScope_ptr scope, const Object_ptr condition_type) const;
 	bool is_spreadable_type(SymbolScope_ptr scope, const Object_ptr condition_type) const;
 	bool is_iterable_type(SymbolScope_ptr scope, const Object_ptr type) const;
@@ -57,27 +52,10 @@ struct WASPTYPESYSTEM_API TypeSystem
 	void expect_float_type(const Object_ptr type) const;
 	void expect_string_type(const Object_ptr type) const;
 	void expect_none_type(const Object_ptr type) const;
-	void expect_class_type(const Object_ptr type) const;
-	void expect_interface_type(const Object_ptr type) const;
-	void expect_enum_type(const Object_ptr type) const;
-	void expect_function_type(const Object_ptr type) const;
-	void expect_generator_type(const Object_ptr type) const;
-	void expect_function_method_type(const Object_ptr type) const;
-	void expect_generator_method_type(const Object_ptr type) const;
 	void expect_condition_type(SymbolScope_ptr scope, const Object_ptr condition_type) const;
 	void expect_spreadable_type(SymbolScope_ptr scope, const Object_ptr condition_type) const;
 	void expect_iterable_type(SymbolScope_ptr scope, const Object_ptr type) const;
 	void expect_key_type(SymbolScope_ptr scope, const Object_ptr type) const;
-
-	// Extract type from variant
-
-	ClassType* extract_class_type(const Object_ptr type) const;
-	InterfaceType* extract_interface_type(const Object_ptr type) const;
-	EnumType* extract_enum_type(const Object_ptr type) const;
-	FunctionType* extract_function_type(const Object_ptr type) const;
-	GeneratorType* extract_generator_type(const Object_ptr type) const;
-	FunctionMemberType* extract_function_member_type(const Object_ptr type) const;
-	GeneratorMemberType* extract_generator_member_type(const Object_ptr type) const;
 };
 
 using TypeSystem_ptr = WASPTYPESYSTEM_API std::shared_ptr<TypeSystem>;

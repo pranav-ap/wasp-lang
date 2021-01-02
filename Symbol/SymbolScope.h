@@ -17,13 +17,11 @@
 enum class SYMBOL_API ScopeType
 {
 	NONE,
-	FILE,
+	MODULE,
 	CONDITIONAL,
 	LOOP,
 	FUNCTION,
 	GENERATOR,
-	CLASS_FUNCTION,
-	CLASS_GENERATOR,
 	NAMESPACE
 };
 
@@ -33,14 +31,13 @@ using SymbolScope_ptr = SYMBOL_API std::shared_ptr<SymbolScope>;
 struct SYMBOL_API SymbolScope
 {
 	ScopeType scope_type;
+	CodeObject_ptr code_object;
+	std::optional<SymbolScope_ptr> enclosing_scope;
+	
 	std::map<std::wstring, std::vector<std::wstring>> function_overloads;
 	std::map<std::wstring, Symbol_ptr> symbols;
-	std::optional<SymbolScope_ptr> enclosing_scope;
-
-	CodeObject_ptr code_object;
 
 	bool is_rvalue;
-
 	int break_label;
 	int continue_label;
 
@@ -61,9 +58,6 @@ struct SYMBOL_API SymbolScope
 		code_object(std::make_shared<CodeObject>()) {};
 
 	void define(std::wstring name, Symbol_ptr symbol);
-	void define_subroutine(std::wstring name, Symbol_ptr symbol);
-
-	Symbol_ptr lookup_all(std::wstring name);
 	Symbol_ptr lookup(std::wstring name);
 
 	bool enclosed_in(ScopeType type);

@@ -22,6 +22,33 @@ using std::all_of;
 using std::begin;
 using std::end;
 
+
+Object_ptr TypeSystem::spread_type(Object_ptr type)
+{
+	return std::visit(overloaded{
+		[&](ListType const& t)
+		{
+			return t.element_type;
+		},
+
+		[&](TupleType const& t)
+		{
+			return MAKE_OBJECT_VARIANT(VariantType(t.element_types));
+		},
+
+		[&](MapType const& t) 
+		{ 
+			return type; 
+		},
+
+		[&](auto) 
+		{ 
+			FATAL("Cannot spread this type");
+			return type_pool->get_none_type(); 
+		}
+		}, *type);
+}
+
 // Is _ type?
 
 bool TypeSystem::is_boolean_type(const Object_ptr type) const
@@ -57,11 +84,6 @@ bool TypeSystem::is_none_type(const Object_ptr type) const
 bool TypeSystem::is_condition_type(SymbolScope_ptr scope, const Object_ptr condition_type) const
 {
 	return std::visit(overloaded{
-		[&](FunctionType const& type) { return false; },
-		[&](GeneratorType const& type) { return false; },
-		[&](FunctionMemberType const& type) { return false; },
-		[&](GeneratorMemberType const& type) { return false; },
-
 		[&](VariantType const& type)
 		{
 			return all_of(begin(type.types), end(type.types), [&](Object_ptr t) { return is_condition_type(scope, t); });
@@ -74,7 +96,6 @@ bool TypeSystem::is_condition_type(SymbolScope_ptr scope, const Object_ptr condi
 bool TypeSystem::is_spreadable_type(SymbolScope_ptr scope, const Object_ptr candidate_type) const
 {
 	return std::visit(overloaded{
-		[&](StringType const& type) { return true; },
 		[&](ListType const& type) { return true; },
 		[&](TupleType const& type) { return true; },
 		[&](MapType const& type) { return true; },
@@ -115,8 +136,6 @@ bool TypeSystem::is_key_type(SymbolScope_ptr scope, const Object_ptr key_type) c
 	[&](FloatLiteralType const& type) { return true; },
 	[&](StringLiteralType const& type) { return true; },
 	[&](BooleanLiteralType const& type) { return true; },
-	[&](EnumType const& type) { return true; },
-
 	[&](VariantType const& type)
 	{
 		return all_of(begin(type.types), end(type.types), [&](Object_ptr t) { return is_key_type(scope, t); });
@@ -124,41 +143,6 @@ bool TypeSystem::is_key_type(SymbolScope_ptr scope, const Object_ptr key_type) c
 
 	[](auto) { return false; }
 		}, *key_type);
-}
-
-bool TypeSystem::is_class_type(const Object_ptr type) const
-{
-	return holds_alternative<ClassType>(*type);
-}
-
-bool TypeSystem::is_interface_type(const Object_ptr type) const
-{
-	return holds_alternative<InterfaceType>(*type);
-}
-
-bool TypeSystem::is_enum_type(const Object_ptr type) const
-{
-	return holds_alternative<EnumType>(*type);
-}
-
-bool TypeSystem::is_function_type(const Object_ptr type) const
-{
-	return holds_alternative<FunctionType>(*type);
-}
-
-bool TypeSystem::is_generator_type(const Object_ptr type) const
-{
-	return holds_alternative<GeneratorType>(*type);
-}
-
-bool TypeSystem::is_function_method_type(const Object_ptr type) const
-{
-	return holds_alternative<FunctionMemberType>(*type);
-}
-
-bool TypeSystem::is_generator_method_type(const Object_ptr type) const
-{
-	return holds_alternative<GeneratorMemberType>(*type);
 }
 
 // assert type
@@ -193,41 +177,6 @@ void TypeSystem::expect_none_type(const Object_ptr type) const
 	ASSERT(is_none_type(type), "Must be a NoneType");
 }
 
-void TypeSystem::expect_class_type(const Object_ptr type) const
-{
-	ASSERT(is_class_type(type), "Must be a ClassType");
-}
-
-void TypeSystem::expect_interface_type(const Object_ptr type) const
-{
-	ASSERT(is_interface_type(type), "Must be a InterfaceType");
-}
-
-void TypeSystem::expect_enum_type(const Object_ptr type) const
-{
-	ASSERT(is_enum_type(type), "Must be a EnumType");
-}
-
-void TypeSystem::expect_function_type(const Object_ptr type) const
-{
-	ASSERT(is_function_type(type), "Must be a FunctionType");
-}
-
-void TypeSystem::expect_generator_type(const Object_ptr type) const
-{
-	ASSERT(is_generator_type(type), "Must be a GeneratorType");
-}
-
-void TypeSystem::expect_function_method_type(const Object_ptr type) const
-{
-	ASSERT(is_function_method_type(type), "Must be a FunctionMemberType");
-}
-
-void TypeSystem::expect_generator_method_type(const Object_ptr type) const
-{
-	ASSERT(is_generator_method_type(type), "Must be a GeneratorMemberType");
-}
-
 void TypeSystem::expect_condition_type(SymbolScope_ptr scope, const Object_ptr type) const
 {
 	ASSERT(is_condition_type(scope, type), "Must be a Condition Type");
@@ -246,55 +195,4 @@ void TypeSystem::expect_iterable_type(SymbolScope_ptr scope, const Object_ptr ty
 void TypeSystem::expect_key_type(SymbolScope_ptr scope, const Object_ptr type) const
 {
 	ASSERT(is_key_type(scope, type), "Must be a key Type");
-}
-
-// Extract type from variant
-
-ClassType* TypeSystem::extract_class_type(const Object_ptr type) const
-{
-	ASSERT(holds_alternative<ClassType>(*type), "Must be a ClassType");
-	auto inner_type = get_if<ClassType>(&*type);
-	return inner_type;
-}
-
-InterfaceType* TypeSystem::extract_interface_type(const Object_ptr type) const
-{
-	ASSERT(holds_alternative<InterfaceType>(*type), "Must be a InterfaceType");
-	auto inner_type = get_if<InterfaceType>(&*type);
-	return inner_type;
-}
-
-EnumType* TypeSystem::extract_enum_type(const Object_ptr type) const
-{
-	ASSERT(holds_alternative<EnumType>(*type), "Must be a EnumType");
-	auto inner_type = get_if<EnumType>(&*type);
-	return inner_type;
-}
-
-FunctionType* TypeSystem::extract_function_type(const Object_ptr type) const
-{
-	ASSERT(holds_alternative<FunctionType>(*type), "Must be a FunctionType");
-	auto inner_type = get_if<FunctionType>(&*type);
-	return inner_type;
-}
-
-GeneratorType* TypeSystem::extract_generator_type(const Object_ptr type) const
-{
-	ASSERT(holds_alternative<GeneratorType>(*type), "Must be a GeneratorType");
-	auto inner_type = get_if<GeneratorType>(&*type);
-	return inner_type;
-}
-
-FunctionMemberType* TypeSystem::extract_function_member_type(const Object_ptr type) const
-{
-	ASSERT(holds_alternative<FunctionMemberType>(*type), "Must be a FunctionMemberType");
-	auto inner_type = get_if<FunctionMemberType>(&*type);
-	return inner_type;
-}
-
-GeneratorMemberType* TypeSystem::extract_generator_member_type(const Object_ptr type) const
-{
-	ASSERT(holds_alternative<GeneratorMemberType>(*type), "Must be a GeneratorMemberType");
-	auto inner_type = get_if<GeneratorMemberType>(&*type);
-	return inner_type;
 }

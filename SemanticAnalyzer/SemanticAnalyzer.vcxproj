@@ -176,6 +176,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="SemanticAnalyzer.cpp" />
+    <ClCompile Include="StatementSA.cpp" />
     <ClCompile Include="TypeSA.cpp" />
     <ClCompile Include="UtilsSA.cpp" />
   </ItemGroup>

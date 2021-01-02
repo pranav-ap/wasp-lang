@@ -80,14 +80,6 @@ public:
 	int get_precedence();
 };
 
-class CallParselet : public IInfixParselet
-{
-public:
-	Expression_ptr parse(Parser_ptr parser, Identifier* left);
-	Expression_ptr parse(Parser_ptr parser, Expression_ptr left, Token_ptr token);
-	int get_precedence();
-};
-
 class GroupParselet : public IPrefixParselet
 {
 public:
@@ -118,13 +110,6 @@ public:
 	Expression_ptr parse(Parser_ptr parser, Token_ptr token);
 };
 
-class NewParselet : public IPrefixParselet
-{
-public:
-	Expression_ptr parse(Parser_ptr parser, Token_ptr token);
-	int get_precedence();
-};
-
 class TernaryConditionParselet : public IPrefixParselet
 {
 public:
@@ -139,20 +124,6 @@ public:
 	int get_precedence();
 };
 
-class EnumMemberParselet : public IInfixParselet
-{
-public:
-	Expression_ptr parse(Parser_ptr parser, Expression_ptr left, Token_ptr token);
-	int get_precedence();
-};
-
-class MemberAccessParselet : public IInfixParselet
-{
-public:
-	Expression_ptr parse(Parser_ptr parser, Expression_ptr left, Token_ptr token);
-	int get_precedence();
-};
-
 class AssignmentParselet : public IInfixParselet
 {
 public:
@@ -160,7 +131,7 @@ public:
 	int get_precedence();
 };
 
-class TagPatternParselet : public IInfixParselet
+class TypePatternParselet : public IInfixParselet
 {
 public:
 	Expression_ptr parse(Parser_ptr parser, Expression_ptr left, Token_ptr token);

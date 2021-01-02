@@ -125,7 +125,7 @@ class LEXER_API Lexer
 
 	void init(std::wstring raw_source);
 public:
-	std::vector<Token_ptr> execute(std::wstring raw_source);
+	std::vector<Token_ptr> run(std::wstring raw_source);
 };
 
 using Lexer_ptr = LEXER_API std::unique_ptr<Lexer>;

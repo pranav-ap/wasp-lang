@@ -168,10 +168,11 @@
     <ClInclude Include="TokenPipe.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="BlocksParsers.cpp" />
-    <ClCompile Include="DefinitionParsers.cpp" />
+    <ClCompile Include="BlockParser.cpp" />
+    <ClCompile Include="DefinitionParser.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="ExpressionParselets.cpp" />
+    <ClCompile Include="ExpressionParser.cpp" />
     <ClCompile Include="Parser.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -180,8 +181,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Source.cpp" />
+    <ClCompile Include="StatementParser.cpp" />
     <ClCompile Include="TokenPipe.cpp" />
-    <ClCompile Include="TypeNodeParsers.cpp" />
+    <ClCompile Include="TypeNodeParser.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AST\AST.vcxproj">

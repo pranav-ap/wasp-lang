@@ -19,16 +19,6 @@ void SymbolScope::define(std::wstring name, Symbol_ptr symbol)
 	ASSERT(result.second, "Name already exists in scope!");
 }
 
-void SymbolScope::define_subroutine(std::wstring name, Symbol_ptr symbol)
-{
-	//this->function_overloads
-}
-
-Symbol_ptr SymbolScope::lookup_all(std::wstring name)
-{
-	return Symbol_ptr();
-}
-
 Symbol_ptr SymbolScope::lookup(std::wstring name)
 {
 	if (symbols.contains(name))

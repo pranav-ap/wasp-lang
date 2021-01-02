@@ -31,3 +31,5 @@
 /TypeSystem/x64/Debug
 /WaspTypeSystem/x64/Debug
 /.vs
+/CFGraph/x64/Debug
+/VirtualMachine/x64/Debug

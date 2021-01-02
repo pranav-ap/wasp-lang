@@ -49,7 +49,7 @@ void Lexer::init(std::wstring raw_source)
 	pointer = Pointer();
 }
 
-vector<Token_ptr> Lexer::execute(std::wstring raw_source)
+vector<Token_ptr> Lexer::run(std::wstring raw_source)
 {
 	init(raw_source);
 	bool found_statement = false;

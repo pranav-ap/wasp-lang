@@ -7,6 +7,7 @@
 #endif
 
 #include "Expression.h"
+#include "TypeNode.h"
 #include "SymbolScope.h"
 #include "AnnotatedNode.h"
 #include <string>
@@ -18,65 +19,119 @@
 #include <utility>
 
 struct Module;
-struct Namespace;
-struct IfBranch;
+struct SingleVariableDefinition;
+struct DeconstructedVariableDefinition;
+struct ExpressionStatement;
+struct SimpleIfBranch;
+struct TaggedIfBranch;
 struct ElseBranch;
-struct WhileLoop;
-struct ForInLoop;
+struct SimpleWhileLoop;
+struct AssignedWhileLoop;
 struct Break;
 struct Continue;
 struct Redo;
 struct Return;
 struct YieldStatement;
-struct VariableDefinition;
-struct ClassDefinition;
-struct AliasDefinition;
-struct FunctionDefinition;
-struct GeneratorDefinition;
-struct InterfaceDefinition;
-struct EnumDefinition;
-struct FunctionMemberDefinition;
-struct GeneratorMemberDefinition;
-struct ExpressionStatement;
 struct Assert;
 struct Implore;
 struct Swear;
+struct SimpleForInLoop;
+struct DeconstructedForInLoop;
 
-using Statement = AST_API std::variant <
+using Statement = AST_API std::variant<
 	std::monostate,
 
 	Module,
-	Namespace,	
-	IfBranch, ElseBranch,
-	WhileLoop, ForInLoop,
-	Break, Continue, Redo,
-	Return, YieldStatement,
-	VariableDefinition,
-	ClassDefinition, AliasDefinition,
-	InterfaceDefinition, EnumDefinition,
-	FunctionDefinition, GeneratorDefinition,
-	FunctionMemberDefinition, GeneratorMemberDefinition,
-	ExpressionStatement,
-	Assert, Implore, Swear
-> ;
+	SingleVariableDefinition, DeconstructedVariableDefinition,
+	ExpressionStatement, SimpleIfBranch, TaggedIfBranch, ElseBranch,
+	SimpleWhileLoop, AssignedWhileLoop, Break, Continue, Redo, 
+	Return, YieldStatement, Assert, Implore, Swear,
+	SimpleForInLoop, DeconstructedForInLoop
+>;
 
 using Statement_ptr = AST_API std::shared_ptr<Statement>;
 using Block = AST_API std::vector<Statement_ptr>;
-using StringVector = AST_API std::vector<std::wstring>;
+
+// Definitions
+
+struct AST_API VariableDefinition : public AnnotatedNode
+{
+	bool is_public;
+	bool is_mutable;
+	std::optional<TypeNode_ptr> type;
+	Expression_ptr rhs_expression;
+
+	VariableDefinition(bool is_public, bool is_mutable, Expression_ptr rhs_expression)
+		: is_public(is_public), is_mutable(is_mutable), rhs_expression(rhs_expression), type(std::nullopt) {};
+
+	VariableDefinition(bool is_public, bool is_mutable, Expression_ptr rhs_expression, TypeNode_ptr type)
+		: is_public(is_public), is_mutable(is_mutable), rhs_expression(rhs_expression), type(std::make_optional(type)) {};
+};
+
+struct AST_API SingleVariableDefinition : public VariableDefinition
+{
+	std::wstring name;
+
+	SingleVariableDefinition(bool is_public, bool is_mutable, std::wstring name, Expression_ptr rhs_expression)
+		: VariableDefinition(is_public, is_mutable, rhs_expression), name(name) {};
+
+	SingleVariableDefinition(bool is_public, bool is_mutable, std::wstring name, Expression_ptr rhs_expression, TypeNode_ptr type)
+		: VariableDefinition(is_public, is_mutable, rhs_expression, type), name(name) {};
+};
+
+struct AST_API DeconstructedVariableDefinition : public VariableDefinition
+{
+	Expression_ptr deconstruction;
+
+	DeconstructedVariableDefinition(bool is_public, bool is_mutable, Expression_ptr deconstruction, Expression_ptr rhs_expression)
+		: VariableDefinition(is_public, is_mutable, rhs_expression), deconstruction(std::move(deconstruction)) {};
+
+	DeconstructedVariableDefinition(bool is_public, bool is_mutable, Expression_ptr deconstruction, Expression_ptr rhs_expression, TypeNode_ptr type)
+		: VariableDefinition(is_public, is_mutable, rhs_expression, type), deconstruction(std::move(deconstruction)) {};
+};
 
 // Branching
 
 struct AST_API IfBranch : public AnnotatedNode
 {
-	Expression_ptr test;
 	Block body;
 	std::optional<Statement_ptr> alternative;
 
-	IfBranch(Expression_ptr test, Block body)
-		: test(test), body(body) {};
+	IfBranch(Block body)
+		: body(body), alternative(std::nullopt) {};
 
-	IfBranch(Expression_ptr test, Block body, Statement_ptr alternative)
-		: test(test), body(body), alternative(std::make_optional(alternative)) {};
+	IfBranch(Block body, Statement_ptr alternative)
+		: body(body), alternative(std::make_optional(alternative)) {};
+};
+
+struct AST_API SimpleIfBranch : public IfBranch
+{
+	Expression_ptr test;
+
+	SimpleIfBranch(Expression_ptr test, Block body)
+		: IfBranch(body), test(test) {};
+
+	SimpleIfBranch(Expression_ptr test, Block body, Statement_ptr alternative)
+		: IfBranch(body, alternative), test(test) {};
+};
+
+struct AST_API TaggedIfBranch : public IfBranch
+{
+	Expression_ptr lhs_expression;
+	Expression_ptr rhs_expression;
+	std::optional<TypeNode_ptr> type_node;
+
+	TaggedIfBranch(Expression_ptr lhs_expression, Expression_ptr rhs_expression, Block body)
+		: IfBranch(body), lhs_expression(lhs_expression), rhs_expression(rhs_expression), type_node(std::nullopt) {};
+
+	TaggedIfBranch(Expression_ptr lhs_expression, Expression_ptr rhs_expression, Block body, TypeNode_ptr type_node)
+		: IfBranch(body), lhs_expression(lhs_expression), rhs_expression(rhs_expression), type_node(type_node) {};
+
+	TaggedIfBranch(Expression_ptr lhs_expression, Expression_ptr rhs_expression, Block body, Statement_ptr alternative)
+		: IfBranch(body, alternative), lhs_expression(lhs_expression), rhs_expression(rhs_expression), type_node(std::nullopt) {};
+
+	TaggedIfBranch(Expression_ptr lhs_expression, Expression_ptr rhs_expression, Block body, TypeNode_ptr type_node, Statement_ptr alternative)
+		: IfBranch(body, alternative), lhs_expression(lhs_expression), rhs_expression(rhs_expression), type_node(type_node) {};
 };
 
 struct AST_API ElseBranch : public AnnotatedNode
@@ -85,180 +140,89 @@ struct AST_API ElseBranch : public AnnotatedNode
 	ElseBranch(Block body) : body(body) {};
 };
 
-// Looping
+// Looping - While
 
 struct AST_API WhileLoop : public AnnotatedNode
 {
-	Expression_ptr expression;
 	Block body;
 
-	WhileLoop(Expression_ptr expression, Block body)
-		: expression(std::move(expression)), body(body) {};
+	WhileLoop(Block body)
+		: body(body) {};
 };
 
-struct AST_API ForInLoop : public AnnotatedNode
+struct AST_API SimpleWhileLoop : public WhileLoop
+{
+	Expression_ptr test;
+
+	SimpleWhileLoop(Block body, Expression_ptr test)
+		: WhileLoop(body), test(std::move(test)) {};
+};
+
+struct AST_API AssignedWhileLoop : public WhileLoop
 {
 	Expression_ptr lhs_expression;
 	Expression_ptr rhs_expression;
+	std::optional<TypeNode_ptr> type_node;
+
+	AssignedWhileLoop(Block body, Expression_ptr lhs_expression, Expression_ptr rhs_expression)
+		: WhileLoop(body), 
+		lhs_expression(std::move(lhs_expression)), 
+		rhs_expression(std::move(rhs_expression)),
+		type_node(std::nullopt) {};
+
+	AssignedWhileLoop(Block body, Expression_ptr lhs_expression, Expression_ptr rhs_expression, TypeNode_ptr type_node)
+		: WhileLoop(body),
+		lhs_expression(std::move(lhs_expression)),
+		rhs_expression(std::move(rhs_expression)),
+		type_node(std::make_optional(type_node)) {};
+};
+
+// Looping - For
+
+struct AST_API ForInLoop : public AnnotatedNode
+{
 	Block body;
+	Expression_ptr iterable_expression;
+	std::optional<TypeNode_ptr> type_node;
 
-	ForInLoop(Expression_ptr lhs_expression, Expression_ptr rhs_expression, Block body)
-		: lhs_expression(std::move(lhs_expression)), rhs_expression(std::move(rhs_expression)), body(body) {};
+	ForInLoop(Block body, Expression_ptr iterable_expression)
+		: body(body), 
+		iterable_expression(std::move(iterable_expression)),
+		type_node(std::nullopt) {};
+
+	ForInLoop(Block body, Expression_ptr iterable_expression, TypeNode_ptr type_node)
+		: body(body), 
+		iterable_expression(std::move(iterable_expression)),
+		type_node(std::make_optional(type_node)) {};
 };
 
-struct AST_API Break : public AnnotatedNode
+struct AST_API SimpleForInLoop : public ForInLoop
 {
-};
-
-struct AST_API Continue : public AnnotatedNode
-{
-};
-
-struct AST_API Redo : public AnnotatedNode
-{
-};
-
-// Definitions
-
-struct AST_API VariableDefinition : public AnnotatedNode
-{
-	bool is_public;
-	bool is_mutable;
-
-	std::optional<Expression_ptr> type;
-
-	Expression_ptr lhs_expression; // identifier, [a, ...b, c] and others
-	Expression_ptr rhs_expression;
-
-	VariableDefinition(bool is_public, bool is_mutable, Expression_ptr lhs_expression, Expression_ptr rhs_expression)
-		: is_public(is_public), is_mutable(is_mutable), type(std::nullopt), lhs_expression(std::move(lhs_expression)), rhs_expression(std::move(rhs_expression)) {};
-
-	VariableDefinition(bool is_public, bool is_mutable, Expression_ptr type, Expression_ptr lhs_expression, Expression_ptr rhs_expression)
-		: is_public(is_public), is_mutable(is_mutable), type(std::make_optional(type)), lhs_expression(std::move(lhs_expression)), rhs_expression(std::move(rhs_expression)) {};
-};
-
-struct AST_API Definition : public AnnotatedNode
-{
-	bool is_public;
 	std::wstring name;
 
-	Definition(bool is_public, std::wstring name)
-		: is_public(is_public), name(name) {};
+	SimpleForInLoop(Block body, std::wstring name, Expression_ptr iterable_expression)
+		: ForInLoop(body, iterable_expression), name(name) {};
+
+	SimpleForInLoop(Block body, std::wstring name, Expression_ptr iterable_expression, TypeNode_ptr type_node)
+		: ForInLoop(body, iterable_expression, type_node), name(name) {};
 };
 
-struct AST_API UDTDefinition : public Definition
+struct AST_API DeconstructedForInLoop : public ForInLoop
 {
-	StringVector interfaces;
-	StringVector base_types;
+	Expression_ptr deconstruction;
 
-	std::map<std::wstring, Expression_ptr> member_types;
-	std::map<std::wstring, bool> is_public_member;
+	DeconstructedForInLoop(Block body, Expression_ptr deconstruction, Expression_ptr iterable_expression)
+		: ForInLoop(body, iterable_expression),
+		deconstruction(std::move(deconstruction)) {};
 
-	UDTDefinition(bool is_public, std::wstring name, std::map<std::wstring, Expression_ptr> member_types, std::map<std::wstring, bool> is_public_member, std::vector<std::wstring> interfaces, std::vector<std::wstring> base_types)
-		: Definition(is_public, name), member_types(member_types), is_public_member(is_public_member), interfaces(interfaces), base_types(base_types) {};
-};
-
-struct AST_API ClassDefinition : public UDTDefinition
-{
-	ClassDefinition(bool is_public, std::wstring name, std::map<std::wstring, Expression_ptr> member_types, std::map<std::wstring, bool> is_public_member, std::vector<std::wstring> interfaces, std::vector<std::wstring> base_types)
-		: UDTDefinition(is_public, name, member_types, is_public_member, interfaces, base_types) {};
-};
-
-struct AST_API InterfaceDefinition : public UDTDefinition
-{
-	InterfaceDefinition(bool is_public, std::wstring name, std::map<std::wstring, Expression_ptr> member_types, std::map<std::wstring, bool> is_public_member, std::vector<std::wstring> interfaces, std::vector<std::wstring> base_types)
-		: UDTDefinition(is_public, name, member_types, is_public_member, interfaces, base_types) {};
-};
-
-struct AST_API AliasDefinition : public Definition
-{
-	Expression_ptr type;
-
-	AliasDefinition(bool is_public, std::wstring name, Expression_ptr type)
-		: Definition(is_public, name), type(std::move(type)) {};
-};
-
-struct AST_API CallableDefinition : public Definition
-{
-	StringVector arguments;
-	Expression_ptr type;
-	Block body;
-
-	CallableDefinition(bool is_public, std::wstring name, StringVector arguments, Expression_ptr type, Block body)
-		: Definition(is_public, name), arguments(arguments), type(type), body(body) {};
-};
-
-struct AST_API FunctionDefinition : public CallableDefinition
-{
-	FunctionDefinition(bool is_public, std::wstring name, StringVector arguments, Expression_ptr type, Block body)
-		: CallableDefinition(is_public, name, arguments, type, body) {};
-};
-
-struct AST_API GeneratorDefinition : public CallableDefinition
-{
-	GeneratorDefinition(bool is_public, std::wstring name, StringVector arguments, Expression_ptr type, Block body)
-		: CallableDefinition(is_public, name, arguments, type, body) {};
-};
-
-struct AST_API MethodDefinition : public CallableDefinition
-{
-	std::wstring type_name;
-
-	MethodDefinition(std::wstring type_name, std::wstring name, bool is_public, StringVector arguments, Expression_ptr type, Block body)
-		: CallableDefinition(is_public, name, arguments, type, body), type_name(type_name) {};
-};
-
-struct AST_API FunctionMemberDefinition : public MethodDefinition
-{
-	FunctionMemberDefinition(std::wstring type_name, std::wstring name, bool is_public, StringVector arguments, Expression_ptr type, Block body)
-		: MethodDefinition(type_name, name, is_public, arguments, type, body) {};
-};
-
-struct AST_API GeneratorMemberDefinition : public MethodDefinition
-{
-	GeneratorMemberDefinition(std::wstring type_name, std::wstring name, bool is_public, StringVector arguments, Expression_ptr type, Block body)
-		: MethodDefinition(type_name, name, is_public, arguments, type, body) {};
-};
-
-struct AST_API EnumDefinition : public Definition
-{
-	std::map<std::wstring, int> members;
-
-	EnumDefinition(bool is_public, std::wstring name, StringVector member_list) : Definition(is_public, name)
-	{
-		int index = 0;
-
-		for (auto const member : member_list)
-		{
-			members.insert({ member, index });
-			index++;
-		}
-	};
-};
-
-// Return and Yield
-
-struct AST_API Return : public AnnotatedNode
-{
-	std::optional<Expression_ptr> expression;
-
-	Return() : expression(std::nullopt) {};
-	Return(Expression_ptr expression)
-		: expression(std::make_optional(std::move(expression))) {};
-};
-
-struct AST_API YieldStatement : public AnnotatedNode
-{
-	std::optional<Expression_ptr> expression;
-
-	YieldStatement() : expression(std::nullopt) {};
-	YieldStatement(Expression_ptr expression)
-		: expression(std::make_optional(std::move(expression))) {};
+	DeconstructedForInLoop(Block body, Expression_ptr deconstruction, Expression_ptr rhs_expression, TypeNode_ptr type_node)
+		: ForInLoop(body, iterable_expression, type_node),
+		deconstruction(std::move(deconstruction)) {};
 };
 
 // Single Expression Statement
 
-struct AST_API SingleExpressionStatement
+struct AST_API SingleExpressionStatement : public AnnotatedNode
 {
 	Expression_ptr expression;
 
@@ -292,16 +256,6 @@ struct AST_API Swear : public SingleExpressionStatement
 
 // Other
 
-struct AST_API Namespace : public AnnotatedNode
-{
-	std::wstring name;
-	bool is_public;
-	Block statements;
-
-	Namespace(std::wstring name, Block statements, bool is_public)
-		: name(name), statements(statements), is_public(is_public) { };
-};
-
 struct AST_API Module : public AnnotatedNode
 {
 	Block statements;
@@ -309,3 +263,33 @@ struct AST_API Module : public AnnotatedNode
 };
 
 using Module_ptr = AST_API std::shared_ptr<Module>;
+
+struct AST_API Return : public AnnotatedNode
+{
+	std::optional<Expression_ptr> expression;
+
+	Return() : expression(std::nullopt) {};
+	Return(Expression_ptr expression)
+		: expression(std::make_optional(std::move(expression))) {};
+};
+
+struct AST_API YieldStatement : public AnnotatedNode
+{
+	std::optional<Expression_ptr> expression;
+
+	YieldStatement() : expression(std::nullopt) {};
+	YieldStatement(Expression_ptr expression)
+		: expression(std::make_optional(std::move(expression))) {};
+};
+
+struct AST_API Break : public AnnotatedNode
+{
+};
+
+struct AST_API Continue : public AnnotatedNode
+{
+};
+
+struct AST_API Redo : public AnnotatedNode
+{
+};
