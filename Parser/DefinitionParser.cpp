@@ -72,3 +72,43 @@ Statement_ptr Parser::parse_variable_definition(bool is_public, bool is_mutable)
 
 	return MAKE_STATEMENT(DeconstructedVariableDefinition(is_public, is_mutable, lhs, move(rhs), type_node));
 }
+
+Statement_ptr Parser::parse_enum_definition(bool is_public)
+{
+	auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
+	token_pipe->require(WTokenType::EOL);
+	vector<wstring> members = parse_enum_members(identifier->value);
+	return MAKE_STATEMENT(EnumDefinition(is_public, identifier->value, members));
+}
+
+std::vector<std::wstring> Parser::parse_enum_members(std::wstring stem)
+{
+	vector<wstring> members;
+
+	while (true)
+	{
+		token_pipe->ignore_whitespace();
+
+		if (token_pipe->optional(WTokenType::END))
+			break;
+
+		if (token_pipe->optional(WTokenType::ENUM))
+		{
+			auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
+			token_pipe->require(WTokenType::EOL);
+			members.push_back(stem + L"::" + identifier->value);
+
+			auto children = parse_enum_members(stem + L"::" + identifier->value);
+			members.insert(end(members), begin(children), end(children));
+
+			continue;
+		}
+
+		auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
+		members.push_back(stem + L"::" + identifier->value);
+
+		token_pipe->require(WTokenType::EOL);
+	}
+
+	return members;
+}

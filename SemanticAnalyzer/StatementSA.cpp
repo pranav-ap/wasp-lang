@@ -144,6 +144,14 @@ void SemanticAnalyzer::visit(DeconstructedForInLoop& statement)
 	// TODO 
 }
 
+void SemanticAnalyzer::visit(Scenario& statement)
+{
+}
+
+void SemanticAnalyzer::visit(Test& statement)
+{
+}
+
 // simple stuff
 
 void SemanticAnalyzer::visit(Break& statement)

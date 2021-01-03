@@ -70,6 +70,9 @@ Statement_ptr Parser::parse_statement(bool is_public)
 		CASE(WTokenType::REDO, parse_redo());
 		CASE(WTokenType::WHILE, parse_while_loop());
 		CASE(WTokenType::FOR, parse_for_in_loop());
+		CASE(WTokenType::SCENARIO, parse_scenario());
+		CASE(WTokenType::TEST, parse_test());
+		CASE(WTokenType::ENUM, parse_enum_definition(is_public));
 
 	default:
 	{
@@ -92,6 +95,7 @@ Statement_ptr Parser::parse_public_statement()
 	{
 		CASE(WTokenType::LET, parse_variable_definition(is_public, true));
 		CASE(WTokenType::CONST_KEYWORD, parse_variable_definition(is_public, false));
+		CASE(WTokenType::ENUM, parse_enum_definition(is_public));
 
 	default:
 	{

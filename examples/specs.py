@@ -149,25 +149,6 @@ end
 scenario "__"
     x = 4
 
-    given "name"
-        y = x + 3
-        assert x == true
-
-        when "another test"
-            assert y = true
-
-            then "dfsgvt"
-                assert y = 54
-            end
-        end
-    end
-end
-
-
-
-scenario "__"
-    x = 4
-
     test "check even"
         assert x == true
     end

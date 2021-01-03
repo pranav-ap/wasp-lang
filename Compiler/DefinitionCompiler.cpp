@@ -44,3 +44,9 @@ void Compiler::visit(DeconstructedVariableDefinition const& statement)
 {
 	// TODO
 }
+
+void Compiler::visit(EnumDefinition const& statement)
+{
+	int id = current_scope->lookup(statement.name)->id;
+	name_map[id] = statement.name;
+}

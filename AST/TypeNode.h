@@ -28,6 +28,8 @@ struct SetTypeNode;
 struct MapTypeNode;
 struct VariantTypeNode;
 struct NoneTypeNode;
+struct EnumTypeNode;
+struct TypeIdentifierNode;
 
 using TypeNode = AST_API std::variant<
 	std::monostate,
@@ -35,7 +37,7 @@ using TypeNode = AST_API std::variant<
 	IntLiteralTypeNode, FloatLiteralTypeNode, StringLiteralTypeNode, BooleanLiteralTypeNode,
 	IntTypeNode, FloatTypeNode, StringTypeNode, BooleanTypeNode,
 	ListTypeNode, TupleTypeNode, SetTypeNode, MapTypeNode,
-	VariantTypeNode, NoneTypeNode
+	VariantTypeNode, NoneTypeNode, EnumTypeNode, TypeIdentifierNode
 >;
 
 using TypeNode_ptr = AST_API std::shared_ptr<TypeNode>;
@@ -61,6 +63,14 @@ struct AST_API CompositeTypeNode : public AnyTypeNode
 
 struct AST_API NoneTypeNode : public AnyTypeNode
 {
+};
+
+// Parser does not know whether type identifier is class, enum or interface
+
+struct AST_API TypeIdentifierNode : public AnyTypeNode
+{
+	std::wstring name;
+	TypeIdentifierNode(std::wstring name) : name(name) {};
 };
 
 // Scalar Types
@@ -141,3 +151,13 @@ struct AST_API VariantTypeNode : public CompositeTypeNode
 	TypeNodeVector types;
 	VariantTypeNode(TypeNodeVector types) : types(types) {};
 };
+
+struct AST_API EnumTypeNode : public CompositeTypeNode
+{
+	std::wstring enum_name;
+	std::map<std::wstring, int> members;
+
+	EnumTypeNode(std::wstring enum_name, std::map<std::wstring, int> members)
+		: enum_name(enum_name), members(members) {};
+};
+

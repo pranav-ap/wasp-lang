@@ -349,6 +349,22 @@ Statement_ptr Parser::parse_for_in_loop()
 	return MAKE_STATEMENT(DeconstructedForInLoop(body, lhs, iterable_expression));
 }
 
+// Testing
+
+Statement_ptr Parser::parse_scenario()
+{
+	auto statements = parse_block();
+	auto title = token_pipe->require(WTokenType::STRING_LITERAL);
+	return MAKE_STATEMENT(Scenario(title->value, statements));
+}
+
+Statement_ptr Parser::parse_test()
+{
+	auto statements = parse_block();
+	auto title = token_pipe->require(WTokenType::STRING_LITERAL);
+	return MAKE_STATEMENT(Test(title->value, statements));
+}
+
 // Utils
 
 tuple<Expression_ptr, Expression_ptr, TypeNode_ptr> Parser::deconstruct_TypedAssignment(Expression_ptr expr)

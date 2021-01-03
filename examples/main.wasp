@@ -1,1 +1,11 @@
-﻿let x : [int] = [5, 6]
+﻿
+enum Animal
+	DOG
+	CAT
+	enum Bird
+		CROW
+		PIGEON
+	end
+end
+
+Animal::DOG

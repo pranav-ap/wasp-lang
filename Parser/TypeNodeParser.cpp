@@ -72,6 +72,20 @@ TypeNode_ptr Parser::parse_type(bool is_optional)
 		{
 			type = parse_tuple_type(is_optional);
 		}
+		else if (token_pipe->optional(WTokenType::OPEN_PARENTHESIS))
+		{
+			//type = parse_function_type(is_optional);
+		}
+		else if (token_pipe->optional(WTokenType::FN))
+		{
+			token_pipe->require(WTokenType::OPEN_PARENTHESIS);
+			//type = parse_function_type(is_optional);
+		}
+		else if (token_pipe->optional(WTokenType::GEN))
+		{
+			token_pipe->require(WTokenType::OPEN_PARENTHESIS);
+			//type = parse_generator_type(is_optional);
+		}
 		else
 		{
 			type = consume_datatype_word(is_optional);
@@ -226,6 +240,11 @@ TypeNode_ptr Parser::consume_datatype_word(bool is_optional)
 	{
 		ADVANCE_PTR;
 		return is_optional ? MAKE_OPTIONAL_TYPE(AnyTypeNode()) : MAKE_TYPE(AnyTypeNode());
+	}
+	case WTokenType::IDENTIFIER:
+	{
+		ADVANCE_PTR;
+		return is_optional ? MAKE_OPTIONAL_TYPE(TypeIdentifierNode(token.value()->value)) : MAKE_TYPE(TypeIdentifierNode(token.value()->value));
 	}
 	}
 

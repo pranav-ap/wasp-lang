@@ -205,6 +205,24 @@ Expression_ptr SpreadParselet::parse(Parser_ptr parser, Token_ptr token)
 	return MAKE_EXPRESSION(Spread(expression));
 }
 
+Expression_ptr EnumMemberParselet::parse(Parser_ptr parser, Expression_ptr left, Token_ptr token)
+{
+	ASSERT(holds_alternative<Identifier>(*left), "Expect enum member name");
+	auto identifier = get_if<Identifier>(&*left);
+
+	std::vector<std::wstring> chain = { identifier->name };
+
+	while (auto member_identifier = parser->token_pipe->require(WTokenType::IDENTIFIER))
+	{
+		chain.push_back(member_identifier->value);
+
+		if (!parser->token_pipe->optional(WTokenType::COLON_COLON))
+			break;
+	}
+
+	return MAKE_EXPRESSION(EnumMember(chain));
+}
+
 // get_precedence
 
 int PrefixOperatorParselet::get_precedence()
@@ -240,4 +258,9 @@ int TernaryConditionParselet::get_precedence()
 int SpreadParselet::get_precedence()
 {
 	return (int)Precedence::PREFIX;
+}
+
+int EnumMemberParselet::get_precedence()
+{
+	return (int)Precedence::MEMBER_ACCESS;
 }

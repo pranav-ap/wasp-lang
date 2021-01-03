@@ -37,6 +37,9 @@ struct Implore;
 struct Swear;
 struct SimpleForInLoop;
 struct DeconstructedForInLoop;
+struct Scenario;
+struct Test;
+struct EnumDefinition;
 
 using Statement = AST_API std::variant<
 	std::monostate,
@@ -46,26 +49,34 @@ using Statement = AST_API std::variant<
 	ExpressionStatement, SimpleIfBranch, TaggedIfBranch, ElseBranch,
 	SimpleWhileLoop, AssignedWhileLoop, Break, Continue, Redo, 
 	Return, YieldStatement, Assert, Implore, Swear,
-	SimpleForInLoop, DeconstructedForInLoop
+	SimpleForInLoop, DeconstructedForInLoop, Scenario, Test,
+	EnumDefinition
 >;
 
 using Statement_ptr = AST_API std::shared_ptr<Statement>;
 using Block = AST_API std::vector<Statement_ptr>;
 
-// Definitions
-
-struct AST_API VariableDefinition : public AnnotatedNode
+struct AST_API Definition : public AnnotatedNode
 {
 	bool is_public;
+
+	Definition(bool is_public)
+		: is_public(is_public) {};
+};
+
+// Variable Definitions
+
+struct AST_API VariableDefinition : public Definition
+{
 	bool is_mutable;
 	std::optional<TypeNode_ptr> type;
 	Expression_ptr rhs_expression;
 
 	VariableDefinition(bool is_public, bool is_mutable, Expression_ptr rhs_expression)
-		: is_public(is_public), is_mutable(is_mutable), rhs_expression(rhs_expression), type(std::nullopt) {};
+		: Definition(is_public), is_mutable(is_mutable), rhs_expression(rhs_expression), type(std::nullopt) {};
 
 	VariableDefinition(bool is_public, bool is_mutable, Expression_ptr rhs_expression, TypeNode_ptr type)
-		: is_public(is_public), is_mutable(is_mutable), rhs_expression(rhs_expression), type(std::make_optional(type)) {};
+		: Definition(is_public), is_mutable(is_mutable), rhs_expression(rhs_expression), type(std::make_optional(type)) {};
 };
 
 struct AST_API SingleVariableDefinition : public VariableDefinition
@@ -292,4 +303,47 @@ struct AST_API Continue : public AnnotatedNode
 
 struct AST_API Redo : public AnnotatedNode
 {
+};
+
+// Test
+
+struct AST_API TestBlock : public AnnotatedNode
+{
+	std::wstring title;
+	Block body;
+
+	TestBlock(std::wstring title, Block body) 
+		: title(title), body(body) {};
+};
+
+struct AST_API Scenario : public TestBlock
+{
+	Scenario(std::wstring title, Block body) 
+		: TestBlock(title, body) {};
+};
+
+struct AST_API Test : public TestBlock
+{
+	Test(std::wstring title, Block body) 
+		: TestBlock(title, body) {};
+};
+
+// Enum
+
+struct AST_API EnumDefinition : public Definition
+{
+	std::wstring name;
+	std::map<std::wstring, int> members;
+
+	EnumDefinition(bool is_public, std::wstring name, StringVector member_list) : Definition(is_public)
+	{
+		this->name = name;
+		int index = 0;
+
+		for (auto const member : member_list)
+		{
+			members.insert({ member, index });
+			index++;
+		}
+	};
 };

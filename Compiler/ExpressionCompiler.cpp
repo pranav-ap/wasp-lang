@@ -49,6 +49,7 @@ void Compiler::visit(const Expression_ptr expression)
 		[&](TypePattern const& expr) { visit(expr); },
 		[&](UntypedAssignment const& expr) { visit(expr); },
 		[&](TypedAssignment const& expr) { visit(expr); },
+		[&](EnumMember const& expr) { visit(expr); },
 
 		[&](auto)
 		{
@@ -295,4 +296,19 @@ void Compiler::visit(TypedAssignment const& statement)
 	FATAL("TypedAssignment must be handled by parent nodes");
 }
 
+void Compiler::visit(EnumMember const& expr)
+{
+	auto enum_name = expr.member_chain.front();
+	auto enum_symbol = current_scope->lookup(enum_name);
+	auto enum_id = enum_symbol->id;
 
+	ASSERT(holds_alternative<EnumType>(*enum_symbol->type), "Expected Enum Type");
+	auto enum_type = get_if<EnumType>(&*enum_symbol->type);
+
+	wstring enum_string = concat(expr.member_chain, L"::");
+	ASSERT(enum_type->members.contains(enum_string), "Enum does not contain this member");
+	int member_id = enum_type->members.at(enum_string);
+
+	int id = constant_pool->allocate_enum(enum_id, member_id);
+	emit(OpCode::PUSH_CONSTANT, id);
+}

@@ -15,7 +15,6 @@
 #include <map>
 #include <tuple>
 #include <memory>
-#include <optional>
 
 class COMPILER_API Compiler
 {
@@ -32,6 +31,8 @@ class COMPILER_API Compiler
 
 	void visit(SingleVariableDefinition const& statement);
 	void visit(DeconstructedVariableDefinition const& statement);
+	void visit(EnumDefinition const& statement);
+
 	void visit(ExpressionStatement const& statement);
 
 	void visit(Assert const& statement);
@@ -39,6 +40,9 @@ class COMPILER_API Compiler
 	void visit(Swear const& statement);
 	void visit(Return const& statement);
 	void visit(YieldStatement const& statement);
+
+	void visit(Scenario const& statement);
+	void visit(Test const& statement);
 
 	// Branching
 
@@ -83,6 +87,7 @@ class COMPILER_API Compiler
 	void visit(Postfix const& expr);
 	void visit(Identifier const& expr);
 	void visit(Spread const& expr);
+	void visit(EnumMember const& expr);
 
 	// Emit
 

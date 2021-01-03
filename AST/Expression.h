@@ -29,12 +29,14 @@ struct Identifier;
 struct Prefix;
 struct Infix;
 struct Postfix;
+struct EnumMember;
 
 using Expression = AST_API std::variant<
 	std::monostate,
 	int, double, std::wstring, bool,
 	ListLiteral, TupleLiteral, SetLiteral, MapLiteral, Identifier, 
-	UntypedAssignment, TypedAssignment, Spread, Prefix, Infix, Postfix, TypePattern, TernaryCondition
+	UntypedAssignment, TypedAssignment, Spread, Prefix, Infix, Postfix, TypePattern, 
+	TernaryCondition, EnumMember
 >;
 
 using Expression_ptr = AST_API std::shared_ptr<Expression>;
@@ -159,4 +161,12 @@ struct AST_API TypePattern
 
 	TypePattern(Expression_ptr expression, TypeNode_ptr type_node)
 		: expression(std::move(expression)), type_node(std::move(type_node)) {};
+};
+
+struct AST_API EnumMember
+{
+	std::vector<std::wstring> member_chain;
+
+	EnumMember(std::vector<std::wstring> member_chain)
+		: member_chain(member_chain) {};
 };

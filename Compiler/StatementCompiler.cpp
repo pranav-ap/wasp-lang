@@ -52,7 +52,10 @@ void Compiler::visit(const Statement_ptr statement)
 		[&](Swear const& stat) { visit(stat); },
 		[&](SimpleForInLoop const& stat) { visit(stat); },
 		[&](DeconstructedForInLoop const& stat) { visit(stat); },
-
+		[&](Scenario const& stat) { visit(stat); },
+		[&](Test const& stat) { visit(stat); },
+		[&](EnumDefinition const& stat) { visit(stat); },
+		
 		[](auto) { FATAL("Never Seen this Statement before!"); }
 		}, *statement);
 }
@@ -229,6 +232,14 @@ void Compiler::visit(YieldStatement const& statement)
 	{
 		emit(OpCode::YIELD_VOID);
 	}
+}
+
+void Compiler::visit(Scenario const& statement)
+{
+}
+
+void Compiler::visit(Test const& statement)
+{
 }
 
 void Compiler::visit(Assert const& statement)

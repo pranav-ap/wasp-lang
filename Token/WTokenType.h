@@ -119,6 +119,8 @@ enum class TOKEN_API WTokenType
 	ANY,
 	OPT,
 
+	TEST,
+	SCENARIO,
 
 	TRUE_KEYWORD,
 	FALSE_KEYWORD,

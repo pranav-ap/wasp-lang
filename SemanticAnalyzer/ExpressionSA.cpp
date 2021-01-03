@@ -50,6 +50,7 @@ Object_ptr SemanticAnalyzer::visit(const Expression_ptr expression)
 		[&](UntypedAssignment& expr) { return visit(expr); },
 		[&](TypedAssignment& expr) { return visit(expr); },
 		[&](Spread& expr) { return visit(expr); },
+		[&](EnumMember& expr) { return visit(expr); },
 
 		[&](auto)
 		{
@@ -234,5 +235,17 @@ Object_ptr SemanticAnalyzer::visit(Infix& expr)
 Object_ptr SemanticAnalyzer::visit(Identifier& expr)
 {
 	Symbol_ptr symbol = current_scope->lookup(expr.name);
+	return symbol->type;
+}
+
+Object_ptr SemanticAnalyzer::visit(EnumMember const& expr)
+{
+	Symbol_ptr symbol = current_scope->lookup(expr.member_chain.front());
+	NULL_CHECK(symbol);
+
+	auto enum_type = type_system->extract_enum_type(symbol->type);
+	wstring enum_string = concat(expr.member_chain, L"::");
+	ASSERT(enum_type->members.contains(enum_string), "Enum does not contain this member");
+
 	return symbol->type;
 }

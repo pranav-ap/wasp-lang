@@ -21,6 +21,9 @@ struct OBJECTSYSTEM_API ObjectStore
 	int allocate(int value);
 	int allocate(double value);
 	int allocate(std::wstring value);
+	
+	int allocate_enum(int enum_id, int enum_member_id);
+
 	int allocate(Object_ptr value);
 
 	void set(int id, Object_ptr value);

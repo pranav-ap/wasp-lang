@@ -50,8 +50,8 @@ enum class OBJECTSYSTEM_API OpCode
 	// 1-arity
 
 	PUSH_CONSTANT, // id 
-	STORE_LOCAL,	
-	LOAD_LOCAL,		
+	STORE_LOCAL,
+	LOAD_LOCAL,
 	MAKE_LIST, // length
 	MAKE_TUPLE,
 	MAKE_SET,
@@ -60,7 +60,7 @@ enum class OBJECTSYSTEM_API OpCode
 	JUMP_IF_FALSE,
 	POP_JUMP,
 	POP_JUMP_IF_FALSE,
-	GET_NEXT_OR_JUMP, 
+	GET_NEXT_OR_JUMP,
 	LABEL, // label
 
 	// 2-arity

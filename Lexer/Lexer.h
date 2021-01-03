@@ -72,6 +72,9 @@ const std::map<std::wstring, WTokenType> keyword_map =
 	{ L"then", WTokenType::THEN },
 	{ L"do", WTokenType::DO },
 
+	{ L"scenario", WTokenType::SCENARIO },
+	{ L"test", WTokenType::TEST },
+
 	{ L"true", WTokenType::TRUE_KEYWORD },
 	{ L"false", WTokenType::FALSE_KEYWORD },
 

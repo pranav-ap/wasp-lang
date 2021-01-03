@@ -32,6 +32,7 @@ struct SetType;
 struct MapType;
 struct VariantType;
 struct NoneType;
+struct EnumType;
 
 // Object
 
@@ -53,6 +54,8 @@ struct ContinueObject;
 struct BreakObject;
 struct BuiltInsObject;
 struct IteratorObject;
+struct EnumObject;
+struct EnumMemberObject;
 
 using Object = OBJECTSYSTEM_API std::variant<
 	std::monostate,
@@ -65,7 +68,8 @@ using Object = OBJECTSYSTEM_API std::variant<
 	AnyType,
 	IntLiteralType, FloatLiteralType, StringLiteralType, BooleanLiteralType,
 	IntType, FloatType, StringType, BooleanType,
-	ListType, TupleType, SetType, MapType, VariantType, NoneType
+	ListType, TupleType, SetType, MapType, VariantType, NoneType, EnumType,
+	EnumObject, EnumMemberObject
 >;
 
 using Object_ptr = OBJECTSYSTEM_API std::shared_ptr<Object>;
@@ -119,6 +123,15 @@ struct OBJECTSYSTEM_API BooleanObject : public ScalarObject
 };
 
 // Composite Objects
+
+struct OBJECTSYSTEM_API EnumMemberObject : public CompositeObject
+{
+	int enum_id;
+	int member_id;
+
+	EnumMemberObject(int enum_id, int member_id) 
+		: enum_id(enum_id), member_id(member_id) {};
+};
 
 struct OBJECTSYSTEM_API ListObject : public CompositeObject
 {
@@ -238,6 +251,17 @@ struct OBJECTSYSTEM_API ErrorObject : public ActionObject
 	ErrorObject(std::wstring message) : message(message) {};
 };
 
+// Enum
+
+struct OBJECTSYSTEM_API EnumObject : public AbstractObject
+{
+	std::wstring name;
+	std::map<std::wstring, int> members;
+
+	EnumObject(std::wstring name, std::map<std::wstring, int> members)
+		: name(name), members(members) {};
+};
+
 // Type
 
 struct OBJECTSYSTEM_API AnyType : public AbstractObject
@@ -337,6 +361,15 @@ struct OBJECTSYSTEM_API VariantType : public CompositeType
 {
 	ObjectVector types;
 	VariantType(ObjectVector types) : types(types) {};
+};
+
+struct OBJECTSYSTEM_API EnumType : public CompositeType
+{
+	std::wstring enum_name;
+	std::map<std::wstring, int> members;
+
+	EnumType(std::wstring enum_name, std::map<std::wstring, int> members)
+		: enum_name(enum_name), members(members) {};
 };
 
 // Utils

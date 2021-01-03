@@ -306,7 +306,10 @@ std::wstring stringify_object(Object_ptr value)
 		[&](BreakObject const& obj) { return wstring(L"break"); },
 		[&](RedoObject const& obj) { return wstring(L"redo"); },
 		[&](ContinueObject const& obj) { return wstring(L"continue"); },
-		
+		[&](IteratorObject const& obj) { return wstring(L"break"); },
+		[&](EnumObject const& obj) { return wstring(L"enum " + obj.name); },
+		[&](EnumMemberObject const& obj) { return wstring(L"EnumMemberObject"); },
+
 		// Types
 
 		[&](AnyType const& obj) { return s; },

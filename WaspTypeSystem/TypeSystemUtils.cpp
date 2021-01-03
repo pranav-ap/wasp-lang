@@ -196,3 +196,10 @@ void TypeSystem::expect_key_type(SymbolScope_ptr scope, const Object_ptr type) c
 {
 	ASSERT(is_key_type(scope, type), "Must be a key Type");
 }
+
+EnumType* TypeSystem::extract_enum_type(const Object_ptr type) const
+{
+	ASSERT(holds_alternative<EnumType>(*type), "Must be a EnumType");
+	auto inner_type = get_if<EnumType>(&*type);
+	return inner_type;
+}

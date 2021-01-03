@@ -263,7 +263,7 @@ OBJECTSYSTEM_API std::wstring stringify_opcode(OpCode opcode)
 	case OpCode::MAKE_ITERABLE:
 	{
 		return L"MAKE_ITERABLE";
-	}	
+	}
 	default:
 	{
 		std::wstring empty = L"";

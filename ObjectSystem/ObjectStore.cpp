@@ -130,6 +130,33 @@ int ObjectStore::allocate(std::wstring text)
 	return id;
 }
 
+int ObjectStore::allocate_enum(int enum_id, int member_id)
+{
+	auto result = find_if(
+		objects.begin(),
+		objects.end(),
+		[enum_id, member_id](const auto& p) {
+			if (holds_alternative<EnumMemberObject>(*p.second))
+			{
+				EnumMemberObject* x = get_if<EnumMemberObject>(&*p.second);
+				return x->enum_id == enum_id && x->member_id == member_id;
+			}
+
+			return false;
+		});
+
+	if (result != objects.end())
+	{
+		return result->first;
+	}
+
+	int id = next_id++;
+	auto value = MAKE_OBJECT_VARIANT(EnumMemberObject(enum_id, member_id));
+	objects.insert({ id, value });
+
+	return id;
+}
+
 int ObjectStore::allocate(Object_ptr value)
 {
 	int id = next_id++;

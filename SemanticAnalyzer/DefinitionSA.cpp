@@ -58,3 +58,12 @@ void SemanticAnalyzer::visit(DeconstructedVariableDefinition& statement)
 	// TODO
 	FATAL("TODO - SemanticAnalyzer - DeconstructedVariableDefinition");
 }
+
+// Enum
+
+void SemanticAnalyzer::visit(EnumDefinition& statement)
+{
+	auto type = MAKE_OBJECT_VARIANT(EnumType(statement.name, statement.members));
+	auto symbol = MAKE_SYMBOL(next_id++, statement.name, type, statement.is_public, CONST_SYMBOL);
+	current_scope->define(statement.name, symbol);
+}

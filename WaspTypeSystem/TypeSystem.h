@@ -56,6 +56,10 @@ struct WASPTYPESYSTEM_API TypeSystem
 	void expect_spreadable_type(SymbolScope_ptr scope, const Object_ptr condition_type) const;
 	void expect_iterable_type(SymbolScope_ptr scope, const Object_ptr type) const;
 	void expect_key_type(SymbolScope_ptr scope, const Object_ptr type) const;
+
+	// Extract
+
+	EnumType* extract_enum_type(const Object_ptr type) const;
 };
 
 using TypeSystem_ptr = WASPTYPESYSTEM_API std::shared_ptr<TypeSystem>;

@@ -40,6 +40,9 @@ class PARSER_API Parser
 	Statement_ptr parse_while_loop();
 	Statement_ptr parse_for_in_loop();
 
+	Statement_ptr parse_scenario();
+	Statement_ptr parse_test();
+
 	Statement_ptr parse_return();
 	Statement_ptr parse_yield();
 	Statement_ptr parse_assert();
@@ -60,6 +63,9 @@ class PARSER_API Parser
 	// Definition Parsers
 
 	Statement_ptr parse_variable_definition(bool is_public, bool is_mutable);
+
+	Statement_ptr parse_enum_definition(bool is_public);
+	std::vector<std::wstring> parse_enum_members(std::wstring stem);
 
 	// Pratt Parser
 

@@ -45,6 +45,9 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 	void visit(Swear& statement);
 	void visit(SimpleForInLoop& statement);
 	void visit(DeconstructedForInLoop& statement);
+	void visit(Scenario& statement);
+	void visit(Test& statement);
+	void visit(EnumDefinition& statement);
 
 	// Expression
 
@@ -68,6 +71,7 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 	Object_ptr visit(Infix& expr);
 	Object_ptr visit(Postfix& expr);
 	Object_ptr visit(Identifier& expr);
+	Object_ptr visit(EnumMember const& expr);
 
 	// Types
 

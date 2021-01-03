@@ -64,6 +64,7 @@ void SemanticAnalyzer::visit(Statement_ptr statement)
 		[&](Swear& stat) { visit(stat); },
 		[&](SimpleForInLoop& stat) { visit(stat); },
 		[&](DeconstructedForInLoop& stat) { visit(stat); },
+		[&](EnumDefinition& stat) { visit(stat); },
 
 		[&](auto) { FATAL("Never Seen this Statement before!"); }
 		}, *statement);
