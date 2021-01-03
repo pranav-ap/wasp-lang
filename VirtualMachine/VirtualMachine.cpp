@@ -39,13 +39,13 @@ OpResult VirtualMachine::perform_nullary_operation(OpCode opcode)
 	}
 	case OpCode::PUSH_CONSTANT_TRUE:
 	{
-		auto true_object = object_store->get_true_object();
+		auto true_object = constant_pool->get_true_object();
 		push_to_stack(true_object);
 		return OpResult::OK;
 	}
 	case OpCode::PUSH_CONSTANT_FALSE:
 	{
-		auto false_object = object_store->get_false_object();
+		auto false_object = constant_pool->get_false_object();
 		push_to_stack(false_object);
 		return OpResult::OK;
 	}
@@ -85,7 +85,7 @@ OpResult VirtualMachine::perform_unary_operation(OpCode opcode)
 	case OpCode::SWEAR:
 	case OpCode::IMPLORE:
 	{
-		result = is_truthy(TOS) ? object_store->get_true_object() : object_store->get_false_object();
+		result = is_truthy(TOS) ? constant_pool->get_true_object() : constant_pool->get_false_object();
 		break;
 	}
 	case OpCode::RETURN_VALUE:
@@ -271,16 +271,21 @@ OpResult VirtualMachine::execute(OpCode opcode, int operand)
 	switch (opcode)
 	{
 	case OpCode::PUSH_CONSTANT:
+	{
+		auto obj = constant_pool->get(operand);
+		push_to_stack(obj);
+		return OpResult::OK;
+	}
 	case OpCode::LOAD_LOCAL:
 	{
-		auto obj = object_store->get(operand);
+		auto obj = variable_store->get(operand);
 		push_to_stack(obj);
 		return OpResult::OK;
 	}
 	case OpCode::STORE_LOCAL:
 	{
 		auto obj = pop_from_stack();
-		object_store->set(operand, obj);
+		variable_store->set(operand, obj);
 		return OpResult::OK;
 	}
 	case OpCode::MAKE_LIST:
@@ -415,14 +420,16 @@ OpResult VirtualMachine::run()
 		{
 		case 0:
 		{
+			ip += 1;
+
 			result = execute(opcode);
 			break;
 		}
 		case 1:
 		{
 			ByteVector operands = code_object->operands_of_opcode_at(ip);
-			ip += arity;
 			ASSERT(operands.size() == 1, "Expected 1 operands");
+			ip += 2;
 
 			result = execute(opcode, to_integer<int>(operands[0]));
 			break;
@@ -430,8 +437,8 @@ OpResult VirtualMachine::run()
 		case 2:
 		{
 			ByteVector operands = code_object->operands_of_opcode_at(ip);
-			ip += arity;
 			ASSERT(operands.size() == 2, "Expected 2 operands");
+			ip += 3;
 			
 			result = execute(opcode, to_integer<int>(operands[0]), to_integer<int>(operands[1]));
 			break;

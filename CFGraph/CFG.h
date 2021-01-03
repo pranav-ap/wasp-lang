@@ -35,7 +35,7 @@ public:
 		end_block_id(0),
 		object_store(object_store) {};
 
-	void print();
+	void print(const std::map<int, std::wstring> name_map);
 };
 
 using CFG_ptr = CFGRAPH_API std::shared_ptr<CFG>;

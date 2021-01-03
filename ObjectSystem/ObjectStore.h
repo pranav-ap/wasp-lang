@@ -14,8 +14,8 @@
 struct OBJECTSYSTEM_API ObjectStore
 {
 	int next_id;
+
 	std::map<int, Object_ptr> objects;
-	std::map<int, std::wstring> name_map;
 
 	int allocate();
 	int allocate(int value);

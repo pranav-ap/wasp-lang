@@ -10,7 +10,6 @@
 #include "Statement.h"
 #include "ObjectStore.h"
 #include "Objects.h"
-
 #include <string>
 #include <vector>
 #include <map>
@@ -20,8 +19,10 @@
 
 class COMPILER_API Compiler
 {
-	ObjectStore_ptr object_store;
+	ObjectStore_ptr constant_pool; // Dont use for defintiions. Use id given by SA for definitions
 	SymbolScope_ptr current_scope;
+	
+	std::map<int, std::wstring> name_map;
 	int next_label;
 		
 	// Statement
@@ -105,7 +106,7 @@ public:
 	Compiler()
 		: next_label(0), 
 		current_scope(std::make_shared<SymbolScope>()),
-		object_store(std::make_shared<ObjectStore>()) {};
+		constant_pool(std::make_shared<ObjectStore>()) {};
 
 	std::tuple<ObjectStore_ptr, CodeObject_ptr> run(const Module_ptr ast);
 };

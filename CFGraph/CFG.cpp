@@ -17,9 +17,9 @@ using std::to_wstring;
 using std::to_string;
 using std::make_shared;
 
-void CFG::print()
+void CFG::print(const std::map<int, std::wstring> name_map)
 {
-	InstructionPrinter_ptr printer = make_shared<InstructionPrinter>(object_store);
+	InstructionPrinter_ptr printer = make_shared<InstructionPrinter>(object_store, name_map);
 
 	for (auto const& [id, block] : basic_blocks)
 	{

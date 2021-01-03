@@ -29,7 +29,7 @@ Object_ptr VirtualMachine::perform_unary_negative(Object_ptr obj)
 
 		[&](auto)
 		{
-			return object_store->make_error_object(L"_");
+			return constant_pool->make_error_object(L"_");
 		}
 		}, *obj);
 }
@@ -45,7 +45,7 @@ Object_ptr VirtualMachine::perform_unary_not(Object_ptr obj)
 
 		[&](auto)
 		{
-			return object_store->make_error_object(L"_");
+			return constant_pool->make_error_object(L"_");
 		}
 		}, *obj);
 }

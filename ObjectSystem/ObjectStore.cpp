@@ -16,8 +16,6 @@ using std::make_shared;
 
 ObjectStore::ObjectStore()
 {
-	next_id = 0;	
-
 	objects.insert({ 0, MAKE_OBJECT_VARIANT(AnyType()) });
 	objects.insert({ 1, MAKE_OBJECT_VARIANT(IntType()) });
 	objects.insert({ 2, MAKE_OBJECT_VARIANT(FloatType()) });
@@ -27,11 +25,13 @@ ObjectStore::ObjectStore()
 
 	objects.insert({ 6, MAKE_OBJECT_VARIANT(BooleanObject(true)) });
 	objects.insert({ 7, MAKE_OBJECT_VARIANT(BooleanObject(false)) });
+
+	next_id = 8;
 }
 
 void ObjectStore::set(int id, Object_ptr value)
 {
-	ASSERT(!objects.contains(id), "ID already exists in ObjectStore");
+	ASSERT(objects.contains(id), "ID already exists in ObjectStore");
 	objects.insert({ id, value });
 }
 
@@ -43,7 +43,7 @@ Object_ptr ObjectStore::get(int id)
 
 int ObjectStore::allocate()
 {
-	int id = objects.size();
+	int id = next_id++;
 	objects.insert({ id, move(MAKE_OBJECT_VARIANT(NoneObject())) });
 
 	return id;
@@ -69,7 +69,7 @@ int ObjectStore::allocate(int number)
 		return result->first;
 	}
 
-	int id = objects.size();
+	int id = next_id++;
 	auto value = MAKE_OBJECT_VARIANT(IntObject(number));
 	objects.insert({ id, value });
 
@@ -96,7 +96,7 @@ int ObjectStore::allocate(double number)
 		return result->first;
 	}
 
-	int id = objects.size();
+	int id = next_id++;
 	auto value = MAKE_OBJECT_VARIANT(FloatObject(number));
 	objects.insert({ id, value });
 
@@ -123,7 +123,7 @@ int ObjectStore::allocate(std::wstring text)
 		return result->first;
 	}
 
-	int id = objects.size();
+	int id = next_id++;
 	auto value = MAKE_OBJECT_VARIANT(StringObject(text));
 	objects.insert({ id, value });
 
@@ -132,7 +132,7 @@ int ObjectStore::allocate(std::wstring text)
 
 int ObjectStore::allocate(Object_ptr value)
 {
-	int id = objects.size();
+	int id = next_id++;
 	objects.insert({ id, move(value) });
 
 	return id;

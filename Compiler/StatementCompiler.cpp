@@ -183,7 +183,7 @@ void Compiler::visit(SimpleForInLoop const& statement)
 
 	int id = current_scope->lookup(statement.name)->id;
 	emit(OpCode::STORE_LOCAL, id);
-	object_store->name_map[id] = statement.name;
+	name_map[id] = statement.name;
 
 	visit(statement.body);
 
@@ -262,5 +262,6 @@ void Compiler::visit(Continue const& statement)
 void Compiler::visit(Redo const& statement)
 {
 	// todo: reset loop
+	// reset iterator
 	emit(OpCode::JUMP, current_scope->continue_label);
 }

@@ -13,13 +13,12 @@
 #include "TypeNode.h"
 #include "SymbolScope.h"
 #include <memory>
-#include <stack>
 #include <tuple>
 #include <optional>
 
 class SEMANTICANALYZER_API SemanticAnalyzer
 {
-	int next_id;
+	int next_id; // used for definitions
 	TypeSystem_ptr type_system;
 	SymbolScope_ptr current_scope;
 
@@ -103,7 +102,7 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 
 public:
 	SemanticAnalyzer() 
-		: next_id (0), 
+		: next_id (8), 
 		type_system(std::make_shared<TypeSystem>()) {};
 
 	void run(const Module_ptr ast);

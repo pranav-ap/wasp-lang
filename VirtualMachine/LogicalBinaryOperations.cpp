@@ -19,11 +19,11 @@ Object_ptr VirtualMachine::perform_and(Object_ptr left, Object_ptr right)
 	return std::visit(overloaded{
 		[&](BooleanObject& left, BooleanObject& right)
 		{
-			return object_store->make_object(left.value & right.value);
+			return constant_pool->make_object(left.value & right.value);
 		},
 		[&](auto, auto)
 		{
-			return object_store->make_error_object(L"_");
+			return constant_pool->make_error_object(L"_");
 		}
 		}, *left, *right);
 }
@@ -33,11 +33,11 @@ Object_ptr VirtualMachine::perform_or(Object_ptr left, Object_ptr right)
 	return std::visit(overloaded{
 		[&](BooleanObject& left, BooleanObject& right)
 		{
-			return object_store->make_object(left.value | right.value);
+			return constant_pool->make_object(left.value | right.value);
 		},
 		[&](auto, auto)
 		{
-			return object_store->make_error_object(L"_");
+			return constant_pool->make_error_object(L"_");
 		}
 		}, *left, *right);
 }

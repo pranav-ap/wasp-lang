@@ -35,9 +35,9 @@ void Compiler::visit(SingleVariableDefinition const& statement)
 	visit(statement.rhs_expression);
 
 	int id = current_scope->lookup(statement.name)->id;
-	emit(OpCode::STORE_LOCAL, id);
+	emit(OpCode::STORE_LOCAL, id); 
 
-	object_store->name_map[id] = statement.name;
+	name_map[id] = statement.name;
 }
 
 void Compiler::visit(DeconstructedVariableDefinition const& statement)

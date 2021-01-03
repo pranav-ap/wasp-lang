@@ -67,20 +67,20 @@ void Compiler::visit(std::vector<Expression_ptr> const& expressions)
 
 void Compiler::visit(const int number)
 {
-	int constant_id = object_store->allocate(number);
-	emit(OpCode::PUSH_CONSTANT, constant_id);
+	int id = constant_pool->allocate(number);
+	emit(OpCode::PUSH_CONSTANT, id);
 }
 
 void Compiler::visit(const double number)
 {
-	int constant_id = object_store->allocate(number);
-	emit(OpCode::PUSH_CONSTANT, constant_id);
+	int id = constant_pool->allocate(number);
+	emit(OpCode::PUSH_CONSTANT, id);
 }
 
 void Compiler::visit(const std::wstring text)
 {
-	int constant_id = object_store->allocate(text);
-	emit(OpCode::PUSH_CONSTANT, constant_id);
+	int id = constant_pool->allocate(text);
+	emit(OpCode::PUSH_CONSTANT, id);
 }
 
 void Compiler::visit(const bool boolean)

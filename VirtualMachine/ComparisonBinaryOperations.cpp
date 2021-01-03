@@ -19,25 +19,25 @@ Object_ptr VirtualMachine::perform_not_equal(Object_ptr left, Object_ptr right)
 	return std::visit(overloaded{
 		[&](IntObject& left, IntObject& right)
 		{
-			return object_store->make_object(left.value != right.value);
+			return constant_pool->make_object(left.value != right.value);
 		},
 		[&](FloatObject& left, FloatObject& right)
 		{
-			return object_store->make_object(left.value != right.value);
+			return constant_pool->make_object(left.value != right.value);
 		},
 		[&](StringObject& left, StringObject& right)
 		{
-			return object_store->make_object(left.value != right.value);
+			return constant_pool->make_object(left.value != right.value);
 		},
 		[&](BooleanObject& left, BooleanObject& right)
 		{
-			return object_store->make_object(left.value != right.value);
+			return constant_pool->make_object(left.value != right.value);
 		},
 		[&](TupleObject& left, TupleObject& right)
 		{
 			if (left.values.size() != right.values.size())
 			{
-				return object_store->get_false_object();
+				return constant_pool->get_false_object();
 			}
 
 			int size = left.values.size();
@@ -49,17 +49,17 @@ Object_ptr VirtualMachine::perform_not_equal(Object_ptr left, Object_ptr right)
 
 				if (perform_equal(left_value, right_value))
 				{
-					return object_store->get_false_object();
+					return constant_pool->get_false_object();
 				}
 			}
 
-			return object_store->get_true_object();
+			return constant_pool->get_true_object();
 		},
 		[&](ListObject& left, ListObject& right)
 		{
 			if (left.values.size() != right.values.size())
 			{
-				return object_store->get_false_object();
+				return constant_pool->get_false_object();
 			}
 
 			int size = left.values.size();
@@ -71,11 +71,11 @@ Object_ptr VirtualMachine::perform_not_equal(Object_ptr left, Object_ptr right)
 
 				if (perform_equal(left_value, right_value))
 				{
-					return object_store->get_false_object();
+					return constant_pool->get_false_object();
 				}
 			}
 
-			return object_store->get_true_object();
+			return constant_pool->get_true_object();
 		},
 		[&](VariantObject& left, VariantObject& right)
 		{
@@ -84,7 +84,7 @@ Object_ptr VirtualMachine::perform_not_equal(Object_ptr left, Object_ptr right)
 
 		[&](auto, auto)
 		{
-			return object_store->make_error_object(L"_");
+			return constant_pool->make_error_object(L"_");
 		}
 		}, *left, *right);
 }
@@ -94,25 +94,25 @@ Object_ptr VirtualMachine::perform_equal(Object_ptr left, Object_ptr right)
 	return std::visit(overloaded{
 		[&](IntObject& left, IntObject& right)
 		{
-			return object_store->make_object(left.value == right.value);
+			return constant_pool->make_object(left.value == right.value);
 		},
 		[&](FloatObject& left, FloatObject& right)
 		{
-			return object_store->make_object(left.value == right.value);
+			return constant_pool->make_object(left.value == right.value);
 		},
 		[&](StringObject& left, StringObject& right)
 		{
-			return object_store->make_object(left.value == right.value);
+			return constant_pool->make_object(left.value == right.value);
 		},
 		[&](BooleanObject& left, BooleanObject& right)
 		{
-			return object_store->make_object(left.value == right.value);
+			return constant_pool->make_object(left.value == right.value);
 		},
 		[&](TupleObject& left, TupleObject& right)
 		{
 			if (left.values.size() != right.values.size())
 			{
-				return object_store->get_false_object();
+				return constant_pool->get_false_object();
 			}
 
 			int size = left.values.size();
@@ -124,17 +124,17 @@ Object_ptr VirtualMachine::perform_equal(Object_ptr left, Object_ptr right)
 
 				if (perform_not_equal(left_value, right_value))
 				{
-					return object_store->get_false_object();
+					return constant_pool->get_false_object();
 				}
 			}
 
-			return object_store->get_true_object();
+			return constant_pool->get_true_object();
 		},
 		[&](ListObject& left, ListObject& right)
 		{
 			if (left.values.size() != right.values.size())
 			{
-				return object_store->get_false_object();
+				return constant_pool->get_false_object();
 			}
 
 			int size = left.values.size();
@@ -146,11 +146,11 @@ Object_ptr VirtualMachine::perform_equal(Object_ptr left, Object_ptr right)
 
 				if (perform_not_equal(left_value, right_value))
 				{
-					return object_store->get_false_object();
+					return constant_pool->get_false_object();
 				}
 			}
 
-			return object_store->get_true_object();
+			return constant_pool->get_true_object();
 		},
 		[&](VariantObject& left, VariantObject& right)
 		{
@@ -159,7 +159,7 @@ Object_ptr VirtualMachine::perform_equal(Object_ptr left, Object_ptr right)
 
 		[&](auto, auto)
 		{
-			return object_store->make_error_object(L"_");
+			return constant_pool->make_error_object(L"_");
 		}
 		}, *left, *right);
 }
@@ -169,24 +169,24 @@ Object_ptr VirtualMachine::perform_lesser_than(Object_ptr left, Object_ptr right
 	return std::visit(overloaded{
 		[&](IntObject& left, IntObject& right)
 		{
-			return object_store->make_object(left.value < right.value);
+			return constant_pool->make_object(left.value < right.value);
 		},
 		[&](FloatObject& left, FloatObject& right)
 		{
-			return object_store->make_object(left.value < right.value);
+			return constant_pool->make_object(left.value < right.value);
 		},
 		[&](IntObject& left, FloatObject& right)
 		{
-			return object_store->make_object(left.value < right.value);
+			return constant_pool->make_object(left.value < right.value);
 		},
 		[&](FloatObject& left, IntObject& right)
 		{
-			return object_store->make_object(left.value < right.value);
+			return constant_pool->make_object(left.value < right.value);
 		},
 
 		[&](StringObject& left, StringObject& right)
 		{
-			return object_store->make_object(left.value < right.value);
+			return constant_pool->make_object(left.value < right.value);
 		},
 
 		[&](VariantObject& left, VariantObject& right)
@@ -196,7 +196,7 @@ Object_ptr VirtualMachine::perform_lesser_than(Object_ptr left, Object_ptr right
 
 		[&](auto, auto)
 		{
-			return object_store->make_error_object(L"_");
+			return constant_pool->make_error_object(L"_");
 		}
 		}, *left, *right);
 }
@@ -206,24 +206,24 @@ Object_ptr VirtualMachine::perform_lesser_than_equal(Object_ptr left, Object_ptr
 	return std::visit(overloaded{
 		[&](IntObject& left, IntObject& right)
 		{
-			return object_store->make_object(left.value <= right.value);
+			return constant_pool->make_object(left.value <= right.value);
 		},
 		[&](FloatObject& left, FloatObject& right)
 		{
-			return object_store->make_object(left.value <= right.value);
+			return constant_pool->make_object(left.value <= right.value);
 		},
 		[&](IntObject& left, FloatObject& right)
 		{
-			return object_store->make_object(left.value <= right.value);
+			return constant_pool->make_object(left.value <= right.value);
 		},
 		[&](FloatObject& left, IntObject& right)
 		{
-			return object_store->make_object(left.value <= right.value);
+			return constant_pool->make_object(left.value <= right.value);
 		},
 
 		[&](StringObject& left, StringObject& right)
 		{
-			return object_store->make_object(left.value <= right.value);
+			return constant_pool->make_object(left.value <= right.value);
 		},
 
 		[&](VariantObject& left, VariantObject& right)
@@ -233,7 +233,7 @@ Object_ptr VirtualMachine::perform_lesser_than_equal(Object_ptr left, Object_ptr
 
 		[&](auto, auto)
 		{
-			return object_store->make_error_object(L"_");
+			return constant_pool->make_error_object(L"_");
 		}
 		}, *left, *right);
 }
@@ -243,24 +243,24 @@ Object_ptr VirtualMachine::perform_greater_than(Object_ptr left, Object_ptr righ
 	return std::visit(overloaded{
 		[&](IntObject& left, IntObject& right)
 		{
-			return object_store->make_object(left.value > right.value);
+			return constant_pool->make_object(left.value > right.value);
 		},
 		[&](FloatObject& left, FloatObject& right)
 		{
-			return object_store->make_object(left.value > right.value);
+			return constant_pool->make_object(left.value > right.value);
 		},
 		[&](IntObject& left, FloatObject& right)
 		{
-			return object_store->make_object(left.value > right.value);
+			return constant_pool->make_object(left.value > right.value);
 		},
 		[&](FloatObject& left, IntObject& right)
 		{
-			return object_store->make_object(left.value > right.value);
+			return constant_pool->make_object(left.value > right.value);
 		},
 
 		[&](StringObject& left, StringObject& right)
 		{
-			return object_store->make_object(left.value > right.value);
+			return constant_pool->make_object(left.value > right.value);
 		},
 
 		[&](VariantObject& left, VariantObject& right)
@@ -270,7 +270,7 @@ Object_ptr VirtualMachine::perform_greater_than(Object_ptr left, Object_ptr righ
 
 		[&](auto, auto)
 		{
-			return object_store->make_error_object(L"_");
+			return constant_pool->make_error_object(L"_");
 		}
 		}, *left, *right);
 }
@@ -280,24 +280,24 @@ Object_ptr VirtualMachine::perform_greater_than_equal(Object_ptr left, Object_pt
 	return std::visit(overloaded{
 		[&](IntObject& left, IntObject& right)
 		{
-			return object_store->make_object(left.value >= right.value);
+			return constant_pool->make_object(left.value >= right.value);
 		},
 		[&](FloatObject& left, FloatObject& right)
 		{
-			return object_store->make_object(left.value >= right.value);
+			return constant_pool->make_object(left.value >= right.value);
 		},
 		[&](IntObject& left, FloatObject& right)
 		{
-			return object_store->make_object(left.value >= right.value);
+			return constant_pool->make_object(left.value >= right.value);
 		},
 		[&](FloatObject& left, IntObject& right)
 		{
-			return object_store->make_object(left.value >= right.value);
+			return constant_pool->make_object(left.value >= right.value);
 		},
 
 		[&](StringObject& left, StringObject& right)
 		{
-			return object_store->make_object(left.value >= right.value);
+			return constant_pool->make_object(left.value >= right.value);
 		},
 
 		[&](VariantObject& left, VariantObject& right)
@@ -307,7 +307,7 @@ Object_ptr VirtualMachine::perform_greater_than_equal(Object_ptr left, Object_pt
 
 		[&](auto, auto)
 		{
-			return object_store->make_error_object(L"_");
+			return constant_pool->make_error_object(L"_");
 		}
 		}, *left, *right);
 }

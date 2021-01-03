@@ -128,7 +128,7 @@ Object_ptr VirtualMachine::make_iterable(Object_ptr obj)
 		},
 		[&](auto)
 		{
-			return object_store->make_error_object(L"_");
+			return constant_pool->make_error_object(L"_");
 		}
 		}, *obj);
 }

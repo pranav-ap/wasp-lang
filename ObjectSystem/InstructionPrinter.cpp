@@ -36,7 +36,7 @@ std::wstring InstructionPrinter::stringify_instruction(std::byte opcode, std::by
 	{
 	case OpCode::PUSH_CONSTANT:
 	{
-		wstring comment = stringify_object(object_store->get(operand_int));
+		wstring comment = stringify_object(constant_pool->get(operand_int));
 		str_stream << std::right << setw(OPERAND_WIDTH) << L" (" << comment << L")";
 		return str_stream.str();
 	}
@@ -56,7 +56,7 @@ std::wstring InstructionPrinter::stringify_instruction(std::byte opcode, std::by
 	case OpCode::STORE_LOCAL:
 	case OpCode::LOAD_LOCAL:
 	{
-		wstring comment = object_store->name_map.at(operand_int);
+		wstring comment = name_map.at(operand_int);
 		str_stream << std::right << setw(OPERAND_WIDTH) << L" (" << comment << L")";
 		return str_stream.str();
 	}
@@ -81,7 +81,7 @@ std::wstring InstructionPrinter::stringify_instruction(std::byte opcode, std::by
 	case OpCode::CALL_FUNCTION:
 	case OpCode::CALL_GENERATOR:
 	{
-		wstring name = object_store->name_map.at(operand_1_int);
+		wstring name = name_map.at(operand_1_int);
 		str_stream << std::right << setw(OPERAND_WIDTH) << L" (" << name << L" , " << operand_2_int << L")";
 
 		return str_stream.str();

@@ -48,10 +48,9 @@ std::tuple<ObjectStore_ptr, CodeObject_ptr> Compiler::run(const Module_ptr ast)
 
 	// Create CFG
 
-	CFGBuilder_ptr cfg_builder = std::make_unique<CFGBuilder>(object_store, current_scope->code_object);
+	CFGBuilder_ptr cfg_builder = std::make_unique<CFGBuilder>(constant_pool, current_scope->code_object);
 	CFG_ptr cfg = cfg_builder->create();
-
-	// cfg->print();
+	// cfg->print(name_map);
 
 	// Assemble CFG
 
@@ -60,8 +59,8 @@ std::tuple<ObjectStore_ptr, CodeObject_ptr> Compiler::run(const Module_ptr ast)
 
 	// Print
 
-	InstructionPrinter_ptr printer = std::make_unique<InstructionPrinter>(object_store);
+	InstructionPrinter_ptr printer = std::make_unique<InstructionPrinter>(constant_pool, name_map);
 	printer->print(assembled_code_object);
 
-	return std::make_tuple(object_store, assembled_code_object);
+	return std::make_tuple(constant_pool, assembled_code_object);
 }

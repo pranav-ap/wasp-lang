@@ -13,16 +13,20 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <map>
 
 class OBJECTSYSTEM_API InstructionPrinter
 {
-	ObjectStore_ptr object_store;
+	ObjectStore_ptr constant_pool;
+	std::map<int, std::wstring> name_map;
 
 	std::wstring stringify_instruction(std::byte opcode, std::byte operand);
 	std::wstring stringify_instruction(std::byte opcode, std::byte operand_1, std::byte operand_2);
 
 public:
-	InstructionPrinter(ObjectStore_ptr object_store) : object_store(object_store) {};
+	InstructionPrinter(ObjectStore_ptr constant_pool, std::map<int, std::wstring> name_map) 
+		: constant_pool(constant_pool), name_map(name_map) {};
+
 	void print(CodeObject_ptr code_object);
 };
 

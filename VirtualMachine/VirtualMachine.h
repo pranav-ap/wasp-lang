@@ -20,7 +20,9 @@ enum class VIRTUALMACHINE_API OpResult
 
 class VIRTUALMACHINE_API VirtualMachine
 {
-	ObjectStore_ptr object_store; // constant pool
+	ObjectStore_ptr constant_pool;
+	ObjectStore_ptr variable_store; // IDs set by SA
+
 	std::stack<Object_ptr> stack;
 
 	CodeObject_ptr code_object;
@@ -75,9 +77,10 @@ class VIRTUALMACHINE_API VirtualMachine
 	ObjectVector to_vector(std::wstring text);
 
 public:
-	VirtualMachine(ObjectStore_ptr object_store, CodeObject_ptr code_object)
+	VirtualMachine(ObjectStore_ptr constant_pool, CodeObject_ptr code_object)
 		: ip(0), 
-		object_store(object_store), 
+		constant_pool(constant_pool), 
+		variable_store(std::make_shared<ObjectStore>()),
 		code_object(code_object) {};
 
 	OpResult run();

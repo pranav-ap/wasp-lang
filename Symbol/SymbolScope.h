@@ -33,8 +33,6 @@ struct SYMBOL_API SymbolScope
 	ScopeType scope_type;
 	CodeObject_ptr code_object;
 	std::optional<SymbolScope_ptr> enclosing_scope;
-	
-	std::map<std::wstring, std::vector<std::wstring>> function_overloads;
 	std::map<std::wstring, Symbol_ptr> symbols;
 
 	bool is_rvalue;
