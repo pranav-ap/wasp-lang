@@ -30,13 +30,14 @@ struct Prefix;
 struct Infix;
 struct Postfix;
 struct EnumMember;
+struct Call;
 
 using Expression = AST_API std::variant<
 	std::monostate,
 	int, double, std::wstring, bool,
 	ListLiteral, TupleLiteral, SetLiteral, MapLiteral, Identifier, 
 	UntypedAssignment, TypedAssignment, Spread, Prefix, Infix, Postfix, TypePattern, 
-	TernaryCondition, EnumMember
+	TernaryCondition, EnumMember, Call
 >;
 
 using Expression_ptr = AST_API std::shared_ptr<Expression>;
@@ -169,4 +170,16 @@ struct AST_API EnumMember
 
 	EnumMember(std::vector<std::wstring> member_chain)
 		: member_chain(member_chain) {};
+};
+
+struct AST_API Call
+{
+	std::wstring name;
+	ExpressionVector arguments;
+
+	Call(std::wstring name) 
+		: name(name) {};
+
+	Call(std::wstring name, ExpressionVector arguments) 
+		: name(name), arguments(arguments) {};
 };

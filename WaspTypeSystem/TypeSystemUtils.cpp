@@ -203,3 +203,10 @@ EnumType* TypeSystem::extract_enum_type(const Object_ptr type) const
 	auto inner_type = get_if<EnumType>(&*type);
 	return inner_type;
 }
+
+FunctionType* TypeSystem::extract_function_type(const Object_ptr type) const
+{
+	ASSERT(holds_alternative<FunctionType>(*type), "Must be a FunctionType");
+	auto inner_type = get_if<FunctionType>(&*type);
+	return inner_type;
+}

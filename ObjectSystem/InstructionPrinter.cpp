@@ -82,7 +82,7 @@ std::wstring InstructionPrinter::stringify_instruction(std::byte opcode, std::by
 	case OpCode::CALL_GENERATOR:
 	{
 		wstring name = name_map.at(operand_1_int);
-		str_stream << std::right << setw(OPERAND_WIDTH) << L" (" << name << L" , " << operand_2_int << L")";
+		str_stream << std::right << setw(OPERAND_WIDTH) << L" ( Function " << name << L", " << operand_2_int << L" arguments)";
 
 		return str_stream.str();
 	}

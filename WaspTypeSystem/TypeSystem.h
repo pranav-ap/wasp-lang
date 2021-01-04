@@ -60,6 +60,7 @@ struct WASPTYPESYSTEM_API TypeSystem
 	// Extract
 
 	EnumType* extract_enum_type(const Object_ptr type) const;
+	FunctionType* extract_function_type(const Object_ptr type) const;
 };
 
 using TypeSystem_ptr = WASPTYPESYSTEM_API std::shared_ptr<TypeSystem>;

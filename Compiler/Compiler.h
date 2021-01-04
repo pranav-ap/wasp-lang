@@ -18,6 +18,7 @@
 
 class COMPILER_API Compiler
 {
+	std::vector<int> function_ids;
 	ObjectStore_ptr constant_pool; // Dont use for defintiions. Use id given by SA for definitions
 	SymbolScope_ptr current_scope;
 	
@@ -44,6 +45,10 @@ class COMPILER_API Compiler
 	void visit(Scenario const& statement);
 	void visit(Test const& statement);
 	void visit(Namespace const& statement);
+
+	// Func and Gen
+
+	void visit(FunctionDefinition const& statement);
 
 	// Branching
 
@@ -89,6 +94,7 @@ class COMPILER_API Compiler
 	void visit(Identifier const& expr);
 	void visit(Spread const& expr);
 	void visit(EnumMember const& expr);
+	void visit(Call const& expr);
 
 	// Emit
 
@@ -114,7 +120,7 @@ public:
 		current_scope(std::make_shared<SymbolScope>()),
 		constant_pool(std::make_shared<ObjectStore>()) {};
 
-	std::tuple<ObjectStore_ptr, CodeObject_ptr> run(const Module_ptr ast);
+	std::tuple<ObjectStore_ptr, CodeObject_ptr, std::map<int, CodeObject_ptr>> run(const Module_ptr ast);
 };
 
 using Compiler_ptr = std::shared_ptr<Compiler>;

@@ -169,6 +169,7 @@ Statement_ptr Parser::parse_branching(WTokenType token_type)
 		return MAKE_STATEMENT(SimpleIfBranch(condition, body, alternative));
 	}
 
+	token_pipe->require(WTokenType::END);
 	return MAKE_STATEMENT(SimpleIfBranch(condition, body));
 }
 

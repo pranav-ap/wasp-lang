@@ -61,6 +61,7 @@ Parser::Parser()
 	register_parselet(WTokenType::IF, make_shared<TernaryConditionParselet>());
 	register_parselet(WTokenType::DOT_DOT_DOT, make_shared<SpreadParselet>());
 	register_parselet(WTokenType::COLON_COLON, make_shared<EnumMemberParselet>());
+	register_parselet(WTokenType::OPEN_PARENTHESIS, make_shared<CallParselet>());
 
 	register_prefix(WTokenType::PLUS, Precedence::PREFIX);
 	register_prefix(WTokenType::MINUS, Precedence::PREFIX);

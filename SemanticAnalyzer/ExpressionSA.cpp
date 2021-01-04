@@ -51,6 +51,7 @@ Object_ptr SemanticAnalyzer::visit(const Expression_ptr expression)
 		[&](TypedAssignment& expr) { return visit(expr); },
 		[&](Spread& expr) { return visit(expr); },
 		[&](EnumMember& expr) { return visit(expr); },
+		[&](Call const& expr) { return visit(expr); },
 
 		[&](auto)
 		{
@@ -62,7 +63,7 @@ Object_ptr SemanticAnalyzer::visit(const Expression_ptr expression)
 	return type;
 }
 
-ObjectVector SemanticAnalyzer::visit(ExpressionVector& expressions)
+ObjectVector SemanticAnalyzer::visit(ExpressionVector expressions)
 {
 	ObjectVector types;
 
@@ -248,4 +249,25 @@ Object_ptr SemanticAnalyzer::visit(EnumMember const& expr)
 	ASSERT(enum_type->members.contains(enum_string), "Enum does not contain this member");
 
 	return symbol->type;
+}
+
+Object_ptr SemanticAnalyzer::visit(Call const& expr)
+{
+	Symbol_ptr symbol = current_scope->lookup(expr.name);
+	ObjectVector argument_types = visit(expr.arguments);
+
+	Object_ptr return_type = std::visit(overloaded{
+		[&](FunctionType const& type)
+		{
+			ASSERT(type_system->equal(current_scope, argument_types, type.input_types), "Argument mismatch in call");
+			return type.return_type.value_or(type_system->type_pool->get_none_type());
+		},
+		[&](auto)
+		{
+			FATAL("Not a callable type");
+			return type_system->type_pool->get_none_type();
+		}
+		}, *symbol->type);
+
+	return return_type;
 }

@@ -56,6 +56,7 @@ void Compiler::visit(const Statement_ptr statement)
 		[&](Test const& stat) { visit(stat); },
 		[&](EnumDefinition const& stat) { visit(stat); },
 		[&](Namespace const& stat) { visit(stat); },
+		[&](FunctionDefinition const& stat) { visit(stat); },
 		
 		[](auto) { FATAL("Never Seen this Statement before!"); }
 		}, *statement);

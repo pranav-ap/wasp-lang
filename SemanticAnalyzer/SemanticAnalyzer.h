@@ -51,11 +51,12 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 	void visit(Test& statement);
 	void visit(EnumDefinition& statement);
 	void visit(Namespace& statement);
+	void visit(FunctionDefinition& statement);
 
 	// Expression
 
 	Object_ptr visit(const Expression_ptr expr);
-	ObjectVector visit(std::vector<Expression_ptr>& expressions);
+	ObjectVector visit(ExpressionVector expressions);
 
 	Object_ptr visit(int expr);
 	Object_ptr visit(double expr);
@@ -75,6 +76,7 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 	Object_ptr visit(Postfix& expr);
 	Object_ptr visit(Identifier& expr);
 	Object_ptr visit(EnumMember const& expr);
+	Object_ptr visit(Call const& expr);
 
 	// Types
 
@@ -96,10 +98,11 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 	Object_ptr visit(MapTypeNode& expr);
 	Object_ptr visit(VariantTypeNode& expr);
 	Object_ptr visit(NoneTypeNode& expr);
+	Object_ptr visit(FunctionTypeNode& expr);
 
 	// Utils
 
-	void enter_scope(ScopeType scope_type);	
+	void enter_scope(ScopeType scope_type);
 	void leave_scope();
 
 	std::wstring concat(StringVector items, std::wstring middle);

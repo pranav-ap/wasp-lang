@@ -157,6 +157,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Builtins.h" />
     <ClInclude Include="CodeObject.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="InstructionPrinter.h" />
@@ -167,6 +168,7 @@
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Builtins.cpp" />
     <ClCompile Include="CodeObject.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="InstructionPrinter.cpp" />

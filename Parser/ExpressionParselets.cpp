@@ -223,6 +223,39 @@ Expression_ptr EnumMemberParselet::parse(Parser_ptr parser, Expression_ptr left,
 	return MAKE_EXPRESSION(EnumMember(chain));
 }
 
+Expression_ptr CallParselet::parse(Parser_ptr parser, Identifier* identifier)
+{
+	ExpressionVector arguments;
+
+	if (parser->token_pipe->optional(WTokenType::CLOSE_PARENTHESIS))
+	{
+		return MAKE_EXPRESSION(Call(identifier->name));
+	}
+
+	arguments = parser->parse_expressions();
+	parser->token_pipe->require(WTokenType::CLOSE_PARENTHESIS);
+
+	return MAKE_EXPRESSION(Call(identifier->name, arguments));
+}
+
+Expression_ptr CallParselet::parse(Parser_ptr parser, Expression_ptr left, Token_ptr token)
+{
+	Expression_ptr result;
+
+	std::visit(overloaded{
+		[&](Identifier& expr)
+		{
+			result = parse(parser, &expr);
+		},
+		[&](auto)
+		{
+			FATAL("Function Call syntax error");
+		}
+		}, *left);
+
+	return result;
+}
+
 // get_precedence
 
 int PrefixOperatorParselet::get_precedence()
@@ -263,4 +296,9 @@ int SpreadParselet::get_precedence()
 int EnumMemberParselet::get_precedence()
 {
 	return (int)Precedence::MEMBER_ACCESS;
+}
+
+int CallParselet::get_precedence()
+{
+	return (int)Precedence::CALL;
 }

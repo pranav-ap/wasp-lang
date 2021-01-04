@@ -44,7 +44,6 @@ using std::make_optional;
 using std::holds_alternative;
 
 
-
 TypeNode_ptr Parser::parse_type(bool is_optional)
 {
 	if (token_pipe->optional(WTokenType::OPT))
@@ -74,12 +73,12 @@ TypeNode_ptr Parser::parse_type(bool is_optional)
 		}
 		else if (token_pipe->optional(WTokenType::OPEN_PARENTHESIS))
 		{
-			//type = parse_function_type(is_optional);
+			type = parse_function_type(is_optional);
 		}
 		else if (token_pipe->optional(WTokenType::FN))
 		{
 			token_pipe->require(WTokenType::OPEN_PARENTHESIS);
-			//type = parse_function_type(is_optional);
+			type = parse_function_type(is_optional);
 		}
 		else if (token_pipe->optional(WTokenType::GEN))
 		{
@@ -249,4 +248,44 @@ TypeNode_ptr Parser::consume_datatype_word(bool is_optional)
 	}
 
 	FATAL("EXPECTED_DATATYPE");
+}
+tuple<TypeNodeVector, optional<TypeNode_ptr>> Parser::parse_callable_type()
+{
+	TypeNodeVector input_types;
+
+	if (!token_pipe->optional(WTokenType::CLOSE_PARENTHESIS))
+	{
+		while (true)
+		{
+			auto [identifier, type] = consume_identifier_type_pair();
+			input_types.push_back(type);
+
+			if (token_pipe->optional(WTokenType::CLOSE_PARENTHESIS))
+				break;
+
+			token_pipe->require(WTokenType::COMMA);
+		}
+	}
+
+	std::optional<TypeNode_ptr> return_type = std::nullopt;
+
+	if (token_pipe->optional(WTokenType::ARROW))
+	{
+		return_type = parse_type();
+		OPT_CHECK(return_type);
+	}
+
+	return make_tuple(input_types, return_type);
+}
+
+TypeNode_ptr Parser::parse_function_type(bool is_optional)
+{
+	auto [input_types, return_type] = parse_callable_type();
+
+	if (is_optional)
+	{
+		return MAKE_OPTIONAL_TYPE(FunctionTypeNode(input_types, return_type));
+	}
+
+	return MAKE_TYPE(FunctionTypeNode(input_types, return_type));
 }

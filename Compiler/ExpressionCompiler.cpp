@@ -50,6 +50,7 @@ void Compiler::visit(const Expression_ptr expression)
 		[&](UntypedAssignment const& expr) { visit(expr); },
 		[&](TypedAssignment const& expr) { visit(expr); },
 		[&](EnumMember const& expr) { visit(expr); },
+		[&](Call const& expr) { visit(expr); },
 
 		[&](auto)
 		{
@@ -311,4 +312,12 @@ void Compiler::visit(EnumMember const& expr)
 
 	int id = constant_pool->allocate_enum(enum_id, member_id);
 	emit(OpCode::PUSH_CONSTANT, id);
+}
+
+void Compiler::visit(Call const& expr)
+{
+	visit(expr.arguments);
+	int count = expr.arguments.size();
+	auto id = current_scope->lookup(expr.name)->id;
+	emit(OpCode::CALL_FUNCTION, id, count);
 }

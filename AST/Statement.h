@@ -41,6 +41,7 @@ struct Scenario;
 struct Test;
 struct EnumDefinition;
 struct Namespace;
+struct FunctionDefinition;
 
 using Statement = AST_API std::variant<
 	std::monostate,
@@ -51,7 +52,7 @@ using Statement = AST_API std::variant<
 	SimpleWhileLoop, AssignedWhileLoop, Break, Continue, Redo, 
 	Return, YieldStatement, Assert, Implore, Swear,
 	SimpleForInLoop, DeconstructedForInLoop, Scenario, Test,
-	EnumDefinition, Namespace
+	EnumDefinition, Namespace, FunctionDefinition
 >;
 
 using Statement_ptr = AST_API std::shared_ptr<Statement>;
@@ -355,4 +356,23 @@ struct AST_API Namespace : public TestBlock
 {
 	Namespace(std::wstring name, Block body)
 		: TestBlock(name, body) {};
+};
+
+// Func and Gen
+
+struct AST_API CallableDefinition : public Definition
+{
+	std::wstring name;
+	StringVector arguments;
+	TypeNode_ptr type;
+	Block body;
+
+	CallableDefinition(bool is_public, std::wstring name, StringVector arguments, TypeNode_ptr type, Block body)
+		: Definition(is_public), name(name), arguments(arguments), type(type), body(body) {};
+};
+
+struct AST_API FunctionDefinition : public CallableDefinition
+{
+	FunctionDefinition(bool is_public, std::wstring name, StringVector arguments, TypeNode_ptr type, Block body)
+		: CallableDefinition(is_public, name, arguments, type, body) {};
 };

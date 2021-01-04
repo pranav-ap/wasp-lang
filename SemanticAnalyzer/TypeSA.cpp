@@ -48,6 +48,7 @@ Object_ptr SemanticAnalyzer::visit(const TypeNode_ptr type_node)
 		[&](SetTypeNode& node) { return visit(node); },
 		[&](MapTypeNode& node) { return visit(node); },
 		[&](VariantTypeNode& node) { return visit(node); },
+		[&](FunctionTypeNode& node) { return visit(node); },
 
 		[&](auto)
 		{
@@ -152,4 +153,17 @@ Object_ptr SemanticAnalyzer::visit(VariantTypeNode& expr)
 {
 	auto types = visit(expr.types);
 	return MAKE_OBJECT_VARIANT(VariantType(types));
+}
+
+Object_ptr SemanticAnalyzer::visit(FunctionTypeNode& expr)
+{
+	auto input_types = visit(expr.input_types);
+
+	if (expr.return_type.has_value())
+	{
+		auto return_type = visit(expr.return_type.value());
+		return MAKE_OBJECT_VARIANT(FunctionType(input_types, return_type));
+	}
+
+	return MAKE_OBJECT_VARIANT(FunctionType(input_types));
 }

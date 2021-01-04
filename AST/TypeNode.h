@@ -30,6 +30,7 @@ struct VariantTypeNode;
 struct NoneTypeNode;
 struct EnumTypeNode;
 struct TypeIdentifierNode;
+struct FunctionTypeNode;
 
 using TypeNode = AST_API std::variant<
 	std::monostate,
@@ -37,7 +38,7 @@ using TypeNode = AST_API std::variant<
 	IntLiteralTypeNode, FloatLiteralTypeNode, StringLiteralTypeNode, BooleanLiteralTypeNode,
 	IntTypeNode, FloatTypeNode, StringTypeNode, BooleanTypeNode,
 	ListTypeNode, TupleTypeNode, SetTypeNode, MapTypeNode,
-	VariantTypeNode, NoneTypeNode, EnumTypeNode, TypeIdentifierNode
+	VariantTypeNode, NoneTypeNode, EnumTypeNode, TypeIdentifierNode, FunctionTypeNode
 >;
 
 using TypeNode_ptr = AST_API std::shared_ptr<TypeNode>;
@@ -63,6 +64,15 @@ struct AST_API CompositeTypeNode : public AnyTypeNode
 
 struct AST_API NoneTypeNode : public AnyTypeNode
 {
+};
+
+struct AST_API CallableTypeNode : public AnyTypeNode
+{
+	TypeNodeVector input_types;
+	std::optional<TypeNode_ptr> return_type;
+
+	CallableTypeNode(TypeNodeVector input_types, std::optional<TypeNode_ptr> return_type)
+		: input_types(input_types), return_type(return_type) {};
 };
 
 // Parser does not know whether type identifier is class, enum or interface
@@ -161,3 +171,11 @@ struct AST_API EnumTypeNode : public CompositeTypeNode
 		: enum_name(enum_name), members(members) {};
 };
 
+
+// Callable TypeNode
+
+struct AST_API FunctionTypeNode : public CallableTypeNode
+{
+	FunctionTypeNode(TypeNodeVector input_types, std::optional<TypeNode_ptr> return_type)
+		: CallableTypeNode(input_types, return_type) {};
+};

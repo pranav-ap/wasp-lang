@@ -54,6 +54,10 @@ end
 NAME::LASTNAME::ID3
 
 
+namepace Hello
+end
+
+
 # Planned Features
 
 
@@ -67,10 +71,6 @@ import { io } from 'io'
 
 x.foo.age = 1
 x(123).foo(36, gg).age = 1
-
-
-namepace Hello
-end
 
 
 match { thing, another, third } then

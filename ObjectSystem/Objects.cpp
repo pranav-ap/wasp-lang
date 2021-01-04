@@ -25,6 +25,14 @@ using std::get;
 using std::get_if;
 using std::to_wstring;
 
+// StringObject
+
+Object_ptr StringObject::get_iter()
+{
+	ObjectVector vec = to_vector(value);
+	return MAKE_OBJECT_VARIANT(IteratorObject(vec));
+}
+
 // ListObject
 
 Object_ptr ListObject::append(Object_ptr value)
@@ -120,6 +128,12 @@ bool ListObject::is_empty()
 int ListObject::get_length()
 {
 	return values.size();
+}
+
+Object_ptr ListObject::get_iter()
+{
+	ObjectVector vec = to_vector(values);
+	return MAKE_OBJECT_VARIANT(IteratorObject(vec));
 }
 
 ListObject::ListObject(ObjectVector values)
@@ -255,9 +269,29 @@ Object_ptr SetObject::set(ObjectVector values)
 	return VOID;
 }
 
+Object_ptr SetObject::get_iter()
+{
+	return MAKE_OBJECT_VARIANT(IteratorObject(values));
+}
+
 int SetObject::get_length()
 {
 	return 0;
+}
+
+// MapObject
+
+Object_ptr MapObject::get_iter()
+{
+	ObjectVector tuples;
+
+	for (auto p : pairs)
+	{
+		auto tuple_pair = MAKE_OBJECT_VARIANT(TupleObject({ p.first, p.second }));
+		tuples.push_back(tuple_pair);
+	}
+
+	return MAKE_OBJECT_VARIANT(IteratorObject(tuples));
 }
 
 // IteratorObject
@@ -284,6 +318,30 @@ bool VariantObject::has_value()
 
 // Utils
 
+ObjectVector to_vector(std::deque<Object_ptr> values)
+{
+	ObjectVector vec;
+
+	for (auto value : values)
+	{
+		vec.push_back(value);
+	}
+
+	return vec;
+}
+
+ObjectVector to_vector(std::wstring text)
+{
+	ObjectVector vec;
+
+	for (auto ch : text)
+	{
+		vec.push_back(MAKE_OBJECT_VARIANT(StringObject(std::to_wstring(ch))));
+	}
+
+	return vec;
+}
+
 std::wstring stringify_object(Object_ptr value)
 {
 	auto s = wstring(L"Object");
@@ -309,6 +367,7 @@ std::wstring stringify_object(Object_ptr value)
 		[&](IteratorObject const& obj) { return wstring(L"break"); },
 		[&](EnumObject const& obj) { return wstring(L"enum " + obj.name); },
 		[&](EnumMemberObject const& obj) { return wstring(L"EnumMemberObject"); },
+		[&](FunctionObject const& obj) { return wstring(L"FunctionObject " + obj.name); },
 
 		// Types
 
@@ -327,6 +386,7 @@ std::wstring stringify_object(Object_ptr value)
 		[&](MapType const& obj) { return s; },
 		[&](VariantType const& obj) { return s; },
 		[&](NoneType const& obj) { return s; },
+		[&](FunctionType const& obj) { return s; },
 
 		[&](auto) { return wstring(L" "); }
 		}, *value);

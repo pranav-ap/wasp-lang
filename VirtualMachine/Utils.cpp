@@ -102,57 +102,23 @@ Object_ptr VirtualMachine::make_iterable(Object_ptr obj)
 	return std::visit(overloaded{
 		[&](StringObject& obj)
 		{
-			ObjectVector vec = to_vector(obj.value);
-			return MAKE_OBJECT_VARIANT(IteratorObject(vec));
+			return obj.get_iter();
 		},
 		[&](ListObject& obj)
 		{
-			ObjectVector vec = to_vector(obj.values);
-			return MAKE_OBJECT_VARIANT(IteratorObject(vec));
+			return obj.get_iter();
 		},
 		[&](SetObject& obj)
 		{
-			return MAKE_OBJECT_VARIANT(IteratorObject(obj.values));
+			return obj.get_iter();
 		},
 		[&](MapObject& obj)
 		{
-			ObjectVector tuples;
-
-			for (auto p : obj.pairs)
-			{
-				auto tuple_pair = MAKE_OBJECT_VARIANT(TupleObject({p.first, p.second}));
-				tuples.push_back(tuple_pair);
-			}
-
-			return MAKE_OBJECT_VARIANT(IteratorObject(tuples));
+			return obj.get_iter();
 		},
 		[&](auto)
 		{
 			return constant_pool->make_error_object(L"_");
 		}
 		}, *obj);
-}
-
-ObjectVector VirtualMachine::to_vector(std::deque<Object_ptr> values)
-{
-	ObjectVector vec;
-
-	for (auto value : values)
-	{
-		vec.push_back(value);
-	}
-
-	return vec;
-}
-
-ObjectVector VirtualMachine::to_vector(std::wstring text)
-{
-	ObjectVector vec;
-
-	for (auto ch : text)
-	{
-		vec.push_back(MAKE_OBJECT_VARIANT(StringObject(std::to_wstring(ch))));
-	}
-
-	return vec;
 }

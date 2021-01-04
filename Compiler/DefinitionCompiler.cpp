@@ -50,3 +50,29 @@ void Compiler::visit(EnumDefinition const& statement)
 	int id = current_scope->lookup(statement.name)->id;
 	name_map[id] = statement.name;
 }
+
+void Compiler::visit(FunctionDefinition const& statement)
+{
+	set_current_scope(statement.scope);
+	emit(OpCode::START);
+
+	for (auto const& arg_name : statement.arguments)
+	{
+		int id = current_scope->lookup(arg_name)->id;
+		emit(OpCode::STORE_LOCAL, id);
+
+		name_map[id] = arg_name;
+	}
+
+	visit(statement.body);
+	emit(OpCode::STOP);
+
+	auto instructions = leave_subroutine_scope();
+	auto function_id = current_scope->lookup(statement.name)->id;
+	auto function_object = MAKE_OBJECT_VARIANT(FunctionObject(statement.name, instructions));
+
+	constant_pool->set(function_id, move(function_object));
+	function_ids.push_back(function_id);
+
+	name_map[function_id] = statement.name;
+}

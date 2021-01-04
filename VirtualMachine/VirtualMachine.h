@@ -26,6 +26,7 @@ class VIRTUALMACHINE_API VirtualMachine
 	std::stack<Object_ptr> stack;
 
 	CodeObject_ptr code_object;
+	std::map<int, CodeObject_ptr> function_code_objects;
 	int ip; // points to the instruction about to be executed
 
 	// Unary operations
@@ -72,16 +73,14 @@ class VIRTUALMACHINE_API VirtualMachine
 	
 	bool is_truthy(Object_ptr obj);
 	Object_ptr make_iterable(Object_ptr obj);
-	
-	ObjectVector to_vector(std::deque<Object_ptr> values);
-	ObjectVector to_vector(std::wstring text);
 
 public:
-	VirtualMachine(ObjectStore_ptr constant_pool, CodeObject_ptr code_object)
+	VirtualMachine(ObjectStore_ptr constant_pool, CodeObject_ptr code_object, std::map<int, CodeObject_ptr> function_code_objects)
 		: ip(0), 
 		constant_pool(constant_pool), 
 		variable_store(std::make_shared<ObjectStore>()),
-		code_object(code_object) {};
+		code_object(code_object),
+		function_code_objects(function_code_objects) {};
 
 	OpResult run();
 };

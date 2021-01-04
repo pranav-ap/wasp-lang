@@ -33,6 +33,7 @@ struct MapType;
 struct VariantType;
 struct NoneType;
 struct EnumType;
+struct FunctionType;
 
 // Object
 
@@ -56,6 +57,7 @@ struct BuiltInsObject;
 struct IteratorObject;
 struct EnumObject;
 struct EnumMemberObject;
+struct FunctionObject;
 
 using Object = OBJECTSYSTEM_API std::variant<
 	std::monostate,
@@ -63,13 +65,14 @@ using Object = OBJECTSYSTEM_API std::variant<
 	IntObject, FloatObject, StringObject, BooleanObject, NoneObject,
 	ListObject, TupleObject, SetObject, MapObject, VariantObject,
 	ReturnObject, ErrorObject, YieldObject, RedoObject, BreakObject, 
-	ContinueObject, BuiltInsObject, IteratorObject,
+	ContinueObject, BuiltInsObject, IteratorObject, EnumObject, EnumMemberObject,
+	FunctionObject,
 
 	AnyType,
 	IntLiteralType, FloatLiteralType, StringLiteralType, BooleanLiteralType,
 	IntType, FloatType, StringType, BooleanType,
 	ListType, TupleType, SetType, MapType, VariantType, NoneType, EnumType,
-	EnumObject, EnumMemberObject
+	FunctionType
 >;
 
 using Object_ptr = OBJECTSYSTEM_API std::shared_ptr<Object>;
@@ -96,6 +99,11 @@ struct OBJECTSYSTEM_API NoneObject : public AbstractObject
 {
 };
 
+struct IterableAbstractObject
+{
+	virtual Object_ptr get_iter() = 0;
+};
+
 // Scalar Objects
 
 struct OBJECTSYSTEM_API IntObject : public ScalarObject
@@ -110,10 +118,12 @@ struct OBJECTSYSTEM_API FloatObject : public ScalarObject
 	FloatObject(double value) : value(value) {};
 };
 
-struct OBJECTSYSTEM_API StringObject : public ScalarObject
+struct OBJECTSYSTEM_API StringObject : public ScalarObject, public IterableAbstractObject
 {
 	std::wstring value;
 	StringObject(std::wstring value) : value(value) {};
+
+	virtual Object_ptr get_iter();
 };
 
 struct OBJECTSYSTEM_API BooleanObject : public ScalarObject
@@ -133,7 +143,7 @@ struct OBJECTSYSTEM_API EnumMemberObject : public CompositeObject
 		: enum_id(enum_id), member_id(member_id) {};
 };
 
-struct OBJECTSYSTEM_API ListObject : public CompositeObject
+struct OBJECTSYSTEM_API ListObject : public CompositeObject, public IterableAbstractObject
 {
 	std::deque<Object_ptr> values;
 
@@ -149,6 +159,8 @@ struct OBJECTSYSTEM_API ListObject : public CompositeObject
 	void clear();
 	bool is_empty();
 	int get_length();
+
+	virtual Object_ptr get_iter();
 
 	ListObject(ObjectVector values);
 };
@@ -166,7 +178,7 @@ struct OBJECTSYSTEM_API TupleObject : public CompositeObject
 	int get_length();
 };
 
-struct OBJECTSYSTEM_API SetObject : public CompositeObject
+struct OBJECTSYSTEM_API SetObject : public CompositeObject, public IterableAbstractObject
 {
 	ObjectVector values;
 
@@ -175,10 +187,12 @@ struct OBJECTSYSTEM_API SetObject : public CompositeObject
 	ObjectVector get();
 	Object_ptr set(ObjectVector values);
 
+	virtual Object_ptr get_iter();
+
 	int get_length();
 };
 
-struct OBJECTSYSTEM_API MapObject : public CompositeObject
+struct OBJECTSYSTEM_API MapObject : public CompositeObject, public IterableAbstractObject
 {
 	std::map<Object_ptr, Object_ptr> pairs;
 
@@ -186,6 +200,8 @@ struct OBJECTSYSTEM_API MapObject : public CompositeObject
 	Object_ptr get_pair(Object_ptr key);
 	Object_ptr get(Object_ptr key);
 	Object_ptr set(Object_ptr key, Object_ptr value);
+
+	virtual Object_ptr get_iter();
 
 	int get_size();
 };
@@ -224,7 +240,6 @@ struct OBJECTSYSTEM_API RedoObject : public ActionObject
 
 struct OBJECTSYSTEM_API BuiltInsObject : public ActionObject
 {
-	BuiltInsObject(Object_ptr type) {};
 };
 
 struct OBJECTSYSTEM_API ReturnObject : public ActionObject
@@ -262,6 +277,23 @@ struct OBJECTSYSTEM_API EnumObject : public AbstractObject
 		: name(name), members(members) {};
 };
 
+// Callable object
+
+struct OBJECTSYSTEM_API SubroutineObject : public AbstractObject
+{
+	std::wstring name;
+	std::vector<std::byte> instructions;
+
+	SubroutineObject(std::wstring name, std::vector<std::byte> instructions)
+		: name(name), instructions(instructions) {};
+};
+
+struct OBJECTSYSTEM_API FunctionObject : public SubroutineObject
+{
+	FunctionObject(std::wstring name, std::vector<std::byte> instructions)
+		: SubroutineObject(name, instructions) {};
+};
+
 // Type
 
 struct OBJECTSYSTEM_API AnyType : public AbstractObject
@@ -282,6 +314,18 @@ struct OBJECTSYSTEM_API CompositeType : public AnyType
 
 struct OBJECTSYSTEM_API NoneType : public AnyType
 {
+};
+
+struct OBJECTSYSTEM_API CallableType : public AnyType
+{
+	ObjectVector input_types;
+	std::optional<Object_ptr> return_type;
+
+	CallableType(ObjectVector input_types)
+		: input_types(input_types), return_type(std::nullopt) {};
+
+	CallableType(ObjectVector input_types, Object_ptr return_type)
+		: input_types(input_types), return_type(std::make_optional(return_type)) {};
 };
 
 // Scalar Types
@@ -372,6 +416,20 @@ struct OBJECTSYSTEM_API EnumType : public CompositeType
 		: enum_name(enum_name), members(members) {};
 };
 
+// Callable Type
+
+struct OBJECTSYSTEM_API FunctionType : public CallableType
+{
+	FunctionType(ObjectVector input_types)
+		: CallableType(input_types) {};
+
+
+	FunctionType(ObjectVector input_types, Object_ptr return_type)
+		: CallableType(input_types, return_type) {};
+};
+
 // Utils
 
 OBJECTSYSTEM_API std::wstring stringify_object(Object_ptr value);
+OBJECTSYSTEM_API ObjectVector to_vector(std::deque<Object_ptr> values);
+OBJECTSYSTEM_API ObjectVector to_vector(std::wstring text);

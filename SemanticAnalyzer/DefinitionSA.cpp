@@ -59,11 +59,35 @@ void SemanticAnalyzer::visit(DeconstructedVariableDefinition& statement)
 	FATAL("TODO - SemanticAnalyzer - DeconstructedVariableDefinition");
 }
 
-// Enum
-
 void SemanticAnalyzer::visit(EnumDefinition& statement)
 {
 	auto type = MAKE_OBJECT_VARIANT(EnumType(statement.name, statement.members));
 	auto symbol = MAKE_SYMBOL(next_id++, statement.name, type, statement.is_public, CONST_SYMBOL);
 	current_scope->define(statement.name, symbol);
+}
+
+void SemanticAnalyzer::visit(FunctionDefinition& statement)
+{
+	auto type = visit(statement.type);
+	auto function_type = type_system->extract_function_type(type);
+
+	auto symbol = MAKE_SYMBOL(next_id++, statement.name, type, statement.is_public, CONST_SYMBOL);
+	current_scope->define(statement.name, symbol);
+
+	enter_scope(ScopeType::FUNCTION);
+	statement.scope = current_scope;
+
+	int arg_index = 0;
+
+	for (auto const arg_name : statement.arguments)
+	{
+		Object_ptr type = function_type->input_types.at(arg_index);
+		auto symbol = MAKE_SYMBOL(next_id++, arg_name, type, PRIVATE_SYMBOL, MUTABLE_SYMBOL);
+		current_scope->define(arg_name, symbol);
+
+		arg_index++;
+	}
+
+	visit(statement.body);
+	leave_scope();
 }

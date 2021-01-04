@@ -1,9 +1,10 @@
 ﻿
-namespace Hello
-	let x : int = 34
-	x
+fn add(a : int, b : int) => int
+    if true then
+        a
+    end
+
+    b
 end
 
-
-let y : int = 34
-y
+add(1, 2)

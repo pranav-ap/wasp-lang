@@ -54,6 +54,12 @@ class PARSER_API Parser
 
 	Statement_ptr parse_namespace();
 
+	// Function and Generator
+
+	std::tuple<std::wstring, StringVector, TypeNodeVector, std::optional<TypeNode_ptr>, Block> parse_callable_definition();
+	Statement_ptr parse_function_definition(bool is_public);
+	std::pair<std::wstring, TypeNode_ptr> consume_identifier_type_pair();
+
 	// TypeNode parsers
 
 	TypeNode_ptr parse_list_type(bool is_optional);
@@ -61,6 +67,9 @@ class PARSER_API Parser
 	TypeNode_ptr parse_tuple_type(bool is_optional);
 	TypeNode_ptr parse_map_type(bool is_optional);
 	TypeNode_ptr consume_datatype_word(bool is_optional);
+
+	std::tuple<TypeNodeVector, std::optional<TypeNode_ptr>> parse_callable_type();
+	TypeNode_ptr parse_function_type(bool is_optional);
 
 	// Definition Parsers
 
