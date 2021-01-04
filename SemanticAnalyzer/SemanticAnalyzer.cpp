@@ -33,6 +33,7 @@ using std::move;
 void SemanticAnalyzer::run(Module_ptr ast)
 {
 	current_scope = make_shared<SymbolScope>(std::nullopt, ScopeType::MODULE);
+	current_scope->name_space = name_space;
 	ast->scope = current_scope;
 
 	for (auto statement : ast->statements)
@@ -65,6 +66,7 @@ void SemanticAnalyzer::visit(Statement_ptr statement)
 		[&](SimpleForInLoop& stat) { visit(stat); },
 		[&](DeconstructedForInLoop& stat) { visit(stat); },
 		[&](EnumDefinition& stat) { visit(stat); },
+		[&](Namespace& stat) { visit(stat); },
 
 		[&](auto) { FATAL("Never Seen this Statement before!"); }
 		}, *statement);

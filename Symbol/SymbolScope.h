@@ -22,7 +22,8 @@ enum class SYMBOL_API ScopeType
 	LOOP,
 	FUNCTION,
 	GENERATOR,
-	NAMESPACE
+	NAMESPACE,
+	TEST
 };
 
 struct SymbolScope;
@@ -30,6 +31,7 @@ using SymbolScope_ptr = SYMBOL_API std::shared_ptr<SymbolScope>;
 
 struct SYMBOL_API SymbolScope
 {
+	std::wstring name_space;
 	ScopeType scope_type;
 	CodeObject_ptr code_object;
 	std::optional<SymbolScope_ptr> enclosing_scope;

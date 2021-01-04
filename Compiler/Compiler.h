@@ -43,6 +43,7 @@ class COMPILER_API Compiler
 
 	void visit(Scenario const& statement);
 	void visit(Test const& statement);
+	void visit(Namespace const& statement);
 
 	// Branching
 

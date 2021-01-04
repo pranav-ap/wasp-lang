@@ -40,6 +40,7 @@ struct DeconstructedForInLoop;
 struct Scenario;
 struct Test;
 struct EnumDefinition;
+struct Namespace;
 
 using Statement = AST_API std::variant<
 	std::monostate,
@@ -50,7 +51,7 @@ using Statement = AST_API std::variant<
 	SimpleWhileLoop, AssignedWhileLoop, Break, Continue, Redo, 
 	Return, YieldStatement, Assert, Implore, Swear,
 	SimpleForInLoop, DeconstructedForInLoop, Scenario, Test,
-	EnumDefinition
+	EnumDefinition, Namespace
 >;
 
 using Statement_ptr = AST_API std::shared_ptr<Statement>;
@@ -346,4 +347,12 @@ struct AST_API EnumDefinition : public Definition
 			index++;
 		}
 	};
+};
+
+// Namespace
+
+struct AST_API Namespace : public TestBlock
+{
+	Namespace(std::wstring name, Block body)
+		: TestBlock(name, body) {};
 };

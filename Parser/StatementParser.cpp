@@ -73,6 +73,7 @@ Statement_ptr Parser::parse_statement(bool is_public)
 		CASE(WTokenType::SCENARIO, parse_scenario());
 		CASE(WTokenType::TEST, parse_test());
 		CASE(WTokenType::ENUM, parse_enum_definition(is_public));
+		CASE(WTokenType::NAMESPACE, parse_namespace());
 
 	default:
 	{
@@ -182,4 +183,3 @@ Statement_ptr Parser::parse_redo()
 	token_pipe->require(WTokenType::EOL);
 	return MAKE_STATEMENT(Redo());
 }
-

@@ -31,7 +31,6 @@ ObjectStore::ObjectStore()
 
 void ObjectStore::set(int id, Object_ptr value)
 {
-	ASSERT(objects.contains(id), "ID already exists in ObjectStore");
 	objects.insert({ id, value });
 }
 

@@ -1,11 +1,9 @@
 ﻿
-enum Animal
-	DOG
-	CAT
-	enum Bird
-		CROW
-		PIGEON
-	end
+namespace Hello
+	let x : int = 34
+	x
 end
 
-Animal::DOG
+
+let y : int = 34
+y

@@ -16,7 +16,7 @@ struct SYMBOL_API Symbol
 	std::wstring name;
 	
 	bool is_public;
-	bool is_mutable;
+	bool is_mutable; 
 	
 	Object_ptr type;
 

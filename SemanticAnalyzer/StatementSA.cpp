@@ -146,10 +146,32 @@ void SemanticAnalyzer::visit(DeconstructedForInLoop& statement)
 
 void SemanticAnalyzer::visit(Scenario& statement)
 {
+	enter_scope(ScopeType::TEST);
+	statement.scope = current_scope;
+
+	visit(statement.body);
+	leave_scope();
 }
 
 void SemanticAnalyzer::visit(Test& statement)
 {
+	enter_scope(ScopeType::TEST);
+	statement.scope = current_scope;
+
+	visit(statement.body);
+	leave_scope();
+}
+
+void SemanticAnalyzer::visit(Namespace& statement)
+{
+	enter_scope(ScopeType::NAMESPACE);
+	statement.scope = current_scope;
+
+	name_space += statement.title;
+	current_scope->name_space = name_space;
+
+	visit(statement.body);
+	leave_scope();
 }
 
 // simple stuff

@@ -35,6 +35,7 @@ void SemanticAnalyzer::enter_scope(ScopeType scope_type)
 	NULL_CHECK(current_scope);
 	auto child_scope = std::make_shared<SymbolScope>(current_scope, scope_type);
 	current_scope = child_scope;
+	current_scope->name_space = name_space;
 }
 
 void SemanticAnalyzer::leave_scope()
@@ -42,6 +43,7 @@ void SemanticAnalyzer::leave_scope()
 	NULL_CHECK(current_scope);
 	OPT_CHECK(current_scope->enclosing_scope);
 	current_scope = current_scope->enclosing_scope.value();
+	name_space = current_scope->name_space;
 }
 
 wstring SemanticAnalyzer::concat(StringVector items, wstring middle)

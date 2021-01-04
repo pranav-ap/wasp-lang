@@ -55,6 +55,7 @@ void Compiler::visit(const Statement_ptr statement)
 		[&](Scenario const& stat) { visit(stat); },
 		[&](Test const& stat) { visit(stat); },
 		[&](EnumDefinition const& stat) { visit(stat); },
+		[&](Namespace const& stat) { visit(stat); },
 		
 		[](auto) { FATAL("Never Seen this Statement before!"); }
 		}, *statement);
@@ -200,6 +201,29 @@ void Compiler::visit(DeconstructedForInLoop const& statement)
 {
 }
 
+// Block statements
+
+void Compiler::visit(Scenario const& statement)
+{
+	set_current_scope(statement.scope);
+	visit(statement.body);
+	leave_scope();
+}
+
+void Compiler::visit(Test const& statement)
+{
+	set_current_scope(statement.scope);
+	visit(statement.body);
+	leave_scope();
+}
+
+void Compiler::visit(Namespace const& statement)
+{
+	set_current_scope(statement.scope);
+	visit(statement.body);
+	leave_scope();
+}
+
 // Simple stuff
 
 void Compiler::visit(ExpressionStatement const& statement)
@@ -232,14 +256,6 @@ void Compiler::visit(YieldStatement const& statement)
 	{
 		emit(OpCode::YIELD_VOID);
 	}
-}
-
-void Compiler::visit(Scenario const& statement)
-{
-}
-
-void Compiler::visit(Test const& statement)
-{
 }
 
 void Compiler::visit(Assert const& statement)

@@ -41,6 +41,19 @@ for i : int in [34, 4, 12] do
 end
 
 
+enum Animal
+	DOG
+	CAT
+	enum Bird
+		CROW
+		PIGEON
+	end
+end
+
+
+NAME::LASTNAME::ID3
+
+
 # Planned Features
 
 
@@ -96,8 +109,9 @@ end
 type Castle ~ ICastle < Building
     name: string
 
-    constructor : ()
-    repr : () => string
+    private
+        constructor : ()
+        repr : () => string
 end
 
 
@@ -118,20 +132,6 @@ fn add(a : int, b : int) => int
 
     return a + b
 end
-
-
-enum Animal
-	DOG
-	CAT
-	enum Bird
-		CROW
-		PIGEON
-	end
-end
-
-
-NAME::ID1
-NAME::LASTNAME::ID3
 
 
 type length = int

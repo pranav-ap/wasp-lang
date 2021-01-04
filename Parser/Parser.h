@@ -52,6 +52,8 @@ class PARSER_API Parser
 	Statement_ptr parse_continue();
 	Statement_ptr parse_redo();
 
+	Statement_ptr parse_namespace();
+
 	// TypeNode parsers
 
 	TypeNode_ptr parse_list_type(bool is_optional);
