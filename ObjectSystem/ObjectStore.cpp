@@ -40,6 +40,12 @@ Object_ptr ObjectStore::get(int id)
 	return objects.at(id);
 }
 
+void ObjectStore::discard(int id)
+{
+	ASSERT(objects.contains(id), "ID does not exist in ObjectStore");
+	objects.erase(id);
+}
+
 int ObjectStore::allocate()
 {
 	int id = next_id++;

@@ -65,9 +65,6 @@ void Compiler::visit(FunctionDefinition const& statement)
 	}
 
 	visit(statement.body);
-
-
-
 	emit(OpCode::FUNCTION_STOP);
 
 	auto instructions = leave_subroutine_scope();

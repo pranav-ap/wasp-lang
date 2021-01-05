@@ -13,11 +13,6 @@
 #define MAKE_SYMBOL(a, b, c, d, e) std::make_shared<Symbol>(a, b, c, d, e)
 #define MAKE_OBJECT_VARIANT(x) std::make_shared<Object>(x)
 
-#define PUBLIC_SYMBOL true
-#define PRIVATE_SYMBOL false
-#define MUTABLE_SYMBOL true
-#define CONST_SYMBOL false
-
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
 
@@ -33,7 +28,8 @@ using std::move;
 void SemanticAnalyzer::run(Module_ptr ast)
 {
 	current_scope = make_shared<SymbolScope>(std::nullopt, ScopeType::MODULE);
-	current_scope->name_space = currrent_namespace;
+	current_scope->name_space = L"";
+
 	ast->scope = current_scope;
 
 	for (auto statement : ast->statements)

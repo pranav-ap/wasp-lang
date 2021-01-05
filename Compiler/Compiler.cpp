@@ -69,7 +69,7 @@ std::tuple<ObjectStore_ptr, CodeObject_ptr, std::map<int, CodeObject_ptr>> Compi
 	{
 		auto func_object = constant_pool->get(function_id);
 		auto function_object = get_if<FunctionObject>(&*func_object);
-		std::shared_ptr<CodeObject> function_code_object = make_shared<CodeObject>(function_object->instructions);
+		CodeObject_ptr function_code_object = make_shared<CodeObject>(function_object->instructions);
 
 		CFGBuilder_ptr cfg_builder = std::make_unique<CFGBuilder>(constant_pool, function_code_object);
 		CFG_ptr cfg = cfg_builder->create();
@@ -77,7 +77,7 @@ std::tuple<ObjectStore_ptr, CodeObject_ptr, std::map<int, CodeObject_ptr>> Compi
 		CFGAssembler_ptr cfg_assembler = std::make_unique<CFGAssembler>();
 		CodeObject_ptr assembled_function_code_object = cfg_assembler->assemble(cfg);
 
-		function_code_objects.insert({ function_id , assembled_function_code_object });
+		function_code_objects[function_id] = assembled_function_code_object;
 
 		std::wcout << L"\n Function : " << name_map[function_id] << L"\n";
 

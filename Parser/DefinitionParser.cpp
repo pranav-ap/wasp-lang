@@ -73,6 +73,8 @@ Statement_ptr Parser::parse_variable_definition(bool is_public, bool is_mutable)
 	return MAKE_STATEMENT(DeconstructedVariableDefinition(is_public, is_mutable, lhs, move(rhs), type_node));
 }
 
+// Enum
+
 Statement_ptr Parser::parse_enum_definition(bool is_public)
 {
 	auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
@@ -111,4 +113,62 @@ std::vector<std::wstring> Parser::parse_enum_members(std::wstring stem)
 	}
 
 	return members;
+}
+
+// Func and Gen
+
+std::tuple<std::wstring, StringVector, TypeNodeVector, std::optional<TypeNode_ptr>, Block> Parser::parse_callable_definition()
+{
+	auto first_identifier = token_pipe->require(WTokenType::IDENTIFIER);
+	NULL_CHECK(first_identifier);
+
+	token_pipe->require(WTokenType::OPEN_PARENTHESIS);
+
+	StringVector arguments;
+	TypeNodeVector argument_types;
+
+	if (!token_pipe->optional(WTokenType::CLOSE_PARENTHESIS))
+	{
+		while (true)
+		{
+			auto [identifier, type] = consume_identifier_type_pair();
+			arguments.push_back(identifier);
+			argument_types.push_back(type);
+
+			if (token_pipe->optional(WTokenType::COMMA))
+				continue;
+
+			token_pipe->require(WTokenType::CLOSE_PARENTHESIS);
+			break;
+		}
+	}
+
+	optional<TypeNode_ptr> optional_return_type = std::nullopt;
+
+	if (token_pipe->optional(WTokenType::ARROW))
+	{
+		auto return_type = parse_type();
+		optional_return_type = std::make_optional(return_type);
+	}
+
+	token_pipe->require(WTokenType::EOL);
+	Block body = parse_block();
+	return make_tuple(first_identifier->value, arguments, argument_types, optional_return_type, body);
+}
+
+Statement_ptr Parser::parse_function_definition(bool is_public)
+{
+	auto [name, arguments, argument_types, optional_return_type, body] = parse_callable_definition();
+
+	TypeNode_ptr function_type = MAKE_TYPE(FunctionTypeNode(argument_types, optional_return_type));
+	return MAKE_STATEMENT(FunctionDefinition(is_public, name, arguments, function_type, body));
+}
+
+std::pair<std::wstring, TypeNode_ptr> Parser::consume_identifier_type_pair()
+{
+	auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
+	token_pipe->require(WTokenType::COLON);
+	auto type = parse_type();
+
+	return make_pair(identifier->value, move(type));
 }

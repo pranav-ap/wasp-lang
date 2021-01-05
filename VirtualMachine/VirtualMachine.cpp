@@ -220,6 +220,8 @@ OpResult VirtualMachine::execute(OpCode opcode)
 	case OpCode::NO_OP:
 	case OpCode::START:
 	case OpCode::STOP:
+	case OpCode::FUNCTION_START:
+	case OpCode::FUNCTION_STOP:
 	case OpCode::POP_FROM_STACK:
 	case OpCode::PUSH_CONSTANT_TRUE:
 	case OpCode::PUSH_CONSTANT_FALSE:

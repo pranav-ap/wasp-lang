@@ -1,10 +1,12 @@
 ﻿
-fn add(a : int, b : int) => int
+fn add(a : int, b : int)
     if true then
-        a
+        return a
+    elif true then
+        return a
+    else
+        return a 
     end
 
-    b
+    return b
 end
-
-add(1, 2)

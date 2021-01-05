@@ -102,8 +102,8 @@ void InstructionPrinter::print(CodeObject_ptr code_object)
 	for (int index = 0; index < length; index++)
 	{
 		ByteVector instruction = code_object->instruction_at(index);
-
 		int arity = instruction.size() - 1;
+		OpCode x = (OpCode)instruction.at(0);
 
 		switch (arity)
 		{

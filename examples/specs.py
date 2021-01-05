@@ -53,9 +53,9 @@ end
 NAME::LASTNAME::ID3
 
 
-namepace Hello
+namespace Hello
+	let x : int = 34
 end
-
 
 # Planned Features
 

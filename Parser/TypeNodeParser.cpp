@@ -249,6 +249,7 @@ TypeNode_ptr Parser::consume_datatype_word(bool is_optional)
 
 	FATAL("EXPECTED_DATATYPE");
 }
+
 tuple<TypeNodeVector, optional<TypeNode_ptr>> Parser::parse_callable_type()
 {
 	TypeNodeVector input_types;

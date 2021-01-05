@@ -4,7 +4,6 @@
 #include "WTokenType.h"
 #include "TokenPipe.h"
 #include "Assertion.h"
-
 #include <vector>
 #include <tuple>
 #include <stack>
@@ -42,7 +41,6 @@ using std::make_tuple;
 using std::optional;
 using std::make_optional;
 using std::holds_alternative;
-
 
 Expression_ptr Parser::parse_expression()
 {

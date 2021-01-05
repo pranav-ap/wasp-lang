@@ -56,33 +56,6 @@ void SemanticAnalyzer::visit(SimpleIfBranch& statement)
 
 void SemanticAnalyzer::visit(TaggedIfBranch& statement)
 {
-	// TODO : emit name, handle decon
-
-	enter_scope(ScopeType::EXPRESSION);
-	statement.scope = current_scope;
-
-	Object_ptr type;
-
-	if (statement.type_node.has_value())
-	{
-		type = visit(statement.type_node.value());
-		Object_ptr rhs_type = visit(statement.rhs_expression);
-		ASSERT(type_system->assignable(current_scope, type, rhs_type), "Type mismatch in assignment");
-	}
-	else
-	{
-		type = visit(statement.rhs_expression);
-	}
-
-	type_system->expect_condition_type(current_scope, type);
-
-	visit(statement.body);
-	leave_scope();
-
-	if (statement.alternative.has_value())
-	{
-		visit(statement.alternative.value());
-	}
 }
 
 void SemanticAnalyzer::visit(ElseBranch& statement)

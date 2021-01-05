@@ -28,6 +28,7 @@ struct OBJECTSYSTEM_API ObjectStore
 
 	void set(int id, Object_ptr value);
 	Object_ptr get(int id);
+	void discard(int id);
 
 	Object_ptr get_any_type();
 	Object_ptr get_int_type();

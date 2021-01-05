@@ -94,14 +94,15 @@ void Compiler::visit(SimpleIfBranch const& statement, int exit_tree_label, int b
 	{
 		branch_label = create_label();
 		emit(OpCode::POP_JUMP_IF_FALSE, branch_label);
+		visit(statement.body);
+		emit(OpCode::POP_JUMP, exit_tree_label);
 	}
 	else
 	{
 		emit(OpCode::POP_JUMP_IF_FALSE, exit_tree_label);
+		visit(statement.body);
 	}
 
-	visit(statement.body);
-	emit(OpCode::POP_JUMP, exit_tree_label);
 	leave_scope();
 
 	if (alternative_exists)
@@ -117,11 +118,6 @@ void Compiler::visit(SimpleIfBranch const& statement, int exit_tree_label, int b
 
 void Compiler::visit(TaggedIfBranch const& statement)
 {
-	int exit_tree_label = create_label();
-	int	branch_label = create_label();
-
-	visit(statement, exit_tree_label, branch_label);
-	emit(OpCode::LABEL, exit_tree_label);
 }
 
 void Compiler::visit(TaggedIfBranch const& statement, int exit_tree_label, int branch_label)

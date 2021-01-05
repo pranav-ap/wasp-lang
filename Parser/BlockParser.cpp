@@ -120,8 +120,6 @@ Statement_ptr Parser::parse_branching(WTokenType token_type)
 		if (token_pipe->optional(WTokenType::ELIF))
 		{
 			auto alternative = parse_branching(WTokenType::ELIF);
-			token_pipe->require(WTokenType::END);
-
 			return MAKE_STATEMENT(TaggedIfBranch(lhs, rhs, body, type_node, alternative));
 		}
 		else if (token_pipe->optional(WTokenType::ELSE))
@@ -140,8 +138,6 @@ Statement_ptr Parser::parse_branching(WTokenType token_type)
 		if (token_pipe->optional(WTokenType::ELIF))
 		{
 			auto alternative = parse_branching(WTokenType::ELIF);
-			token_pipe->require(WTokenType::END);
-
 			return MAKE_STATEMENT(TaggedIfBranch(lhs, rhs, body, alternative));
 		}
 		else if (token_pipe->optional(WTokenType::ELSE))
@@ -159,8 +155,6 @@ Statement_ptr Parser::parse_branching(WTokenType token_type)
 	if (token_pipe->optional(WTokenType::ELIF))
 	{
 		auto alternative = parse_branching(WTokenType::ELIF);
-		token_pipe->require(WTokenType::END);
-
 		return MAKE_STATEMENT(SimpleIfBranch(condition, body, alternative));
 	}
 	else if (token_pipe->optional(WTokenType::ELSE))
