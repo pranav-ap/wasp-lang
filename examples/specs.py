@@ -4,7 +4,6 @@
 let x : int = 34
 let x : string = "hello"
 let x : [int] = [ 1, 2, 3 ]
-let x : [string, string] = ["1", "hello"] # tuple
 let x : ⌊ string, string ⌋ = ⌊ "1", "hello" ⌋ # tuple
 let x : { string } = { "1", "hello" } # set
 let x : ⟨ string => string ⟩ = ⟨ "a" => "b", "c" => "d" ⟩

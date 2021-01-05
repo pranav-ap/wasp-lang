@@ -11,18 +11,18 @@ template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
 
 void VirtualMachine::push_to_stack(Object_ptr o)
 {
-	stack.push(o);
+	value_stack.push(o);
 }
 
 Object_ptr VirtualMachine::pop_from_stack()
 {
-	if (stack.size() == 0)
+	if (value_stack.size() == 0)
 	{
 		FATAL("Stack is empty. Cannot Pop!");
 	}
 
-	auto TOS = stack.top();
-	stack.pop();
+	auto TOS = value_stack.top();
+	value_stack.pop();
 
 	return TOS;
 }
@@ -46,12 +46,12 @@ ObjectVector VirtualMachine::pop_n_from_stack(int n)
 
 Object_ptr VirtualMachine::top_of_stack()
 {
-	if (stack.size() == 0)
+	if (value_stack.size() == 0)
 	{
 		FATAL("Stack is empty. Cannot Pop!");
 	}
 
-	auto TOS = stack.top();
+	auto TOS = value_stack.top();
 	return TOS;
 }
 

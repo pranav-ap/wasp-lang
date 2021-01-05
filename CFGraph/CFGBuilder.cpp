@@ -43,6 +43,7 @@ void CFGBuilder::split_into_basic_blocks()
 		switch (op)
 		{
 		case OpCode::START:
+		case OpCode::FUNCTION_START:
 		{
 			IS_A_LEADER;
 			enter_empty_node(BlockType::Start); // type will get overwritten when we reach next leader
@@ -52,6 +53,7 @@ void CFGBuilder::split_into_basic_blocks()
 			break;
 		}
 		case OpCode::STOP:
+		case OpCode::FUNCTION_STOP:
 		{
 			IS_A_LEADER;
 			current_basic_block->type = BlockType::Stop;

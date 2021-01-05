@@ -51,7 +51,7 @@ Object_ptr SemanticAnalyzer::visit(const Expression_ptr expression)
 		[&](TypedAssignment& expr) { return visit(expr); },
 		[&](Spread& expr) { return visit(expr); },
 		[&](EnumMember& expr) { return visit(expr); },
-		[&](Call const& expr) { return visit(expr); },
+		[&](Call& expr) { return visit(expr); },
 
 		[&](auto)
 		{
@@ -162,7 +162,7 @@ Object_ptr SemanticAnalyzer::visit(MapLiteral& expr)
 
 Object_ptr SemanticAnalyzer::visit(TernaryCondition& expression)
 {
-	enter_scope(ScopeType::CONDITIONAL);
+	enter_scope(ScopeType::EXPRESSION);
 	expression.scope = current_scope;
 
 	Object_ptr condition_type = visit(expression.condition);
@@ -239,7 +239,7 @@ Object_ptr SemanticAnalyzer::visit(Identifier& expr)
 	return symbol->type;
 }
 
-Object_ptr SemanticAnalyzer::visit(EnumMember const& expr)
+Object_ptr SemanticAnalyzer::visit(EnumMember& expr)
 {
 	Symbol_ptr symbol = current_scope->lookup(expr.member_chain.front());
 	NULL_CHECK(symbol);
@@ -251,7 +251,7 @@ Object_ptr SemanticAnalyzer::visit(EnumMember const& expr)
 	return symbol->type;
 }
 
-Object_ptr SemanticAnalyzer::visit(Call const& expr)
+Object_ptr SemanticAnalyzer::visit(Call& expr)
 {
 	Symbol_ptr symbol = current_scope->lookup(expr.name);
 	ObjectVector argument_types = visit(expr.arguments);

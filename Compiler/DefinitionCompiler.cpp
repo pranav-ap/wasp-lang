@@ -54,7 +54,7 @@ void Compiler::visit(EnumDefinition const& statement)
 void Compiler::visit(FunctionDefinition const& statement)
 {
 	set_current_scope(statement.scope);
-	emit(OpCode::START);
+	emit(OpCode::FUNCTION_START);
 
 	for (auto const& arg_name : statement.arguments)
 	{
@@ -65,7 +65,10 @@ void Compiler::visit(FunctionDefinition const& statement)
 	}
 
 	visit(statement.body);
-	emit(OpCode::STOP);
+
+
+
+	emit(OpCode::FUNCTION_STOP);
 
 	auto instructions = leave_subroutine_scope();
 	auto function_id = current_scope->lookup(statement.name)->id;

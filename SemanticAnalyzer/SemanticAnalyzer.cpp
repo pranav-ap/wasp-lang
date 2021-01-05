@@ -33,7 +33,7 @@ using std::move;
 void SemanticAnalyzer::run(Module_ptr ast)
 {
 	current_scope = make_shared<SymbolScope>(std::nullopt, ScopeType::MODULE);
-	current_scope->name_space = name_space;
+	current_scope->name_space = currrent_namespace;
 	ast->scope = current_scope;
 
 	for (auto statement : ast->statements)

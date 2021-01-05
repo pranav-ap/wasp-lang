@@ -39,7 +39,7 @@ void SemanticAnalyzer::visit(ExpressionStatement& statement)
 
 void SemanticAnalyzer::visit(SimpleIfBranch& statement)
 {
-	enter_scope(ScopeType::CONDITIONAL);
+	enter_scope(ScopeType::EXPRESSION);
 	statement.scope = current_scope;
 
 	Object_ptr condition_type = visit(statement.test);
@@ -58,7 +58,7 @@ void SemanticAnalyzer::visit(TaggedIfBranch& statement)
 {
 	// TODO : emit name, handle decon
 
-	enter_scope(ScopeType::CONDITIONAL);
+	enter_scope(ScopeType::EXPRESSION);
 	statement.scope = current_scope;
 
 	Object_ptr type;
@@ -87,7 +87,7 @@ void SemanticAnalyzer::visit(TaggedIfBranch& statement)
 
 void SemanticAnalyzer::visit(ElseBranch& statement)
 {
-	enter_scope(ScopeType::CONDITIONAL);
+	enter_scope(ScopeType::EXPRESSION);
 	statement.scope = current_scope;
 	visit(statement.body);
 	leave_scope();
@@ -166,9 +166,7 @@ void SemanticAnalyzer::visit(Namespace& statement)
 {
 	enter_scope(ScopeType::NAMESPACE);
 	statement.scope = current_scope;
-
-	name_space += statement.title;
-	current_scope->name_space = name_space;
+	current_scope->name_space = current_scope->name_space + statement.title;
 
 	visit(statement.body);
 	leave_scope();

@@ -14,6 +14,8 @@ OBJECTSYSTEM_API int get_opcode_arity(OpCode opcode)
 	case OpCode::NO_OP:
 	case OpCode::START:
 	case OpCode::STOP:
+	case OpCode::FUNCTION_START:
+	case OpCode::FUNCTION_STOP:			
 	case OpCode::POP_FROM_STACK:
 	case OpCode::UNARY_NEGATIVE:
 	case OpCode::UNARY_NOT:
@@ -95,6 +97,14 @@ OBJECTSYSTEM_API std::wstring stringify_opcode(OpCode opcode)
 	case OpCode::STOP:
 	{
 		return L"STOP";
+	}
+	case OpCode::FUNCTION_START:
+	{
+		return L"FUNCTION_START";
+	}
+	case OpCode::FUNCTION_STOP:
+	{
+		return L"FUNCTION_STOP";
 	}
 	case OpCode::POP_FROM_STACK:
 	{

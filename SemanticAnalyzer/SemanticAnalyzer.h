@@ -19,7 +19,6 @@
 class SEMANTICANALYZER_API SemanticAnalyzer
 {
 	int next_id; // used for definitions
-	std::wstring name_space;
 
 	TypeSystem_ptr type_system;
 	SymbolScope_ptr current_scope;
@@ -75,8 +74,8 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 	Object_ptr visit(Infix& expr);
 	Object_ptr visit(Postfix& expr);
 	Object_ptr visit(Identifier& expr);
-	Object_ptr visit(EnumMember const& expr);
-	Object_ptr visit(Call const& expr);
+	Object_ptr visit(EnumMember& expr);
+	Object_ptr visit(Call& expr);
 
 	// Types
 
@@ -113,7 +112,6 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 public:
 	SemanticAnalyzer() 
 		: next_id (8), 
-		name_space(L""),
 		type_system(std::make_shared<TypeSystem>()) {};
 
 	void run(const Module_ptr ast);

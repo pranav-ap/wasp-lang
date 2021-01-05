@@ -11,6 +11,18 @@
 #include <memory>
 #include <stack>
 
+struct CallFrame
+{
+	std::shared_ptr<FunctionObject> function_object;
+	int ip;
+	int base_pointer;
+
+	CallFrame(std::shared_ptr<FunctionObject> function_object, int base_pointer)
+		: function_object(function_object), ip(-1), base_pointer(base_pointer) {};
+};
+
+using CallFrame_ptr = std::shared_ptr<CallFrame>;
+
 enum class VIRTUALMACHINE_API OpResult
 {
 	OK,
@@ -20,10 +32,13 @@ enum class VIRTUALMACHINE_API OpResult
 
 class VIRTUALMACHINE_API VirtualMachine
 {
+	int frame_ptr;
+
 	ObjectStore_ptr constant_pool;
 	ObjectStore_ptr variable_store; // IDs set by SA
 
-	std::stack<Object_ptr> stack;
+	std::stack<CallFrame_ptr> call_stack;
+	std::stack<Object_ptr> value_stack;
 
 	CodeObject_ptr code_object;
 	std::map<int, CodeObject_ptr> function_code_objects;
