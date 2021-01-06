@@ -24,6 +24,12 @@
     <ClInclude Include="VirtualMachine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="LocalScope.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CallFrame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -32,10 +38,7 @@
     <ClCompile Include="pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="VirtualMachine.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Utils.cpp">
+    <ClCompile Include="ComparisonBinaryOperations.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="LogicalBinaryOperations.cpp">
@@ -44,10 +47,16 @@
     <ClCompile Include="MathBinaryOperations.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ComparisonBinaryOperations.cpp">
+    <ClCompile Include="UnaryOperations.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="UnaryOperations.cpp">
+    <ClCompile Include="Utils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LocalScope.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="VirtualMachine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

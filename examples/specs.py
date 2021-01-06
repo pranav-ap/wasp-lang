@@ -57,6 +57,16 @@ namespace Hello
 	let x : int = 34
 end
 
+
+fn add(a : int, b : int) => int
+    if a > b then
+        return a
+    end
+
+    return b
+end
+
+
 # Planned Features
 
 
@@ -121,15 +131,6 @@ end
 
 fn Castle::defend() => any
     x = 43
-end
-
-
-fn add(a : int, b : int) => int
-    if a > b then
-        return a + b + 4
-    end
-
-    return a + b
 end
 
 

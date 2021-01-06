@@ -3,18 +3,21 @@
 #include "VirtualMachine.h"
 #include "Assertion.h"
 #include <string>
+#include <memory>
 
 #define MAKE_OBJECT_VARIANT(x) std::make_shared<Object>(x)
 
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
 
-void VirtualMachine::push_to_stack(Object_ptr o)
+using std::make_shared;
+
+void VirtualMachine::push_to_value_stack(Object_ptr o)
 {
 	value_stack.push(o);
 }
 
-Object_ptr VirtualMachine::pop_from_stack()
+Object_ptr VirtualMachine::pop_from_value_stack()
 {
 	if (value_stack.size() == 0)
 	{
@@ -27,14 +30,14 @@ Object_ptr VirtualMachine::pop_from_stack()
 	return TOS;
 }
 
-ObjectVector VirtualMachine::pop_n_from_stack(int n)
+ObjectVector VirtualMachine::pop_n_from_value_stack(int n)
 {
 	ObjectVector elements;
 	int count = 0;
 
 	while (count < n)
 	{
-		auto element = pop_from_stack();
+		auto element = pop_from_value_stack();
 		elements.push_back(element);
 		count++;
 	}
@@ -44,15 +47,45 @@ ObjectVector VirtualMachine::pop_n_from_stack(int n)
 	return elements;
 }
 
-Object_ptr VirtualMachine::top_of_stack()
+Object_ptr VirtualMachine::top_of_value_stack()
 {
 	if (value_stack.size() == 0)
 	{
-		FATAL("Stack is empty. Cannot Pop!");
+		FATAL("Value Stack is empty. Cannot Pop!");
 	}
 
 	auto TOS = value_stack.top();
 	return TOS;
+}
+
+void VirtualMachine::push_empty_scope_to_local_scope_stack()
+{
+	scope_stack.push(make_shared<LocalScope>());
+}
+
+void VirtualMachine::pop_from_local_scope_stack()
+{
+	if (scope_stack.size() == 0)
+	{
+		FATAL("Scope Stack is empty. Cannot Pop!");
+	}
+
+	scope_stack.pop();
+}
+
+void VirtualMachine::push_to_call_stack(CodeObject_ptr code_object, int base_pointer)
+{
+	call_stack.push(make_shared<CallFrame>(code_object, base_pointer));
+}
+
+void VirtualMachine::pop_from_call_stack()
+{
+	if (scope_stack.size() == 0)
+	{
+		FATAL("Scope Stack is empty. Cannot Pop!");
+	}
+
+	call_stack.pop();
 }
 
 bool VirtualMachine::is_truthy(Object_ptr obj)
@@ -121,4 +154,21 @@ Object_ptr VirtualMachine::make_iterable(Object_ptr obj)
 			return constant_pool->make_error_object(L"_");
 		}
 		}, *obj);
+}
+
+int VirtualMachine::get_ip()
+{
+	int ip = call_stack.top()->ip;
+	return ip;
+}
+
+void VirtualMachine::set_ip(int ip)
+{
+	call_stack.top()->ip = ip;
+}
+
+CodeObject_ptr VirtualMachine::get_current_code_object()
+{
+	auto obj = call_stack.top()->code_object;
+	return obj;
 }

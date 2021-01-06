@@ -32,10 +32,10 @@ int main()
 	semantic_analyser->run(ast);
 
 	Compiler_ptr compiler = make_unique<Compiler>();
-	auto [object_store, code_object, function_code_objects] = compiler->run(ast);
+	auto [object_store, code_object] = compiler->run(ast);
 
-	VirtualMachine_ptr vm = make_unique<VirtualMachine>(object_store, code_object, function_code_objects);
-	vm->run();
+	//VirtualMachine_ptr vm = make_unique<VirtualMachine>(object_store, code_object);
+	//vm->run();
 
 	return 0;
 }

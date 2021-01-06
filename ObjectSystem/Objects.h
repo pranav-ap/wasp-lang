@@ -6,6 +6,7 @@
 #define OBJECTSYSTEM_API __declspec(dllimport)
 #endif
 
+#include "CodeObject.h"
 #include <optional>
 #include <string>
 #include <deque>
@@ -14,6 +15,7 @@
 #include <utility>
 #include <memory>
 #include <variant>
+
 
 // Type Objects
 
@@ -282,10 +284,10 @@ struct OBJECTSYSTEM_API EnumObject : public AbstractObject
 struct OBJECTSYSTEM_API SubroutineObject : public AbstractObject
 {
 	std::wstring name;
-	std::vector<std::byte> instructions;
+	CodeObject_ptr code;
 
 	SubroutineObject(std::wstring name, std::vector<std::byte> instructions)
-		: name(name), instructions(instructions) {};
+		: name(name), code(std::make_shared<CodeObject>(instructions)) {};
 };
 
 struct OBJECTSYSTEM_API FunctionObject : public SubroutineObject

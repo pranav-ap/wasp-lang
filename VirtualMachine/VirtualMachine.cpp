@@ -13,6 +13,16 @@ template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
 using std::get_if;
 using std::holds_alternative;
 using std::to_integer;
+using std::make_shared;
+
+VirtualMachine::VirtualMachine(ObjectStore_ptr constant_pool, CodeObject_ptr main_code_object)
+{
+	constant_pool = std::move(constant_pool);
+
+	variable_store = std::make_shared<ObjectStore>();
+	scope_stack.push(make_shared<LocalScope>());
+	call_stack.push(make_shared<CallFrame>(main_code_object, 0));
+}
 
 // Perform
 
@@ -32,29 +42,47 @@ OpResult VirtualMachine::perform_nullary_operation(OpCode opcode)
 	{
 		return OpResult::DONE;
 	}
+	case OpCode::FUNCTION_START:
+	{
+		push_empty_scope_to_local_scope_stack();
+		return OpResult::OK;
+	}
+	case OpCode::FUNCTION_STOP:
+	{
+		pop_from_local_scope_stack();
+		return OpResult::DONE;
+	}
 	case OpCode::POP_FROM_STACK:
 	{
-		pop_from_stack();
+		pop_from_value_stack();
 		return OpResult::OK;
 	}
 	case OpCode::PUSH_CONSTANT_TRUE:
 	{
 		auto true_object = constant_pool->get_true_object();
-		push_to_stack(true_object);
+		push_to_value_stack(true_object);
 		return OpResult::OK;
 	}
 	case OpCode::PUSH_CONSTANT_FALSE:
 	{
 		auto false_object = constant_pool->get_false_object();
-		push_to_stack(false_object);
+		push_to_value_stack(false_object);
+		return OpResult::OK;
+	}
+	case OpCode::LOCAL_SCOPE_START:
+	{
+		push_empty_scope_to_local_scope_stack();
+		return OpResult::OK;
+	}
+	case OpCode::LOCAL_SCOPE_STOP:
+	{
+		pop_from_local_scope_stack();
 		return OpResult::OK;
 	}
 	case OpCode::RETURN_VOID:
-	{
-		return OpResult::FAILURE;
-	}
 	case OpCode::YIELD_VOID:
 	{
+		pop_from_local_scope_stack();
 		return OpResult::FAILURE;
 	}
 	default:
@@ -66,7 +94,7 @@ OpResult VirtualMachine::perform_nullary_operation(OpCode opcode)
 
 OpResult VirtualMachine::perform_unary_operation(OpCode opcode)
 {
-	Object_ptr TOS = pop_from_stack();
+	Object_ptr TOS = pop_from_value_stack();
 	Object_ptr result;
 
 	switch (opcode)
@@ -91,6 +119,7 @@ OpResult VirtualMachine::perform_unary_operation(OpCode opcode)
 	case OpCode::RETURN_VALUE:
 	case OpCode::YIELD_VALUE:
 	{
+		pop_from_local_scope_stack();
 		return OpResult::FAILURE;
 	}
 	case OpCode::MAKE_ITERABLE:
@@ -109,14 +138,14 @@ OpResult VirtualMachine::perform_unary_operation(OpCode opcode)
 		return OpResult::FAILURE;
 	}
 
-	push_to_stack(result);
+	push_to_value_stack(result);
 	return OpResult::OK;
 }
 
 OpResult VirtualMachine::perform_binary_operation(OpCode opcode)
 {
-	auto left = pop_from_stack();
-	auto right = pop_from_stack();
+	auto left = pop_from_value_stack();
+	auto right = pop_from_value_stack();
 	Object_ptr result;
 
 	switch (opcode)
@@ -207,7 +236,7 @@ OpResult VirtualMachine::perform_binary_operation(OpCode opcode)
 		return OpResult::FAILURE;
 	}
 
-	push_to_stack(result);
+	push_to_value_stack(result);
 	return OpResult::OK;
 }
 
@@ -227,6 +256,8 @@ OpResult VirtualMachine::execute(OpCode opcode)
 	case OpCode::PUSH_CONSTANT_FALSE:
 	case OpCode::RETURN_VOID:
 	case OpCode::YIELD_VOID:
+	case OpCode::LOCAL_SCOPE_START:
+	case OpCode::LOCAL_SCOPE_STOP:
 	{
 		return perform_nullary_operation(opcode);
 	}
@@ -275,37 +306,44 @@ OpResult VirtualMachine::execute(OpCode opcode, int operand)
 	case OpCode::PUSH_CONSTANT:
 	{
 		auto obj = constant_pool->get(operand);
-		push_to_stack(obj);
+		push_to_value_stack(obj);
 		return OpResult::OK;
 	}
 	case OpCode::LOAD_LOCAL:
 	{
 		auto obj = variable_store->get(operand);
-		push_to_stack(obj);
+		push_to_value_stack(obj);
 		return OpResult::OK;
 	}
 	case OpCode::STORE_LOCAL:
 	{
-		auto obj = pop_from_stack();
+		auto obj = pop_from_value_stack();
+		variable_store->set(operand, obj);
+		return OpResult::OK;
+	}
+	case OpCode::CREATE_LOCAL:
+	{
+		scope_stack.top()->add(operand);
+		auto obj = pop_from_value_stack();
 		variable_store->set(operand, obj);
 		return OpResult::OK;
 	}
 	case OpCode::MAKE_LIST:
 	{
-		auto elements = pop_n_from_stack(operand);
+		auto elements = pop_n_from_value_stack(operand);
 		std::reverse(elements.begin(), elements.end());
 
 		auto list_object = MAKE_OBJECT_VARIANT(ListObject(elements));
-		push_to_stack(list_object);
+		push_to_value_stack(list_object);
 		return OpResult::OK;
 	}
 	case OpCode::MAKE_TUPLE:
 	{
-		auto elements = pop_n_from_stack(operand);
+		auto elements = pop_n_from_value_stack(operand);
 		std::reverse(elements.begin(), elements.end());
 
 		auto tuple_object = MAKE_OBJECT_VARIANT(TupleObject(elements));
-		push_to_stack(tuple_object);
+		push_to_value_stack(tuple_object);
 		return OpResult::OK;
 	}
 	case OpCode::MAKE_MAP:
@@ -315,51 +353,51 @@ OpResult VirtualMachine::execute(OpCode opcode, int operand)
 
 		while (count < operand)
 		{
-			auto key_value = pop_n_from_stack(2);
+			auto key_value = pop_n_from_value_stack(2);
 			map_object.insert(key_value[1], key_value[0]); // {key, value}
 			count++;
 		}
 
-		push_to_stack(MAKE_OBJECT_VARIANT(map_object));
+		push_to_value_stack(MAKE_OBJECT_VARIANT(map_object));
 		return OpResult::OK;
 	}
 	case OpCode::JUMP:
 	{
-		ip = operand;
+		set_ip(operand);
 		return OpResult::OK;
 	}
 	case OpCode::POP_JUMP:
 	{
-		pop_from_stack();
-		ip = operand;
+		pop_from_value_stack();
+		set_ip(operand);
 		return OpResult::OK;
 	}
 	case OpCode::JUMP_IF_FALSE:
 	{
-		auto TOS = top_of_stack();
+		auto TOS = top_of_value_stack();
 
 		if (!is_truthy(TOS))
 		{
-			ip = operand;
+			set_ip(operand);
 		}
 
 		return OpResult::OK;
 	}
 	case OpCode::POP_JUMP_IF_FALSE:
 	{
-		auto TOS = top_of_stack();
+		auto TOS = top_of_value_stack();
 
 		if (!is_truthy(TOS))
 		{
-			pop_from_stack();
-			ip = operand;
+			pop_from_value_stack();
+			set_ip(operand);
 		}
 
 		return OpResult::OK;
 	}
 	case OpCode::GET_NEXT_OR_JUMP:
 	{
-		auto TOS = top_of_stack();
+		auto TOS = top_of_value_stack();
 
 		if (!holds_alternative<IteratorObject>(*TOS))
 		{
@@ -371,11 +409,11 @@ OpResult VirtualMachine::execute(OpCode opcode, int operand)
 
 		if (result.has_value())
 		{
-			push_to_stack(result.value());
+			push_to_value_stack(result.value());
 			return OpResult::OK;
 		}
 
-		ip = operand;
+		set_ip(operand);
 		return OpResult::OK;
 	}
 	case OpCode::LABEL:
@@ -415,7 +453,8 @@ OpResult VirtualMachine::run()
 
 	while (true)
 	{
-		const OpCode opcode = (OpCode)code_object->instructions.at(ip);
+		int ip = get_ip();
+		const OpCode opcode = (OpCode)get_current_code_object()->instructions.at(ip);
 		const int arity = get_opcode_arity(opcode);
 
 		switch (arity)
@@ -429,7 +468,7 @@ OpResult VirtualMachine::run()
 		}
 		case 1:
 		{
-			ByteVector operands = code_object->operands_of_opcode_at(ip);
+			ByteVector operands = get_current_code_object()->operands_of_opcode_at(ip);
 			ASSERT(operands.size() == 1, "Expected 1 operands");
 			ip += 2;
 
@@ -438,7 +477,7 @@ OpResult VirtualMachine::run()
 		}
 		case 2:
 		{
-			ByteVector operands = code_object->operands_of_opcode_at(ip);
+			ByteVector operands = get_current_code_object()->operands_of_opcode_at(ip);
 			ASSERT(operands.size() == 2, "Expected 2 operands");
 			ip += 3;
 			
@@ -462,3 +501,4 @@ OpResult VirtualMachine::run()
 		}
 	}
 }
+

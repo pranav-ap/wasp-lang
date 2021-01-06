@@ -120,7 +120,7 @@ public:
 		current_scope(std::make_shared<SymbolScope>()),
 		constant_pool(std::make_shared<ObjectStore>()) {};
 
-	std::tuple<ObjectStore_ptr, CodeObject_ptr, std::map<int, CodeObject_ptr>> run(const Module_ptr ast);
+	std::tuple<ObjectStore_ptr, CodeObject_ptr> run(const Module_ptr ast);
 };
 
 using Compiler_ptr = std::shared_ptr<Compiler>;

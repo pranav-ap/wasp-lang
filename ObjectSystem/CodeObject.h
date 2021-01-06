@@ -26,6 +26,11 @@ struct OBJECTSYSTEM_API CodeObject
 
 	ByteVector instruction_at(int index);
 	ByteVector operands_of_opcode_at(int opcode_index);
+
+	CodeObject() {};
+
+	CodeObject(ByteVector instructions)
+		: instructions(instructions) {};		
 };
 
 using CodeObject_ptr = OBJECTSYSTEM_API std::shared_ptr<CodeObject>;

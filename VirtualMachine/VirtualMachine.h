@@ -8,20 +8,10 @@
 
 #include "ObjectStore.h"
 #include "CodeObject.h"
+#include "LocalScope.h"
+#include "CallFrame.h"
 #include <memory>
 #include <stack>
-
-struct CallFrame
-{
-	std::shared_ptr<FunctionObject> function_object;
-	int ip;
-	int base_pointer;
-
-	CallFrame(std::shared_ptr<FunctionObject> function_object, int base_pointer)
-		: function_object(function_object), ip(-1), base_pointer(base_pointer) {};
-};
-
-using CallFrame_ptr = std::shared_ptr<CallFrame>;
 
 enum class VIRTUALMACHINE_API OpResult
 {
@@ -32,17 +22,13 @@ enum class VIRTUALMACHINE_API OpResult
 
 class VIRTUALMACHINE_API VirtualMachine
 {
-	int frame_ptr;
-
 	ObjectStore_ptr constant_pool;
+
 	ObjectStore_ptr variable_store; // IDs set by SA
+	std::stack<LocalScope_ptr> scope_stack;
 
 	std::stack<CallFrame_ptr> call_stack;
 	std::stack<Object_ptr> value_stack;
-
-	CodeObject_ptr code_object;
-	std::map<int, CodeObject_ptr> function_code_objects;
-	int ip; // points to the instruction about to be executed
 
 	// Unary operations
 
@@ -81,22 +67,27 @@ class VIRTUALMACHINE_API VirtualMachine
 
 	// Utils
 
-	void push_to_stack(Object_ptr o);
-	Object_ptr pop_from_stack();
-	ObjectVector pop_n_from_stack(int n);
-	Object_ptr top_of_stack();
-	
+	void push_to_value_stack(Object_ptr o);
+	Object_ptr pop_from_value_stack();
+	ObjectVector pop_n_from_value_stack(int n);
+	Object_ptr top_of_value_stack();
+
+	void push_empty_scope_to_local_scope_stack();
+	void pop_from_local_scope_stack();
+
+	void push_to_call_stack(CodeObject_ptr function_object, int base_pointer);
+	void pop_from_call_stack();
+
 	bool is_truthy(Object_ptr obj);
 	Object_ptr make_iterable(Object_ptr obj);
 
-public:
-	VirtualMachine(ObjectStore_ptr constant_pool, CodeObject_ptr code_object, std::map<int, CodeObject_ptr> function_code_objects)
-		: ip(0), 
-		constant_pool(constant_pool), 
-		variable_store(std::make_shared<ObjectStore>()),
-		code_object(code_object),
-		function_code_objects(function_code_objects) {};
+	int get_ip();
+	void set_ip(int ip);
 
+	CodeObject_ptr get_current_code_object();
+
+public:
+	VirtualMachine(ObjectStore_ptr constant_pool, CodeObject_ptr main_code_object);
 	OpResult run();
 };
 

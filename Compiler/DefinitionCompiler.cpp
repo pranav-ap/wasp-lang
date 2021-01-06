@@ -35,7 +35,7 @@ void Compiler::visit(SingleVariableDefinition const& statement)
 	visit(statement.rhs_expression);
 
 	int id = current_scope->lookup(statement.name)->id;
-	emit(OpCode::STORE_LOCAL, id); 
+	emit(OpCode::CREATE_LOCAL, id); 
 
 	name_map[id] = statement.name;
 }
@@ -59,7 +59,7 @@ void Compiler::visit(FunctionDefinition const& statement)
 	for (auto const& arg_name : statement.arguments)
 	{
 		int id = current_scope->lookup(arg_name)->id;
-		emit(OpCode::STORE_LOCAL, id);
+		emit(OpCode::CREATE_LOCAL, id);
 
 		name_map[id] = arg_name;
 	}

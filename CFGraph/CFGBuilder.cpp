@@ -134,6 +134,8 @@ void CFGBuilder::split_into_basic_blocks()
 		case OpCode::PUSH_CONSTANT_TRUE:
 		case OpCode::PUSH_CONSTANT_FALSE:
 		case OpCode::MAKE_ITERABLE:			
+		case OpCode::LOCAL_SCOPE_START:
+		case OpCode::LOCAL_SCOPE_STOP:
 		{
 			IS_A_FOLLOWER;
 			emit(opcode);
@@ -143,6 +145,7 @@ void CFGBuilder::split_into_basic_blocks()
 		// Non-Leader with arity 1
 
 		case OpCode::PUSH_CONSTANT:
+		case OpCode::CREATE_LOCAL:
 		case OpCode::STORE_LOCAL:
 		case OpCode::LOAD_LOCAL:
 		case OpCode::MAKE_LIST:

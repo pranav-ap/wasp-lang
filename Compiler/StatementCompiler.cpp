@@ -84,6 +84,7 @@ void Compiler::visit(SimpleIfBranch const& statement)
 void Compiler::visit(SimpleIfBranch const& statement, int exit_tree_label, int branch_label)
 {
 	set_current_scope(statement.scope);
+	emit(OpCode::LOCAL_SCOPE_START);
 
 	emit(OpCode::LABEL, branch_label);
 	visit(statement.test);
@@ -103,6 +104,7 @@ void Compiler::visit(SimpleIfBranch const& statement, int exit_tree_label, int b
 		visit(statement.body);
 	}
 
+	emit(OpCode::LOCAL_SCOPE_STOP);
 	leave_scope();
 
 	if (alternative_exists)
@@ -132,8 +134,10 @@ void Compiler::visit(ElseBranch const& statement)
 void Compiler::visit(ElseBranch const& statement, int branch_label)
 {
 	set_current_scope(statement.scope);
+	emit(OpCode::LOCAL_SCOPE_START);
 	emit(OpCode::LABEL, branch_label);
 	visit(statement.body);
+	emit(OpCode::LOCAL_SCOPE_STOP);
 	leave_scope();
 }
 
@@ -142,6 +146,7 @@ void Compiler::visit(ElseBranch const& statement, int branch_label)
 void Compiler::visit(SimpleWhileLoop const& statement)
 {
 	set_current_scope(statement.scope);
+	emit(OpCode::LOCAL_SCOPE_START);
 
 	int condition_label = create_label();
 	emit(OpCode::LABEL, condition_label);
@@ -159,6 +164,7 @@ void Compiler::visit(SimpleWhileLoop const& statement)
 	emit(OpCode::JUMP, condition_label);
 	emit(OpCode::LABEL, block_end_label);
 
+	emit(OpCode::LOCAL_SCOPE_STOP);
 	leave_scope();
 }
 
@@ -169,6 +175,7 @@ void Compiler::visit(AssignedWhileLoop const& statement)
 void Compiler::visit(SimpleForInLoop const& statement)
 {
 	set_current_scope(statement.scope);
+	emit(OpCode::LOCAL_SCOPE_START);
 
 	visit(statement.iterable_expression);
 	emit(OpCode::MAKE_ITERABLE);
@@ -191,6 +198,7 @@ void Compiler::visit(SimpleForInLoop const& statement)
 	emit(OpCode::JUMP, block_begin_label);
 	emit(OpCode::LABEL, block_end_label);
 
+	emit(OpCode::LOCAL_SCOPE_STOP);
 	leave_scope();
 }
 
@@ -202,15 +210,19 @@ void Compiler::visit(DeconstructedForInLoop const& statement)
 
 void Compiler::visit(Scenario const& statement)
 {
-	set_current_scope(statement.scope);
+	set_current_scope(statement.scope); 
+	emit(OpCode::LOCAL_SCOPE_START);
 	visit(statement.body);
+	emit(OpCode::LOCAL_SCOPE_STOP);
 	leave_scope();
 }
 
 void Compiler::visit(Test const& statement)
 {
 	set_current_scope(statement.scope);
+	emit(OpCode::LOCAL_SCOPE_START);
 	visit(statement.body);
+	emit(OpCode::LOCAL_SCOPE_STOP);
 	leave_scope();
 }
 

@@ -32,7 +32,7 @@ using std::to_wstring;
 using std::begin;
 using std::end;
 
-std::tuple<ObjectStore_ptr, CodeObject_ptr, std::map<int, CodeObject_ptr>> Compiler::run(const Module_ptr ast)
+std::tuple<ObjectStore_ptr, CodeObject_ptr> Compiler::run(const Module_ptr ast)
 {
 	// Compile
 
@@ -51,7 +51,6 @@ std::tuple<ObjectStore_ptr, CodeObject_ptr, std::map<int, CodeObject_ptr>> Compi
 
 	CFGBuilder_ptr cfg_builder = std::make_unique<CFGBuilder>(constant_pool, current_scope->code_object);
 	CFG_ptr cfg = cfg_builder->create();
-	//cfg->print(name_map);
 
 	// Assemble CFG
 
@@ -63,21 +62,18 @@ std::tuple<ObjectStore_ptr, CodeObject_ptr, std::map<int, CodeObject_ptr>> Compi
 	InstructionPrinter_ptr printer = std::make_unique<InstructionPrinter>(constant_pool, name_map);
 	printer->print(assembled_code_object);
 
-	std::map<int, CodeObject_ptr> function_code_objects;
-
 	for (const int function_id : function_ids)
 	{
 		auto func_object = constant_pool->get(function_id);
 		auto function_object = get_if<FunctionObject>(&*func_object);
-		CodeObject_ptr function_code_object = make_shared<CodeObject>(function_object->instructions);
 
-		CFGBuilder_ptr cfg_builder = std::make_unique<CFGBuilder>(constant_pool, function_code_object);
+		CFGBuilder_ptr cfg_builder = std::make_unique<CFGBuilder>(constant_pool, function_object->code);
 		CFG_ptr cfg = cfg_builder->create();
 		
 		CFGAssembler_ptr cfg_assembler = std::make_unique<CFGAssembler>();
 		CodeObject_ptr assembled_function_code_object = cfg_assembler->assemble(cfg);
 
-		function_code_objects[function_id] = assembled_function_code_object;
+		function_object->code = assembled_function_code_object;
 
 		std::wcout << L"\n Function : " << name_map[function_id] << L"\n";
 
@@ -85,5 +81,5 @@ std::tuple<ObjectStore_ptr, CodeObject_ptr, std::map<int, CodeObject_ptr>> Compi
 		printer->print(assembled_function_code_object);
 	}
 
-	return std::make_tuple(constant_pool, assembled_code_object, function_code_objects);
+	return std::make_tuple(constant_pool, assembled_code_object);
 }

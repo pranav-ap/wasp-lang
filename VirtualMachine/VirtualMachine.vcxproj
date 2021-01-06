@@ -158,13 +158,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="CallFrame.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="LocalScope.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="VirtualMachine.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ComparisonBinaryOperations.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="LocalScope.cpp" />
     <ClCompile Include="LogicalBinaryOperations.cpp" />
     <ClCompile Include="MathBinaryOperations.cpp" />
     <ClCompile Include="pch.cpp">

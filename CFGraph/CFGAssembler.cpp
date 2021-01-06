@@ -33,8 +33,9 @@ CodeObject_ptr CFGAssembler::assemble(CFG_ptr cfg)
 	{
 		const std::byte opcode = instructions.at(index);
 		int arity = get_opcode_arity(opcode);
+		OpCode op = (OpCode)opcode;
 
-		switch ((OpCode)opcode)
+		switch (op)
 		{
 		case OpCode::JUMP:
 		case OpCode::POP_JUMP:

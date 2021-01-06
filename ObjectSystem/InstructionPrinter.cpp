@@ -53,6 +53,7 @@ std::wstring InstructionPrinter::stringify_instruction(std::byte opcode, std::by
 	{
 		return str_stream.str();
 	}
+	case OpCode::CREATE_LOCAL:
 	case OpCode::STORE_LOCAL:
 	case OpCode::LOAD_LOCAL:
 	{
