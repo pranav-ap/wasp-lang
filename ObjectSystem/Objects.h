@@ -215,6 +215,7 @@ struct OBJECTSYSTEM_API IteratorObject : public CompositeObject
 
 	IteratorObject(ObjectVector& vec) : vec(vec), it(std::begin(vec)) {};
 	std::optional<Object_ptr> get_next();
+	void reset_iter();
 };
 
 struct OBJECTSYSTEM_API VariantObject : public CompositeObject

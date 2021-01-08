@@ -13,7 +13,6 @@
 #define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr")
 #define OPT_CHECK(x) ASSERT(x.has_value(), "Oh shit! Option is none")
 #define MAKE_OBJECT_VARIANT(x) std::make_shared<Object>(x)
-#define MAKE_EXPRESSION(x) std::make_shared<Expression>(x)
 
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
@@ -189,9 +188,13 @@ void Compiler::visit(SimpleForInLoop const& statement)
 
 	emit(OpCode::GET_NEXT_OR_JUMP, block_end_label);
 
-	int id = current_scope->lookup(statement.name)->id;
-	emit(OpCode::STORE_LOCAL, id);
+	int symbol_id = current_scope->lookup(statement.name)->id;
+	int id = create_pool_id(symbol_id);
+
+	emit(OpCode::CREATE_LOCAL, id);
+
 	name_map[id] = statement.name;
+	id_map[symbol_id] = id;
 
 	visit(statement.body);
 

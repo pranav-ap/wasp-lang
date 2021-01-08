@@ -71,6 +71,9 @@ void SemanticAnalyzer::visit(FunctionDefinition& statement)
 	auto type = visit(statement.type);
 	auto function_type = type_system->extract_function_type(type);
 
+	// hacky
+	//next_id += statement.arguments.size();
+
 	auto symbol = MAKE_SYMBOL(next_id++, statement.name, type, statement.is_public, CONST_SYMBOL);
 	current_scope->define(statement.name, symbol);
 

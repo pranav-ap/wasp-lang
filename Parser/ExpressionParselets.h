@@ -4,12 +4,7 @@
 #include "TokenPipe.h"
 #include "Expression.h"
 #include "Precedence.h"
-#include <vector>
-#include <tuple>
-#include <stack>
-#include <map>
 #include <memory>
-#include <utility>
 
 class Parser;
 using Parser_ptr = Parser*;
@@ -152,3 +147,5 @@ public:
 	Expression_ptr parse(Parser_ptr parser, Expression_ptr left, Token_ptr token);
 	int get_precedence();
 };
+
+std::wstring concat(StringVector items, std::wstring connector);

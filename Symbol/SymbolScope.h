@@ -21,8 +21,6 @@ enum class SYMBOL_API ScopeType
 	EXPRESSION,
 	LOOP,
 	FUNCTION,
-	GENERATOR,
-	NAMESPACE,
 	TEST
 };
 

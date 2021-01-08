@@ -22,7 +22,6 @@ using std::all_of;
 using std::begin;
 using std::end;
 
-
 Object_ptr TypeSystem::spread_type(Object_ptr type)
 {
 	return std::visit(overloaded{

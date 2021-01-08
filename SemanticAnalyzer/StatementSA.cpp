@@ -137,12 +137,10 @@ void SemanticAnalyzer::visit(Test& statement)
 
 void SemanticAnalyzer::visit(Namespace& statement)
 {
-	enter_scope(ScopeType::NAMESPACE);
 	statement.scope = current_scope;
 	current_scope->name_space = current_scope->name_space + statement.title;
 
 	visit(statement.body);
-	leave_scope();
 }
 
 // simple stuff
@@ -164,10 +162,7 @@ void SemanticAnalyzer::visit(Redo& statement)
 
 void SemanticAnalyzer::visit(Return& statement)
 {
-	ASSERT(current_scope->enclosed_in({
-		ScopeType::FUNCTION,
-		ScopeType::GENERATOR
-		}), "Return is not expected in this body");
+	ASSERT(current_scope->enclosed_in(ScopeType::FUNCTION), "Return is not expected in this body");
 
 	if (statement.expression.has_value())
 	{
@@ -177,14 +172,7 @@ void SemanticAnalyzer::visit(Return& statement)
 
 void SemanticAnalyzer::visit(YieldStatement& statement)
 {
-	ASSERT(current_scope->enclosed_in({
-		   ScopeType::GENERATOR
-		}), "Yield is not expected in this body");
-
-	if (statement.expression.has_value())
-	{
-		visit(statement.expression.value());
-	}
+	
 }
 
 void SemanticAnalyzer::visit(Assert& statement)

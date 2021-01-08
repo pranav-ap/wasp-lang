@@ -167,19 +167,21 @@ struct AST_API TypePattern
 struct AST_API EnumMember
 {
 	std::vector<std::wstring> member_chain;
+	std::wstring chain_string;
 
-	EnumMember(std::vector<std::wstring> member_chain)
-		: member_chain(member_chain) {};
+	EnumMember(std::wstring chain_string, std::vector<std::wstring> member_chain)
+		: chain_string(chain_string), member_chain(member_chain) {};
 };
 
-struct AST_API Call
+struct AST_API Call 
 {
+	bool is_builtin;
 	std::wstring name;
 	ExpressionVector arguments;
 
 	Call(std::wstring name) 
-		: name(name) {};
+		: name(name), is_builtin(false) {};
 
 	Call(std::wstring name, ExpressionVector arguments) 
-		: name(name), arguments(arguments) {};
+		: name(name), is_builtin(false), arguments(arguments) {};
 };

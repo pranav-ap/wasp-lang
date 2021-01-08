@@ -309,6 +309,11 @@ std::optional<Object_ptr> IteratorObject::get_next()
 	return std::make_optional(obj);
 }
 
+void IteratorObject::reset_iter()
+{
+	it = std::begin(vec);
+}
+
 // VariantObject
 
 bool VariantObject::has_value()

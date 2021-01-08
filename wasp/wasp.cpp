@@ -7,7 +7,7 @@
 #include "Compiler.h"
 #include "ObjectStore.h"
 #include "CodeObject.h"
-#include "VirtualMachine.h"
+//#include "VirtualMachine.h"
 
 #include <string>
 #include <memory>

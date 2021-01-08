@@ -156,6 +156,20 @@ Object_ptr VirtualMachine::make_iterable(Object_ptr obj)
 		}, *obj);
 }
 
+void VirtualMachine::reset_iterable(Object_ptr obj)
+{
+	std::visit(overloaded{
+		[&](IteratorObject& obj)
+		{
+			obj.reset_iter();
+		},
+		[&](auto)
+		{
+			// fatal
+		}
+		}, *obj);
+}
+
 int VirtualMachine::get_ip()
 {
 	int ip = call_stack.top()->ip;

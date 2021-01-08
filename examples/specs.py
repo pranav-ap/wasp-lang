@@ -19,7 +19,7 @@ if a > 3 then
     345
 elif a > 3 then
     567
-else
+else 
     5671
 end
 
@@ -75,62 +75,15 @@ let [a, ...b, c] = some_list
 [a, ...b, c] = some_list
 
 
-import { io } from 'io'
+import { print } from 'io'
 
 
 x.foo.age = 1
 x(123).foo(36, gg).age = 1
 
 
-match { thing, another, third } then
-    case { "open", a is int, _ } then
-        echo "open"
-    case "closed" then
-        echo "closed"
-    else
-        echo "bye"
-end
-
-
-try
-catch
-else
-finally
-end
-
-
-infix + (a : num, b : num) => num
-    return a + b
-end
-
-
-interface ICastle
-    lng: int
-    lat: int
-
-    tileSize: 8 | 16 | 32
-
-    open_gates: (speed: int) => bool
-    close_gates: gen (speed: int) => bool
-end
-
-
-type Castle ~ ICastle < Building
+type Castle
     name: string
-
-    private
-        constructor : ()
-        repr : () => string
-end
-
-
-fn Castle::constructor(name: string)
-    self.name = name
-end
-
-
-fn Castle::defend() => any
-    x = 43
 end
 
 
@@ -143,13 +96,4 @@ if x : int = call() then
     x = 1
 else
     3
-end
-
-
-scenario "__"
-    x = 4
-
-    test "check even"
-        assert x == true
-    end
 end

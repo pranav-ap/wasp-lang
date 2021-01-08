@@ -220,8 +220,11 @@ Expression_ptr EnumMemberParselet::parse(Parser_ptr parser, Expression_ptr left,
 			break;
 	}
 
-	return MAKE_EXPRESSION(EnumMember(chain));
+	auto member_string = concat(chain, L"::");
+
+	return MAKE_EXPRESSION(EnumMember(member_string, chain));
 }
+
 
 Expression_ptr CallParselet::parse(Parser_ptr parser, Identifier* identifier)
 {
@@ -301,4 +304,20 @@ int EnumMemberParselet::get_precedence()
 int CallParselet::get_precedence()
 {
 	return (int)Precedence::CALL;
+}
+
+// utils
+
+wstring concat(StringVector items, wstring connector)
+{
+	wstring final_string = L"";
+
+	for (const auto member : items)
+	{
+		final_string.append(connector);
+		final_string.append(member);
+	}
+
+	final_string = final_string.substr(2, final_string.size());
+	return final_string;
 }

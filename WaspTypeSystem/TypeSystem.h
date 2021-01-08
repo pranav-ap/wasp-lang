@@ -16,9 +16,7 @@
 
 struct WASPTYPESYSTEM_API TypeSystem
 {
-	ObjectStore_ptr type_pool;
-
-	TypeSystem();
+	ConstantPool_ptr type_pool;
 
 	bool equal(SymbolScope_ptr scope, const Object_ptr type_1, const Object_ptr type_2) const;
 	bool equal(SymbolScope_ptr scope, const ObjectVector type_vector_1, const ObjectVector type_vector_2) const;
@@ -61,6 +59,9 @@ struct WASPTYPESYSTEM_API TypeSystem
 
 	EnumType* extract_enum_type(const Object_ptr type) const;
 	FunctionType* extract_function_type(const Object_ptr type) const;
+
+	TypeSystem() 
+		: type_pool(std::make_shared<ConstantPool>()) {};
 };
 
 using TypeSystem_ptr = WASPTYPESYSTEM_API std::shared_ptr<TypeSystem>;

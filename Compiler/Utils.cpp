@@ -12,10 +12,6 @@
 #define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr")
 #define OPT_CHECK(x) ASSERT(x.has_value(), "Oh shit! Option is none")
 #define MAKE_OBJECT_VARIANT(x) std::make_shared<Object>(x)
-#define MAKE_EXPRESSION(x) std::make_shared<Expression>(x)
-
-template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
-template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
 
 using std::move;
 using std::byte;
@@ -87,24 +83,25 @@ ByteVector Compiler::leave_subroutine_scope()
 
 // Utils
 
+int Compiler::create_pool_id(int symbol_id)
+{
+	ASSERT(!id_map.contains(symbol_id), "Symbol ID already exists. Use get_pool_id() instead.");
+
+	int pool_id = constant_pool->next_id++;
+	id_map[symbol_id] = pool_id;
+	return pool_id;
+}
+
+int Compiler::get_pool_id(int symbol_id)
+{
+	ASSERT(id_map.contains(symbol_id), "Symbol ID does not exist");
+	return id_map.at(symbol_id);
+}
+
 int Compiler::create_label()
 {
 	int label = next_label++;
 	return label;
-}
-
-wstring Compiler::concat(StringVector items, wstring connector)
-{
-	wstring final_string = L"";
-
-	for (const auto member : items)
-	{
-		final_string.append(connector);
-		final_string.append(member);
-	}
-
-	final_string = final_string.substr(2, final_string.size());
-	return final_string;
 }
 
 wstring Compiler::extract_identifier_from_type_pattern(Expression_ptr expression)

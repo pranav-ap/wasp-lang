@@ -79,7 +79,9 @@ class VIRTUALMACHINE_API VirtualMachine
 	void pop_from_call_stack();
 
 	bool is_truthy(Object_ptr obj);
+
 	Object_ptr make_iterable(Object_ptr obj);
+	void reset_iterable(Object_ptr obj);
 
 	int get_ip();
 	void set_ip(int ip);

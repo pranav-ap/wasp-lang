@@ -9,7 +9,6 @@
 #include "OpCode.h"
 #include "Statement.h"
 #include "ObjectStore.h"
-#include "Objects.h"
 #include <string>
 #include <vector>
 #include <map>
@@ -18,13 +17,15 @@
 
 class COMPILER_API Compiler
 {
-	std::vector<int> function_ids;
-	ObjectStore_ptr constant_pool; // Dont use for defintiions. Use id given by SA for definitions
+	ConstantPool_ptr constant_pool;
 	SymbolScope_ptr current_scope;
 	
-	std::map<int, std::wstring> name_map;
+	std::vector<int> function_ids;
 	int next_label;
-		
+
+	std::map<int, int> id_map; // symbol id => pool id
+	std::map<int, std::wstring> name_map; // pool id to name
+	
 	// Statement
 
 	void visit(const Statement_ptr statement);
@@ -110,17 +111,19 @@ class COMPILER_API Compiler
 
 	// Utils
 
+	int create_pool_id(int symbol_id);
+	int get_pool_id(int symbol_id);
+
 	int create_label();
-	std::wstring concat(StringVector items, std::wstring middle);
 	std::wstring extract_identifier_from_type_pattern(Expression_ptr expression);
 
 public:
 	Compiler()
 		: next_label(0), 
 		current_scope(std::make_shared<SymbolScope>()),
-		constant_pool(std::make_shared<ObjectStore>()) {};
+		constant_pool(std::make_shared<ConstantPool>()) {};
 
-	std::tuple<ObjectStore_ptr, CodeObject_ptr> run(const Module_ptr ast);
+	std::tuple<ConstantPool_ptr, CodeObject_ptr> run(const Module_ptr ast);
 };
 
 using Compiler_ptr = std::shared_ptr<Compiler>;

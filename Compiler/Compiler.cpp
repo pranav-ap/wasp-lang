@@ -32,7 +32,7 @@ using std::to_wstring;
 using std::begin;
 using std::end;
 
-std::tuple<ObjectStore_ptr, CodeObject_ptr> Compiler::run(const Module_ptr ast)
+std::tuple<ConstantPool_ptr, CodeObject_ptr> Compiler::run(const Module_ptr ast)
 {
 	// Compile
 
@@ -51,7 +51,7 @@ std::tuple<ObjectStore_ptr, CodeObject_ptr> Compiler::run(const Module_ptr ast)
 
 	CFGBuilder_ptr cfg_builder = std::make_unique<CFGBuilder>(constant_pool, current_scope->code_object);
 	CFG_ptr cfg = cfg_builder->create();
-
+	
 	// Assemble CFG
 
 	CFGAssembler_ptr cfg_assembler = std::make_unique<CFGAssembler>();
@@ -71,14 +71,12 @@ std::tuple<ObjectStore_ptr, CodeObject_ptr> Compiler::run(const Module_ptr ast)
 		CFG_ptr cfg = cfg_builder->create();
 		
 		CFGAssembler_ptr cfg_assembler = std::make_unique<CFGAssembler>();
-		CodeObject_ptr assembled_function_code_object = cfg_assembler->assemble(cfg);
-
-		function_object->code = assembled_function_code_object;
+		function_object->code = cfg_assembler->assemble(cfg);
 
 		std::wcout << L"\n Function : " << name_map[function_id] << L"\n";
 
 		InstructionPrinter_ptr printer = std::make_unique<InstructionPrinter>(constant_pool, name_map);
-		printer->print(assembled_function_code_object);
+		printer->print(function_object->code);
 	}
 
 	return std::make_tuple(constant_pool, assembled_code_object);

@@ -12,10 +12,6 @@
 #define NULL_CHECK(x) ASSERT(x != nullptr, "Oh shit! A nullptr")
 #define OPT_CHECK(x) ASSERT(x.has_value(), "Oh shit! Option is none")
 #define MAKE_OBJECT_VARIANT(x) std::make_shared<Object>(x)
-#define MAKE_EXPRESSION(x) std::make_shared<Expression>(x)
-
-template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
-template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
 
 using std::move;
 using std::byte;
@@ -34,10 +30,13 @@ void Compiler::visit(SingleVariableDefinition const& statement)
 {
 	visit(statement.rhs_expression);
 
-	int id = current_scope->lookup(statement.name)->id;
-	emit(OpCode::CREATE_LOCAL, id); 
+	int symbol_id = current_scope->lookup(statement.name)->id;
+	int id = create_pool_id(symbol_id);
+
+	emit(OpCode::CREATE_LOCAL, id);
 
 	name_map[id] = statement.name;
+	id_map[symbol_id] = id;
 }
 
 void Compiler::visit(DeconstructedVariableDefinition const& statement)
@@ -47,8 +46,13 @@ void Compiler::visit(DeconstructedVariableDefinition const& statement)
 
 void Compiler::visit(EnumDefinition const& statement)
 {
-	int id = current_scope->lookup(statement.name)->id;
+	int symbol_id = current_scope->lookup(statement.name)->id;
+	int id = create_pool_id(symbol_id);
+
+	emit(OpCode::CREATE_LOCAL, id);
+
 	name_map[id] = statement.name;
+	id_map[symbol_id] = id;
 }
 
 void Compiler::visit(FunctionDefinition const& statement)
@@ -58,21 +62,29 @@ void Compiler::visit(FunctionDefinition const& statement)
 
 	for (auto const& arg_name : statement.arguments)
 	{
-		int id = current_scope->lookup(arg_name)->id;
+		int symbol_id = current_scope->lookup(arg_name)->id;
+		int id = create_pool_id(symbol_id);
+
 		emit(OpCode::CREATE_LOCAL, id);
 
 		name_map[id] = arg_name;
+		id_map[symbol_id] = id;
 	}
 
 	visit(statement.body);
 	emit(OpCode::FUNCTION_STOP);
 
 	auto instructions = leave_subroutine_scope();
-	auto function_id = current_scope->lookup(statement.name)->id;
+
+	int symbol_id = current_scope->lookup(statement.name)->id;
+
 	auto function_object = MAKE_OBJECT_VARIANT(FunctionObject(statement.name, instructions));
+	int id = constant_pool->allocate(move(function_object));
 
-	constant_pool->set(function_id, move(function_object));
-	function_ids.push_back(function_id);
+	emit(OpCode::CREATE_LOCAL, id);
 
-	name_map[function_id] = statement.name;
+	function_ids.push_back(id);
+
+	name_map[id] = statement.name;
+	id_map[symbol_id] = id;
 }

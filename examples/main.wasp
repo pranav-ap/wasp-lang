@@ -1,12 +1,8 @@
 ﻿
 fn add(a : int, b : int)
-    if true then
-        return a
-    elif true then
-        return a
-    else
-        return a 
-    end
-
-    return b
+    return a + b
 end
+
+add(1, 2)
+
+

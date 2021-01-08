@@ -95,7 +95,12 @@ Object_ptr SemanticAnalyzer::visit(StringLiteralTypeNode& expr)
 
 Object_ptr SemanticAnalyzer::visit(BooleanLiteralTypeNode& expr)
 {
-	return MAKE_OBJECT_VARIANT(BooleanLiteralType(expr.value));
+	if (expr.value)
+	{
+		return type_system->type_pool->get_true_literal_type();
+	}
+
+	return type_system->type_pool->get_false_literal_type();
 }
 
 Object_ptr SemanticAnalyzer::visit(IntTypeNode& expr)

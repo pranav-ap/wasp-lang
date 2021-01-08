@@ -153,7 +153,8 @@ void Compiler::visit(TypePattern const& expr)
 
 void Compiler::visit(Identifier const& expr)
 {
-	auto id = current_scope->lookup(expr.name)->id;
+	int id = current_scope->lookup(expr.name)->id;
+	id = get_pool_id(id);
 	emit(OpCode::LOAD_LOCAL, id);
 }
 
@@ -289,6 +290,8 @@ void Compiler::visit(UntypedAssignment const& statement)
 	auto identifier = get_if<Identifier>(&*statement.lhs_expression);
 
 	int id = current_scope->lookup(identifier->name)->id;
+	id = get_pool_id(id);
+
 	emit(OpCode::STORE_LOCAL, id);
 }
 
@@ -301,23 +304,24 @@ void Compiler::visit(EnumMember const& expr)
 {
 	auto enum_name = expr.member_chain.front();
 	auto enum_symbol = current_scope->lookup(enum_name);
-	auto enum_id = enum_symbol->id;
-
-	ASSERT(holds_alternative<EnumType>(*enum_symbol->type), "Expected Enum Type");
 	auto enum_type = get_if<EnumType>(&*enum_symbol->type);
+	
+	int member_id = enum_type->members.at(expr.chain_string);
 
-	wstring enum_string = concat(expr.member_chain, L"::");
-	ASSERT(enum_type->members.contains(enum_string), "Enum does not contain this member");
-	int member_id = enum_type->members.at(enum_string);
+	int pool_id = constant_pool->allocate_enum_member(enum_symbol->id, member_id);
+	emit(OpCode::PUSH_CONSTANT, pool_id);
 
-	int id = constant_pool->allocate_enum(enum_id, member_id);
-	emit(OpCode::PUSH_CONSTANT, id);
+	name_map[pool_id] = expr.chain_string;
 }
 
 void Compiler::visit(Call const& expr)
 {
 	visit(expr.arguments);
+	
 	int count = expr.arguments.size();
-	auto id = current_scope->lookup(expr.name)->id;
+	
+	int id = current_scope->lookup(expr.name)->id;
+	id = get_pool_id(id);
+
 	emit(OpCode::CALL_FUNCTION, id, count);
 }

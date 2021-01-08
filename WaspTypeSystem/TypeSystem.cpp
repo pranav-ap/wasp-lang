@@ -22,11 +22,6 @@ using std::all_of;
 using std::begin;
 using std::end;
 
-TypeSystem::TypeSystem()
-{
-	type_pool = std::make_shared<ObjectStore>();
-}
-
 // equal
 
 bool TypeSystem::equal(SymbolScope_ptr scope, const Object_ptr type_1, const Object_ptr type_2) const
@@ -261,8 +256,7 @@ Object_ptr TypeSystem::infer(SymbolScope_ptr scope, Object_ptr left_type, WToken
 			return left_type;
 		}
 
-		auto id = type_pool->allocate(MAKE_OBJECT_VARIANT(VariantType({ left_type, right_type })));
-		auto type = type_pool->get(id);
+		auto type = MAKE_OBJECT_VARIANT(VariantType({ left_type, right_type }));
 		return type;
 	}
 	case WTokenType::IS:

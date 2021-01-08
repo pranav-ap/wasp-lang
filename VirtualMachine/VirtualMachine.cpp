@@ -433,9 +433,16 @@ OpResult VirtualMachine::execute(OpCode opcode, int operand_1, int operand_2)
 	switch (opcode)
 	{
 	case OpCode::CALL_FUNCTION:
+	{
+		auto obj = constant_pool->get(operand_1);
+		auto function_object = get_if<FunctionObject>(&*obj);
+		int frame_ip = get_ip() - operand_2;
+
+		push_to_call_stack(function_object->code, frame_ip);
+		return OpResult::OK;
+	}
 	case OpCode::CALL_GENERATOR:
 	{
-		// TODO
 		return OpResult::FAILURE;
 	}
 	default:

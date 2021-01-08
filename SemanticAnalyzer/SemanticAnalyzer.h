@@ -18,7 +18,7 @@
 
 class SEMANTICANALYZER_API SemanticAnalyzer
 {
-	int next_id; // used for definitions
+	int next_id;
 
 	TypeSystem_ptr type_system;
 	SymbolScope_ptr current_scope;
@@ -111,7 +111,7 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 
 public:
 	SemanticAnalyzer() 
-		: next_id (8), 
+		: next_id(10),
 		type_system(std::make_shared<TypeSystem>()) {};
 
 	void run(const Module_ptr ast);
