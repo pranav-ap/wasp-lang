@@ -36,23 +36,6 @@ Symbol_ptr SymbolScope::lookup(std::wstring name)
 	FATAL("Name does not exist!");
 }
 
-Symbol_ptr SymbolScope::direct_child_of_namespace(std::wstring nmspace, std::wstring name)
-{
-	if (name_space == nmspace)
-	{
-		auto symbol = symbols.at(name);
-		NULL_CHECK(symbol);
-		return symbol;
-	}
-
-	if (enclosing_scope.has_value())
-	{
-		return enclosing_scope.value()->direct_child_of_namespace(name, nmspace);
-	}
-
-	FATAL("Name does not exist!");
-}
-
 bool SymbolScope::enclosed_in(ScopeType type)
 {
 	if (scope_type == type)

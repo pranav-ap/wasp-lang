@@ -136,18 +136,6 @@ void SemanticAnalyzer::visit(Test& statement)
 	leave_scope();
 }
 
-void SemanticAnalyzer::visit(Namespace& statement)
-{
-	statement.scope = current_scope;
-	current_scope->name_space += statement.title;
-
-	auto type = MAKE_OBJECT_VARIANT(NamespaceType(statement.title, current_scope->name_space));
-	auto symbol = MAKE_SYMBOL(next_id++, statement.title, type, PUBLIC_SYMBOL, CONST_SYMBOL);
-	current_scope->define(statement.title, symbol);
-
-	visit(statement.body);
-}
-
 // simple stuff
 
 void SemanticAnalyzer::visit(Break& statement)

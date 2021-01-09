@@ -1,15 +1,8 @@
 ﻿
-namespace Hello
-    let a = 4
-
-    enum Kind
-        X
-        Y
+fn add(a : int, b : int) => int
+    if a > b then
+        return a
     end
+
+    return b
 end
-
-Hello::a
-Hello::Kind::X
-Hello::bye()
-
-Hello ~ a

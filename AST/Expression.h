@@ -16,7 +16,6 @@
 #include <memory>
 #include <variant>
 
-struct Spread;
 struct TernaryCondition;
 struct TypePattern;
 struct UntypedAssignment;
@@ -29,15 +28,16 @@ struct Identifier;
 struct Prefix;
 struct Infix;
 struct Postfix;
-struct DoubleColonPair;
-struct Call;
+struct Call; 
+struct EnumMember;
+struct Spread;
 
 using Expression = AST_API std::variant<
 	std::monostate,
 	int, double, std::wstring, bool,
 	ListLiteral, TupleLiteral, SetLiteral, MapLiteral, Identifier, 
-	UntypedAssignment, TypedAssignment, Spread, Prefix, Infix, Postfix, TypePattern, 
-	TernaryCondition, DoubleColonPair, Call 
+	UntypedAssignment, TypedAssignment, Prefix, Infix, Postfix, TypePattern, 
+	TernaryCondition, Call, EnumMember, Spread
 >;
 
 using Expression_ptr = AST_API std::shared_ptr<Expression>;
@@ -146,14 +146,6 @@ struct AST_API TernaryCondition : public AnnotatedNode
 		false_expression(std::move(false_expression)) {};
 };
 
-struct AST_API Spread
-{
-	Expression_ptr expression;
-
-	Spread(Expression_ptr expression)
-		: expression(std::move(expression)) {};
-};
-
 struct AST_API TypePattern
 {
 	Expression_ptr expression;
@@ -161,15 +153,6 @@ struct AST_API TypePattern
 
 	TypePattern(Expression_ptr expression, TypeNode_ptr type_node)
 		: expression(std::move(expression)), type_node(std::move(type_node)) {};
-};
-
-struct AST_API DoubleColonPair
-{
-	Expression_ptr left;
-	Expression_ptr right;
-
-	DoubleColonPair(Expression_ptr left, Expression_ptr right)
-		: left(left), right(right) {};
 };
 
 struct AST_API Call 
@@ -182,4 +165,22 @@ struct AST_API Call
 
 	Call(std::wstring name, ExpressionVector arguments) 
 		: name(name), arguments(arguments) {};
+};
+
+struct AST_API EnumMember
+{
+	std::vector<std::wstring> chain;
+	std::wstring chain_str;
+
+	EnumMember(std::vector<std::wstring> chain, std::wstring chain_str)
+		: chain(chain), chain_str(chain_str) {};
+};
+
+struct AST_API Spread
+{
+	bool is_rvalue;
+	Expression_ptr expression;
+
+	Spread(Expression_ptr expression)
+		: expression(std::move(expression)), is_rvalue(true) {};
 };

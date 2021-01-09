@@ -256,8 +256,7 @@ Object_ptr TypeSystem::infer(SymbolScope_ptr scope, Object_ptr left_type, WToken
 			return left_type;
 		}
 
-		auto type = MAKE_OBJECT_VARIANT(VariantType({ left_type, right_type }));
-		return type;
+		return MAKE_OBJECT_VARIANT(VariantType({ left_type, right_type }));
 	}
 	case WTokenType::IS:
 	{

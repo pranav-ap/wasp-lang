@@ -11,3 +11,5 @@
 #include "utf8.h"
 
 UTILS_API std::wstring read_source(std::string path);
+UTILS_API std::wstring concat(std::vector<std::wstring> items, std::wstring connector);
+

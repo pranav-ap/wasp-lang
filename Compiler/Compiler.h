@@ -45,7 +45,6 @@ class COMPILER_API Compiler
 
 	void visit(Scenario const& statement);
 	void visit(Test const& statement);
-	void visit(Namespace const& statement);
 
 	// Func and Gen
 
@@ -94,8 +93,8 @@ class COMPILER_API Compiler
 	void visit(Postfix const& expr);
 	void visit(Identifier const& expr);
 	void visit(Spread const& expr);
-	void visit(DoubleColonPair const& expr);
 	void visit(Call const& expr);
+	void visit(EnumMember const& expr);
 
 	// Emit
 

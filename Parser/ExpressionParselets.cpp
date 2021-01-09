@@ -3,6 +3,7 @@
 #include "ExpressionParselets.h"
 #include "Parser.h"
 #include "Assertion.h"
+#include "utils.h"
 
 #include <cmath>
 #include <vector>
@@ -88,6 +89,11 @@ Expression_ptr PrefixOperatorParselet::parse(Parser_ptr parser, Token_ptr token)
 {
 	ADVANCE_PTR;
 	Expression_ptr right = parser->parse_expression();
+
+	if (token->type == WTokenType::DOT_DOT_DOT)
+	{
+		return MAKE_EXPRESSION(Spread(right));
+	}
 
 	return MAKE_EXPRESSION(Prefix(token, right));
 }
@@ -198,20 +204,6 @@ Expression_ptr TernaryConditionParselet::parse(Parser_ptr parser, Token_ptr toke
 	return MAKE_EXPRESSION(TernaryCondition(condition, then_arm, else_arm));
 }
 
-Expression_ptr SpreadParselet::parse(Parser_ptr parser, Token_ptr token)
-{
-	ADVANCE_PTR;
-	Expression_ptr expression = parser->parse_expression();
-	return MAKE_EXPRESSION(Spread(expression));
-}
-
-Expression_ptr DoubleColonPairParselet::parse(Parser_ptr parser, Expression_ptr left, Token_ptr token)
-{
-	auto right = parser->parse_expression();
-	ASSERT(holds_alternative<Call>(*right) || holds_alternative<Identifier>(*right), "Expected Call or Identifier");
-	return MAKE_EXPRESSION(DoubleColonPair(left, right));
-}
-
 Expression_ptr CallParselet::parse(Parser_ptr parser, Identifier* identifier)
 {
 	ExpressionVector arguments;
@@ -243,6 +235,24 @@ Expression_ptr CallParselet::parse(Parser_ptr parser, Expression_ptr left, Token
 		}, *left);
 
 	return result;
+}
+
+Expression_ptr EnumMemberParselet::parse(Parser_ptr parser, Expression_ptr left, Token_ptr token)
+{
+	ASSERT(holds_alternative<Identifier>(*left), "Expect enum member name");
+	auto identifier = get_if<Identifier>(&*left);
+
+	std::vector<std::wstring> chain = { identifier->name };
+
+	while (auto member_identifier = parser->token_pipe->require(WTokenType::IDENTIFIER))
+	{
+		chain.push_back(member_identifier->value);
+
+		if (!parser->token_pipe->optional(WTokenType::COLON_COLON))
+			break;
+	}
+
+	return MAKE_EXPRESSION(EnumMember(chain, concat(chain, L"::")));
 }
 
 // get_precedence
@@ -277,33 +287,12 @@ int TernaryConditionParselet::get_precedence()
 	return (int)Precedence::TERNARY_CONDITION;
 }
 
-int SpreadParselet::get_precedence()
-{
-	return (int)Precedence::PREFIX;
-}
-
-int DoubleColonPairParselet::get_precedence()
-{
-	return (int)Precedence::MEMBER_ACCESS;
-}
-
 int CallParselet::get_precedence()
 {
 	return (int)Precedence::CALL;
 }
 
-// utils
-
-wstring concat(StringVector items, wstring connector)
+int EnumMemberParselet::get_precedence()
 {
-	wstring final_string = L"";
-
-	for (const auto member : items)
-	{
-		final_string.append(connector);
-		final_string.append(member);
-	}
-
-	final_string = final_string.substr(2, final_string.size());
-	return final_string;
+	return (int)Precedence::MEMBER_ACCESS;
 }

@@ -53,11 +53,6 @@ end
 NAME::LASTNAME::ID3
 
 
-namespace Hello
-	let x : int = 34
-end
-
-
 fn add(a : int, b : int) => int
     if a > b then
         return a

@@ -73,7 +73,6 @@ Statement_ptr Parser::parse_statement(bool is_public)
 		CASE(WTokenType::SCENARIO, parse_scenario());
 		CASE(WTokenType::TEST, parse_test());
 		CASE(WTokenType::ENUM, parse_enum_definition(is_public));
-		CASE(WTokenType::NAMESPACE, parse_namespace());
 		CASE(WTokenType::FN, parse_function_definition(is_public));
 
 	default:

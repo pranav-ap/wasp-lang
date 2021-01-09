@@ -44,9 +44,8 @@ Object_ptr SemanticAnalyzer::visit(const Expression_ptr expression)
 		[&](TypePattern& expr) { return visit(expr); },
 		[&](UntypedAssignment& expr) { return visit(expr); },
 		[&](TypedAssignment& expr) { return visit(expr); },
-		[&](Spread& expr) { return visit(expr); },
-		[&](DoubleColonPair& expr) { return visit(expr); },
 		[&](Call& expr) { return visit(expr); },
+		[&](EnumMember& expr) { return visit(expr); },
 
 		[&](auto)
 		{
@@ -174,14 +173,6 @@ Object_ptr SemanticAnalyzer::visit(TernaryCondition& expression)
 	return MAKE_OBJECT_VARIANT(VariantType({ true_type, false_type }));
 }
 
-Object_ptr SemanticAnalyzer::visit(Spread& expr)
-{
-	Object_ptr operand_type = visit(expr.expression);
-	type_system->expect_spreadable_type(current_scope, operand_type);
-	operand_type = type_system->spread_type(operand_type);
-	return operand_type;
-}
-
 Object_ptr SemanticAnalyzer::visit(TypePattern& expr)
 {
 	FATAL("TypePattern must be handled by parent nodes");
@@ -228,78 +219,21 @@ Object_ptr SemanticAnalyzer::visit(Infix& expr)
 	return result_type;
 }
 
+Object_ptr SemanticAnalyzer::visit(EnumMember& expr)
+{
+	Symbol_ptr symbol = current_scope->lookup(expr.chain.front());
+	NULL_CHECK(symbol);
+
+	auto enum_type = type_system->extract_enum_type(symbol->type);
+	ASSERT(enum_type->members.contains(expr.chain_str), "Enum does not contain this member");
+
+	return symbol->type;
+}
+
 Object_ptr SemanticAnalyzer::visit(Identifier& expr)
 {
 	Symbol_ptr symbol = current_scope->lookup(expr.name);
 	return symbol->type;
-}
-
-Object_ptr SemanticAnalyzer::visit(std::wstring nmspace, DoubleColonPair& expr)
-{
-	ASSERT(holds_alternative<Identifier>(*expr.left), "Expected an Identifier");
-	auto identifier = get_if<Identifier>(&*expr.left);
-
-	Symbol_ptr symbol = current_scope->direct_child_of_namespace(nmspace, identifier->name);
-	NULL_CHECK(symbol);
-
-	if (type_system->is_enum_type(current_scope, symbol->type))
-	{
-		auto enum_type = type_system->extract_enum_type(symbol->type);
-		wstring enum_member = identifier->name;
-
-		while (true)
-		{
-			ASSERT(holds_alternative<Identifier>(*expr.right), "Expected an Identifier");
-			auto identifier = get_if<Identifier>(&*expr.right);
-			enum_member += identifier->name;
-
-		}
-
-		ASSERT(enum_type->members.contains(expr.chain_string), "Enum does not contain this member");
-		return symbol->type;
-	}
-
-	return std::visit(overloaded{
-		[&](DoubleColonPair& ex)
-		{
-			return visit(nmspace, ex);
-		},
-		[&](Identifier& ex)
-		{
-			return visit(nmspace, ex);
-		},
-		[&](Call& ex)
-		{
-			return visit(nmspace, ex);
-		},
-
-		[&](auto)
-		{
-			FATAL("Expected DoubleColonPair or Identifier or Call");
-			return type_system->type_pool->get_none_type();
-		}
-		}, *expr.right);
-}
-
-Object_ptr SemanticAnalyzer::visit(std::wstring nmspace, Call& expr)
-{
-	Symbol_ptr symbol = current_scope->direct_child_of_namespace(nmspace, expr.name);
-	NULL_CHECK(symbol);
-
-	return symbol->type;
-}
-
-Object_ptr SemanticAnalyzer::visit(std::wstring nmspace, Identifier& expr)
-{
-	Symbol_ptr symbol = current_scope->direct_child_of_namespace(nmspace, expr.name);
-	NULL_CHECK(symbol);
-
-	return symbol->type;
-}
-
-Object_ptr SemanticAnalyzer::visit(DoubleColonPair& expr)
-{
-	return visit(L"", expr);
 }
 
 Object_ptr SemanticAnalyzer::visit(Call& expr)
@@ -321,4 +255,20 @@ Object_ptr SemanticAnalyzer::visit(Call& expr)
 		}, *symbol->type);
 
 	return return_type;
+}
+
+Object_ptr SemanticAnalyzer::visit(Spread& expr)
+{
+	Object_ptr operand_type = visit(expr.expression);
+
+	if (current_scope->is_rvalue)
+	{
+		expr.is_rvalue = true;
+		type_system->expect_spreadable_type(current_scope, operand_type);
+		operand_type = type_system->spread_type(operand_type);
+		return operand_type;
+	}
+
+	expr.is_rvalue = false;
+	return operand_type;
 }

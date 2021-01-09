@@ -67,3 +67,17 @@ std::wstring read_source(string path)
 
 	return raw_source_file;
 }
+
+UTILS_API std::wstring concat(std::vector<std::wstring> items, std::wstring connector)
+{
+	std::wstring final_string = L"";
+
+	for (const auto member : items)
+	{
+		final_string.append(connector);
+		final_string.append(member);
+	}
+
+	final_string = final_string.substr(2, final_string.size());
+	return final_string;
+}

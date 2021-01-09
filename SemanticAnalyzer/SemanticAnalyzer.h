@@ -49,7 +49,6 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 	void visit(Scenario& statement);
 	void visit(Test& statement);
 	void visit(EnumDefinition& statement);
-	void visit(Namespace& statement);
 	void visit(FunctionDefinition& statement);
 
 	// Expression
@@ -66,7 +65,6 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 	Object_ptr visit(MapLiteral& expr);
 	Object_ptr visit(SetLiteral& expr);
 	Object_ptr visit(TernaryCondition& expr);
-	Object_ptr visit(Spread& expr);
 	Object_ptr visit(TypePattern& expr);
 	Object_ptr visit(UntypedAssignment& expr);
 	Object_ptr visit(TypedAssignment& expr);
@@ -74,8 +72,9 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 	Object_ptr visit(Infix& expr);
 	Object_ptr visit(Postfix& expr);
 	Object_ptr visit(Identifier& expr);
-	Object_ptr visit(DoubleColonPair& expr);
 	Object_ptr visit(Call& expr);
+	Object_ptr visit(EnumMember& expr);
+	Object_ptr visit(Spread& expr);
 
 	// Types
 
@@ -99,17 +98,13 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 	Object_ptr visit(NoneTypeNode& expr);
 	Object_ptr visit(FunctionTypeNode& expr);
 
-	Object_ptr visit(std::wstring nmspace, DoubleColonPair& dc_pair);
-	Object_ptr visit(std::wstring nmspace, Call& call_expr);
-	Object_ptr visit(std::wstring nmspace, Identifier& expr);
-
 	// Utils
 
 	void enter_scope(ScopeType scope_type);
 	void leave_scope();
 
 	std::tuple<std::wstring, Object_ptr> deconstruct_type_pattern(Expression_ptr expression);
-
+	
 	bool any_eq(ObjectVector vec, Object_ptr x);
 	ObjectVector remove_duplicates(ObjectVector vec);
 
@@ -122,5 +117,3 @@ public:
 };
 
 using SemanticAnalyzer_ptr = SEMANTICANALYZER_API std::unique_ptr<SemanticAnalyzer>;
-
-

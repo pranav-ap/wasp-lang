@@ -17,5 +17,5 @@ enum class Precedence : int
 	PREFIX, // + - ! typeof ...
 	POSTFIX,
 	CALL, // call() new
-	MEMBER_ACCESS // . ?. ::
+	MEMBER_ACCESS // . ?. :: ~
 };

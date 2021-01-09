@@ -46,8 +46,6 @@ const std::map<std::wstring, WTokenType> keyword_map =
 	{ L"prefix", WTokenType::PREFIX },
 	{ L"postfix", WTokenType::POSTFIX },
 
-	{ L"namespace", WTokenType::NAMESPACE },
-
 	{ L"typeof", WTokenType::TYPE_OF },
 	{ L"is", WTokenType::IS },
 

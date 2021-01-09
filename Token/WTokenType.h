@@ -88,8 +88,6 @@ enum class TOKEN_API WTokenType
 	CASE,
 	END,
 
-	NAMESPACE,
-
 	ASSERT,
 	IMPLORE,
 	SWEAR,

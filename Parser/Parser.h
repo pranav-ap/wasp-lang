@@ -52,8 +52,6 @@ class PARSER_API Parser
 	Statement_ptr parse_continue();
 	Statement_ptr parse_redo();
 
-	Statement_ptr parse_namespace();
-
 	// Function and Generator
 
 	std::tuple<std::wstring, StringVector, TypeNodeVector, std::optional<TypeNode_ptr>, Block> parse_callable_definition();

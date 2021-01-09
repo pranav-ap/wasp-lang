@@ -54,7 +54,6 @@ void Compiler::visit(const Statement_ptr statement)
 		[&](Scenario const& stat) { visit(stat); },
 		[&](Test const& stat) { visit(stat); },
 		[&](EnumDefinition const& stat) { visit(stat); },
-		[&](Namespace const& stat) { visit(stat); },
 		[&](FunctionDefinition const& stat) { visit(stat); },
 		
 		[](auto) { FATAL("Never Seen this Statement before!"); }
@@ -226,13 +225,6 @@ void Compiler::visit(Test const& statement)
 	emit(OpCode::LOCAL_SCOPE_START);
 	visit(statement.body);
 	emit(OpCode::LOCAL_SCOPE_STOP);
-	leave_scope();
-}
-
-void Compiler::visit(Namespace const& statement)
-{
-	set_current_scope(statement.scope);
-	visit(statement.body);
 	leave_scope();
 }
 

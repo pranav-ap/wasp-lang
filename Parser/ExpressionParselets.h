@@ -112,13 +112,6 @@ public:
 	int get_precedence();
 };
 
-class SpreadParselet : public IPrefixParselet
-{
-public:
-	Expression_ptr parse(Parser_ptr parser, Token_ptr token);
-	int get_precedence();
-};
-
 class AssignmentParselet : public IInfixParselet
 {
 public:
@@ -133,13 +126,6 @@ public:
 	int get_precedence();
 };
 
-class DoubleColonPairParselet : public IInfixParselet
-{
-public:
-	Expression_ptr parse(Parser_ptr parser, Expression_ptr left, Token_ptr token);
-	int get_precedence();
-};
-
 class CallParselet : public IInfixParselet
 {
 public:
@@ -148,4 +134,9 @@ public:
 	int get_precedence();
 };
 
-std::wstring concat(StringVector items, std::wstring connector);
+class EnumMemberParselet : public IInfixParselet
+{
+public:
+	Expression_ptr parse(Parser_ptr parser, Expression_ptr left, Token_ptr token);
+	int get_precedence();
+};

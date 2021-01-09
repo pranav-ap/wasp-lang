@@ -25,13 +25,12 @@ using std::vector;
 using std::make_shared;
 using std::move;
 
+
 void SemanticAnalyzer::enter_scope(ScopeType scope_type)
 {
 	NULL_CHECK(current_scope);
 	
 	auto child_scope = std::make_shared<SymbolScope>(current_scope, scope_type);
-	child_scope->name_space = current_scope->name_space;
-
 	current_scope = child_scope;
 }
 

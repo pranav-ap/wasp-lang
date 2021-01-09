@@ -360,13 +360,6 @@ Statement_ptr Parser::parse_test()
 	return MAKE_STATEMENT(Test(title->value, statements));
 }
 
-Statement_ptr Parser::parse_namespace()
-{
-	auto title = token_pipe->require(WTokenType::IDENTIFIER);
-	auto statements = parse_block();
-	return MAKE_STATEMENT(Namespace(title->value, statements));
-}
-
 // Utils
 
 tuple<Expression_ptr, Expression_ptr, TypeNode_ptr> Parser::deconstruct_TypedAssignment(Expression_ptr expr)

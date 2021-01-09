@@ -149,11 +149,6 @@ bool TypeSystem::is_enum_type(SymbolScope_ptr scope, const Object_ptr type) cons
 	return holds_alternative<EnumType>(*type);
 }
 
-bool TypeSystem::is_namespace_type(SymbolScope_ptr scope, const Object_ptr type) const
-{
-	return holds_alternative<NamespaceType>(*type);
-}
-
 // assert type
 
 void TypeSystem::expect_boolean_type(const Object_ptr type) const
@@ -206,17 +201,12 @@ void TypeSystem::expect_key_type(SymbolScope_ptr scope, const Object_ptr type) c
 	ASSERT(is_key_type(scope, type), "Must be a key Type");
 }
 
+// extract 
+
 EnumType* TypeSystem::extract_enum_type(const Object_ptr type) const
 {
 	ASSERT(holds_alternative<EnumType>(*type), "Must be a EnumType");
 	auto inner_type = get_if<EnumType>(&*type);
-	return inner_type;
-}
-
-NamespaceType* TypeSystem::extract_namespace_type(const Object_ptr type) const
-{
-	ASSERT(holds_alternative<NamespaceType>(*type), "Must be a NamespaceType");
-	auto inner_type = get_if<NamespaceType>(&*type);
 	return inner_type;
 }
 
