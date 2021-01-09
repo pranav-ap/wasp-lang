@@ -1,8 +1,15 @@
 ﻿
-fn add(a : int, b : int)
-    return a + b
+namespace Hello
+    let a = 4
+
+    enum Kind
+        X
+        Y
+    end
 end
 
-add(1, 2)
+Hello::a
+Hello::Kind::X
+Hello::bye()
 
-
+Hello ~ a

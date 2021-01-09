@@ -29,7 +29,7 @@ struct Identifier;
 struct Prefix;
 struct Infix;
 struct Postfix;
-struct EnumMember;
+struct DoubleColonPair;
 struct Call;
 
 using Expression = AST_API std::variant<
@@ -37,7 +37,7 @@ using Expression = AST_API std::variant<
 	int, double, std::wstring, bool,
 	ListLiteral, TupleLiteral, SetLiteral, MapLiteral, Identifier, 
 	UntypedAssignment, TypedAssignment, Spread, Prefix, Infix, Postfix, TypePattern, 
-	TernaryCondition, EnumMember, Call
+	TernaryCondition, DoubleColonPair, Call 
 >;
 
 using Expression_ptr = AST_API std::shared_ptr<Expression>;
@@ -72,7 +72,6 @@ struct AST_API TypedAssignment : public Assignment
 	TypedAssignment(Expression_ptr lhs_expression, Expression_ptr rhs_expression, TypeNode_ptr type_node)
 		: Assignment(lhs_expression, rhs_expression), type_node(std::move(type_node)) {};
 };
-
 
 struct AST_API SequenceLiteral
 {
@@ -164,24 +163,23 @@ struct AST_API TypePattern
 		: expression(std::move(expression)), type_node(std::move(type_node)) {};
 };
 
-struct AST_API EnumMember
+struct AST_API DoubleColonPair
 {
-	std::vector<std::wstring> member_chain;
-	std::wstring chain_string;
+	Expression_ptr left;
+	Expression_ptr right;
 
-	EnumMember(std::wstring chain_string, std::vector<std::wstring> member_chain)
-		: chain_string(chain_string), member_chain(member_chain) {};
+	DoubleColonPair(Expression_ptr left, Expression_ptr right)
+		: left(left), right(right) {};
 };
 
 struct AST_API Call 
 {
-	bool is_builtin;
 	std::wstring name;
 	ExpressionVector arguments;
 
 	Call(std::wstring name) 
-		: name(name), is_builtin(false) {};
+		: name(name) {};
 
 	Call(std::wstring name, ExpressionVector arguments) 
-		: name(name), is_builtin(false), arguments(arguments) {};
+		: name(name), arguments(arguments) {};
 };

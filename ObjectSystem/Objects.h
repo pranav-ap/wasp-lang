@@ -16,7 +16,6 @@
 #include <memory>
 #include <variant>
 
-
 // Type Objects
 
 struct AnyType;
@@ -36,6 +35,7 @@ struct VariantType;
 struct NoneType;
 struct EnumType;
 struct FunctionType;
+struct NamespaceType;
 
 // Object
 
@@ -74,7 +74,7 @@ using Object = OBJECTSYSTEM_API std::variant<
 	IntLiteralType, FloatLiteralType, StringLiteralType, BooleanLiteralType,
 	IntType, FloatType, StringType, BooleanType,
 	ListType, TupleType, SetType, MapType, VariantType, NoneType, EnumType,
-	FunctionType
+	FunctionType, NamespaceType
 >;
 
 using Object_ptr = OBJECTSYSTEM_API std::shared_ptr<Object>;
@@ -330,6 +330,16 @@ struct OBJECTSYSTEM_API CallableType : public AnyType
 	CallableType(ObjectVector input_types, Object_ptr return_type)
 		: input_types(input_types), return_type(std::make_optional(return_type)) {};
 };
+
+struct OBJECTSYSTEM_API NamespaceType : public AnyType
+{
+	std::wstring name;
+	std::wstring fullname;
+
+	NamespaceType(std::wstring name, std::wstring fullname)
+		: name(name), fullname(fullname) {};
+};
+
 
 // Scalar Types
 

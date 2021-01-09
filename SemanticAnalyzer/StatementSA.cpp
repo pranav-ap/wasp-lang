@@ -102,7 +102,8 @@ void SemanticAnalyzer::visit(SimpleForInLoop& statement)
 	}
 	else
 	{
-		left_type = right_type; // TODO : must spread
+		type_system->expect_spreadable_type(current_scope, right_type);
+		left_type = type_system->spread_type(right_type);
 	}	
 
 	auto symbol = MAKE_SYMBOL(next_id++, statement.name, left_type, PRIVATE_SYMBOL, MUTABLE_SYMBOL);
@@ -138,7 +139,11 @@ void SemanticAnalyzer::visit(Test& statement)
 void SemanticAnalyzer::visit(Namespace& statement)
 {
 	statement.scope = current_scope;
-	current_scope->name_space = current_scope->name_space + statement.title;
+	current_scope->name_space += statement.title;
+
+	auto type = MAKE_OBJECT_VARIANT(NamespaceType(statement.title, current_scope->name_space));
+	auto symbol = MAKE_SYMBOL(next_id++, statement.title, type, PUBLIC_SYMBOL, CONST_SYMBOL);
+	current_scope->define(statement.title, symbol);
 
 	visit(statement.body);
 }

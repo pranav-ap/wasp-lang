@@ -30,9 +30,12 @@ using SymbolScope_ptr = SYMBOL_API std::shared_ptr<SymbolScope>;
 struct SYMBOL_API SymbolScope
 {
 	std::wstring name_space;
+
 	ScopeType scope_type;
-	CodeObject_ptr code_object;
 	std::optional<SymbolScope_ptr> enclosing_scope;
+	
+	CodeObject_ptr code_object;
+	
 	std::map<std::wstring, Symbol_ptr> symbols;
 
 	bool is_rvalue;
@@ -56,8 +59,10 @@ struct SYMBOL_API SymbolScope
 		code_object(std::make_shared<CodeObject>()) {};
 
 	void define(std::wstring name, Symbol_ptr symbol);
+	
 	Symbol_ptr lookup(std::wstring name);
-
+	Symbol_ptr direct_child_of_namespace(std::wstring nmspace, std::wstring name);
+	
 	bool enclosed_in(ScopeType type);
 	bool enclosed_in(std::vector<ScopeType> types);
 };

@@ -205,26 +205,12 @@ Expression_ptr SpreadParselet::parse(Parser_ptr parser, Token_ptr token)
 	return MAKE_EXPRESSION(Spread(expression));
 }
 
-Expression_ptr EnumMemberParselet::parse(Parser_ptr parser, Expression_ptr left, Token_ptr token)
+Expression_ptr DoubleColonPairParselet::parse(Parser_ptr parser, Expression_ptr left, Token_ptr token)
 {
-	ASSERT(holds_alternative<Identifier>(*left), "Expect enum member name");
-	auto identifier = get_if<Identifier>(&*left);
-
-	std::vector<std::wstring> chain = { identifier->name };
-
-	while (auto member_identifier = parser->token_pipe->require(WTokenType::IDENTIFIER))
-	{
-		chain.push_back(member_identifier->value);
-
-		if (!parser->token_pipe->optional(WTokenType::COLON_COLON))
-			break;
-	}
-
-	auto member_string = concat(chain, L"::");
-
-	return MAKE_EXPRESSION(EnumMember(member_string, chain));
+	auto right = parser->parse_expression();
+	ASSERT(holds_alternative<Call>(*right) || holds_alternative<Identifier>(*right), "Expected Call or Identifier");
+	return MAKE_EXPRESSION(DoubleColonPair(left, right));
 }
-
 
 Expression_ptr CallParselet::parse(Parser_ptr parser, Identifier* identifier)
 {
@@ -296,7 +282,7 @@ int SpreadParselet::get_precedence()
 	return (int)Precedence::PREFIX;
 }
 
-int EnumMemberParselet::get_precedence()
+int DoubleColonPairParselet::get_precedence()
 {
 	return (int)Precedence::MEMBER_ACCESS;
 }

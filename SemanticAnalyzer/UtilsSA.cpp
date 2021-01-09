@@ -42,20 +42,6 @@ void SemanticAnalyzer::leave_scope()
 	current_scope = current_scope->enclosing_scope.value();
 }
 
-wstring SemanticAnalyzer::concat(StringVector items, wstring middle)
-{
-	wstring final_string = L"";
-
-	for (const auto member : items)
-	{
-		final_string.append(middle);
-		final_string.append(member);
-	}
-
-	final_string = final_string.substr(2, final_string.size());
-	return final_string;
-}
-
 std::tuple<std::wstring, Object_ptr> SemanticAnalyzer::deconstruct_type_pattern(Expression_ptr expression)
 {
 	ASSERT(holds_alternative<TypePattern>(*expression), "Expected a TypePattern");

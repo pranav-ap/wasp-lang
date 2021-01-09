@@ -49,7 +49,7 @@ void Compiler::visit(const Expression_ptr expression)
 		[&](TypePattern const& expr) { visit(expr); },
 		[&](UntypedAssignment const& expr) { visit(expr); },
 		[&](TypedAssignment const& expr) { visit(expr); },
-		[&](EnumMember const& expr) { visit(expr); },
+		[&](DoubleColonPair const& expr) { visit(expr); },
 		[&](Call const& expr) { visit(expr); },
 
 		[&](auto)
@@ -300,7 +300,7 @@ void Compiler::visit(TypedAssignment const& statement)
 	FATAL("TypedAssignment must be handled by parent nodes");
 }
 
-void Compiler::visit(EnumMember const& expr)
+void Compiler::visit(DoubleColonPair const& expr)
 {
 	auto enum_name = expr.member_chain.front();
 	auto enum_symbol = current_scope->lookup(enum_name);

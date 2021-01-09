@@ -74,7 +74,7 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 	Object_ptr visit(Infix& expr);
 	Object_ptr visit(Postfix& expr);
 	Object_ptr visit(Identifier& expr);
-	Object_ptr visit(EnumMember& expr);
+	Object_ptr visit(DoubleColonPair& expr);
 	Object_ptr visit(Call& expr);
 
 	// Types
@@ -99,13 +99,17 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 	Object_ptr visit(NoneTypeNode& expr);
 	Object_ptr visit(FunctionTypeNode& expr);
 
+	Object_ptr visit(std::wstring nmspace, DoubleColonPair& dc_pair);
+	Object_ptr visit(std::wstring nmspace, Call& call_expr);
+	Object_ptr visit(std::wstring nmspace, Identifier& expr);
+
 	// Utils
 
 	void enter_scope(ScopeType scope_type);
 	void leave_scope();
 
-	std::wstring concat(StringVector items, std::wstring middle);
 	std::tuple<std::wstring, Object_ptr> deconstruct_type_pattern(Expression_ptr expression);
+
 	bool any_eq(ObjectVector vec, Object_ptr x);
 	ObjectVector remove_duplicates(ObjectVector vec);
 

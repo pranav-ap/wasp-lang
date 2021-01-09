@@ -94,7 +94,7 @@ class COMPILER_API Compiler
 	void visit(Postfix const& expr);
 	void visit(Identifier const& expr);
 	void visit(Spread const& expr);
-	void visit(EnumMember const& expr);
+	void visit(DoubleColonPair const& expr);
 	void visit(Call const& expr);
 
 	// Emit

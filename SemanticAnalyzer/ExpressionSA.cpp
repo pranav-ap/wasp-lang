@@ -45,7 +45,7 @@ Object_ptr SemanticAnalyzer::visit(const Expression_ptr expression)
 		[&](UntypedAssignment& expr) { return visit(expr); },
 		[&](TypedAssignment& expr) { return visit(expr); },
 		[&](Spread& expr) { return visit(expr); },
-		[&](EnumMember& expr) { return visit(expr); },
+		[&](DoubleColonPair& expr) { return visit(expr); },
 		[&](Call& expr) { return visit(expr); },
 
 		[&](auto)
@@ -234,16 +234,72 @@ Object_ptr SemanticAnalyzer::visit(Identifier& expr)
 	return symbol->type;
 }
 
-Object_ptr SemanticAnalyzer::visit(EnumMember& expr)
+Object_ptr SemanticAnalyzer::visit(std::wstring nmspace, DoubleColonPair& expr)
 {
-	Symbol_ptr symbol = current_scope->lookup(expr.member_chain.front());
+	ASSERT(holds_alternative<Identifier>(*expr.left), "Expected an Identifier");
+	auto identifier = get_if<Identifier>(&*expr.left);
+
+	Symbol_ptr symbol = current_scope->direct_child_of_namespace(nmspace, identifier->name);
 	NULL_CHECK(symbol);
 
-	auto enum_type = type_system->extract_enum_type(symbol->type);
-	wstring enum_string = concat(expr.member_chain, L"::");
-	ASSERT(enum_type->members.contains(enum_string), "Enum does not contain this member");
+	if (type_system->is_enum_type(current_scope, symbol->type))
+	{
+		auto enum_type = type_system->extract_enum_type(symbol->type);
+		wstring enum_member = identifier->name;
+
+		while (true)
+		{
+			ASSERT(holds_alternative<Identifier>(*expr.right), "Expected an Identifier");
+			auto identifier = get_if<Identifier>(&*expr.right);
+			enum_member += identifier->name;
+
+		}
+
+		ASSERT(enum_type->members.contains(expr.chain_string), "Enum does not contain this member");
+		return symbol->type;
+	}
+
+	return std::visit(overloaded{
+		[&](DoubleColonPair& ex)
+		{
+			return visit(nmspace, ex);
+		},
+		[&](Identifier& ex)
+		{
+			return visit(nmspace, ex);
+		},
+		[&](Call& ex)
+		{
+			return visit(nmspace, ex);
+		},
+
+		[&](auto)
+		{
+			FATAL("Expected DoubleColonPair or Identifier or Call");
+			return type_system->type_pool->get_none_type();
+		}
+		}, *expr.right);
+}
+
+Object_ptr SemanticAnalyzer::visit(std::wstring nmspace, Call& expr)
+{
+	Symbol_ptr symbol = current_scope->direct_child_of_namespace(nmspace, expr.name);
+	NULL_CHECK(symbol);
 
 	return symbol->type;
+}
+
+Object_ptr SemanticAnalyzer::visit(std::wstring nmspace, Identifier& expr)
+{
+	Symbol_ptr symbol = current_scope->direct_child_of_namespace(nmspace, expr.name);
+	NULL_CHECK(symbol);
+
+	return symbol->type;
+}
+
+Object_ptr SemanticAnalyzer::visit(DoubleColonPair& expr)
+{
+	return visit(L"", expr);
 }
 
 Object_ptr SemanticAnalyzer::visit(Call& expr)
