@@ -32,7 +32,7 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 	void visit(DeconstructedVariableDefinition& statement);
 	void visit(ExpressionStatement& statement);
 	void visit(SimpleIfBranch& statement);
-	void visit(TaggedIfBranch& statement);
+	void visit(AssignedIfBranch& statement);
 	void visit(ElseBranch& statement);
 	void visit(SimpleWhileLoop& statement);
 	void visit(AssignedWhileLoop& statement);

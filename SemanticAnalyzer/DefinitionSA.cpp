@@ -34,21 +34,21 @@ void SemanticAnalyzer::visit(SingleVariableDefinition& statement)
 {
 	statement.scope = current_scope;
 
+	Object_ptr rhs_type = visit(statement.rhs_expression);
 	Object_ptr type;
 
 	if (statement.type.has_value())
 	{
 		type = visit(statement.type.value());
-		Object_ptr rhs_type = visit(statement.rhs_expression);
 		ASSERT(type_system->assignable(current_scope, type, rhs_type), "Type mismatch in assignment");
 	}
 	else
 	{
-		type = visit(statement.rhs_expression);
+		type = rhs_type;
 	}
 
 	auto symbol = MAKE_SYMBOL(next_id++, statement.name, type, statement.is_public, statement.is_mutable);
-	current_scope->define(statement.name, symbol);	
+	current_scope->define(statement.name, symbol);
 }
 
 void SemanticAnalyzer::visit(DeconstructedVariableDefinition& statement)

@@ -45,7 +45,7 @@ void SemanticAnalyzer::visit(Statement_ptr statement)
 		[&](DeconstructedVariableDefinition& stat) { visit(stat); },
 		[&](ExpressionStatement& stat) { visit(stat); },
 		[&](SimpleIfBranch& stat) { visit(stat); },
-		[&](TaggedIfBranch& stat) { visit(stat); },
+		[&](AssignedIfBranch& stat) { visit(stat); },
 		[&](ElseBranch& stat) { visit(stat); },
 		[&](SimpleWhileLoop& stat) { visit(stat); },
 		[&](AssignedWhileLoop& stat) { visit(stat); },

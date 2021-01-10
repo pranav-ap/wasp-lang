@@ -1,8 +1,8 @@
 ﻿
-fn add(a : int, b : int) => int
-    if a > b then
-        return a
-    end
-
-    return b
+if 1 then
+    2
+elif x = 4 then
+    x
+else
+    3
 end

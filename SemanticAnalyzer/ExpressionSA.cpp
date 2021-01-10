@@ -185,16 +185,16 @@ Object_ptr SemanticAnalyzer::visit(UntypedAssignment& expression)
 	Object_ptr rhs_type = visit(expression.rhs_expression);
 	ASSERT(type_system->assignable(current_scope, lhs_type, rhs_type), "TypeNode mismatch in assignment");
 
-	return rhs_type;
+	return lhs_type;
 }
 
 Object_ptr SemanticAnalyzer::visit(TypedAssignment& expression)
 {
-	Object_ptr rhs_type = visit(expression.rhs_expression);
 	Object_ptr type = visit(expression.type_node);
+	Object_ptr rhs_type = visit(expression.rhs_expression);
 	ASSERT(type_system->assignable(current_scope, type, rhs_type), "Type mismatch in assignment");
 
-	return rhs_type;
+	return type;
 }
 
 Object_ptr SemanticAnalyzer::visit(Prefix& expr)

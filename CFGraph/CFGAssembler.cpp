@@ -18,7 +18,7 @@ CodeObject_ptr CFGAssembler::assemble(CFG_ptr cfg)
 		int start = instructions.size();
 		// - end value is inclusive since we perform -1
 		// - it is not used currently
-		int end = start + block->code_object->instructions.size() - 1; 
+		int end = start + block->code_object->instructions.size() - 1;
 
 		block_locations[id] = { start, end };
 
@@ -60,7 +60,7 @@ CodeObject_ptr CFGAssembler::assemble(CFG_ptr cfg)
 		case OpCode::POP_JUMP_IF_FALSE:
 		{
 			int to_label = to_integer<int>(instructions.at(index + (size_t)1));
-			int false_block_id = cfg->label_to_block_id[to_label];						
+			int false_block_id = cfg->label_to_block_id[to_label];
 			int false_block_start_index = block_locations[false_block_id].first;
 
 			instructions.at(index + (size_t)1) = static_cast<std::byte>(false_block_start_index);
@@ -73,6 +73,6 @@ CodeObject_ptr CFGAssembler::assemble(CFG_ptr cfg)
 
 	CodeObject_ptr refined_code_object = std::make_shared<CodeObject>();
 	refined_code_object->set(instructions);
-	
+
 	return refined_code_object;
 }

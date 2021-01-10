@@ -37,7 +37,7 @@ void Compiler::visit(const Statement_ptr statement)
 		[&](SingleVariableDefinition const& stat) { visit(stat); },
 		[&](DeconstructedVariableDefinition const& stat) { visit(stat); },
 		[&](SimpleIfBranch const& stat) { visit(stat); },
-		[&](TaggedIfBranch const& stat) { visit(stat); },
+		[&](AssignedIfBranch const& stat) { visit(stat); },
 		[&](ElseBranch const& stat) { visit(stat); },
 		[&](SimpleWhileLoop const& stat) { visit(stat); },
 		[&](AssignedWhileLoop const& stat) { visit(stat); },
@@ -55,7 +55,7 @@ void Compiler::visit(const Statement_ptr statement)
 		[&](Test const& stat) { visit(stat); },
 		[&](EnumDefinition const& stat) { visit(stat); },
 		[&](FunctionDefinition const& stat) { visit(stat); },
-		
+
 		[](auto) { FATAL("Never Seen this Statement before!"); }
 		}, *statement);
 }
@@ -82,7 +82,6 @@ void Compiler::visit(SimpleIfBranch const& statement)
 void Compiler::visit(SimpleIfBranch const& statement, int exit_tree_label, int branch_label)
 {
 	set_current_scope(statement.scope);
-	emit(OpCode::LOCAL_SCOPE_START);
 
 	emit(OpCode::LABEL, branch_label);
 	visit(statement.test);
@@ -92,36 +91,94 @@ void Compiler::visit(SimpleIfBranch const& statement, int exit_tree_label, int b
 	if (alternative_exists)
 	{
 		branch_label = create_label();
+
 		emit(OpCode::POP_JUMP_IF_FALSE, branch_label);
+		emit(OpCode::POP_FROM_STACK);
+		emit(OpCode::PUSH_LOCAL_SCOPE);
 		visit(statement.body);
-		emit(OpCode::POP_JUMP, exit_tree_label);
+		emit(OpCode::POP_LOCAL_SCOPE);
+
+		emit(OpCode::JUMP, exit_tree_label);
 	}
 	else
 	{
 		emit(OpCode::POP_JUMP_IF_FALSE, exit_tree_label);
+		emit(OpCode::POP_FROM_STACK);
+		emit(OpCode::PUSH_LOCAL_SCOPE);
 		visit(statement.body);
+		emit(OpCode::POP_LOCAL_SCOPE);
 	}
 
-	emit(OpCode::LOCAL_SCOPE_STOP);
 	leave_scope();
 
 	if (alternative_exists)
 	{
 		std::visit(overloaded{
 			[&](SimpleIfBranch const& if_branch) { visit(if_branch, exit_tree_label, branch_label); },
-			[&](TaggedIfBranch const& if_branch) { visit(if_branch, exit_tree_label, branch_label); },
+			[&](AssignedIfBranch const& if_branch) { visit(if_branch, exit_tree_label, branch_label); },
 			[&](ElseBranch const& else_branch) { visit(else_branch, branch_label); },
-			[](auto) { FATAL("Alternative must be an SimpleIfBranch or TaggedIfBranch or ElseBranch"); }
+			[](auto) { FATAL("Alternative must be an SimpleIfBranch or AssignedIfBranch or ElseBranch"); }
 			}, *statement.alternative.value());
 	}
 }
 
-void Compiler::visit(TaggedIfBranch const& statement)
+void Compiler::visit(AssignedIfBranch const& statement)
 {
+	int exit_tree_label = create_label();
+	int	branch_label = create_label();
+
+	visit(statement, exit_tree_label, branch_label);
+	emit(OpCode::LABEL, exit_tree_label);
 }
 
-void Compiler::visit(TaggedIfBranch const& statement, int exit_tree_label, int branch_label)
+void Compiler::visit(AssignedIfBranch const& statement, int exit_tree_label, int branch_label)
 {
+	set_current_scope(statement.scope);
+	emit(OpCode::LABEL, branch_label);
+
+	visit(statement.rhs_expression);
+
+	int symbol_id = current_scope->lookup(statement.name)->id;
+	int id = create_pool_id(symbol_id);
+
+	name_map[id] = statement.name;
+	id_map[symbol_id] = id;
+
+	auto alternative_exists = statement.alternative.has_value();
+
+	if (alternative_exists)
+	{
+		branch_label = create_label();
+		emit(OpCode::POP_JUMP_IF_FALSE, branch_label);
+	}
+	else
+	{
+		emit(OpCode::POP_JUMP_IF_FALSE, exit_tree_label);
+	}
+
+	emit(OpCode::PUSH_LOCAL_SCOPE);
+	emit(OpCode::CREATE_LOCAL, id);
+
+	visit(statement.body);
+
+	emit(OpCode::POP_LOCAL_SCOPE);
+
+	if (alternative_exists)
+	{
+		emit(OpCode::JUMP, exit_tree_label);
+	}
+
+	leave_scope();
+
+	if (alternative_exists)
+	{
+		std::visit(overloaded{
+			[&](SimpleIfBranch const& if_branch) { visit(if_branch, exit_tree_label, branch_label); },
+			[&](AssignedIfBranch const& if_branch) { visit(if_branch, exit_tree_label, branch_label); },
+			[&](ElseBranch const& else_branch) { visit(else_branch, branch_label); },
+			[](auto) { FATAL("Alternative must be an SimpleIfBranch or AssignedIfBranch or ElseBranch"); }
+			}, *statement.alternative.value());
+	}
 }
 
 void Compiler::visit(ElseBranch const& statement)
@@ -132,10 +189,14 @@ void Compiler::visit(ElseBranch const& statement)
 void Compiler::visit(ElseBranch const& statement, int branch_label)
 {
 	set_current_scope(statement.scope);
-	emit(OpCode::LOCAL_SCOPE_START);
+
 	emit(OpCode::LABEL, branch_label);
+	emit(OpCode::PUSH_LOCAL_SCOPE);
+
 	visit(statement.body);
-	emit(OpCode::LOCAL_SCOPE_STOP);
+
+	emit(OpCode::POP_LOCAL_SCOPE);
+
 	leave_scope();
 }
 
@@ -144,7 +205,7 @@ void Compiler::visit(ElseBranch const& statement, int branch_label)
 void Compiler::visit(SimpleWhileLoop const& statement)
 {
 	set_current_scope(statement.scope);
-	emit(OpCode::LOCAL_SCOPE_START);
+	emit(OpCode::PUSH_LOCAL_SCOPE);
 
 	int condition_label = create_label();
 	emit(OpCode::LABEL, condition_label);
@@ -162,7 +223,7 @@ void Compiler::visit(SimpleWhileLoop const& statement)
 	emit(OpCode::JUMP, condition_label);
 	emit(OpCode::LABEL, block_end_label);
 
-	emit(OpCode::LOCAL_SCOPE_STOP);
+	emit(OpCode::POP_LOCAL_SCOPE);
 	leave_scope();
 }
 
@@ -173,7 +234,7 @@ void Compiler::visit(AssignedWhileLoop const& statement)
 void Compiler::visit(SimpleForInLoop const& statement)
 {
 	set_current_scope(statement.scope);
-	emit(OpCode::LOCAL_SCOPE_START);
+	emit(OpCode::PUSH_LOCAL_SCOPE);
 
 	visit(statement.iterable_expression);
 	emit(OpCode::MAKE_ITERABLE);
@@ -200,7 +261,7 @@ void Compiler::visit(SimpleForInLoop const& statement)
 	emit(OpCode::JUMP, block_begin_label);
 	emit(OpCode::LABEL, block_end_label);
 
-	emit(OpCode::LOCAL_SCOPE_STOP);
+	emit(OpCode::POP_LOCAL_SCOPE);
 	leave_scope();
 }
 
@@ -212,19 +273,19 @@ void Compiler::visit(DeconstructedForInLoop const& statement)
 
 void Compiler::visit(Scenario const& statement)
 {
-	set_current_scope(statement.scope); 
-	emit(OpCode::LOCAL_SCOPE_START);
+	set_current_scope(statement.scope);
+	emit(OpCode::PUSH_LOCAL_SCOPE);
 	visit(statement.body);
-	emit(OpCode::LOCAL_SCOPE_STOP);
+	emit(OpCode::POP_LOCAL_SCOPE);
 	leave_scope();
 }
 
 void Compiler::visit(Test const& statement)
 {
 	set_current_scope(statement.scope);
-	emit(OpCode::LOCAL_SCOPE_START);
+	emit(OpCode::PUSH_LOCAL_SCOPE);
 	visit(statement.body);
-	emit(OpCode::LOCAL_SCOPE_STOP);
+	emit(OpCode::POP_LOCAL_SCOPE);
 	leave_scope();
 }
 

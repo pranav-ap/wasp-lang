@@ -116,38 +116,40 @@ Statement_ptr Parser::parse_branching(WTokenType token_type)
 	if (holds_alternative<TypedAssignment>(*condition))
 	{
 		auto [lhs, rhs, type_node] = deconstruct_TypedAssignment(condition);
+		auto name = extract_identifier_string(lhs);
 
 		if (token_pipe->optional(WTokenType::ELIF))
 		{
 			auto alternative = parse_branching(WTokenType::ELIF);
-			return MAKE_STATEMENT(TaggedIfBranch(lhs, rhs, body, type_node, alternative));
+			return MAKE_STATEMENT(AssignedIfBranch(name, rhs, body, type_node, alternative));
 		}
 		else if (token_pipe->optional(WTokenType::ELSE))
 		{
 			auto alternative = parse_else();
-			return MAKE_STATEMENT(TaggedIfBranch(lhs, rhs, body, alternative));
+			return MAKE_STATEMENT(AssignedIfBranch(name, rhs, body, alternative));
 		}
 
 		token_pipe->require(WTokenType::END);
-		return MAKE_STATEMENT(TaggedIfBranch(lhs, rhs, body, type_node));
+		return MAKE_STATEMENT(AssignedIfBranch(name, rhs, body, type_node));
 	}
 	else if (holds_alternative<UntypedAssignment>(*condition))
 	{
 		auto [lhs, rhs] = deconstruct_UntypedAssignment(condition);
+		auto name = extract_identifier_string(lhs);
 
 		if (token_pipe->optional(WTokenType::ELIF))
 		{
 			auto alternative = parse_branching(WTokenType::ELIF);
-			return MAKE_STATEMENT(TaggedIfBranch(lhs, rhs, body, alternative));
+			return MAKE_STATEMENT(AssignedIfBranch(name, rhs, body, alternative));
 		}
 		else if (token_pipe->optional(WTokenType::ELSE))
 		{
 			auto alternative = parse_else();
-			return MAKE_STATEMENT(TaggedIfBranch(lhs, rhs, body, alternative));
+			return MAKE_STATEMENT(AssignedIfBranch(name, rhs, body, alternative));
 		}
 
 		token_pipe->require(WTokenType::END);
-		return MAKE_STATEMENT(TaggedIfBranch(lhs, rhs, body));
+		return MAKE_STATEMENT(AssignedIfBranch(name, rhs, body));
 	}
 
 	// Simple If Branch
@@ -305,7 +307,7 @@ Statement_ptr Parser::parse_for_in_loop()
 			auto statement = parse_non_block_statement();
 			return MAKE_STATEMENT(SimpleForInLoop({ statement }, identifier->name, iterable_expression, type_node));
 		}
-		
+
 		if (token_pipe->optional(WTokenType::EOL))
 		{
 			auto body = parse_block();
@@ -389,4 +391,11 @@ tuple<Expression_ptr, TypeNode_ptr> Parser::deconstruct_type_pattern(Expression_
 	auto type_pattern = get_if<TypePattern>(&*expression);
 
 	return std::make_tuple(type_pattern->expression, type_pattern->type_node);
+}
+
+std::wstring Parser::extract_identifier_string(Expression_ptr expr)
+{
+	ASSERT(holds_alternative<Identifier>(*expr), "Expected an Identifier");
+	auto identifier = get_if<Identifier>(&*expr);
+	return identifier->name;
 }

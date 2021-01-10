@@ -96,12 +96,13 @@ class PARSER_API Parser
 	std::tuple<Expression_ptr, TypeNode_ptr> deconstruct_type_pattern(Expression_ptr expr);
 	std::tuple<Expression_ptr, Expression_ptr> deconstruct_UntypedAssignment(Expression_ptr expr);
 	std::tuple<Expression_ptr, Expression_ptr, TypeNode_ptr> deconstruct_TypedAssignment(Expression_ptr expr);
+	std::wstring extract_identifier_string(Expression_ptr expr);
 
 public:
 	TokenPipe_ptr token_pipe;
 
 	Parser();
-	
+
 	TypeNode_ptr parse_type(bool is_optional = false);
 	Expression_ptr parse_expression();
 	Expression_ptr parse_expression(int precedence);

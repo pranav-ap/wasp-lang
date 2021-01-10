@@ -133,9 +133,9 @@ void CFGBuilder::split_into_basic_blocks()
 		case OpCode::NULLISH_COALESE:
 		case OpCode::PUSH_CONSTANT_TRUE:
 		case OpCode::PUSH_CONSTANT_FALSE:
-		case OpCode::MAKE_ITERABLE:			
-		case OpCode::LOCAL_SCOPE_START:
-		case OpCode::LOCAL_SCOPE_STOP:
+		case OpCode::MAKE_ITERABLE:
+		case OpCode::PUSH_LOCAL_SCOPE:
+		case OpCode::POP_LOCAL_SCOPE:
 		{
 			IS_A_FOLLOWER;
 			emit(opcode);

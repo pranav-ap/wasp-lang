@@ -39,7 +39,7 @@ void SemanticAnalyzer::visit(ExpressionStatement& statement)
 
 void SemanticAnalyzer::visit(SimpleIfBranch& statement)
 {
-	enter_scope(ScopeType::EXPRESSION);
+	enter_scope(ScopeType::BRANCH);
 	statement.scope = current_scope;
 
 	Object_ptr condition_type = visit(statement.test);
@@ -54,8 +54,37 @@ void SemanticAnalyzer::visit(SimpleIfBranch& statement)
 	}
 }
 
-void SemanticAnalyzer::visit(TaggedIfBranch& statement)
+void SemanticAnalyzer::visit(AssignedIfBranch& statement)
 {
+	enter_scope(ScopeType::BRANCH);
+	statement.scope = current_scope;
+
+	Object_ptr right_type = visit(statement.rhs_expression);
+	type_system->expect_condition_type(current_scope, right_type);
+
+	Object_ptr left_type;
+
+	if (statement.type_node.has_value())
+	{
+		left_type = visit(statement.type_node.value());
+		type_system->expect_condition_type(current_scope, left_type);
+		ASSERT(type_system->assignable(current_scope, left_type, right_type), "Type mismatch in AssignedIfBranch assignment");
+	}
+	else
+	{
+		left_type = right_type;
+	}
+
+	auto symbol = MAKE_SYMBOL(next_id++, statement.name, left_type, PRIVATE_SYMBOL, MUTABLE_SYMBOL);
+	current_scope->define(statement.name, symbol);
+
+	visit(statement.body);
+	leave_scope();
+
+	if (statement.alternative.has_value())
+	{
+		visit(statement.alternative.value());
+	}
 }
 
 void SemanticAnalyzer::visit(ElseBranch& statement)
@@ -81,7 +110,7 @@ void SemanticAnalyzer::visit(SimpleWhileLoop& statement)
 
 void SemanticAnalyzer::visit(AssignedWhileLoop& statement)
 {
-	// TODO 
+	// TODO
 }
 
 // Looping - for loop
@@ -104,7 +133,7 @@ void SemanticAnalyzer::visit(SimpleForInLoop& statement)
 	{
 		type_system->expect_spreadable_type(current_scope, right_type);
 		left_type = type_system->spread_type(right_type);
-	}	
+	}
 
 	auto symbol = MAKE_SYMBOL(next_id++, statement.name, left_type, PRIVATE_SYMBOL, MUTABLE_SYMBOL);
 	current_scope->define(statement.name, symbol);
@@ -115,7 +144,7 @@ void SemanticAnalyzer::visit(SimpleForInLoop& statement)
 
 void SemanticAnalyzer::visit(DeconstructedForInLoop& statement)
 {
-	// TODO 
+	// TODO
 }
 
 void SemanticAnalyzer::visit(Scenario& statement)
@@ -165,7 +194,6 @@ void SemanticAnalyzer::visit(Return& statement)
 
 void SemanticAnalyzer::visit(YieldStatement& statement)
 {
-	
 }
 
 void SemanticAnalyzer::visit(Assert& statement)

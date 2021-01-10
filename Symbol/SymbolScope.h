@@ -20,6 +20,7 @@ enum class SYMBOL_API ScopeType
 	MODULE,
 	EXPRESSION,
 	LOOP,
+	BRANCH,
 	FUNCTION,
 	TEST
 };
@@ -31,9 +32,9 @@ struct SYMBOL_API SymbolScope
 {
 	ScopeType scope_type;
 	std::optional<SymbolScope_ptr> enclosing_scope;
-	
+
 	CodeObject_ptr code_object;
-	
+
 	std::map<std::wstring, Symbol_ptr> symbols;
 
 	bool is_rvalue;
@@ -58,7 +59,7 @@ struct SYMBOL_API SymbolScope
 
 	void define(std::wstring name, Symbol_ptr symbol);
 	Symbol_ptr lookup(std::wstring name);
-	
+
 	bool enclosed_in(ScopeType type);
 	bool enclosed_in(std::vector<ScopeType> types);
 };

@@ -54,8 +54,8 @@ class COMPILER_API Compiler
 
 	void visit(SimpleIfBranch const& statement);
 	void visit(SimpleIfBranch const& statement, int exit_tree_label, int branch_label);
-	void visit(TaggedIfBranch const& statement);
-	void visit(TaggedIfBranch const& statement, int exit_tree_label, int branch_label);
+	void visit(AssignedIfBranch const& statement);
+	void visit(AssignedIfBranch const& statement, int exit_tree_label, int branch_label);
 	void visit(ElseBranch const& statement);
 	void visit(ElseBranch const& statement, int branch_label);
 

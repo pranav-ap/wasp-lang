@@ -16,8 +16,8 @@ OBJECTSYSTEM_API int get_opcode_arity(OpCode opcode)
 	case OpCode::STOP:
 	case OpCode::FUNCTION_START:
 	case OpCode::FUNCTION_STOP:
-	case OpCode::LOCAL_SCOPE_START:
-	case OpCode::LOCAL_SCOPE_STOP:
+	case OpCode::PUSH_LOCAL_SCOPE:
+	case OpCode::POP_LOCAL_SCOPE:
 	case OpCode::POP_FROM_STACK:
 	case OpCode::UNARY_NEGATIVE:
 	case OpCode::UNARY_NOT:
@@ -277,18 +277,18 @@ OBJECTSYSTEM_API std::wstring stringify_opcode(OpCode opcode)
 	{
 		return L"MAKE_ITERABLE";
 	}
-	case OpCode::LOCAL_SCOPE_START:
+	case OpCode::PUSH_LOCAL_SCOPE:
 	{
-		return L"LOCAL_SCOPE_START";
+		return L"PUSH_LOCAL_SCOPE";
 	}
-	case OpCode::LOCAL_SCOPE_STOP:
+	case OpCode::POP_LOCAL_SCOPE:
 	{
-		return L"LOCAL_SCOPE_STOP";
+		return L"POP_LOCAL_SCOPE";
 	}
 	case OpCode::CREATE_LOCAL:
 	{
 		return L"CREATE_LOCAL";
-	}	
+	}
 	default:
 	{
 		std::wstring empty = L"";

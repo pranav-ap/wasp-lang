@@ -23,7 +23,7 @@ struct SingleVariableDefinition;
 struct DeconstructedVariableDefinition;
 struct ExpressionStatement;
 struct SimpleIfBranch;
-struct TaggedIfBranch;
+struct AssignedIfBranch;
 struct ElseBranch;
 struct SimpleWhileLoop;
 struct AssignedWhileLoop;
@@ -48,8 +48,8 @@ using Statement = AST_API std::variant<
 
 	Module,
 	SingleVariableDefinition, DeconstructedVariableDefinition,
-	ExpressionStatement, SimpleIfBranch, TaggedIfBranch, ElseBranch,
-	SimpleWhileLoop, AssignedWhileLoop, Break, Continue, Redo, 
+	ExpressionStatement, SimpleIfBranch, AssignedIfBranch, ElseBranch,
+	SimpleWhileLoop, AssignedWhileLoop, Break, Continue, Redo,
 	Return, YieldStatement, Assert, Implore, Swear,
 	SimpleForInLoop, DeconstructedForInLoop, Scenario, Test,
 	EnumDefinition, Namespace, FunctionDefinition
@@ -128,23 +128,23 @@ struct AST_API SimpleIfBranch : public IfBranch
 		: IfBranch(body, alternative), test(test) {};
 };
 
-struct AST_API TaggedIfBranch : public IfBranch
+struct AST_API AssignedIfBranch : public IfBranch
 {
-	Expression_ptr lhs_expression;
+	std::wstring name;
 	Expression_ptr rhs_expression;
 	std::optional<TypeNode_ptr> type_node;
 
-	TaggedIfBranch(Expression_ptr lhs_expression, Expression_ptr rhs_expression, Block body)
-		: IfBranch(body), lhs_expression(lhs_expression), rhs_expression(rhs_expression), type_node(std::nullopt) {};
+	AssignedIfBranch(std::wstring name, Expression_ptr rhs_expression, Block body)
+		: IfBranch(body), name(name), rhs_expression(rhs_expression), type_node(std::nullopt) {};
 
-	TaggedIfBranch(Expression_ptr lhs_expression, Expression_ptr rhs_expression, Block body, TypeNode_ptr type_node)
-		: IfBranch(body), lhs_expression(lhs_expression), rhs_expression(rhs_expression), type_node(type_node) {};
+	AssignedIfBranch(std::wstring name, Expression_ptr rhs_expression, Block body, TypeNode_ptr type_node)
+		: IfBranch(body), name(name), rhs_expression(rhs_expression), type_node(type_node) {};
 
-	TaggedIfBranch(Expression_ptr lhs_expression, Expression_ptr rhs_expression, Block body, Statement_ptr alternative)
-		: IfBranch(body, alternative), lhs_expression(lhs_expression), rhs_expression(rhs_expression), type_node(std::nullopt) {};
+	AssignedIfBranch(std::wstring name, Expression_ptr rhs_expression, Block body, Statement_ptr alternative)
+		: IfBranch(body, alternative), name(name), rhs_expression(rhs_expression), type_node(std::nullopt) {};
 
-	TaggedIfBranch(Expression_ptr lhs_expression, Expression_ptr rhs_expression, Block body, TypeNode_ptr type_node, Statement_ptr alternative)
-		: IfBranch(body, alternative), lhs_expression(lhs_expression), rhs_expression(rhs_expression), type_node(type_node) {};
+	AssignedIfBranch(std::wstring name, Expression_ptr rhs_expression, Block body, TypeNode_ptr type_node, Statement_ptr alternative)
+		: IfBranch(body, alternative), name(name), rhs_expression(rhs_expression), type_node(type_node) {};
 };
 
 struct AST_API ElseBranch : public AnnotatedNode
@@ -178,8 +178,8 @@ struct AST_API AssignedWhileLoop : public WhileLoop
 	std::optional<TypeNode_ptr> type_node;
 
 	AssignedWhileLoop(Block body, Expression_ptr lhs_expression, Expression_ptr rhs_expression)
-		: WhileLoop(body), 
-		lhs_expression(std::move(lhs_expression)), 
+		: WhileLoop(body),
+		lhs_expression(std::move(lhs_expression)),
 		rhs_expression(std::move(rhs_expression)),
 		type_node(std::nullopt) {};
 
@@ -199,12 +199,12 @@ struct AST_API ForInLoop : public AnnotatedNode
 	std::optional<TypeNode_ptr> type_node;
 
 	ForInLoop(Block body, Expression_ptr iterable_expression)
-		: body(body), 
+		: body(body),
 		iterable_expression(std::move(iterable_expression)),
 		type_node(std::nullopt) {};
 
 	ForInLoop(Block body, Expression_ptr iterable_expression, TypeNode_ptr type_node)
-		: body(body), 
+		: body(body),
 		iterable_expression(std::move(iterable_expression)),
 		type_node(std::make_optional(type_node)) {};
 };
@@ -314,19 +314,19 @@ struct AST_API TestBlock : public AnnotatedNode
 	std::wstring title;
 	Block body;
 
-	TestBlock(std::wstring title, Block body) 
+	TestBlock(std::wstring title, Block body)
 		: title(title), body(body) {};
 };
 
 struct AST_API Scenario : public TestBlock
 {
-	Scenario(std::wstring title, Block body) 
+	Scenario(std::wstring title, Block body)
 		: TestBlock(title, body) {};
 };
 
 struct AST_API Test : public TestBlock
 {
-	Test(std::wstring title, Block body) 
+	Test(std::wstring title, Block body)
 		: TestBlock(title, body) {};
 };
 

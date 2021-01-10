@@ -11,6 +11,7 @@ let x : ⟨ string => string ⟩ = ⟨ "a" => "b", "c" => "d" ⟩
 
 a = 1
 
+a : int = 1 : int
 
 if a > 3 then call() else 4
 
@@ -65,20 +66,10 @@ end
 # Planned Features
 
 
-let x : Person = new Person("john", false)
-let [a, ...b, c] = some_list
-[a, ...b, c] = some_list
-
-
-import { print } from 'io'
-
-
-x.foo.age = 1
-x(123).foo(36, gg).age = 1
-
-
-type Castle
-    name: string
+if x : int = call() then
+    x = 1
+else
+    3
 end
 
 
@@ -87,8 +78,21 @@ type length = int | string
 type WindowStates = "open" | "closed" | "minimized"
 
 
-if x : int = call() then
-    x = 1
-else
-    3
+let x : Person = new Person("john", false)
+
+
+let [a, ...b, c] = some_list
+[a, ...b, c] = some_list
+
+
+import { echo } from 'io'
+
+
+type Castle
+    name: string
 end
+
+
+x.foo.age = 1
+x(123).foo(36, gg).age = 1
+
