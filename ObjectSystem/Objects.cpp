@@ -363,7 +363,7 @@ std::wstring stringify_object(Object_ptr value)
 		[&](VariantObject const& obj) { return wstring(L"Variant Object"); },
 		[&](ReturnObject const& obj) { return wstring(L"Return Object"); },
 		[&](YieldObject const& obj) { return wstring(L"Yield Object"); },
-		[&](BuiltInsObject const& obj) { return wstring(L"BuiltIns Object"); },
+		[&](BuiltInObject const& obj) { return wstring(L"BuiltIns Object"); },
 		[&](ErrorObject const& obj) { return obj.message; },
 		[&](NoneObject const& obj) { return wstring(L"none"); },
 		[&](BreakObject const& obj) { return wstring(L"break"); },
@@ -373,10 +373,11 @@ std::wstring stringify_object(Object_ptr value)
 		[&](EnumObject const& obj) { return wstring(L"enum " + obj.name); },
 		[&](EnumMemberObject const& obj) { return wstring(L"EnumMemberObject"); },
 		[&](FunctionObject const& obj) { return wstring(L"FunctionObject " + obj.name); },
+		[&](BuiltInFunctionObject const& obj) { return wstring(L"builtin " + obj.name); },
 
 		// Types
 
-		[&](AnyType const& obj) { return s; },
+		[&](AnyType const& obj) { return wstring(L"any"); },
 		[&](IntLiteralType const& obj) { return s; },
 		[&](FloatLiteralType const& obj) { return s; },
 		[&](StringLiteralType const& obj) { return s; },

@@ -74,6 +74,8 @@ Statement_ptr Parser::parse_statement(bool is_public)
 		CASE(WTokenType::TEST, parse_test());
 		CASE(WTokenType::ENUM, parse_enum_definition(is_public));
 		CASE(WTokenType::FN, parse_function_definition(is_public));
+		CASE(WTokenType::IMPORT, parse_import());
+		CASE(WTokenType::NATIVE, parse_native());
 
 	default:
 	{
@@ -106,7 +108,51 @@ Statement_ptr Parser::parse_public_statement()
 	}
 }
 
-// Simple stuff
+Statement_ptr Parser::parse_import()
+{
+	token_pipe->require(WTokenType::OPEN_CURLY_BRACE);
+
+	StringVector goods;
+
+	while (true)
+	{
+		auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
+		goods.push_back(identifier->value);
+
+		if (token_pipe->optional(WTokenType::CLOSE_CURLY_BRACE))
+			break;
+
+		token_pipe->require(WTokenType::COMMA);
+	}
+
+	token_pipe->require(WTokenType::FROM);
+
+	auto path = token_pipe->require(WTokenType::STRING_LITERAL);
+	token_pipe->require(WTokenType::EOL);
+
+	return MAKE_STATEMENT(Import(goods, path->value));
+}
+
+Statement_ptr Parser::parse_native()
+{
+	auto native_identifier = token_pipe->require(WTokenType::IDENTIFIER);
+	token_pipe->require(WTokenType::EOL);
+
+	std::map<std::wstring, TypeNode_ptr> members;
+
+	while (true)
+	{
+		auto [identifier, type] = consume_identifier_type_pair();
+		members.insert({ identifier, type });
+
+		if (token_pipe->optional(WTokenType::END))
+			break;
+
+		token_pipe->require(WTokenType::EOL);
+	}
+
+	return MAKE_STATEMENT(Native(native_identifier->value, members));
+}
 
 Statement_ptr Parser::parse_expression_statement()
 {

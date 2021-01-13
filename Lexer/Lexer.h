@@ -26,6 +26,9 @@ const std::map<std::wstring, WTokenType> keyword_map =
 	{ L"and", WTokenType::AND },
 	{ L"or", WTokenType::OR },
 
+	{ L"import", WTokenType::IMPORT },
+	{ L"from", WTokenType::FROM },
+
 	{ L"let", WTokenType::LET },
 	{ L"const", WTokenType::CONST_KEYWORD },
 
@@ -45,6 +48,8 @@ const std::map<std::wstring, WTokenType> keyword_map =
 	{ L"infix", WTokenType::INFIX },
 	{ L"prefix", WTokenType::PREFIX },
 	{ L"postfix", WTokenType::POSTFIX },
+
+	{ L"native", WTokenType::NATIVE },
 
 	{ L"typeof", WTokenType::TYPE_OF },
 	{ L"is", WTokenType::IS },

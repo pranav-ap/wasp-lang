@@ -19,13 +19,13 @@ class COMPILER_API Compiler
 {
 	ConstantPool_ptr constant_pool;
 	SymbolScope_ptr current_scope;
-	
+
 	std::vector<int> function_ids;
 	int next_label;
 
 	std::map<int, int> id_map; // symbol id => pool id
 	std::map<int, std::wstring> name_map; // pool id to name
-	
+
 	// Statement
 
 	void visit(const Statement_ptr statement);
@@ -34,17 +34,16 @@ class COMPILER_API Compiler
 	void visit(SingleVariableDefinition const& statement);
 	void visit(DeconstructedVariableDefinition const& statement);
 	void visit(EnumDefinition const& statement);
-
 	void visit(ExpressionStatement const& statement);
-
 	void visit(Assert const& statement);
 	void visit(Implore const& statement);
 	void visit(Swear const& statement);
 	void visit(Return const& statement);
 	void visit(YieldStatement const& statement);
-
+	void visit(Import const& statement);
 	void visit(Scenario const& statement);
 	void visit(Test const& statement);
+	void visit(Native const& statement);
 
 	// Func and Gen
 
@@ -59,18 +58,18 @@ class COMPILER_API Compiler
 	void visit(ElseBranch const& statement);
 	void visit(ElseBranch const& statement, int branch_label);
 
-	// Looping 
+	// Looping
 
 	void visit(SimpleWhileLoop const& statement);
 	void visit(AssignedWhileLoop const& statement);
 
 	void visit(SimpleForInLoop const& statement);
 	void visit(DeconstructedForInLoop const& statement);
-	
+
 	void visit(Break const& statement);
 	void visit(Continue const& statement);
 	void visit(Redo const& statement);
-	
+
 	// Expression
 
 	void visit(const Expression_ptr expr);
@@ -118,7 +117,7 @@ class COMPILER_API Compiler
 
 public:
 	Compiler()
-		: next_label(0), 
+		: next_label(0),
 		current_scope(std::make_shared<SymbolScope>()),
 		constant_pool(std::make_shared<ConstantPool>()) {};
 
@@ -126,4 +125,3 @@ public:
 };
 
 using Compiler_ptr = std::shared_ptr<Compiler>;
-

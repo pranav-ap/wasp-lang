@@ -1,0 +1,7 @@
+﻿native io
+	echo : (text : string)
+end
+
+native math
+	pi : float
+end

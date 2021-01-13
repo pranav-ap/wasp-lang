@@ -66,6 +66,9 @@ enum class TOKEN_API WTokenType
 
 	// Keywords
 
+	IMPORT,
+	FROM,
+
 	IF,
 	ELIF,
 	ELSE,
@@ -106,6 +109,8 @@ enum class TOKEN_API WTokenType
 	POSTFIX,
 	PREFIX,
 
+	NATIVE,
+
 	INTERFACE,
 	TYPE,
 	NONE,
@@ -122,7 +127,6 @@ enum class TOKEN_API WTokenType
 
 	TRUE_KEYWORD,
 	FALSE_KEYWORD,
-
 
 	// Whitespace
 

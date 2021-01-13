@@ -31,7 +31,7 @@ void to_json(nlohmann::json& j, const Object& o)
 		[&](VariantObject const& obj) { to_json(j, obj); },
 		[&](ReturnObject const& obj) { to_json(j, obj); },
 		[&](YieldObject const& obj) { to_json(j, obj); },
-		[&](BuiltInsObject const& obj) { to_json(j, obj); },
+		[&](BuiltInObject const& obj) { to_json(j, obj); },
 		[&](ErrorObject const& obj) { to_json(j, obj); },
 		[&](NoneObject const& obj) { to_json(j, obj); },
 		[&](BreakObject const& obj) { to_json(j, obj); },
@@ -56,7 +56,7 @@ void to_json(nlohmann::json& j, const Object& o)
 		[&](VariantType const& obj) { to_json(j, obj); },
 		[&](NoneType const& obj) { to_json(j, obj); },
 
-		[&](auto) {  }
+		[&](auto) {}
 		}, o);
 }
 
@@ -74,7 +74,7 @@ void from_json(const nlohmann::json& j, Object& o)
 		[&](VariantObject& obj) { from_json(j, obj); },
 		[&](ReturnObject& obj) { from_json(j, obj); },
 		[&](YieldObject& obj) { from_json(j, obj); },
-		[&](BuiltInsObject& obj) { from_json(j, obj); },
+		[&](BuiltInObject& obj) { from_json(j, obj); },
 		[&](ErrorObject& obj) { from_json(j, obj); },
 		[&](NoneObject& obj) { from_json(j, obj); },
 		[&](BreakObject& obj) { from_json(j, obj); },
@@ -100,7 +100,7 @@ void from_json(const nlohmann::json& j, Object& o)
 		[&](NoneType& obj) { from_json(j, obj); },
 
 		[&](auto) {}
-	}, o);
+		}, o);
 }
 
 void to_json(nlohmann::json& j, const IntObject& o)
@@ -292,12 +292,12 @@ void from_json(const nlohmann::json& j, ContinueObject& o)
 {
 }
 
-void to_json(nlohmann::json& j, const BuiltInsObject& o)
+void to_json(nlohmann::json& j, const BuiltInObject& o)
 {
-	j = json{ {"object_type", "BuiltInsObject"} };
+	j = json{ {"object_type", "BuiltInObject"} };
 }
 
-void from_json(const nlohmann::json& j, BuiltInsObject& o)
+void from_json(const nlohmann::json& j, BuiltInObject& o)
 {
 }
 

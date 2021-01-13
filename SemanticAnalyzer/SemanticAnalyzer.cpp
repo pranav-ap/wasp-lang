@@ -38,7 +38,7 @@ void SemanticAnalyzer::run(Module_ptr ast)
 
 // Statement
 
-void SemanticAnalyzer::visit(Statement_ptr statement)	
+void SemanticAnalyzer::visit(Statement_ptr statement)
 {
 	std::visit(overloaded{
 		[&](SingleVariableDefinition& stat) { visit(stat); },
@@ -61,6 +61,8 @@ void SemanticAnalyzer::visit(Statement_ptr statement)
 		[&](DeconstructedForInLoop& stat) { visit(stat); },
 		[&](EnumDefinition& stat) { visit(stat); },
 		[&](FunctionDefinition& stat) { visit(stat); },
+		[&](Import& stat) { visit(stat); },
+		[&](Native& stat) { visit(stat); },
 
 		[&](auto) { FATAL("Never Seen this Statement before!"); }
 		}, *statement);

@@ -71,7 +71,8 @@ enum class OBJECTSYSTEM_API OpCode
 	// 2-arity
 
 	CALL_FUNCTION, // id, number of arguments
-	CALL_GENERATOR
+	CALL_GENERATOR,
+	CALL_BUILTIN_FUN
 };
 
 OBJECTSYSTEM_API int get_opcode_arity(std::byte opcode);

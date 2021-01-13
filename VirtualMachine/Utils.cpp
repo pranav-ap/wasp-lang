@@ -43,7 +43,7 @@ ObjectVector VirtualMachine::pop_n_from_value_stack(int n)
 	}
 
 	ASSERT(elements.size() == n, "Number of elements popped out is not equal to N");
-	
+
 	return elements;
 }
 
@@ -71,6 +71,16 @@ void VirtualMachine::pop_from_local_scope_stack()
 	}
 
 	scope_stack.pop();
+}
+
+void VirtualMachine::clear_local_scope()
+{
+	auto TOS = scope_stack.top();
+
+	for (const auto id : TOS->local_declarations)
+	{
+		variable_store->discard(id);
+	}
 }
 
 void VirtualMachine::push_to_call_stack(CodeObject_ptr code_object, int base_pointer)

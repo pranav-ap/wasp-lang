@@ -3,6 +3,7 @@
 #include "SemanticAnalyzer.h"
 #include "Symbol.h"
 #include "Assertion.h"
+#include "Builtins.h"
 #include <variant>
 #include <vector>
 #include <memory>
@@ -110,7 +111,6 @@ void SemanticAnalyzer::visit(SimpleWhileLoop& statement)
 
 void SemanticAnalyzer::visit(AssignedWhileLoop& statement)
 {
-	// TODO
 }
 
 // Looping - for loop
@@ -163,6 +163,34 @@ void SemanticAnalyzer::visit(Test& statement)
 
 	visit(statement.body);
 	leave_scope();
+}
+
+void SemanticAnalyzer::visit(Import& statement)
+{
+	statement.scope = current_scope;
+
+	for (const auto name : statement.names)
+	{
+		ASSERT(builtins_manager->exists(statement.module_name, name), "Native Module does not contains this member");
+		auto type = builtins_manager->get_native_type(statement.module_name, name);
+
+		auto symbol = MAKE_SYMBOL(next_id++, name, type, PRIVATE_SYMBOL, CONST_SYMBOL);
+		symbol->is_builtin = true;
+
+		current_scope->define(name, symbol);
+		current_scope->builtins[name] = builtins_manager->get_native_object(statement.module_name, name);
+	}
+}
+
+void SemanticAnalyzer::visit(Native& statement)
+{
+	statement.scope = current_scope;
+
+	for (auto member : statement.members)
+	{
+		auto type = visit(member.second);
+		builtins_manager->set_native_type(statement.module_name, member.first, type);
+	}
 }
 
 // simple stuff

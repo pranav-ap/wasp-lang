@@ -1,4 +1,4 @@
-﻿# Its more of a comment really
+﻿# This is a comment
 
 
 let x : int = 34
@@ -11,7 +11,6 @@ let x : ⟨ string => string ⟩ = ⟨ "a" => "b", "c" => "d" ⟩
 
 a = 1
 
-a : int = 1 : int
 
 if a > 3 then call() else 4
 
@@ -63,15 +62,22 @@ fn add(a : int, b : int) => int
 end
 
 
-# Planned Features
-
-
 if x : int = call() then
     x = 1
 else
     3
 end
 
+
+import { echo } from 'io'
+
+
+native io
+	echo : (text : string) => string
+end
+
+
+# Planned Features
 
 type length = int
 type length = int | string
@@ -81,13 +87,6 @@ type WindowStates = "open" | "closed" | "minimized"
 let x : Person = new Person("john", false)
 
 
-let [a, ...b, c] = some_list
-[a, ...b, c] = some_list
-
-
-import { echo } from 'io'
-
-
 type Castle
     name: string
 end
@@ -95,4 +94,3 @@ end
 
 x.foo.age = 1
 x(123).foo(36, gg).age = 1
-

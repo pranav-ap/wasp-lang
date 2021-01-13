@@ -69,6 +69,7 @@ OBJECTSYSTEM_API int get_opcode_arity(OpCode opcode)
 
 	case OpCode::CALL_FUNCTION:
 	case OpCode::CALL_GENERATOR:
+	case OpCode::CALL_BUILTIN_FUN:
 	{
 		return 2;
 	}
@@ -288,6 +289,10 @@ OBJECTSYSTEM_API std::wstring stringify_opcode(OpCode opcode)
 	case OpCode::CREATE_LOCAL:
 	{
 		return L"CREATE_LOCAL";
+	}
+	case OpCode::CALL_BUILTIN_FUN:
+	{
+		return L"CALL_BUILTIN_FUN";
 	}
 	default:
 	{

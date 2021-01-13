@@ -33,6 +33,7 @@ void Compiler::visit(SingleVariableDefinition const& statement)
 	int symbol_id = current_scope->lookup(statement.name)->id;
 	int id = create_pool_id(symbol_id);
 
+	emit(OpCode::PUSH_CONSTANT, id);
 	emit(OpCode::CREATE_LOCAL, id);
 
 	name_map[id] = statement.name;
@@ -49,6 +50,7 @@ void Compiler::visit(EnumDefinition const& statement)
 	int symbol_id = current_scope->lookup(statement.name)->id;
 	int id = create_pool_id(symbol_id);
 
+	emit(OpCode::PUSH_CONSTANT, id);
 	emit(OpCode::CREATE_LOCAL, id);
 
 	name_map[id] = statement.name;
@@ -65,6 +67,7 @@ void Compiler::visit(FunctionDefinition const& statement)
 		int symbol_id = current_scope->lookup(arg_name)->id;
 		int id = create_pool_id(symbol_id);
 
+		emit(OpCode::PUSH_CONSTANT, id);
 		emit(OpCode::CREATE_LOCAL, id);
 
 		name_map[id] = arg_name;
@@ -81,10 +84,31 @@ void Compiler::visit(FunctionDefinition const& statement)
 	auto function_object = MAKE_OBJECT_VARIANT(FunctionObject(statement.name, instructions));
 	int id = constant_pool->allocate(move(function_object));
 
+	emit(OpCode::PUSH_CONSTANT, id);
 	emit(OpCode::CREATE_LOCAL, id);
 
 	function_ids.push_back(id);
 
 	name_map[id] = statement.name;
 	id_map[symbol_id] = id;
+}
+
+void Compiler::visit(Import const& statement)
+{
+	set_current_scope(statement.scope);
+
+	for (const auto name : statement.names)
+	{
+		auto symbol = current_scope->lookup(name);
+		ASSERT(symbol->is_builtin, "Expected a Builtin symbol");
+
+		auto builtin_object = current_scope->builtins.at(symbol->name);
+		int pool_id = constant_pool->allocate(builtin_object);
+
+		emit(OpCode::PUSH_CONSTANT, pool_id);
+		emit(OpCode::CREATE_LOCAL, pool_id);
+
+		name_map[pool_id] = name;
+		id_map[symbol->id] = pool_id;
+	}
 }

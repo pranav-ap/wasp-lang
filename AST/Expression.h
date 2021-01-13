@@ -28,15 +28,15 @@ struct Identifier;
 struct Prefix;
 struct Infix;
 struct Postfix;
-struct Call; 
+struct Call;
 struct EnumMember;
 struct Spread;
 
 using Expression = AST_API std::variant<
 	std::monostate,
 	int, double, std::wstring, bool,
-	ListLiteral, TupleLiteral, SetLiteral, MapLiteral, Identifier, 
-	UntypedAssignment, TypedAssignment, Prefix, Infix, Postfix, TypePattern, 
+	ListLiteral, TupleLiteral, SetLiteral, MapLiteral, Identifier,
+	UntypedAssignment, TypedAssignment, Prefix, Infix, Postfix, TypePattern,
 	TernaryCondition, Call, EnumMember, Spread
 >;
 
@@ -141,7 +141,7 @@ struct AST_API TernaryCondition : public AnnotatedNode
 	Expression_ptr false_expression;
 
 	TernaryCondition(Expression_ptr condition, Expression_ptr true_expression, Expression_ptr false_expression)
-		: condition(std::move(condition)), 
+		: condition(std::move(condition)),
 		true_expression(std::move(true_expression)),
 		false_expression(std::move(false_expression)) {};
 };
@@ -155,16 +155,17 @@ struct AST_API TypePattern
 		: expression(std::move(expression)), type_node(std::move(type_node)) {};
 };
 
-struct AST_API Call 
+struct AST_API Call
 {
+	bool is_builtin;
 	std::wstring name;
 	ExpressionVector arguments;
 
-	Call(std::wstring name) 
-		: name(name) {};
+	Call(std::wstring name)
+		: name(name), is_builtin(false) {};
 
-	Call(std::wstring name, ExpressionVector arguments) 
-		: name(name), arguments(arguments) {};
+	Call(std::wstring name, ExpressionVector arguments)
+		: name(name), arguments(arguments), is_builtin(false) {};
 };
 
 struct AST_API EnumMember

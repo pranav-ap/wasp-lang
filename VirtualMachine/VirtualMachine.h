@@ -22,11 +22,10 @@ enum class VIRTUALMACHINE_API OpResult
 
 class VIRTUALMACHINE_API VirtualMachine
 {
-	ObjectStore_ptr constant_pool;
+	ConstantPool_ptr constant_pool;
+	DefinitionStore_ptr variable_store;
 
-	ObjectStore_ptr variable_store; // IDs set by SA
 	std::stack<LocalScope_ptr> scope_stack;
-
 	std::stack<CallFrame_ptr> call_stack;
 	std::stack<Object_ptr> value_stack;
 
@@ -36,7 +35,7 @@ class VIRTUALMACHINE_API VirtualMachine
 	Object_ptr perform_unary_not(Object_ptr obj);
 
 	// Binary operations
-	
+
 	Object_ptr perform_add(Object_ptr left, Object_ptr right);
 	Object_ptr perform_subtract(Object_ptr left, Object_ptr right);
 	Object_ptr perform_multiply(Object_ptr left, Object_ptr right);
@@ -74,6 +73,7 @@ class VIRTUALMACHINE_API VirtualMachine
 
 	void push_empty_scope_to_local_scope_stack();
 	void pop_from_local_scope_stack();
+	void clear_local_scope();
 
 	void push_to_call_stack(CodeObject_ptr function_object, int base_pointer);
 	void pop_from_call_stack();
@@ -89,7 +89,7 @@ class VIRTUALMACHINE_API VirtualMachine
 	CodeObject_ptr get_current_code_object();
 
 public:
-	VirtualMachine(ObjectStore_ptr constant_pool, CodeObject_ptr main_code_object);
+	VirtualMachine(ConstantPool_ptr constant_pool, CodeObject_ptr main_code_object);
 	OpResult run();
 };
 

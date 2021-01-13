@@ -40,8 +40,9 @@ struct DeconstructedForInLoop;
 struct Scenario;
 struct Test;
 struct EnumDefinition;
-struct Namespace;
 struct FunctionDefinition;
+struct Import;
+struct Native;
 
 using Statement = AST_API std::variant<
 	std::monostate,
@@ -52,7 +53,7 @@ using Statement = AST_API std::variant<
 	SimpleWhileLoop, AssignedWhileLoop, Break, Continue, Redo,
 	Return, YieldStatement, Assert, Implore, Swear,
 	SimpleForInLoop, DeconstructedForInLoop, Scenario, Test,
-	EnumDefinition, Namespace, FunctionDefinition
+	EnumDefinition, FunctionDefinition, Import, Native
 >;
 
 using Statement_ptr = AST_API std::shared_ptr<Statement>;
@@ -307,6 +308,15 @@ struct AST_API Redo : public AnnotatedNode
 {
 };
 
+struct AST_API Import : public AnnotatedNode
+{
+	std::vector<std::wstring> names;
+	std::wstring module_name;
+
+	Import(std::vector<std::wstring> names, std::wstring module_name)
+		: names(names), module_name(module_name) {};
+};
+
 // Test
 
 struct AST_API TestBlock : public AnnotatedNode
@@ -350,14 +360,6 @@ struct AST_API EnumDefinition : public Definition
 	};
 };
 
-// Namespace
-
-struct AST_API Namespace : public TestBlock
-{
-	Namespace(std::wstring name, Block body)
-		: TestBlock(name, body) {};
-};
-
 // Func and Gen
 
 struct AST_API CallableDefinition : public Definition
@@ -375,4 +377,15 @@ struct AST_API FunctionDefinition : public CallableDefinition
 {
 	FunctionDefinition(bool is_public, std::wstring name, StringVector arguments, TypeNode_ptr type, Block body)
 		: CallableDefinition(is_public, name, arguments, type, body) {};
+};
+
+// Native
+
+struct AST_API Native : public AnnotatedNode
+{
+	std::wstring module_name;
+	std::map<std::wstring, TypeNode_ptr> members;
+
+	Native(std::wstring module_name, std::map<std::wstring, TypeNode_ptr> members)
+		: module_name(module_name), members(members) {};
 };

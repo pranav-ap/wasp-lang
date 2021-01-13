@@ -36,6 +36,7 @@ struct SYMBOL_API SymbolScope
 	CodeObject_ptr code_object;
 
 	std::map<std::wstring, Symbol_ptr> symbols;
+	std::map<std::wstring, Object_ptr> builtins;
 
 	bool is_rvalue;
 	int break_label;

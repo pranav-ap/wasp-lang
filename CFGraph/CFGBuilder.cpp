@@ -163,6 +163,7 @@ void CFGBuilder::split_into_basic_blocks()
 
 		case OpCode::CALL_FUNCTION:
 		case OpCode::CALL_GENERATOR:
+		case OpCode::CALL_BUILTIN_FUN:
 		{
 			IS_A_FOLLOWER;
 			std::byte operand_1 = unrefined_code_object->instructions.at(++code_pointer);

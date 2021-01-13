@@ -163,10 +163,7 @@ void Compiler::visit(Spread const& expr)
 {
 	if (expr.is_rvalue)
 	{
-
 	}
-
-
 }
 
 void Compiler::visit(Prefix const& expr)
@@ -325,11 +322,18 @@ void Compiler::visit(EnumMember const& expr)
 void Compiler::visit(Call const& expr)
 {
 	visit(expr.arguments);
-	
+
 	int count = expr.arguments.size();
-	
+
 	int id = current_scope->lookup(expr.name)->id;
 	id = get_pool_id(id);
 
-	emit(OpCode::CALL_FUNCTION, id, count);
+	if (expr.is_builtin)
+	{
+		emit(OpCode::CALL_BUILTIN_FUN, id, count);
+	}
+	else
+	{
+		emit(OpCode::CALL_FUNCTION, id, count);
+	}
 }

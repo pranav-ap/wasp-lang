@@ -15,6 +15,7 @@
 #include <utility>
 #include <memory>
 #include <variant>
+#include <functional>
 
 // Type Objects
 
@@ -54,26 +55,24 @@ struct ErrorObject;
 struct RedoObject;
 struct ContinueObject;
 struct BreakObject;
-struct BuiltInsObject;
 struct IteratorObject;
 struct EnumObject;
 struct EnumMemberObject;
 struct FunctionObject;
+struct BuiltInFunctionObject;
 
 using Object = OBJECTSYSTEM_API std::variant<
 	std::monostate,
 
 	IntObject, FloatObject, StringObject, BooleanObject, NoneObject,
 	ListObject, TupleObject, SetObject, MapObject, VariantObject,
-	ReturnObject, ErrorObject, YieldObject, RedoObject, BreakObject, 
-	ContinueObject, BuiltInsObject, IteratorObject, EnumObject, EnumMemberObject,
-	FunctionObject,
+	ReturnObject, ErrorObject, YieldObject, RedoObject, BreakObject,
+	ContinueObject, IteratorObject, EnumObject, EnumMemberObject,
+	FunctionObject, BuiltInFunctionObject,
 
-	AnyType,
-	IntLiteralType, FloatLiteralType, StringLiteralType, BooleanLiteralType,
-	IntType, FloatType, StringType, BooleanType,
-	ListType, TupleType, SetType, MapType, VariantType, NoneType, EnumType,
-	FunctionType
+	AnyType, IntLiteralType, FloatLiteralType, StringLiteralType, BooleanLiteralType,
+	IntType, FloatType, StringType, BooleanType, ListType, TupleType, SetType,
+	MapType, VariantType, NoneType, EnumType, FunctionType
 >;
 
 using Object_ptr = OBJECTSYSTEM_API std::shared_ptr<Object>;
@@ -140,7 +139,7 @@ struct OBJECTSYSTEM_API EnumMemberObject : public CompositeObject
 	int enum_id;
 	int member_id;
 
-	EnumMemberObject(int enum_id, int member_id) 
+	EnumMemberObject(int enum_id, int member_id)
 		: enum_id(enum_id), member_id(member_id) {};
 };
 
@@ -240,10 +239,6 @@ struct OBJECTSYSTEM_API RedoObject : public ActionObject
 {
 };
 
-struct OBJECTSYSTEM_API BuiltInsObject : public ActionObject
-{
-};
-
 struct OBJECTSYSTEM_API ReturnObject : public ActionObject
 {
 	std::optional<Object_ptr> value;
@@ -294,6 +289,33 @@ struct OBJECTSYSTEM_API FunctionObject : public SubroutineObject
 {
 	FunctionObject(std::wstring name, std::vector<std::byte> instructions)
 		: SubroutineObject(name, instructions) {};
+};
+
+// Builtins
+
+struct OBJECTSYSTEM_API BuiltInObject : public AbstractObject
+{
+	std::wstring module_name;
+	std::wstring name;
+
+	Object_ptr type;
+
+	BuiltInObject(std::wstring module_name, std::wstring name)
+		: module_name(module_name), name(name), type(nullptr) {};
+
+	BuiltInObject(std::wstring module_name, std::wstring name, Object_ptr type)
+		: module_name(module_name), name(name), type(type) {};
+};
+
+struct OBJECTSYSTEM_API BuiltInFunctionObject : public BuiltInObject
+{
+	std::function<Object_ptr(std::vector<Object_ptr>)> func;
+
+	BuiltInFunctionObject(std::wstring module_name, std::wstring name, std::function<Object_ptr(std::vector<Object_ptr>)> func)
+		: BuiltInObject(module_name, name), func(func) {};
+
+	BuiltInFunctionObject(std::wstring module_name, std::wstring name, Object_ptr type, std::function<Object_ptr(std::vector<Object_ptr>)> func)
+		: BuiltInObject(module_name, name, type), func(func) {};
 };
 
 // Type
@@ -424,7 +446,6 @@ struct OBJECTSYSTEM_API FunctionType : public CallableType
 {
 	FunctionType(ObjectVector input_types)
 		: CallableType(input_types) {};
-
 
 	FunctionType(ObjectVector input_types, Object_ptr return_type)
 		: CallableType(input_types, return_type) {};

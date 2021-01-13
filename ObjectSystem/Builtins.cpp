@@ -1,49 +1,84 @@
 #pragma once
 #include "pch.h"
 #include "Builtins.h"
+#include "Assertion.h"
 #include <string>
 #include <iostream>
 
+#define MAKE_OBJECT_VARIANT(x) std::make_shared<Object>(x)
 #define THROW(message) return std::make_shared<Object>(ErrorObject(message))
 #define VOID std::make_shared<Object>(ReturnObject())
 
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
 
-using std::cout;
+using std::wcout;
 using std::cin;
 using std::endl;
 using std::wstring;
 
 // ECHO
 
-Object_ptr io::echo_visit(std::vector<Object_ptr> arguments)
+Object_ptr io::echo(std::vector<Object_ptr> arguments)
 {
-	if (!arguments.size() == 1) 
+	if (!arguments.size() == 1)
 	{
-		THROW(L"echo(..) takes a string or number as argument");
+		THROW(L"echo(..) takes in one argument");
 	}
 
-	return std::visit(overloaded{
-		[](std::string text) 
-		{ 
-			cout << text; 
-			return VOID; 
-		},
-		[](int number) 
-		{ 
-			cout << number; 
-			return VOID; 
-		},
-		[](double number) 
-		{
-			cout << number; 
-			return VOID; 
-		},
+	auto out = stringify_object(arguments[0]);
+	wcout << out << endl;
 
-		[](auto) 
-		{ 
-			THROW(L"echo(..) takes a string or number as argument"); 
-		}
-		}, *arguments[0]);
+	return VOID;
+}
+
+// BuiltinsManager
+
+BuiltinsManager::BuiltinsManager()
+{
+	Builtins_ObjectTable io_object_table = {
+	   { L"echo", MAKE_OBJECT_VARIANT(BuiltInFunctionObject(L"io", L"echo", io::echo)) }
+	};
+
+	Builtins_ObjectTable math_object_table = {
+	   { L"pi", MAKE_OBJECT_VARIANT(FloatObject(3.14)) }
+	};
+
+	module_table = {
+		{ L"io", io_object_table },
+		{ L"math", math_object_table }
+	};
+
+	type_table = {
+		{ L"io", {} },
+		{ L"math", {} }
+	};
+}
+
+void BuiltinsManager::set_native_type(std::wstring module_name, std::wstring name, Object_ptr type)
+{
+	ASSERT(exists(module_name, name), "Native object does not exist!");
+	type_table.at(module_name)[name] = type;
+}
+
+Object_ptr BuiltinsManager::get_native_object(std::wstring module_name, std::wstring name)
+{
+	ASSERT(exists(module_name, name), "Native object does not exist!");
+	return module_table.at(module_name).at(name);
+}
+
+Object_ptr BuiltinsManager::get_native_type(std::wstring module_name, std::wstring name)
+{
+	ASSERT(exists(module_name, name), "Native object does not exist!");
+	return type_table.at(module_name).at(name);
+}
+
+bool BuiltinsManager::exists(std::wstring module_name, std::wstring name)
+{
+	if (module_table.contains(module_name))
+	{
+		return module_table.at(module_name).contains(name);
+	}
+
+	return false;
 }

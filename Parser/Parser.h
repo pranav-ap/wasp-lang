@@ -42,6 +42,8 @@ class PARSER_API Parser
 
 	Statement_ptr parse_scenario();
 	Statement_ptr parse_test();
+	Statement_ptr parse_import();
+	Statement_ptr parse_native();
 
 	Statement_ptr parse_return();
 	Statement_ptr parse_yield();

@@ -55,6 +55,8 @@ void Compiler::visit(const Statement_ptr statement)
 		[&](Test const& stat) { visit(stat); },
 		[&](EnumDefinition const& stat) { visit(stat); },
 		[&](FunctionDefinition const& stat) { visit(stat); },
+		[&](Import const& stat) { visit(stat); },
+		[&](Native const& stat) { visit(stat); },
 
 		[](auto) { FATAL("Never Seen this Statement before!"); }
 		}, *statement);
@@ -289,7 +291,12 @@ void Compiler::visit(Test const& statement)
 	leave_scope();
 }
 
-// Simple stuff
+void Compiler::visit(Native const& statement)
+{
+	// do nothing
+}
+
+// Other stuff
 
 void Compiler::visit(ExpressionStatement const& statement)
 {

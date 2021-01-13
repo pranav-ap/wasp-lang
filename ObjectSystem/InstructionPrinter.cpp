@@ -81,6 +81,7 @@ std::wstring InstructionPrinter::stringify_instruction(std::byte opcode, std::by
 	{
 	case OpCode::CALL_FUNCTION:
 	case OpCode::CALL_GENERATOR:
+	case OpCode::CALL_BUILTIN_FUN:
 	{
 		wstring name = name_map.at(operand_1_int);
 		str_stream << std::right << setw(OPERAND_WIDTH) << L" (function " << name << L", " << operand_2_int << L" arguments)";

@@ -239,6 +239,8 @@ Object_ptr SemanticAnalyzer::visit(Identifier& expr)
 Object_ptr SemanticAnalyzer::visit(Call& expr)
 {
 	Symbol_ptr symbol = current_scope->lookup(expr.name);
+	expr.is_builtin = symbol->is_builtin;
+
 	ObjectVector argument_types = visit(expr.arguments);
 
 	Object_ptr return_type = std::visit(overloaded{

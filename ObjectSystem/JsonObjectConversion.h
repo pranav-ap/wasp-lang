@@ -56,8 +56,8 @@ void from_json(const nlohmann::json& j, BreakObject& o);
 void to_json(nlohmann::json& j, const ContinueObject& o);
 void from_json(const nlohmann::json& j, ContinueObject& o);
 
-void to_json(nlohmann::json& j, const BuiltInsObject& o);
-void from_json(const nlohmann::json& j, BuiltInsObject& o);
+void to_json(nlohmann::json& j, const BuiltInObject& o);
+void from_json(const nlohmann::json& j, BuiltInObject& o);
 
 void to_json(nlohmann::json& j, const AnyType& o);
 void from_json(const nlohmann::json& j, AnyType& o);
@@ -103,4 +103,3 @@ void from_json(const nlohmann::json& j, VariantType& o);
 
 void to_json(nlohmann::json& j, const NoneType& o);
 void from_json(const nlohmann::json& j, NoneType& o);
-

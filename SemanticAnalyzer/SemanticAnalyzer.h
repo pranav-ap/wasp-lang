@@ -12,6 +12,7 @@
 #include "Expression.h"
 #include "TypeNode.h"
 #include "SymbolScope.h"
+#include "Builtins.h"
 #include <memory>
 #include <tuple>
 #include <optional>
@@ -22,6 +23,8 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 
 	TypeSystem_ptr type_system;
 	SymbolScope_ptr current_scope;
+
+	BuiltinsManager_ptr builtins_manager;
 
 	// Statement
 
@@ -50,6 +53,8 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 	void visit(Test& statement);
 	void visit(EnumDefinition& statement);
 	void visit(FunctionDefinition& statement);
+	void visit(Import& statement);
+	void visit(Native& statement);
 
 	// Expression
 
@@ -104,14 +109,15 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 	void leave_scope();
 
 	std::tuple<std::wstring, Object_ptr> deconstruct_type_pattern(Expression_ptr expression);
-	
+
 	bool any_eq(ObjectVector vec, Object_ptr x);
 	ObjectVector remove_duplicates(ObjectVector vec);
 
 public:
-	SemanticAnalyzer() 
+	SemanticAnalyzer(BuiltinsManager_ptr builtins_manager)
 		: next_id(10),
-		type_system(std::make_shared<TypeSystem>()) {};
+		type_system(std::make_shared<TypeSystem>()),
+		builtins_manager(builtins_manager) {};
 
 	void run(const Module_ptr ast);
 };

@@ -15,11 +15,11 @@ using std::holds_alternative;
 using std::to_integer;
 using std::make_shared;
 
-VirtualMachine::VirtualMachine(ObjectStore_ptr constant_pool, CodeObject_ptr main_code_object)
+VirtualMachine::VirtualMachine(ConstantPool_ptr constant_pool, CodeObject_ptr main_code_object)
 {
-	constant_pool = std::move(constant_pool);
+	this->constant_pool = std::move(constant_pool);
 
-	variable_store = std::make_shared<ObjectStore>();
+	variable_store = std::make_shared<DefinitionStore>();
 	scope_stack.push(make_shared<LocalScope>());
 	call_stack.push(make_shared<CallFrame>(main_code_object, 0));
 }
@@ -69,19 +69,21 @@ OpResult VirtualMachine::perform_nullary_operation(OpCode opcode)
 		push_to_value_stack(false_object);
 		return OpResult::OK;
 	}
-	case OpCode::LOCAL_SCOPE_START:
+	case OpCode::PUSH_LOCAL_SCOPE:
 	{
 		push_empty_scope_to_local_scope_stack();
 		return OpResult::OK;
 	}
-	case OpCode::LOCAL_SCOPE_STOP:
+	case OpCode::POP_LOCAL_SCOPE:
 	{
+		clear_local_scope();
 		pop_from_local_scope_stack();
 		return OpResult::OK;
 	}
 	case OpCode::RETURN_VOID:
 	case OpCode::YIELD_VOID:
 	{
+		clear_local_scope();
 		pop_from_local_scope_stack();
 		return OpResult::FAILURE;
 	}
@@ -256,8 +258,8 @@ OpResult VirtualMachine::execute(OpCode opcode)
 	case OpCode::PUSH_CONSTANT_FALSE:
 	case OpCode::RETURN_VOID:
 	case OpCode::YIELD_VOID:
-	case OpCode::LOCAL_SCOPE_START:
-	case OpCode::LOCAL_SCOPE_STOP:
+	case OpCode::PUSH_LOCAL_SCOPE:
+	case OpCode::POP_LOCAL_SCOPE:
 	{
 		return perform_nullary_operation(opcode);
 	}
@@ -445,6 +447,18 @@ OpResult VirtualMachine::execute(OpCode opcode, int operand_1, int operand_2)
 	{
 		return OpResult::FAILURE;
 	}
+	case OpCode::CALL_BUILTIN_FUN:
+	{
+		auto obj = constant_pool->get(operand_1);
+		auto function_object = get_if<BuiltInFunctionObject>(&*obj);
+
+		auto TOS = pop_from_value_stack();
+
+		auto result = function_object->func({ TOS });
+		push_to_value_stack(result);
+
+		return OpResult::OK;
+	}
 	default:
 	{
 		return OpResult::FAILURE;
@@ -468,7 +482,7 @@ OpResult VirtualMachine::run()
 		{
 		case 0:
 		{
-			ip += 1;
+			set_ip(ip + 1);
 
 			result = execute(opcode);
 			break;
@@ -477,7 +491,7 @@ OpResult VirtualMachine::run()
 		{
 			ByteVector operands = get_current_code_object()->operands_of_opcode_at(ip);
 			ASSERT(operands.size() == 1, "Expected 1 operands");
-			ip += 2;
+			set_ip(ip + 2);
 
 			result = execute(opcode, to_integer<int>(operands[0]));
 			break;
@@ -486,8 +500,8 @@ OpResult VirtualMachine::run()
 		{
 			ByteVector operands = get_current_code_object()->operands_of_opcode_at(ip);
 			ASSERT(operands.size() == 2, "Expected 2 operands");
-			ip += 3;
-			
+			set_ip(ip + 3);
+
 			result = execute(opcode, to_integer<int>(operands[0]), to_integer<int>(operands[1]));
 			break;
 		}
@@ -508,4 +522,3 @@ OpResult VirtualMachine::run()
 		}
 	}
 }
-
