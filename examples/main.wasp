@@ -1,3 +1,1 @@
-﻿import { echo } from "io"
-
-echo ("hi")
+﻿4 is int

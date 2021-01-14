@@ -9,6 +9,9 @@
 #define OPT_CHECK(x) ASSERT(x.has_value(), "Oh shit! Option is none")
 #define MAKE_OBJECT_VARIANT(x) std::make_shared<Object>(x)
 
+template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
+
 using std::byte;
 using std::vector;
 using std::move;
@@ -256,6 +259,28 @@ int ConstantPool::allocate_enum_member(int enum_id, int member_id)
 	int id = next_id++;
 	auto value = MAKE_OBJECT_VARIANT(EnumMemberObject(enum_id, member_id));
 	objects.insert({ id, value });
+
+	return id;
+}
+
+int ConstantPool::allocate_type(Object_ptr new_value)
+{
+	auto result = find_if(
+		objects.begin(),
+		objects.end(),
+		[new_value](auto p)
+		{
+			Object_ptr existing_value = p.second;
+			return are_equal(new_value, existing_value);
+		});
+
+	if (result != objects.end())
+	{
+		return result->first;
+	}
+
+	int id = next_id++;
+	objects.insert({ id, new_value });
 
 	return id;
 }

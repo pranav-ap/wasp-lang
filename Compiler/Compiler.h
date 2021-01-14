@@ -91,9 +91,11 @@ class COMPILER_API Compiler
 	void visit(Infix const& expr);
 	void visit(Postfix const& expr);
 	void visit(Identifier const& expr);
-	void visit(Spread const& expr);
 	void visit(Call const& expr);
 	void visit(EnumMember const& expr);
+	void visit(Spread const& expr);
+	void visit(TypeOf const& expr);
+	void visit(Is const& expr);
 
 	// Emit
 

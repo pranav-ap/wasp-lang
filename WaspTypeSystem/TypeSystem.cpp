@@ -300,4 +300,3 @@ Object_ptr TypeSystem::infer(SymbolScope_ptr scope, Object_ptr operand_type, WTo
 
 	return type_pool->get_none_type();
 }
-

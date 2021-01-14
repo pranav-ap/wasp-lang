@@ -80,6 +80,8 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 	Object_ptr visit(Call& expr);
 	Object_ptr visit(EnumMember& expr);
 	Object_ptr visit(Spread& expr);
+	Object_ptr visit(TypeOf& expr);
+	Object_ptr visit(Is& expr);
 
 	// Types
 

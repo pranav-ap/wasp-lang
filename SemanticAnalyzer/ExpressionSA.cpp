@@ -13,11 +13,17 @@
 #define MAKE_SYMBOL(a, b, c, d, e) std::make_shared<Symbol>(a, b, c, d, e)
 #define MAKE_OBJECT_VARIANT(x) std::make_shared<Object>(x)
 
+#define PUBLIC_SYMBOL true
+#define PRIVATE_SYMBOL false
+#define MUTABLE_SYMBOL true
+#define CONST_SYMBOL false
+
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
 
 using std::holds_alternative;
 using std::wstring;
+using std::to_wstring;
 using std::get_if;
 using std::begin;
 using std::end;
@@ -46,6 +52,9 @@ Object_ptr SemanticAnalyzer::visit(const Expression_ptr expression)
 		[&](TypedAssignment& expr) { return visit(expr); },
 		[&](Call& expr) { return visit(expr); },
 		[&](EnumMember& expr) { return visit(expr); },
+		[&](Spread& expr) { return visit(expr); },
+		[&](TypeOf& expr) { return visit(expr); },
+		[&](Is& expr) { return visit(expr); },
 
 		[&](auto)
 		{
@@ -273,4 +282,41 @@ Object_ptr SemanticAnalyzer::visit(Spread& expr)
 
 	expr.is_rvalue = false;
 	return operand_type;
+}
+
+Object_ptr SemanticAnalyzer::visit(TypeOf& expr)
+{
+	auto type = visit(expr.expression);
+
+	int id = next_id++;
+	wstring name = L"typeof_" + to_wstring(id);
+
+	expr.name = name;
+
+	auto symbol = MAKE_SYMBOL(id, name, type, PRIVATE_SYMBOL, CONST_SYMBOL);
+	current_scope->define(name, symbol);
+
+	return type;
+}
+
+Object_ptr SemanticAnalyzer::visit(Is& expr)
+{
+	auto left_type = visit(expr.left);
+	auto right_type = visit(expr.right);
+
+	int id = next_id++;
+	wstring name = L"left_is_" + to_wstring(id);
+	expr.left_name = name;
+
+	auto symbol = MAKE_SYMBOL(id, name, left_type, PRIVATE_SYMBOL, CONST_SYMBOL);
+	current_scope->define(name, symbol);
+
+	id = next_id++;
+	name = L"right_is_" + to_wstring(id);
+	expr.right_name = name;
+
+	symbol = MAKE_SYMBOL(id, name, right_type, PRIVATE_SYMBOL, CONST_SYMBOL);
+	current_scope->define(name, symbol);
+
+	return  type_system->type_pool->get_boolean_type();
 }

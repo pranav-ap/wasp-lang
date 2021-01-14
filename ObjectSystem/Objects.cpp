@@ -397,3 +397,75 @@ std::wstring stringify_object(Object_ptr value)
 		[&](auto) { return wstring(L" "); }
 		}, *value);
 }
+
+bool are_equal(Object_ptr left, Object_ptr right)
+{
+	return std::visit(overloaded{
+		[&](AnyType const& type_1, AnyType const& type_2) { return true; },
+
+		[&](IntType const& type_1, IntType const& type_2) { return true; },
+		[&](FloatType const& type_1, FloatType const& type_2) { return true; },
+		[&](BooleanType const& type_1, BooleanType const& type_2) { return true; },
+		[&](StringType const& type_1, StringType const& type_2) { return true; },
+
+		[&](IntLiteralType const& type_1, IntLiteralType const& type_2) { return type_1.value == type_2.value; },
+		[&](FloatLiteralType const& type_1, FloatLiteralType const& type_2) { return type_1.value == type_2.value; },
+		[&](BooleanLiteralType const& type_1, BooleanLiteralType const& type_2) { return type_1.value == type_2.value; },
+		[&](StringLiteralType const& type_1, StringLiteralType const& type_2) { return type_1.value == type_2.value; },
+
+		[&](ListType const& type_1, ListType const& type_2)
+		{
+			return are_equal(type_1.element_type, type_2.element_type);
+		},
+
+		[&](SetType const& type_1, SetType const& type_2)
+		{
+			return are_equal(type_1.element_type, type_2.element_type);
+		},
+
+		[&](TupleType const& type_1, TupleType const& type_2)
+		{
+			return are_equal(type_1.element_types, type_2.element_types);
+		},
+
+		[&](VariantType const& type_1, VariantType const& type_2)
+		{
+			return are_equal(type_1.types, type_2.types);
+		},
+
+		[&](MapType const& type_1, MapType const& type_2)
+		{
+			bool key_compare = are_equal(type_1.key_type, type_2.key_type);
+			bool value_compare = are_equal(type_1.value_type, type_2.value_type);
+			return key_compare && value_compare;
+		},
+
+		[&](NoneType const& type_1, NoneType const& type_2) { return true; },
+
+		[](auto, auto) { return false; }
+		}, *left, *right);
+}
+
+bool are_equal(ObjectVector left_vector, ObjectVector right_vector)
+{
+	int type_vector_1_length = left_vector.size();
+	int type_vector_2_length = right_vector.size();
+
+	if (type_vector_1_length != type_vector_2_length)
+	{
+		return false;
+	}
+
+	for (int index = 0; index < type_vector_1_length; index++)
+	{
+		auto type_1 = left_vector.at(index);
+		auto type_2 = right_vector.at(index);
+
+		if (!are_equal(type_1, type_2))
+		{
+			return false;
+		}
+	}
+
+	return true;
+}

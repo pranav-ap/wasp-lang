@@ -31,13 +31,15 @@ struct Postfix;
 struct Call;
 struct EnumMember;
 struct Spread;
+struct TypeOf;
+struct Is;
 
 using Expression = AST_API std::variant<
 	std::monostate,
 	int, double, std::wstring, bool,
 	ListLiteral, TupleLiteral, SetLiteral, MapLiteral, Identifier,
 	UntypedAssignment, TypedAssignment, Prefix, Infix, Postfix, TypePattern,
-	TernaryCondition, Call, EnumMember, Spread
+	TernaryCondition, Call, EnumMember, Spread, TypeOf, Is
 >;
 
 using Expression_ptr = AST_API std::shared_ptr<Expression>;
@@ -184,4 +186,28 @@ struct AST_API Spread
 
 	Spread(Expression_ptr expression)
 		: expression(std::move(expression)), is_rvalue(true) {};
+};
+
+struct AST_API TypeOf
+{
+	std::wstring name;
+	Expression_ptr expression;
+
+	TypeOf(Expression_ptr expression)
+		: name(L""), expression(std::move(expression)) {};
+
+	TypeOf(std::wstring name, Expression_ptr expression)
+		: name(name), expression(std::move(expression)) {};
+};
+
+struct AST_API Is
+{
+	std::wstring left_name;
+	std::wstring right_name;
+
+	Expression_ptr left;
+	TypeNode_ptr right;
+
+	Is(Expression_ptr left, TypeNode_ptr right)
+		: left(left), right(right) {};
 };

@@ -456,3 +456,5 @@ struct OBJECTSYSTEM_API FunctionType : public CallableType
 OBJECTSYSTEM_API std::wstring stringify_object(Object_ptr value);
 OBJECTSYSTEM_API ObjectVector to_vector(std::deque<Object_ptr> values);
 OBJECTSYSTEM_API ObjectVector to_vector(std::wstring text);
+OBJECTSYSTEM_API bool are_equal(Object_ptr left, Object_ptr right);
+OBJECTSYSTEM_API bool are_equal(ObjectVector left_vector, ObjectVector right_vector);

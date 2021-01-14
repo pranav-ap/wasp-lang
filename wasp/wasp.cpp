@@ -10,7 +10,6 @@
 #include "Compiler.h"
 #include "VirtualMachine.h"
 #include "Assertion.h"
-
 #include <string>
 #include <memory>
 #include <vector>
@@ -19,16 +18,24 @@ using std::make_unique;
 using std::make_shared;
 using std::vector;
 using std::wstring;
+using std::string;
 
-void prepare_natives(BuiltinsManager_ptr builtins_manager)
+Module_ptr parse(string path)
 {
-	wstring raw_source = read_source("../examples/natives.wasp");
+	wstring raw_source = read_source(path);
 
 	Lexer_ptr lexer = make_unique<Lexer>();
 	vector<Token_ptr> tokens = lexer->run(raw_source);
 
 	Parser_ptr parser = new Parser();
 	Module_ptr ast = parser->run(tokens);
+
+	return ast;
+}
+
+void prepare_natives(BuiltinsManager_ptr builtins_manager)
+{
+	Module_ptr ast = parse("../examples/natives.wasp");
 
 	SemanticAnalyzer_ptr semantic_analyser = make_unique<SemanticAnalyzer>(builtins_manager);
 	semantic_analyser->run(ast);
@@ -39,13 +46,7 @@ int main()
 	BuiltinsManager_ptr builtins_manager = make_shared<BuiltinsManager>();
 	prepare_natives(builtins_manager);
 
-	wstring raw_source = read_source("../examples/main.wasp");
-
-	Lexer_ptr lexer = make_unique<Lexer>();
-	vector<Token_ptr> tokens = lexer->run(raw_source);
-
-	Parser_ptr parser = new Parser();
-	Module_ptr ast = parser->run(tokens);
+	Module_ptr ast = parse("../examples/main.wasp");
 
 	SemanticAnalyzer_ptr semantic_analyser = make_unique<SemanticAnalyzer>(builtins_manager);
 	semantic_analyser->run(ast);

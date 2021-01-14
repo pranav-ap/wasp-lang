@@ -41,7 +41,7 @@ public:
 	Object_ptr make_object(double value);
 	Object_ptr make_object(std::wstring value);
 	Object_ptr make_error_object(std::wstring text);
-	
+
 	ObjectStore();
 };
 
@@ -55,6 +55,7 @@ public:
 	int allocate(double value);
 	int allocate(std::wstring value);
 	int allocate(Object_ptr value);
+	int allocate_type(Object_ptr value);
 	int allocate_enum_member(int enum_id, int enum_member_id);
 
 	ConstantPool() : ObjectStore(), next_id(10) {};

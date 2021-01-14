@@ -52,6 +52,8 @@ void Compiler::visit(const Expression_ptr expression)
 		[&](Call const& expr) { visit(expr); },
 		[&](EnumMember const& expr) { visit(expr); },
 		[&](Spread const& expr) { visit(expr); },
+		[&](TypeOf const& expr) { visit(expr); },
+		[&](Is const& expr) { visit(expr); },
 
 		[&](auto)
 		{
@@ -166,6 +168,33 @@ void Compiler::visit(Spread const& expr)
 	}
 }
 
+void Compiler::visit(TypeOf const& expr)
+{
+	visit(expr.expression);
+	emit(OpCode::POP_FROM_STACK);
+
+	auto symbol = current_scope->lookup(expr.name);
+	int id = constant_pool->allocate_type(symbol->type);
+
+	emit(OpCode::PUSH_CONSTANT, id);
+}
+
+void Compiler::visit(Is const& expr)
+{
+	visit(expr.left);
+	emit(OpCode::POP_FROM_STACK);
+
+	auto left_symbol = current_scope->lookup(expr.left_name);
+	int id = constant_pool->allocate_type(left_symbol->type);
+	emit(OpCode::PUSH_CONSTANT, id);
+
+	auto right_symbol = current_scope->lookup(expr.right_name);
+	id = constant_pool->allocate_type(right_symbol->type);
+	emit(OpCode::PUSH_CONSTANT, id);
+
+	emit(OpCode::EQUAL);
+}
+
 void Compiler::visit(Prefix const& expr)
 {
 	visit(expr.operand);
@@ -182,6 +211,7 @@ void Compiler::visit(Prefix const& expr)
 		emit(OpCode::UNARY_NEGATIVE);
 		break;
 	}
+	case WTokenType::TYPE_OF:
 	case WTokenType::PLUS:
 	{
 		// do nothing

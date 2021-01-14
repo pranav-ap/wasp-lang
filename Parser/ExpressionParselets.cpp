@@ -94,12 +94,22 @@ Expression_ptr PrefixOperatorParselet::parse(Parser_ptr parser, Token_ptr token)
 	{
 		return MAKE_EXPRESSION(Spread(right));
 	}
+	else if (token->type == WTokenType::TYPE_OF)
+	{
+		return MAKE_EXPRESSION(TypeOf(right));
+	}
 
 	return MAKE_EXPRESSION(Prefix(token, right));
 }
 
 Expression_ptr InfixOperatorParselet::parse(Parser_ptr parser, Expression_ptr left, Token_ptr token)
 {
+	if (token->type == WTokenType::IS)
+	{
+		auto right = parser->parse_type();
+		return MAKE_EXPRESSION(Is(left, right));
+	}
+
 	auto right = parser->parse_expression(precedence - (is_right_associative ? 1 : 0));
 	return MAKE_EXPRESSION(Infix(left, token, right));
 }
@@ -159,11 +169,10 @@ Expression_ptr MapParselet::parse(Parser_ptr parser, Token_ptr token)
 		auto value = (parser->token_pipe->optional(WTokenType::ARROW)) ? parser->parse_expression() : key;
 		pairs.insert_or_assign(key, value);
 
-
 		if (parser->token_pipe->optional(WTokenType::CLOSE_ANGLE_BRACKET))
 			return MAKE_EXPRESSION(MapLiteral(pairs));
 
-		parser->token_pipe->require(WTokenType::COMMA);		
+		parser->token_pipe->require(WTokenType::COMMA);
 	}
 }
 
