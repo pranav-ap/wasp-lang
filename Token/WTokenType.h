@@ -97,6 +97,7 @@ enum class TOKEN_API WTokenType
 
 	TYPE_OF,
 	IS,
+	AS,
 	NEW,
 	PUB,
 

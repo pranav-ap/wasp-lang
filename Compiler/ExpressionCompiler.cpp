@@ -54,6 +54,7 @@ void Compiler::visit(const Expression_ptr expression)
 		[&](Spread const& expr) { visit(expr); },
 		[&](TypeOf const& expr) { visit(expr); },
 		[&](Is const& expr) { visit(expr); },
+		[&](As const& expr) { visit(expr); },
 
 		[&](auto)
 		{
@@ -193,6 +194,17 @@ void Compiler::visit(Is const& expr)
 	emit(OpCode::PUSH_CONSTANT, id);
 
 	emit(OpCode::EQUAL);
+}
+
+void Compiler::visit(As const& expr)
+{
+	visit(expr.left);
+
+	auto right_symbol = current_scope->lookup(expr.right_name);
+	int id = constant_pool->allocate_type(right_symbol->type);
+	emit(OpCode::PUSH_CONSTANT, id);
+
+	emit(OpCode::CONVERT_TYPE);
 }
 
 void Compiler::visit(Prefix const& expr)
@@ -343,7 +355,7 @@ void Compiler::visit(EnumMember const& expr)
 	auto enum_type = get_if<EnumType>(&*enum_symbol->type);
 	int member_id = enum_type->members.at(expr.chain_str);
 
-	int pool_id = constant_pool->allocate_enum_member(enum_symbol->id, member_id);
+	int pool_id = constant_pool->allocate_enum_member(enum_symbol->id, member_id, expr.chain_str);
 	emit(OpCode::PUSH_CONSTANT, pool_id);
 
 	name_map[pool_id] = expr.chain_str;

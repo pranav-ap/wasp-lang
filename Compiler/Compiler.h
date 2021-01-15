@@ -96,6 +96,7 @@ class COMPILER_API Compiler
 	void visit(Spread const& expr);
 	void visit(TypeOf const& expr);
 	void visit(Is const& expr);
+	void visit(As const& expr);
 
 	// Emit
 

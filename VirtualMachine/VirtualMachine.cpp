@@ -87,6 +87,16 @@ OpResult VirtualMachine::perform_nullary_operation(OpCode opcode)
 		pop_from_local_scope_stack();
 		return OpResult::FAILURE;
 	}
+	case OpCode::CONVERT_TYPE:
+	{
+		auto type = pop_from_value_stack();
+		auto operand = pop_from_value_stack();
+
+		operand = convert_type(type, operand);
+
+		//push_to_value_stack(operand);
+		return OpResult::OK;
+	}
 	default:
 	{
 		return OpResult::FAILURE;
@@ -260,6 +270,7 @@ OpResult VirtualMachine::execute(OpCode opcode)
 	case OpCode::YIELD_VOID:
 	case OpCode::PUSH_LOCAL_SCOPE:
 	case OpCode::POP_LOCAL_SCOPE:
+	case OpCode::CONVERT_TYPE:
 	{
 		return perform_nullary_operation(opcode);
 	}

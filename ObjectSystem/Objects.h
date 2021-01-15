@@ -138,9 +138,13 @@ struct OBJECTSYSTEM_API EnumMemberObject : public CompositeObject
 {
 	int enum_id;
 	int member_id;
+	std::wstring value;
 
 	EnumMemberObject(int enum_id, int member_id)
 		: enum_id(enum_id), member_id(member_id) {};
+
+	EnumMemberObject(int enum_id, int member_id, std::wstring value)
+		: enum_id(enum_id), member_id(member_id), value(value) {};
 };
 
 struct OBJECTSYSTEM_API ListObject : public CompositeObject, public IterableAbstractObject
@@ -454,7 +458,12 @@ struct OBJECTSYSTEM_API FunctionType : public CallableType
 // Utils
 
 OBJECTSYSTEM_API std::wstring stringify_object(Object_ptr value);
+
 OBJECTSYSTEM_API ObjectVector to_vector(std::deque<Object_ptr> values);
 OBJECTSYSTEM_API ObjectVector to_vector(std::wstring text);
-OBJECTSYSTEM_API bool are_equal(Object_ptr left, Object_ptr right);
-OBJECTSYSTEM_API bool are_equal(ObjectVector left_vector, ObjectVector right_vector);
+
+OBJECTSYSTEM_API bool are_equal_types(Object_ptr left, Object_ptr right);
+OBJECTSYSTEM_API bool are_equal_types(ObjectVector left_vector, ObjectVector right_vector);
+OBJECTSYSTEM_API bool are_equal_types_unordered(ObjectVector left_vector, ObjectVector right_vector);
+
+OBJECTSYSTEM_API Object_ptr convert_type(Object_ptr type, Object_ptr operand);

@@ -46,6 +46,7 @@ OBJECTSYSTEM_API int get_opcode_arity(OpCode opcode)
 	case OpCode::SWEAR:
 	case OpCode::IMPLORE:
 	case OpCode::MAKE_ITERABLE:
+	case OpCode::CONVERT_TYPE:
 	{
 		return 0;
 	}
@@ -293,6 +294,10 @@ OBJECTSYSTEM_API std::wstring stringify_opcode(OpCode opcode)
 	case OpCode::CALL_BUILTIN_FUN:
 	{
 		return L"CALL_BUILTIN_FUN";
+	}
+	case OpCode::CONVERT_TYPE:
+	{
+		return L"CONVERT_TYPE";
 	}
 	default:
 	{

@@ -50,6 +50,7 @@ enum class OBJECTSYSTEM_API OpCode
 	SWEAR,
 	IMPLORE,
 	MAKE_ITERABLE,
+	CONVERT_TYPE,
 
 	// 1-arity
 

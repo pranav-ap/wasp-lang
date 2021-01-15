@@ -55,6 +55,7 @@ Object_ptr SemanticAnalyzer::visit(const Expression_ptr expression)
 		[&](Spread& expr) { return visit(expr); },
 		[&](TypeOf& expr) { return visit(expr); },
 		[&](Is& expr) { return visit(expr); },
+		[&](As& expr) { return visit(expr); },
 
 		[&](auto)
 		{
@@ -318,5 +319,20 @@ Object_ptr SemanticAnalyzer::visit(Is& expr)
 	symbol = MAKE_SYMBOL(id, name, right_type, PRIVATE_SYMBOL, CONST_SYMBOL);
 	current_scope->define(name, symbol);
 
-	return  type_system->type_pool->get_boolean_type();
+	return type_system->type_pool->get_boolean_type();
+}
+
+Object_ptr SemanticAnalyzer::visit(As& expr)
+{
+	auto left_type = visit(expr.left);
+	auto right_type = visit(expr.right);
+
+	int id = next_id++;
+	wstring name = L"right_is_" + to_wstring(id);
+	expr.right_name = name;
+
+	auto symbol = MAKE_SYMBOL(id, name, right_type, PRIVATE_SYMBOL, CONST_SYMBOL);
+	current_scope->define(name, symbol);
+
+	return right_type;
 }

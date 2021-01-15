@@ -56,7 +56,7 @@ bool TypeSystem::equal(SymbolScope_ptr scope, const Object_ptr type_1, const Obj
 
 		[&](VariantType const& type_1, VariantType const& type_2)
 		{
-			return equal(scope, type_1.types, type_2.types);
+			return equal_unordered(scope, type_1.types, type_2.types);
 		},
 
 		[&](MapType const& type_1, MapType const& type_2)
@@ -88,6 +88,34 @@ bool TypeSystem::equal(SymbolScope_ptr scope, const ObjectVector type_vector_1, 
 		auto type_2 = type_vector_2.at(index);
 
 		if (!equal(scope, type_1, type_2))
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool TypeSystem::equal_unordered(SymbolScope_ptr scope, const ObjectVector left_vector, const ObjectVector right_vector) const
+{
+	int type_vector_1_length = left_vector.size();
+	int type_vector_2_length = right_vector.size();
+
+	if (type_vector_1_length != type_vector_2_length)
+	{
+		return false;
+	}
+
+	for (auto left : left_vector)
+	{
+		bool any_equal = std::any_of(begin(right_vector), end(right_vector),
+			[&](auto right)
+			{
+				return equal(scope, left, right);
+			}
+		);
+
+		if (!any_equal)
 		{
 			return false;
 		}

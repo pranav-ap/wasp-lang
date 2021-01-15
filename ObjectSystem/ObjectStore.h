@@ -56,7 +56,7 @@ public:
 	int allocate(std::wstring value);
 	int allocate(Object_ptr value);
 	int allocate_type(Object_ptr value);
-	int allocate_enum_member(int enum_id, int enum_member_id);
+	int allocate_enum_member(int enum_id, int enum_member_id, std::wstring chain);
 
 	ConstantPool() : ObjectStore(), next_id(10) {};
 };

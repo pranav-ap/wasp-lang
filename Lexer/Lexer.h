@@ -53,6 +53,7 @@ const std::map<std::wstring, WTokenType> keyword_map =
 
 	{ L"typeof", WTokenType::TYPE_OF },
 	{ L"is", WTokenType::IS },
+	{ L"as", WTokenType::AS },
 
 	{ L"type", WTokenType::TYPE },
 	{ L"int", WTokenType::INT },

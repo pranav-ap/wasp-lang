@@ -116,6 +116,12 @@ Expression_ptr InfixOperatorParselet::parse(Parser_ptr parser, Expression_ptr le
 
 Expression_ptr PostfixOperatorParselet::parse(Parser_ptr parser, Expression_ptr left, Token_ptr token)
 {
+	if (token->type == WTokenType::AS)
+	{
+		auto right = parser->parse_type();
+		return MAKE_EXPRESSION(As(left, right));
+	}
+
 	ADVANCE_PTR;
 	return MAKE_EXPRESSION(Postfix(left, token));
 }

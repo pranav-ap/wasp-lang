@@ -236,7 +236,7 @@ int ConstantPool::allocate(std::wstring text)
 	return id;
 }
 
-int ConstantPool::allocate_enum_member(int enum_id, int member_id)
+int ConstantPool::allocate_enum_member(int enum_id, int member_id, std::wstring chain)
 {
 	auto result = find_if(
 		objects.begin(),
@@ -257,7 +257,7 @@ int ConstantPool::allocate_enum_member(int enum_id, int member_id)
 	}
 
 	int id = next_id++;
-	auto value = MAKE_OBJECT_VARIANT(EnumMemberObject(enum_id, member_id));
+	auto value = MAKE_OBJECT_VARIANT(EnumMemberObject(enum_id, member_id, chain));
 	objects.insert({ id, value });
 
 	return id;
@@ -271,7 +271,7 @@ int ConstantPool::allocate_type(Object_ptr new_value)
 		[new_value](auto p)
 		{
 			Object_ptr existing_value = p.second;
-			return are_equal(new_value, existing_value);
+			return are_equal_types(new_value, existing_value);
 		});
 
 	if (result != objects.end())

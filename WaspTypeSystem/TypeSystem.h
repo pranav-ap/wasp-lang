@@ -20,6 +20,7 @@ struct WASPTYPESYSTEM_API TypeSystem
 
 	bool equal(SymbolScope_ptr scope, const Object_ptr type_1, const Object_ptr type_2) const;
 	bool equal(SymbolScope_ptr scope, const ObjectVector type_vector_1, const ObjectVector type_vector_2) const;
+	bool equal_unordered(SymbolScope_ptr scope, const ObjectVector type_vector_1, const ObjectVector type_vector_2) const;
 
 	bool assignable(SymbolScope_ptr scope, const Object_ptr lhs_type, const Object_ptr rhs_type) const;
 	bool assignable(SymbolScope_ptr scope, const ObjectVector type_vector_1, const ObjectVector type_vector_2) const;
@@ -42,7 +43,7 @@ struct WASPTYPESYSTEM_API TypeSystem
 	bool is_iterable_type(SymbolScope_ptr scope, const Object_ptr type) const;
 	bool is_key_type(SymbolScope_ptr scope, const Object_ptr type) const;
 	bool is_enum_type(SymbolScope_ptr scope, const Object_ptr type) const;
-	
+
 	// assert type
 
 	void expect_boolean_type(const Object_ptr type) const;
@@ -55,13 +56,13 @@ struct WASPTYPESYSTEM_API TypeSystem
 	void expect_spreadable_type(SymbolScope_ptr scope, const Object_ptr condition_type) const;
 	void expect_iterable_type(SymbolScope_ptr scope, const Object_ptr type) const;
 	void expect_key_type(SymbolScope_ptr scope, const Object_ptr type) const;
-	
+
 	// Extract
 
 	EnumType* extract_enum_type(const Object_ptr type) const;
 	FunctionType* extract_function_type(const Object_ptr type) const;
-	
-	TypeSystem() 
+
+	TypeSystem()
 		: type_pool(std::make_shared<ConstantPool>()) {};
 };
 
