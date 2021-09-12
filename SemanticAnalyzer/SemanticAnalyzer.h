@@ -43,16 +43,16 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 	void visit(Continue& statement);
 	void visit(Redo& statement);
 	void visit(Return& statement);
-	void visit(YieldStatement& statement);
 	void visit(Assert& statement);
 	void visit(Implore& statement);
 	void visit(Swear& statement);
 	void visit(SimpleForInLoop& statement);
 	void visit(DeconstructedForInLoop& statement);
-	void visit(Scenario& statement);
-	void visit(Test& statement);
 	void visit(EnumDefinition& statement);
 	void visit(FunctionDefinition& statement);
+	void visit(MemberFunctionDefinition& statement);
+	void visit(AliasDefinition& statement);
+	void visit(UserDefinedTypeDefinition& statement);
 	void visit(Import& statement);
 	void visit(Native& statement);
 
@@ -105,6 +105,7 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 	Object_ptr visit(VariantTypeNode& expr);
 	Object_ptr visit(NoneTypeNode& expr);
 	Object_ptr visit(FunctionTypeNode& expr);
+	Object_ptr visit(TypeIdentifierNode& expr);	
 
 	// Utils
 

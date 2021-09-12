@@ -80,11 +80,6 @@ TypeNode_ptr Parser::parse_type(bool is_optional)
 			token_pipe->require(WTokenType::OPEN_PARENTHESIS);
 			type = parse_function_type(is_optional);
 		}
-		else if (token_pipe->optional(WTokenType::GEN))
-		{
-			token_pipe->require(WTokenType::OPEN_PARENTHESIS);
-			//type = parse_generator_type(is_optional);
-		}
 		else
 		{
 			type = consume_datatype_word(is_optional);

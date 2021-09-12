@@ -115,13 +115,10 @@ std::vector<std::wstring> Parser::parse_enum_members(std::wstring stem)
 	return members;
 }
 
-// Func and Gen
+// Function
 
-std::tuple<std::wstring, StringVector, TypeNodeVector, std::optional<TypeNode_ptr>, Block> Parser::parse_callable_definition()
+std::tuple<StringVector, TypeNodeVector, std::optional<TypeNode_ptr>, Block> Parser::parse_callable_definition()
 {
-	auto first_identifier = token_pipe->require(WTokenType::IDENTIFIER);
-	NULL_CHECK(first_identifier);
-
 	token_pipe->require(WTokenType::OPEN_PARENTHESIS);
 
 	StringVector arguments;
@@ -153,15 +150,31 @@ std::tuple<std::wstring, StringVector, TypeNodeVector, std::optional<TypeNode_pt
 
 	token_pipe->require(WTokenType::EOL);
 	Block body = parse_block();
-	return make_tuple(first_identifier->value, arguments, argument_types, optional_return_type, body);
+	return make_tuple(arguments, argument_types, optional_return_type, body);
 }
 
 Statement_ptr Parser::parse_function_definition(bool is_public)
 {
-	auto [name, arguments, argument_types, optional_return_type, body] = parse_callable_definition();
+	auto first_identifier = token_pipe->require(WTokenType::IDENTIFIER);
+	NULL_CHECK(first_identifier);
+	auto first_name = first_identifier->value;
+
+	if (token_pipe->optional(WTokenType::COLON_COLON))
+	{
+		auto second_identifier = token_pipe->require(WTokenType::IDENTIFIER);
+		NULL_CHECK(second_identifier);
+		auto second_name = second_identifier->value;
+
+		auto [arguments, argument_types, optional_return_type, body] = parse_callable_definition();
+
+		TypeNode_ptr function_type = MAKE_TYPE(MemberFunctionTypeNode(argument_types, optional_return_type, first_name));
+		return MAKE_STATEMENT(MemberFunctionDefinition(is_public, second_name, arguments, function_type, body, first_name));
+	}
+
+	auto [arguments, argument_types, optional_return_type, body] = parse_callable_definition();
 
 	TypeNode_ptr function_type = MAKE_TYPE(FunctionTypeNode(argument_types, optional_return_type));
-	return MAKE_STATEMENT(FunctionDefinition(is_public, name, arguments, function_type, body));
+	return MAKE_STATEMENT(FunctionDefinition(is_public, first_name, arguments, function_type, body));
 }
 
 std::pair<std::wstring, TypeNode_ptr> Parser::consume_identifier_type_pair()
@@ -171,4 +184,34 @@ std::pair<std::wstring, TypeNode_ptr> Parser::consume_identifier_type_pair()
 	auto type = parse_type();
 
 	return make_pair(identifier->value, move(type));
+}
+
+Statement_ptr Parser::parse_type_definition(bool is_public)
+{
+	auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
+
+	if (token_pipe->optional(WTokenType::EQUAL))
+	{
+		auto type = this->parse_type();
+		token_pipe->require(WTokenType::EOL);
+
+		return MAKE_STATEMENT(AliasDefinition(is_public, identifier->value, type));
+	}
+
+	token_pipe->require(WTokenType::EOL);
+
+	std::map<std::wstring, TypeNode_ptr> members;
+
+	while (true)
+	{
+		if (token_pipe->optional(WTokenType::END))
+			break;
+
+		auto [name, type_node] = this->consume_identifier_type_pair();
+		members.insert({ name, type_node });
+
+		token_pipe->require(WTokenType::EOL);
+	}
+
+	return MAKE_STATEMENT(UserDefinedTypeDefinition(is_public, identifier->value, members));
 }

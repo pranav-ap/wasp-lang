@@ -181,7 +181,6 @@ Statement_ptr Parser::parse_non_block_statement()
 	switch (token.value()->type)
 	{
 		CASE(WTokenType::RETURN_KEYWORD, parse_return());
-		CASE(WTokenType::YIELD_KEYWORD, parse_yield());
 		CASE(WTokenType::BREAK, parse_break());
 		CASE(WTokenType::CONTINUE, parse_continue());
 		CASE(WTokenType::REDO, parse_redo());
@@ -344,22 +343,6 @@ Statement_ptr Parser::parse_for_in_loop()
 	auto statement = parse_non_block_statement();
 	auto body = { statement };
 	return MAKE_STATEMENT(DeconstructedForInLoop(body, lhs, iterable_expression));
-}
-
-// Testing
-
-Statement_ptr Parser::parse_scenario()
-{
-	auto statements = parse_block();
-	auto title = token_pipe->require(WTokenType::STRING_LITERAL);
-	return MAKE_STATEMENT(Scenario(title->value, statements));
-}
-
-Statement_ptr Parser::parse_test()
-{
-	auto statements = parse_block();
-	auto title = token_pipe->require(WTokenType::STRING_LITERAL);
-	return MAKE_STATEMENT(Test(title->value, statements));
 }
 
 // Utils

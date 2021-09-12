@@ -31,18 +31,18 @@ struct Break;
 struct Continue;
 struct Redo;
 struct Return;
-struct YieldStatement;
 struct Assert;
 struct Implore;
 struct Swear;
 struct SimpleForInLoop;
 struct DeconstructedForInLoop;
-struct Scenario;
-struct Test;
 struct EnumDefinition;
 struct FunctionDefinition;
+struct MemberFunctionDefinition;
 struct Import;
 struct Native;
+struct AliasDefinition;
+struct UserDefinedTypeDefinition;
 
 using Statement = AST_API std::variant<
 	std::monostate,
@@ -51,9 +51,11 @@ using Statement = AST_API std::variant<
 	SingleVariableDefinition, DeconstructedVariableDefinition,
 	ExpressionStatement, SimpleIfBranch, AssignedIfBranch, ElseBranch,
 	SimpleWhileLoop, AssignedWhileLoop, Break, Continue, Redo,
-	Return, YieldStatement, Assert, Implore, Swear,
-	SimpleForInLoop, DeconstructedForInLoop, Scenario, Test,
-	EnumDefinition, FunctionDefinition, Import, Native
+	Return, Assert, Implore, Swear,
+	SimpleForInLoop, DeconstructedForInLoop, 
+	EnumDefinition, FunctionDefinition, MemberFunctionDefinition, 
+	Import, Native,
+	AliasDefinition, UserDefinedTypeDefinition
 >;
 
 using Statement_ptr = AST_API std::shared_ptr<Statement>;
@@ -287,15 +289,6 @@ struct AST_API Return : public AnnotatedNode
 		: expression(std::make_optional(std::move(expression))) {};
 };
 
-struct AST_API YieldStatement : public AnnotatedNode
-{
-	std::optional<Expression_ptr> expression;
-
-	YieldStatement() : expression(std::nullopt) {};
-	YieldStatement(Expression_ptr expression)
-		: expression(std::make_optional(std::move(expression))) {};
-};
-
 struct AST_API Break : public AnnotatedNode
 {
 };
@@ -315,29 +308,6 @@ struct AST_API Import : public AnnotatedNode
 
 	Import(std::vector<std::wstring> names, std::wstring module_name)
 		: names(names), module_name(module_name) {};
-};
-
-// Test
-
-struct AST_API TestBlock : public AnnotatedNode
-{
-	std::wstring title;
-	Block body;
-
-	TestBlock(std::wstring title, Block body)
-		: title(title), body(body) {};
-};
-
-struct AST_API Scenario : public TestBlock
-{
-	Scenario(std::wstring title, Block body)
-		: TestBlock(title, body) {};
-};
-
-struct AST_API Test : public TestBlock
-{
-	Test(std::wstring title, Block body)
-		: TestBlock(title, body) {};
 };
 
 // Enum
@@ -360,23 +330,47 @@ struct AST_API EnumDefinition : public Definition
 	};
 };
 
-// Func and Gen
+// Function
 
-struct AST_API CallableDefinition : public Definition
+struct AST_API FunctionDefinition : public Definition
 {
 	std::wstring name;
 	StringVector arguments;
 	TypeNode_ptr type;
 	Block body;
 
-	CallableDefinition(bool is_public, std::wstring name, StringVector arguments, TypeNode_ptr type, Block body)
+	FunctionDefinition(bool is_public, std::wstring name, StringVector arguments, TypeNode_ptr type, Block body)
 		: Definition(is_public), name(name), arguments(arguments), type(type), body(body) {};
 };
 
-struct AST_API FunctionDefinition : public CallableDefinition
+struct AST_API MemberFunctionDefinition : public FunctionDefinition
 {
-	FunctionDefinition(bool is_public, std::wstring name, StringVector arguments, TypeNode_ptr type, Block body)
-		: CallableDefinition(is_public, name, arguments, type, body) {};
+	std::wstring type_name;
+
+	MemberFunctionDefinition(bool is_public, std::wstring name, StringVector arguments, TypeNode_ptr type, Block body, std::wstring type_name)
+		: FunctionDefinition(is_public, name, arguments, type, body), type_name(type_name){};
+};
+
+// Alias
+
+struct AST_API AliasDefinition : public Definition
+{
+	std::wstring name;
+	TypeNode_ptr type;
+
+	AliasDefinition(bool is_public, std::wstring name, TypeNode_ptr type)
+		: Definition(is_public), name(name), type(type) {};
+};
+
+// User Defined Type
+
+struct AST_API UserDefinedTypeDefinition : public Definition
+{
+	std::wstring name;
+	std::map<std::wstring, TypeNode_ptr> members;
+
+	UserDefinedTypeDefinition(bool is_public, std::wstring name, std::map<std::wstring, TypeNode_ptr> members)
+		: Definition(is_public), name(name), members(members) {};
 };
 
 // Native

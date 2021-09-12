@@ -56,12 +56,11 @@ Statement_ptr Parser::parse_statement(bool is_public)
 
 	switch (token.value()->type)
 	{
-		CASE(WTokenType::PUB, parse_public_statement());
-		CASE(WTokenType::LET, parse_variable_definition(is_public, true));
+		CASE(WTokenType::LOCAL, parse_variable_definition(is_public, true));
 		CASE(WTokenType::CONST_KEYWORD, parse_variable_definition(is_public, false));
+		CASE(WTokenType::TYPE, parse_type_definition(is_public));
 		CASE(WTokenType::IF, parse_branching(token.value()->type));
 		CASE(WTokenType::RETURN_KEYWORD, parse_return());
-		CASE(WTokenType::YIELD_KEYWORD, parse_yield());
 		CASE(WTokenType::ASSERT, parse_assert());
 		CASE(WTokenType::IMPLORE, parse_implore());
 		CASE(WTokenType::SWEAR, parse_swear());
@@ -70,12 +69,11 @@ Statement_ptr Parser::parse_statement(bool is_public)
 		CASE(WTokenType::REDO, parse_redo());
 		CASE(WTokenType::WHILE, parse_while_loop());
 		CASE(WTokenType::FOR, parse_for_in_loop());
-		CASE(WTokenType::SCENARIO, parse_scenario());
-		CASE(WTokenType::TEST, parse_test());
 		CASE(WTokenType::ENUM, parse_enum_definition(is_public));
 		CASE(WTokenType::FN, parse_function_definition(is_public));
 		CASE(WTokenType::IMPORT, parse_import());
 		CASE(WTokenType::NATIVE, parse_native());
+		CASE(WTokenType::PUBLIC, parse_public_statement());
 
 	default:
 	{
@@ -96,10 +94,11 @@ Statement_ptr Parser::parse_public_statement()
 
 	switch (token.value()->type)
 	{
-		CASE(WTokenType::LET, parse_variable_definition(is_public, true));
+		CASE(WTokenType::LOCAL, parse_variable_definition(is_public, true));
 		CASE(WTokenType::CONST_KEYWORD, parse_variable_definition(is_public, false));
 		CASE(WTokenType::ENUM, parse_enum_definition(is_public));
 		CASE(WTokenType::FN, parse_function_definition(is_public));
+		CASE(WTokenType::TYPE, parse_type_definition(is_public));
 
 	default:
 	{
@@ -172,18 +171,6 @@ Statement_ptr Parser::parse_return()
 
 	token_pipe->require(WTokenType::EOL);
 	return MAKE_STATEMENT(Return());
-}
-
-Statement_ptr Parser::parse_yield()
-{
-	if (auto expression = parse_expression())
-	{
-		token_pipe->require(WTokenType::EOL);
-		return MAKE_STATEMENT(YieldStatement(move(expression)));
-	}
-
-	token_pipe->require(WTokenType::EOL);
-	return MAKE_STATEMENT(YieldStatement());
 }
 
 Statement_ptr Parser::parse_assert()

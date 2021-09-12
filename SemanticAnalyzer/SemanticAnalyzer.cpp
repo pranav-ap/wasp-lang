@@ -53,7 +53,6 @@ void SemanticAnalyzer::visit(Statement_ptr statement)
 		[&](Continue& stat) { visit(stat); },
 		[&](Redo& stat) { visit(stat); },
 		[&](Return& stat) { visit(stat); },
-		[&](YieldStatement& stat) { visit(stat); },
 		[&](Assert& stat) { visit(stat); },
 		[&](Implore& stat) { visit(stat); },
 		[&](Swear& stat) { visit(stat); },
@@ -61,6 +60,9 @@ void SemanticAnalyzer::visit(Statement_ptr statement)
 		[&](DeconstructedForInLoop& stat) { visit(stat); },
 		[&](EnumDefinition& stat) { visit(stat); },
 		[&](FunctionDefinition& stat) { visit(stat); },
+		[&](MemberFunctionDefinition& stat) { visit(stat); },
+		[&](AliasDefinition& stat) { visit(stat); },
+		[&](UserDefinedTypeDefinition& stat) { visit(stat); },
 		[&](Import& stat) { visit(stat); },
 		[&](Native& stat) { visit(stat); },
 

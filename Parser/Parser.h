@@ -40,13 +40,10 @@ class PARSER_API Parser
 	Statement_ptr parse_while_loop();
 	Statement_ptr parse_for_in_loop();
 
-	Statement_ptr parse_scenario();
-	Statement_ptr parse_test();
 	Statement_ptr parse_import();
 	Statement_ptr parse_native();
 
 	Statement_ptr parse_return();
-	Statement_ptr parse_yield();
 	Statement_ptr parse_assert();
 	Statement_ptr parse_implore();
 	Statement_ptr parse_swear();
@@ -54,9 +51,9 @@ class PARSER_API Parser
 	Statement_ptr parse_continue();
 	Statement_ptr parse_redo();
 
-	// Function and Generator
+	// Function
 
-	std::tuple<std::wstring, StringVector, TypeNodeVector, std::optional<TypeNode_ptr>, Block> parse_callable_definition();
+	std::tuple<StringVector, TypeNodeVector, std::optional<TypeNode_ptr>, Block> parse_callable_definition();
 	Statement_ptr parse_function_definition(bool is_public);
 	std::pair<std::wstring, TypeNode_ptr> consume_identifier_type_pair();
 
@@ -74,6 +71,7 @@ class PARSER_API Parser
 	// Definition Parsers
 
 	Statement_ptr parse_variable_definition(bool is_public, bool is_mutable);
+	Statement_ptr parse_type_definition(bool is_public);
 
 	Statement_ptr parse_enum_definition(bool is_public);
 	std::vector<std::wstring> parse_enum_members(std::wstring stem);

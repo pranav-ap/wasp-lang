@@ -37,8 +37,7 @@ Object_ptr io::echo(std::vector<Object_ptr> arguments)
 BuiltinsManager::BuiltinsManager()
 {
 	Builtins_ObjectTable io_object_table = {
-	   { L"echo", MAKE_OBJECT_VARIANT(BuiltInFunctionObject(L"io", L"echo", io::echo)) },
-	   { L"me", MAKE_OBJECT_VARIANT(StringObject(L"wasp")) }
+	   { L"echo", MAKE_OBJECT_VARIANT(BuiltInFunctionObject(L"io", L"echo", io::echo)) }
 	};
 
 	Builtins_ObjectTable math_object_table = {

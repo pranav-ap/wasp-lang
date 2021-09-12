@@ -39,10 +39,7 @@ class COMPILER_API Compiler
 	void visit(Implore const& statement);
 	void visit(Swear const& statement);
 	void visit(Return const& statement);
-	void visit(YieldStatement const& statement);
 	void visit(Import const& statement);
-	void visit(Scenario const& statement);
-	void visit(Test const& statement);
 	void visit(Native const& statement);
 
 	// Func and Gen

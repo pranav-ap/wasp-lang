@@ -147,24 +147,6 @@ void SemanticAnalyzer::visit(DeconstructedForInLoop& statement)
 	// TODO
 }
 
-void SemanticAnalyzer::visit(Scenario& statement)
-{
-	enter_scope(ScopeType::TEST);
-	statement.scope = current_scope;
-
-	visit(statement.body);
-	leave_scope();
-}
-
-void SemanticAnalyzer::visit(Test& statement)
-{
-	enter_scope(ScopeType::TEST);
-	statement.scope = current_scope;
-
-	visit(statement.body);
-	leave_scope();
-}
-
 void SemanticAnalyzer::visit(Import& statement)
 {
 	statement.scope = current_scope;
@@ -218,10 +200,6 @@ void SemanticAnalyzer::visit(Return& statement)
 	{
 		visit(statement.expression.value());
 	}
-}
-
-void SemanticAnalyzer::visit(YieldStatement& statement)
-{
 }
 
 void SemanticAnalyzer::visit(Assert& statement)

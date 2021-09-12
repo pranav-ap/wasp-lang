@@ -1,12 +1,12 @@
 ﻿# This is a comment
 
 
-let x : int = 34
-let x : string = "hello"
-let x : [int] = [ 1, 2, 3 ]
-let x : ⌊ string, string ⌋ = ⌊ "1", "hello" ⌋ # tuple
-let x : { string } = { "1", "hello" } # set
-let x : ⟨ string => string ⟩ = ⟨ "a" => "b", "c" => "d" ⟩
+local x : int = 34
+local x : string = "hello"
+local x : [int] = [ 1, 2, 3 ]
+local x : ⌊ string, string ⌋ = ⌊ "1", "hello" ⌋ # tuple
+local x : { string } = { "1", "hello" } # set
+local x : ⟨ string => string ⟩ = ⟨ "a" => "b", "c" => "d" ⟩
 
 
 a = 1
@@ -41,16 +41,15 @@ end
 
 
 enum Animal
-	DOG
-	CAT
+	Dog
+	Cat
 	enum Bird
-		CROW
-		PIGEON
+		Crow
+		Pigeon
 	end
 end
 
-
-NAME::LASTNAME::ID3
+Animal::Cat
 
 
 fn add(a : int, b : int) => int
@@ -84,13 +83,36 @@ type length = int | string
 type WindowStates = "open" | "closed" | "minimized"
 
 
-let x : Person = new Person("john", false)
+type Castle < Building 
+    name : string
 
-
-type Castle
-    name: string
+    new : (string)
+    calc : (int) => int
 end
+
+
+fn Castle::new(name: string)
+    self.name = name
+end
+
+
+fn Castle::calc(num: int) => int
+    return num + 5
+end
+
+
+let x = Castle.new("Bastille")
 
 
 x.foo.age = 1
 x(123).foo(36, gg).age = 1
+
+
+infix + (a : num, b : num) => num
+    return a + b
+end
+
+
+let [a : int, ...b : string, c : string] = some_list
+[a, ...b, c] = some_list
+

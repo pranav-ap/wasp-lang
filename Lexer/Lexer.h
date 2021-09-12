@@ -29,7 +29,7 @@ const std::map<std::wstring, WTokenType> keyword_map =
 	{ L"import", WTokenType::IMPORT },
 	{ L"from", WTokenType::FROM },
 
-	{ L"let", WTokenType::LET },
+	{ L"local", WTokenType::LOCAL },
 	{ L"const", WTokenType::CONST_KEYWORD },
 
 	{ L"while", WTokenType::WHILE },
@@ -39,11 +39,10 @@ const std::map<std::wstring, WTokenType> keyword_map =
 	{ L"continue", WTokenType::CONTINUE },
 	{ L"redo", WTokenType::REDO },
 
+	{ L"public", WTokenType::PUBLIC },
 	{ L"interface", WTokenType::INTERFACE },
 	{ L"fn", WTokenType::FN },
 	{ L"return", WTokenType::RETURN_KEYWORD },
-	{ L"gen", WTokenType::GEN },
-	{ L"yield", WTokenType::YIELD_KEYWORD },
 
 	{ L"infix", WTokenType::INFIX },
 	{ L"prefix", WTokenType::PREFIX },
@@ -76,14 +75,8 @@ const std::map<std::wstring, WTokenType> keyword_map =
 	{ L"then", WTokenType::THEN },
 	{ L"do", WTokenType::DO },
 
-	{ L"scenario", WTokenType::SCENARIO },
-	{ L"test", WTokenType::TEST },
-
 	{ L"true", WTokenType::TRUE_KEYWORD },
-	{ L"false", WTokenType::FALSE_KEYWORD },
-
-	{ L"new", WTokenType::NEW },
-	{ L"pub", WTokenType::PUB }
+	{ L"false", WTokenType::FALSE_KEYWORD }
 };
 
 class LEXER_API Lexer

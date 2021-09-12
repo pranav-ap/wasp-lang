@@ -91,3 +91,18 @@ void SemanticAnalyzer::visit(FunctionDefinition& statement)
 	visit(statement.body);
 	leave_scope();
 }
+
+void SemanticAnalyzer::visit(MemberFunctionDefinition& statement)
+{
+
+}
+
+void SemanticAnalyzer::visit(AliasDefinition& statement)
+{
+
+}
+
+void SemanticAnalyzer::visit(UserDefinedTypeDefinition& statement)
+{
+
+}

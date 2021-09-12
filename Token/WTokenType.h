@@ -78,7 +78,7 @@ enum class TOKEN_API WTokenType
 	AND,
 	OR,
 
-	LET,
+	LOCAL,
 	CONST_KEYWORD,
 
 	WHILE,
@@ -98,19 +98,17 @@ enum class TOKEN_API WTokenType
 	TYPE_OF,
 	IS,
 	AS,
-	NEW,
-	PUB,
 
 	FN,
 	RETURN_KEYWORD,
-	GEN,
-	YIELD_KEYWORD,
 
 	INFIX,
 	POSTFIX,
 	PREFIX,
 
 	NATIVE,
+
+	PUBLIC,
 
 	INTERFACE,
 	TYPE,
@@ -122,9 +120,6 @@ enum class TOKEN_API WTokenType
 	ENUM,
 	ANY,
 	OPT,
-
-	TEST,
-	SCENARIO,
 
 	TRUE_KEYWORD,
 	FALSE_KEYWORD,

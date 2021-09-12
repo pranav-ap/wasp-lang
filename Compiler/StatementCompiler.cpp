@@ -45,14 +45,11 @@ void Compiler::visit(const Statement_ptr statement)
 		[&](Continue const& stat) { visit(stat); },
 		[&](Redo const& stat) { visit(stat); },
 		[&](Return const& stat) { visit(stat); },
-		[&](YieldStatement const& stat) { visit(stat); },
 		[&](Assert const& stat) { visit(stat); },
 		[&](Implore const& stat) { visit(stat); },
 		[&](Swear const& stat) { visit(stat); },
 		[&](SimpleForInLoop const& stat) { visit(stat); },
 		[&](DeconstructedForInLoop const& stat) { visit(stat); },
-		[&](Scenario const& stat) { visit(stat); },
-		[&](Test const& stat) { visit(stat); },
 		[&](EnumDefinition const& stat) { visit(stat); },
 		[&](FunctionDefinition const& stat) { visit(stat); },
 		[&](Import const& stat) { visit(stat); },
@@ -273,24 +270,6 @@ void Compiler::visit(DeconstructedForInLoop const& statement)
 
 // Block statements
 
-void Compiler::visit(Scenario const& statement)
-{
-	set_current_scope(statement.scope);
-	emit(OpCode::PUSH_LOCAL_SCOPE);
-	visit(statement.body);
-	emit(OpCode::POP_LOCAL_SCOPE);
-	leave_scope();
-}
-
-void Compiler::visit(Test const& statement)
-{
-	set_current_scope(statement.scope);
-	emit(OpCode::PUSH_LOCAL_SCOPE);
-	visit(statement.body);
-	emit(OpCode::POP_LOCAL_SCOPE);
-	leave_scope();
-}
-
 void Compiler::visit(Native const& statement)
 {
 	// do nothing
@@ -314,19 +293,6 @@ void Compiler::visit(Return const& statement)
 	else
 	{
 		emit(OpCode::RETURN_VOID);
-	}
-}
-
-void Compiler::visit(YieldStatement const& statement)
-{
-	if (statement.expression.has_value())
-	{
-		visit(statement.expression.value());
-		emit(OpCode::YIELD_VALUE);
-	}
-	else
-	{
-		emit(OpCode::YIELD_VOID);
 	}
 }
 

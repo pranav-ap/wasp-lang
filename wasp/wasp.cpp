@@ -33,26 +33,27 @@ Module_ptr parse(string path)
 	return ast;
 }
 
-void prepare_natives(BuiltinsManager_ptr builtins_manager)
-{
-	Module_ptr ast = parse("../examples/natives.wasp");
-
-	SemanticAnalyzer_ptr semantic_analyser = make_unique<SemanticAnalyzer>(builtins_manager);
-	semantic_analyser->run(ast);
-}
-
 int main()
 {
 	BuiltinsManager_ptr builtins_manager = make_shared<BuiltinsManager>();
-	prepare_natives(builtins_manager);
-
-	Module_ptr ast = parse("../examples/main.wasp");
-
 	SemanticAnalyzer_ptr semantic_analyser = make_unique<SemanticAnalyzer>(builtins_manager);
+
+	// Analyse native code
+
+	Module_ptr ast = parse("../examples/natives.wasp");
 	semantic_analyser->run(ast);
+
+	// Analyse user code
+
+	ast = parse("../examples/main.wasp");
+	semantic_analyser->run(ast);
+
+	// Compile 
 
 	Compiler_ptr compiler = make_unique<Compiler>();
 	auto [constant_pool, code_object] = compiler->run(ast);
+
+	// Run
 
 	VirtualMachine_ptr vm = make_unique<VirtualMachine>(constant_pool, code_object);
 	vm->run();

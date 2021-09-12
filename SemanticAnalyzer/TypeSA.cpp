@@ -49,6 +49,7 @@ Object_ptr SemanticAnalyzer::visit(const TypeNode_ptr type_node)
 		[&](MapTypeNode& node) { return visit(node); },
 		[&](VariantTypeNode& node) { return visit(node); },
 		[&](FunctionTypeNode& node) { return visit(node); },
+		[&](TypeIdentifierNode& node) { return visit(node); },
 
 		[&](auto)
 		{
@@ -171,4 +172,32 @@ Object_ptr SemanticAnalyzer::visit(FunctionTypeNode& expr)
 	}
 
 	return MAKE_OBJECT_VARIANT(FunctionType(input_types));
+}
+
+Object_ptr SemanticAnalyzer::visit(TypeIdentifierNode& expr)
+{
+	auto type_name = expr.name;
+	Symbol_ptr symbol = current_scope->lookup(type_name);
+
+	Object_ptr type = std::visit(overloaded{
+		[&](EnumObject const& type_def_object)
+		{
+			return MAKE_OBJECT_VARIANT(EnumType(type_def_object.name));
+		},
+		[&](AliasDefinitionObject const& type_def_object)
+		{
+			return MAKE_OBJECT_VARIANT(AliasType(type_def_object.name));
+		},
+		[&](UserDefinedTypeDefinitionObject const& type_def_object)
+		{
+			return MAKE_OBJECT_VARIANT(UserDefinedType(type_def_object.name));
+		},
+		[&](auto)
+		{
+			FATAL("Not a callable type");
+			return type_system->type_pool->get_none_type();
+		}
+		}, *symbol->type);
+
+	return type;
 }
