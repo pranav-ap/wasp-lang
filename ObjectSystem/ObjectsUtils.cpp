@@ -95,7 +95,7 @@ bool are_equal_types(Object_ptr left, Object_ptr right)
 
 		[&](EnumType const& type_1, EnumType const& type_2)
 		{
-			return type_1.enum_name == type_2.enum_name;
+			return type_1.name == type_2.name;
 		},
 
 		[&](FunctionType const& type_1, FunctionType const& type_2)
@@ -177,16 +177,15 @@ std::wstring stringify_object(Object_ptr value)
 		[&](MapObject const& obj) { return wstring(L"map object"); },
 		[&](VariantObject const& obj) { return wstring(L"variant object"); },
 		[&](ReturnObject const& obj) { return wstring(L"return"); },
-		[&](YieldObject const& obj) { return wstring(L"yield"); },
 		[&](ErrorObject const& obj) { return wstring(L"error : ") + obj.message; },
 		[&](NoneObject const& obj) { return wstring(L"none"); },
 		[&](BreakObject const& obj) { return wstring(L"break"); },
 		[&](RedoObject const& obj) { return wstring(L"redo"); },
 		[&](ContinueObject const& obj) { return wstring(L"continue"); },
 		[&](IteratorObject const& obj) { return wstring(L"break"); },
-		[&](EnumObject const& obj) { return wstring(L"enum " + obj.name); },
+		[&](EnumDefinitionObject const& obj) { return wstring(L"enum " + obj.name); },
 		[&](EnumMemberObject const& obj) { return wstring(L"enum member" + obj.value); },
-		[&](FunctionObject const& obj) { return wstring(L"function " + obj.name); },
+		[&](FunctionDefinitionObject const& obj) { return wstring(L"function " + obj.name); },
 		[&](BuiltInFunctionObject const& obj) { return wstring(L"builtin " + obj.name); },
 
 		// Types

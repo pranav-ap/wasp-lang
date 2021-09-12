@@ -161,7 +161,6 @@
     <ClInclude Include="CodeObject.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="InstructionPrinter.h" />
-    <ClInclude Include="JsonObjectConversion.h" />
     <ClInclude Include="Objects.h" />
     <ClInclude Include="ObjectStore.h" />
     <ClInclude Include="OpCode.h" />
@@ -172,7 +171,6 @@
     <ClCompile Include="CodeObject.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="InstructionPrinter.cpp" />
-    <ClCompile Include="JsonObjectConversion.cpp" />
     <ClCompile Include="Objects.cpp" />
     <ClCompile Include="ObjectStore.cpp" />
     <ClCompile Include="ObjectsUtils.cpp" />

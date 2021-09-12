@@ -65,7 +65,7 @@ std::tuple<ConstantPool_ptr, CodeObject_ptr> Compiler::run(const Module_ptr ast)
 	for (const int function_id : function_ids)
 	{
 		auto func_object = constant_pool->get(function_id);
-		auto function_object = get_if<FunctionObject>(&*func_object);
+		auto function_object = get_if<FunctionDefinitionObject>(&*func_object);
 
 		CFGBuilder_ptr cfg_builder = std::make_unique<CFGBuilder>(constant_pool, function_object->code);
 		CFG_ptr cfg = cfg_builder->create();

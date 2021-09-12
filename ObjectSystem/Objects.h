@@ -37,7 +37,7 @@ struct NoneType;
 struct EnumType;
 struct FunctionType;
 struct AliasType;
-struct UserDefinedType;
+struct ClassType;
 
 // Object
 
@@ -57,12 +57,14 @@ struct RedoObject;
 struct ContinueObject;
 struct BreakObject;
 struct IteratorObject;
-struct EnumObject;
 struct EnumMemberObject;
-struct FunctionObject;
+struct FunctionDefinitionObject;
+struct MemberFunctionDefinitionObject;
+struct EnumDefinitionObject;
 struct BuiltInFunctionObject;
 struct AliasDefinitionObject;
-struct UserDefinedTypeDefinitionObject;
+struct ClassDefinitionObject;
+//struct InstanceObject;
 
 using Object = OBJECTSYSTEM_API std::variant<
 	std::monostate,
@@ -70,14 +72,14 @@ using Object = OBJECTSYSTEM_API std::variant<
 	IntObject, FloatObject, StringObject, BooleanObject, NoneObject,
 	ListObject, TupleObject, SetObject, MapObject, VariantObject,
 	ReturnObject, ErrorObject, RedoObject, BreakObject,
-	ContinueObject, IteratorObject, EnumObject, EnumMemberObject,
-	FunctionObject, BuiltInFunctionObject,
-	AliasDefinitionObject, UserDefinedTypeDefinitionObject,
+	ContinueObject, IteratorObject, EnumDefinitionObject, EnumMemberObject,
+	FunctionDefinitionObject, BuiltInFunctionObject, MemberFunctionDefinitionObject,
+	AliasDefinitionObject, ClassDefinitionObject,
 
 	AnyType, IntLiteralType, FloatLiteralType, StringLiteralType, BooleanLiteralType,
 	IntType, FloatType, StringType, BooleanType, ListType, TupleType, SetType,
 	MapType, VariantType, NoneType, EnumType, FunctionType,
-	AliasType, UserDefinedType
+	AliasType, ClassType
 >;
 
 using Object_ptr = OBJECTSYSTEM_API std::shared_ptr<Object>;
@@ -102,6 +104,13 @@ struct OBJECTSYSTEM_API ActionObject : public AbstractObject
 
 struct OBJECTSYSTEM_API NoneObject : public AbstractObject
 {
+};
+
+struct OBJECTSYSTEM_API DefinitionObject : public AbstractObject
+{
+	std::wstring name;
+	DefinitionObject(std::wstring name) 
+		: name(name) {};
 };
 
 struct IterableAbstractObject
@@ -234,6 +243,8 @@ struct OBJECTSYSTEM_API VariantObject : public CompositeObject
 	bool has_value();
 };
 
+// Action Objects
+
 struct OBJECTSYSTEM_API BreakObject : public ActionObject
 {
 };
@@ -262,36 +273,42 @@ struct OBJECTSYSTEM_API ErrorObject : public ActionObject
 	ErrorObject(std::wstring message) : message(message) {};
 };
 
-struct OBJECTSYSTEM_API EnumObject : public AbstractObject
+// Definition Object
+
+struct OBJECTSYSTEM_API EnumDefinitionObject : public DefinitionObject
 {
-	std::wstring name;
 	std::map<std::wstring, int> members;
 
-	EnumObject(std::wstring name, std::map<std::wstring, int> members)
-		: name(name), members(members) {};
+	EnumDefinitionObject(std::wstring name, std::map<std::wstring, int> members)
+		: DefinitionObject(name), members(members) {};
 };
 
-struct OBJECTSYSTEM_API FunctionObject : public AbstractObject
+struct OBJECTSYSTEM_API FunctionDefinitionObject : public DefinitionObject
 {
-	std::wstring name;
 	CodeObject_ptr code;
 
-	FunctionObject(std::wstring name, std::vector<std::byte> instructions)
-		: name(name), code(std::make_shared<CodeObject>(instructions)) {};
+	FunctionDefinitionObject(std::wstring name, std::vector<std::byte> instructions)
+		: DefinitionObject(name), code(std::make_shared<CodeObject>(instructions)) {};
 };
 
-struct OBJECTSYSTEM_API BuiltInObject : public AbstractObject
+struct OBJECTSYSTEM_API MemberFunctionDefinitionObject : public FunctionDefinitionObject
+{
+	std::wstring type_name;
+
+	MemberFunctionDefinitionObject(std::wstring name, std::vector<std::byte> instructions, std::wstring type_name)
+		: FunctionDefinitionObject(name, instructions), type_name(type_name) {};
+};
+
+struct OBJECTSYSTEM_API BuiltInObject : public DefinitionObject
 {
 	std::wstring module_name;
-	std::wstring name;
-
 	Object_ptr type;
 
 	BuiltInObject(std::wstring module_name, std::wstring name)
-		: module_name(module_name), name(name), type(nullptr) {};
+		: DefinitionObject(name), module_name(module_name), type(nullptr) {};
 
 	BuiltInObject(std::wstring module_name, std::wstring name, Object_ptr type)
-		: module_name(module_name), name(name), type(type) {};
+		: DefinitionObject(name), module_name(module_name), type(type) {};
 };
 
 struct OBJECTSYSTEM_API BuiltInFunctionObject : public BuiltInObject
@@ -305,22 +322,20 @@ struct OBJECTSYSTEM_API BuiltInFunctionObject : public BuiltInObject
 		: BuiltInObject(module_name, name, type), func(func) {};
 };
 
-struct OBJECTSYSTEM_API AliasDefinitionObject : public AbstractObject
+struct OBJECTSYSTEM_API AliasDefinitionObject : public DefinitionObject
 {
-	std::wstring name;
-	Object_ptr original_type;
+	Object_ptr type;
 
-	AliasDefinitionObject(std::wstring name, Object_ptr original_type) 
-		: name(name), original_type(original_type) {};
+	AliasDefinitionObject(std::wstring name, Object_ptr type)
+		: DefinitionObject(name), type(type) {};
 };
 
-struct OBJECTSYSTEM_API UserDefinedTypeDefinitionObject : public AbstractObject
+struct OBJECTSYSTEM_API ClassDefinitionObject : public DefinitionObject
 {
-	std::wstring name;
 	std::map<std::wstring, Object_ptr> members;
 
-	UserDefinedTypeDefinitionObject(std::wstring name, std::map<std::wstring, Object_ptr> members)
-		: name(name), members(members) {};
+	ClassDefinitionObject(std::wstring name, std::map<std::wstring, Object_ptr> members)
+		: DefinitionObject(name), members(members) {};
 };
 
 // Type
@@ -341,24 +356,16 @@ struct OBJECTSYSTEM_API CompositeType : public AnyType
 {
 };
 
-struct OBJECTSYSTEM_API AliasType : public AnyType
-{
-	std::wstring name;
-
-	AliasType(std::wstring name) 
-		: name(name) {};
-};
-
-struct OBJECTSYSTEM_API UserDefinedType : public AnyType
-{
-	std::wstring name;
-
-	UserDefinedType(std::wstring name)
-		: name(name) {};
-};
-
 struct OBJECTSYSTEM_API NoneType : public AnyType
 {
+};
+
+struct OBJECTSYSTEM_API NamedDefinitionType : public AnyType
+{
+	std::wstring name;
+
+	NamedDefinitionType(std::wstring name)
+		: name(name) {};
 };
 
 struct OBJECTSYSTEM_API FunctionType : public AnyType
@@ -452,12 +459,24 @@ struct OBJECTSYSTEM_API VariantType : public CompositeType
 	VariantType(ObjectVector types) : types(types) {};
 };
 
-struct OBJECTSYSTEM_API EnumType : public CompositeType
-{
-	std::wstring enum_name;
+// Definition Type
 
-	EnumType(std::wstring enum_name)
-		: enum_name(enum_name) {};
+struct OBJECTSYSTEM_API EnumType : public NamedDefinitionType
+{
+	EnumType(std::wstring name) 
+		: NamedDefinitionType(name) {};
+};
+
+struct OBJECTSYSTEM_API AliasType : public NamedDefinitionType
+{
+	AliasType(std::wstring name)
+		: NamedDefinitionType(name) {};
+};
+
+struct OBJECTSYSTEM_API ClassType : public NamedDefinitionType
+{
+	ClassType(std::wstring name)
+		: NamedDefinitionType(name) {};
 };
 
 // Utils

@@ -62,7 +62,7 @@ void SemanticAnalyzer::visit(Statement_ptr statement)
 		[&](FunctionDefinition& stat) { visit(stat); },
 		[&](MemberFunctionDefinition& stat) { visit(stat); },
 		[&](AliasDefinition& stat) { visit(stat); },
-		[&](UserDefinedTypeDefinition& stat) { visit(stat); },
+		[&](ClassDefinition& stat) { visit(stat); },
 		[&](Import& stat) { visit(stat); },
 		[&](Native& stat) { visit(stat); },
 

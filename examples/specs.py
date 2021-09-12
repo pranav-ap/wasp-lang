@@ -83,7 +83,12 @@ type length = int | string
 type WindowStates = "open" | "closed" | "minimized"
 
 
-type Castle < Building 
+interface Account
+    name : string
+end
+
+
+type Castle < Building ~ Account
     name : string
 
     new : (string)

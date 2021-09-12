@@ -81,7 +81,7 @@ void Compiler::visit(FunctionDefinition const& statement)
 
 	int symbol_id = current_scope->lookup(statement.name)->id;
 
-	auto function_object = MAKE_OBJECT_VARIANT(FunctionObject(statement.name, instructions));
+	auto function_object = MAKE_OBJECT_VARIANT(FunctionDefinitionObject(statement.name, instructions));
 	int id = constant_pool->allocate(move(function_object));
 
 	emit(OpCode::PUSH_CONSTANT, id);

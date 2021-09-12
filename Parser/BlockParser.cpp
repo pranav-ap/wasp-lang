@@ -382,3 +382,23 @@ std::wstring Parser::extract_identifier_string(Expression_ptr expr)
 	auto identifier = get_if<Identifier>(&*expr);
 	return identifier->name;
 }
+
+StringVector Parser::parse_comma_separated_identifiers()
+{
+	StringVector identifiers;
+
+	while (true)
+	{
+		auto token = token_pipe->require(WTokenType::IDENTIFIER);
+		NULL_CHECK(token);
+
+		identifiers.push_back(token->value);
+
+		if (!token_pipe->optional(WTokenType::COMMA))
+		{
+			break;
+		}
+	}
+
+	return identifiers;
+}

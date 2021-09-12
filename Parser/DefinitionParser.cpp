@@ -186,6 +186,25 @@ std::pair<std::wstring, TypeNode_ptr> Parser::consume_identifier_type_pair()
 	return make_pair(identifier->value, move(type));
 }
 
+std::pair<StringVector, StringVector> Parser::parse_inheritance()
+{
+	StringVector parent_classes;
+
+	if (token_pipe->optional(WTokenType::LESSER_THAN))
+	{
+		parent_classes = this->parse_comma_separated_identifiers();
+	}
+
+	StringVector interfaces;
+
+	if (token_pipe->optional(WTokenType::TILDE))
+	{
+		interfaces = this->parse_comma_separated_identifiers();
+	}
+
+	return make_pair(parent_classes, interfaces);
+}
+
 Statement_ptr Parser::parse_type_definition(bool is_public)
 {
 	auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
@@ -213,5 +232,7 @@ Statement_ptr Parser::parse_type_definition(bool is_public)
 		token_pipe->require(WTokenType::EOL);
 	}
 
-	return MAKE_STATEMENT(UserDefinedTypeDefinition(is_public, identifier->value, members));
+	auto [parent_classes, interfaces] = this->parse_inheritance();
+
+	return MAKE_STATEMENT(ClassDefinition(is_public, identifier->value, members, parent_classes, interfaces));
 }

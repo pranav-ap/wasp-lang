@@ -72,6 +72,7 @@ class PARSER_API Parser
 
 	Statement_ptr parse_variable_definition(bool is_public, bool is_mutable);
 	Statement_ptr parse_type_definition(bool is_public);
+	std::pair<StringVector, StringVector> parse_inheritance();
 
 	Statement_ptr parse_enum_definition(bool is_public);
 	std::vector<std::wstring> parse_enum_members(std::wstring stem);
@@ -97,6 +98,7 @@ class PARSER_API Parser
 	std::tuple<Expression_ptr, Expression_ptr> deconstruct_UntypedAssignment(Expression_ptr expr);
 	std::tuple<Expression_ptr, Expression_ptr, TypeNode_ptr> deconstruct_TypedAssignment(Expression_ptr expr);
 	std::wstring extract_identifier_string(Expression_ptr expr);
+	StringVector parse_comma_separated_identifiers();
 
 public:
 	TokenPipe_ptr token_pipe;

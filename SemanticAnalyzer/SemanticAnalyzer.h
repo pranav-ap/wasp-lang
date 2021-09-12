@@ -52,7 +52,7 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 	void visit(FunctionDefinition& statement);
 	void visit(MemberFunctionDefinition& statement);
 	void visit(AliasDefinition& statement);
-	void visit(UserDefinedTypeDefinition& statement);
+	void visit(ClassDefinition& statement);
 	void visit(Import& statement);
 	void visit(Native& statement);
 

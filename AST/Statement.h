@@ -39,10 +39,10 @@ struct DeconstructedForInLoop;
 struct EnumDefinition;
 struct FunctionDefinition;
 struct MemberFunctionDefinition;
+struct AliasDefinition;
+struct ClassDefinition;
 struct Import;
 struct Native;
-struct AliasDefinition;
-struct UserDefinedTypeDefinition;
 
 using Statement = AST_API std::variant<
 	std::monostate,
@@ -55,7 +55,7 @@ using Statement = AST_API std::variant<
 	SimpleForInLoop, DeconstructedForInLoop, 
 	EnumDefinition, FunctionDefinition, MemberFunctionDefinition, 
 	Import, Native,
-	AliasDefinition, UserDefinedTypeDefinition
+	AliasDefinition, ClassDefinition
 >;
 
 using Statement_ptr = AST_API std::shared_ptr<Statement>;
@@ -310,26 +310,6 @@ struct AST_API Import : public AnnotatedNode
 		: names(names), module_name(module_name) {};
 };
 
-// Enum
-
-struct AST_API EnumDefinition : public Definition
-{
-	std::wstring name;
-	std::map<std::wstring, int> members;
-
-	EnumDefinition(bool is_public, std::wstring name, StringVector member_list) : Definition(is_public)
-	{
-		this->name = name;
-		int index = 0;
-
-		for (auto const member : member_list)
-		{
-			members.insert({ member, index });
-			index++;
-		}
-	};
-};
-
 // Function
 
 struct AST_API FunctionDefinition : public Definition
@@ -351,7 +331,23 @@ struct AST_API MemberFunctionDefinition : public FunctionDefinition
 		: FunctionDefinition(is_public, name, arguments, type, body), type_name(type_name){};
 };
 
-// Alias
+struct AST_API EnumDefinition : public Definition
+{
+	std::wstring name;
+	std::map<std::wstring, int> members;
+
+	EnumDefinition(bool is_public, std::wstring name, StringVector member_list) : Definition(is_public)
+	{
+		this->name = name;
+		int index = 0;
+
+		for (auto const member : member_list)
+		{
+			members.insert({ member, index });
+			index++;
+		}
+	};
+};
 
 struct AST_API AliasDefinition : public Definition
 {
@@ -362,15 +358,15 @@ struct AST_API AliasDefinition : public Definition
 		: Definition(is_public), name(name), type(type) {};
 };
 
-// User Defined Type
-
-struct AST_API UserDefinedTypeDefinition : public Definition
+struct AST_API ClassDefinition : public Definition
 {
 	std::wstring name;
 	std::map<std::wstring, TypeNode_ptr> members;
+	std::vector<std::wstring> parent_classes;
+	std::vector<std::wstring> interfaces;
 
-	UserDefinedTypeDefinition(bool is_public, std::wstring name, std::map<std::wstring, TypeNode_ptr> members)
-		: Definition(is_public), name(name), members(members) {};
+	ClassDefinition(bool is_public, std::wstring name, std::map<std::wstring, TypeNode_ptr> members, std::vector<std::wstring> parent_classes, std::vector<std::wstring> interfaces)
+		: Definition(is_public), name(name), members(members), parent_classes(parent_classes), interfaces(interfaces) {};
 };
 
 // Native

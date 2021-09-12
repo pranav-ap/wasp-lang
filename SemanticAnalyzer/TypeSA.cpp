@@ -180,7 +180,7 @@ Object_ptr SemanticAnalyzer::visit(TypeIdentifierNode& expr)
 	Symbol_ptr symbol = current_scope->lookup(type_name);
 
 	Object_ptr type = std::visit(overloaded{
-		[&](EnumObject const& type_def_object)
+		[&](EnumDefinitionObject const& type_def_object)
 		{
 			return MAKE_OBJECT_VARIANT(EnumType(type_def_object.name));
 		},
@@ -188,9 +188,9 @@ Object_ptr SemanticAnalyzer::visit(TypeIdentifierNode& expr)
 		{
 			return MAKE_OBJECT_VARIANT(AliasType(type_def_object.name));
 		},
-		[&](UserDefinedTypeDefinitionObject const& type_def_object)
+		[&](ClassDefinitionObject const& type_def_object)
 		{
-			return MAKE_OBJECT_VARIANT(UserDefinedType(type_def_object.name));
+			return MAKE_OBJECT_VARIANT(ClassType(type_def_object.name));
 		},
 		[&](auto)
 		{
