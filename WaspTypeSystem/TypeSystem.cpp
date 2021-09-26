@@ -26,6 +26,17 @@ using std::end;
 
 bool TypeSystem::equal(SymbolScope_ptr scope, const Object_ptr type_1, const Object_ptr type_2) const
 {
+	if (is_alias_type(scope, type_1)) 
+	{
+		auto alias_type = extract_alias_type(type_1);
+		return equal(scope, alias_type->type, type_2);
+	} 
+	else if (is_alias_type(scope, type_2))
+	{
+		auto alias_type = extract_alias_type(type_2);
+		return equal(scope, alias_type->type, type_2);
+	}
+
 	return std::visit(overloaded{
 		[&](AnyType const& type_1, AnyType const& type_2) { return true; },
 
@@ -64,6 +75,16 @@ bool TypeSystem::equal(SymbolScope_ptr scope, const Object_ptr type_1, const Obj
 			bool key_compare = equal(scope, type_1.key_type, type_2.key_type);
 			bool value_compare = equal(scope, type_1.value_type, type_2.value_type);
 			return key_compare && value_compare;
+		},
+
+		[&](AliasType const& type_1, AliasType const& type_2)
+		{
+			return equal(scope, type_1.type, type_2.type);
+		},
+
+		[&](ClassType const& type_1, ClassType const& type_2)
+		{
+			return equal(scope, type_1.type, type_2.type);
 		},
 
 		[&](NoneType const& type_1, NoneType const& type_2) { return true; },
@@ -133,6 +154,17 @@ bool TypeSystem::assignable(SymbolScope_ptr scope, const Object_ptr lhs_type, co
 		return true;
 	}
 
+	if (is_alias_type(scope, lhs_type))
+	{
+		auto alias_type = extract_alias_type(lhs_type);
+		return assignable(scope, alias_type->type, rhs_type);
+	}
+	else if (is_alias_type(scope, rhs_type))
+	{
+		auto alias_type = extract_alias_type(rhs_type);
+		return assignable(scope, lhs_type, alias_type->type);
+	}
+
 	return std::visit(overloaded{
 		[&](AnyType const& type_1, auto) { return true; },
 
@@ -171,6 +203,16 @@ bool TypeSystem::assignable(SymbolScope_ptr scope, const Object_ptr lhs_type, co
 		[&](VariantType const& lhs_variant_type, auto)
 		{
 			return all_of(begin(lhs_variant_type.types), end(lhs_variant_type.types), [&](Object_ptr type) { return assignable(scope, type, rhs_type); });
+		},
+
+		[&](AliasType const& type_1, AliasType const& type_2)
+		{
+			return assignable(scope, type_1.type, type_2.type);
+		},
+
+		[&](ClassType const& type_1, ClassType const& type_2)
+		{
+			return assignable(scope, type_1.type, type_2.type);
 		},
 
 		[](auto, auto) { return false; }

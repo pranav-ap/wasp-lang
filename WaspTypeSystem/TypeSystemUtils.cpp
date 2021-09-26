@@ -40,6 +40,11 @@ Object_ptr TypeSystem::spread_type(Object_ptr type)
 			return type; 
 		},
 
+		[&](AliasType const& t)
+		{
+			return spread_type(t.type);
+		},
+
 		[&](auto) 
 		{ 
 			FATAL("Cannot spread this type");
@@ -149,6 +154,11 @@ bool TypeSystem::is_enum_type(SymbolScope_ptr scope, const Object_ptr type) cons
 	return holds_alternative<EnumType>(*type);
 }
 
+bool TypeSystem::is_alias_type(SymbolScope_ptr scope, const Object_ptr type) const
+{
+	return holds_alternative<AliasType>(*type);
+}
+
 // assert type
 
 void TypeSystem::expect_boolean_type(const Object_ptr type) const
@@ -214,5 +224,12 @@ FunctionType* TypeSystem::extract_function_type(const Object_ptr type) const
 {
 	ASSERT(holds_alternative<FunctionType>(*type), "Must be a FunctionType");
 	auto inner_type = get_if<FunctionType>(&*type);
+	return inner_type;
+}
+
+AliasType* TypeSystem::extract_alias_type(const Object_ptr type) const
+{
+	ASSERT(holds_alternative<AliasType>(*type), "Must be a AliasType");
+	auto inner_type = get_if<AliasType>(&*type);
 	return inner_type;
 }

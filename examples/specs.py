@@ -76,48 +76,60 @@ native io
 end
 
 
-# Planned Features
+type Castle < Building ~ Account
+    name : string
+ 
+    fn new(name: string)
+        self.name = name
+    end
+
+    fn calc(num: int) => int
+        return num + 5 
+    end
+end
+
+
+local x = Castle.new("Bastille")
+
 
 type length = int
 type length = int | string
 type WindowStates = "open" | "closed" | "minimized"
 
 
-interface Account
-    name : string
-end
-
-
-type Castle < Building ~ Account
-    name : string
-
-    new : (string)
-    calc : (int) => int
-end
-
-
-fn Castle::new(name: string)
-    self.name = name
-end
-
-
-fn Castle::calc(num: int) => int
-    return num + 5
-end
-
-
-let x = Castle.new("Bastille")
-
-
 x.foo.age = 1
 x(123).foo(36, gg).age = 1
 
 
-infix + (a : num, b : num) => num
-    return a + b
+# Planned Features
+
+interface Account
+    name : string
 end
 
+delete foo
+
+generate call()
+
+defer call()
+
+defer {
+    x = 0
+}
 
 let [a : int, ...b : string, c : string] = some_list
 [a, ...b, c] = some_list
+
+try 
+    throw Error.new("...")
+
+catch e is Animal 
+    do_something()
+
+catch _
+    do_something_else()
+    
+ensure
+    
+end
 

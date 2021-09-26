@@ -31,7 +31,8 @@ struct NoneTypeNode;
 struct EnumTypeNode;
 struct TypeIdentifierNode;
 struct FunctionTypeNode;
-struct MemberFunctionTypeNode;
+struct ClassTypeNode;
+struct AliasTypeNode;
 
 using TypeNode = AST_API std::variant<
 	std::monostate,
@@ -40,7 +41,7 @@ using TypeNode = AST_API std::variant<
 	IntTypeNode, FloatTypeNode, StringTypeNode, BooleanTypeNode,
 	ListTypeNode, TupleTypeNode, SetTypeNode, MapTypeNode,
 	VariantTypeNode, NoneTypeNode, EnumTypeNode, TypeIdentifierNode, 
-	FunctionTypeNode, MemberFunctionTypeNode
+	FunctionTypeNode, ClassTypeNode, AliasTypeNode
 >;
 
 using TypeNode_ptr = AST_API std::shared_ptr<TypeNode>;
@@ -68,6 +69,35 @@ struct AST_API NoneTypeNode : public AnyTypeNode
 {
 };
 
+struct AST_API ClassTypeNode : public AnyTypeNode
+{
+	std::wstring name;
+
+	std::map<std::wstring, TypeNode_ptr> member_types;
+	std::vector<std::wstring> parent_classes;
+	std::vector<std::wstring> interfaces;
+
+	ClassTypeNode(
+		std::wstring name, 
+		std::map<std::wstring, TypeNode_ptr> member_types,
+		std::vector<std::wstring> parent_classes,
+		std::vector<std::wstring> interfaces) 
+		: name(name), 
+		member_types(member_types),
+		parent_classes(parent_classes), 
+		interfaces(interfaces) {};
+};
+
+struct AST_API AliasTypeNode : public AnyTypeNode
+{
+	std::wstring name;
+	TypeNode_ptr type;
+
+	AliasTypeNode(
+		std::wstring name,
+		TypeNode_ptr type) : name(name), type(type) {};
+};
+
 struct AST_API FunctionTypeNode : public AnyTypeNode
 {
 	TypeNodeVector input_types;
@@ -75,14 +105,6 @@ struct AST_API FunctionTypeNode : public AnyTypeNode
 
 	FunctionTypeNode(TypeNodeVector input_types, std::optional<TypeNode_ptr> return_type)
 		: input_types(input_types), return_type(return_type) {};
-};
-
-struct AST_API MemberFunctionTypeNode : public FunctionTypeNode
-{
-	std::wstring type_name;
-
-	MemberFunctionTypeNode(TypeNodeVector input_types, std::optional<TypeNode_ptr> return_type, std::wstring type_name)
-		: FunctionTypeNode(input_types, return_type), type_name(type_name) {};
 };
 
 // Parser does not know whether type identifier is class, enum or interface

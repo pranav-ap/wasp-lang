@@ -61,7 +61,7 @@ void SemanticAnalyzer::visit(DeconstructedVariableDefinition& statement)
 
 void SemanticAnalyzer::visit(EnumDefinition& statement)
 {
-	auto type = MAKE_OBJECT_VARIANT(EnumType(statement.name));
+	auto type = MAKE_OBJECT_VARIANT(EnumType(statement.name, statement.members));
 	auto symbol = MAKE_SYMBOL(next_id++, statement.name, type, statement.is_public, CONST_SYMBOL);
 	current_scope->define(statement.name, symbol);
 }
@@ -92,17 +92,20 @@ void SemanticAnalyzer::visit(FunctionDefinition& statement)
 	leave_scope();
 }
 
-void SemanticAnalyzer::visit(MemberFunctionDefinition& statement)
-{
-
-}
-
 void SemanticAnalyzer::visit(AliasDefinition& statement)
 {
+	statement.scope = current_scope;
 
+	auto type = visit(statement.type);
+	auto symbol = MAKE_SYMBOL(next_id++, statement.name, type, statement.is_public, CONST_SYMBOL);
+	current_scope->define(statement.name, symbol);
 }
 
 void SemanticAnalyzer::visit(ClassDefinition& statement)
 {
+	statement.scope = current_scope;
 
+	auto type = visit(statement.type);
+	auto symbol = MAKE_SYMBOL(next_id++, statement.name, type, statement.is_public, CONST_SYMBOL);
+	current_scope->define(statement.name, symbol);
 }

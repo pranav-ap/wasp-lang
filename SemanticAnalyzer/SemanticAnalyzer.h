@@ -50,7 +50,6 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 	void visit(DeconstructedForInLoop& statement);
 	void visit(EnumDefinition& statement);
 	void visit(FunctionDefinition& statement);
-	void visit(MemberFunctionDefinition& statement);
 	void visit(AliasDefinition& statement);
 	void visit(ClassDefinition& statement);
 	void visit(Import& statement);
@@ -106,6 +105,9 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 	Object_ptr visit(NoneTypeNode& expr);
 	Object_ptr visit(FunctionTypeNode& expr);
 	Object_ptr visit(TypeIdentifierNode& expr);	
+	Object_ptr visit(EnumTypeNode& expr);
+	Object_ptr visit(ClassTypeNode& expr);
+	Object_ptr visit(AliasTypeNode& expr);
 
 	// Utils
 

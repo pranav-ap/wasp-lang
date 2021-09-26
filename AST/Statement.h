@@ -38,7 +38,6 @@ struct SimpleForInLoop;
 struct DeconstructedForInLoop;
 struct EnumDefinition;
 struct FunctionDefinition;
-struct MemberFunctionDefinition;
 struct AliasDefinition;
 struct ClassDefinition;
 struct Import;
@@ -53,7 +52,7 @@ using Statement = AST_API std::variant<
 	SimpleWhileLoop, AssignedWhileLoop, Break, Continue, Redo,
 	Return, Assert, Implore, Swear,
 	SimpleForInLoop, DeconstructedForInLoop, 
-	EnumDefinition, FunctionDefinition, MemberFunctionDefinition, 
+	EnumDefinition, FunctionDefinition,  
 	Import, Native,
 	AliasDefinition, ClassDefinition
 >;
@@ -323,14 +322,6 @@ struct AST_API FunctionDefinition : public Definition
 		: Definition(is_public), name(name), arguments(arguments), type(type), body(body) {};
 };
 
-struct AST_API MemberFunctionDefinition : public FunctionDefinition
-{
-	std::wstring type_name;
-
-	MemberFunctionDefinition(bool is_public, std::wstring name, StringVector arguments, TypeNode_ptr type, Block body, std::wstring type_name)
-		: FunctionDefinition(is_public, name, arguments, type, body), type_name(type_name){};
-};
-
 struct AST_API EnumDefinition : public Definition
 {
 	std::wstring name;
@@ -352,21 +343,41 @@ struct AST_API EnumDefinition : public Definition
 struct AST_API AliasDefinition : public Definition
 {
 	std::wstring name;
+	TypeNode_ptr ref_type;
 	TypeNode_ptr type;
 
-	AliasDefinition(bool is_public, std::wstring name, TypeNode_ptr type)
-		: Definition(is_public), name(name), type(type) {};
+	AliasDefinition(bool is_public, std::wstring name,
+		TypeNode_ptr ref_type, TypeNode_ptr type)
+		: Definition(is_public), name(name), ref_type(ref_type), type(type) {};
 };
 
 struct AST_API ClassDefinition : public Definition
 {
 	std::wstring name;
-	std::map<std::wstring, TypeNode_ptr> members;
+	TypeNode_ptr type;
+	
+	std::map<std::wstring, TypeNode_ptr> member_types;
+	std::map<std::wstring, Block> function_body_map;
+	std::map<std::wstring, StringVector> function_arguments_names_map;
+
 	std::vector<std::wstring> parent_classes;
 	std::vector<std::wstring> interfaces;
 
-	ClassDefinition(bool is_public, std::wstring name, std::map<std::wstring, TypeNode_ptr> members, std::vector<std::wstring> parent_classes, std::vector<std::wstring> interfaces)
-		: Definition(is_public), name(name), members(members), parent_classes(parent_classes), interfaces(interfaces) {};
+	ClassDefinition(bool is_public, std::wstring name, 
+		std::map<std::wstring, TypeNode_ptr> member_types, 
+		std::map<std::wstring, Block> function_body_map,
+		std::map<std::wstring, StringVector> function_arguments_names_map, 
+		std::vector<std::wstring> parent_classes, 
+		std::vector<std::wstring> interfaces,
+		TypeNode_ptr type)
+		: Definition(is_public), 
+		name(name), 
+		member_types(member_types), 
+		function_body_map(function_body_map),
+		function_arguments_names_map(function_arguments_names_map),
+		parent_classes(parent_classes), 
+		interfaces(interfaces),
+		type(type) {};
 };
 
 // Native

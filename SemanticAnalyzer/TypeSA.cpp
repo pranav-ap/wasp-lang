@@ -182,15 +182,15 @@ Object_ptr SemanticAnalyzer::visit(TypeIdentifierNode& expr)
 	Object_ptr type = std::visit(overloaded{
 		[&](EnumDefinitionObject const& type_def_object)
 		{
-			return MAKE_OBJECT_VARIANT(EnumType(type_def_object.name));
+			return symbol->type;
 		},
 		[&](AliasDefinitionObject const& type_def_object)
 		{
-			return MAKE_OBJECT_VARIANT(AliasType(type_def_object.name));
+			return symbol->type;
 		},
 		[&](ClassDefinitionObject const& type_def_object)
 		{
-			return MAKE_OBJECT_VARIANT(ClassType(type_def_object.name));
+			return symbol->type;
 		},
 		[&](auto)
 		{
@@ -200,4 +200,19 @@ Object_ptr SemanticAnalyzer::visit(TypeIdentifierNode& expr)
 		}, *symbol->type);
 
 	return type;
+}
+
+Object_ptr SemanticAnalyzer::visit(EnumTypeNode& expr)
+{
+	return Object_ptr();
+}
+
+Object_ptr SemanticAnalyzer::visit(ClassTypeNode& expr)
+{
+	return Object_ptr();
+}
+
+Object_ptr SemanticAnalyzer::visit(AliasTypeNode& expr)
+{
+	return MAKE_OBJECT_VARIANT(AliasTy(input_types));
 }

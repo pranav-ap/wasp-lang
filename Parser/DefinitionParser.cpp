@@ -155,26 +155,14 @@ std::tuple<StringVector, TypeNodeVector, std::optional<TypeNode_ptr>, Block> Par
 
 Statement_ptr Parser::parse_function_definition(bool is_public)
 {
-	auto first_identifier = token_pipe->require(WTokenType::IDENTIFIER);
-	NULL_CHECK(first_identifier);
-	auto first_name = first_identifier->value;
-
-	if (token_pipe->optional(WTokenType::COLON_COLON))
-	{
-		auto second_identifier = token_pipe->require(WTokenType::IDENTIFIER);
-		NULL_CHECK(second_identifier);
-		auto second_name = second_identifier->value;
-
-		auto [arguments, argument_types, optional_return_type, body] = parse_callable_definition();
-
-		TypeNode_ptr function_type = MAKE_TYPE(MemberFunctionTypeNode(argument_types, optional_return_type, first_name));
-		return MAKE_STATEMENT(MemberFunctionDefinition(is_public, second_name, arguments, function_type, body, first_name));
-	}
+	auto function_name_token = token_pipe->require(WTokenType::IDENTIFIER);
+	NULL_CHECK(function_name_token);
+	auto function_name = function_name_token->value;
 
 	auto [arguments, argument_types, optional_return_type, body] = parse_callable_definition();
 
 	TypeNode_ptr function_type = MAKE_TYPE(FunctionTypeNode(argument_types, optional_return_type));
-	return MAKE_STATEMENT(FunctionDefinition(is_public, first_name, arguments, function_type, body));
+	return MAKE_STATEMENT(FunctionDefinition(is_public, function_name, arguments, function_type, body));
 }
 
 std::pair<std::wstring, TypeNode_ptr> Parser::consume_identifier_type_pair()
@@ -208,31 +196,51 @@ std::pair<StringVector, StringVector> Parser::parse_inheritance()
 Statement_ptr Parser::parse_type_definition(bool is_public)
 {
 	auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
+	auto type_name = identifier->value;
 
 	if (token_pipe->optional(WTokenType::EQUAL))
 	{
-		auto type = this->parse_type();
+		auto ref_type = this->parse_type();
 		token_pipe->require(WTokenType::EOL);
 
-		return MAKE_STATEMENT(AliasDefinition(is_public, identifier->value, type));
+		TypeNode_ptr alias_type = MAKE_TYPE(AliasTypeNode(type_name, ref_type));
+		return MAKE_STATEMENT(AliasDefinition(is_public, type_name, ref_type, alias_type));
 	}
 
 	token_pipe->require(WTokenType::EOL);
 
-	std::map<std::wstring, TypeNode_ptr> members;
+	std::map<std::wstring, TypeNode_ptr> member_types;
+	std::map<std::wstring, Block> function_body_map;
+	std::map<std::wstring, StringVector> function_argument_names_map;
 
 	while (true)
 	{
 		if (token_pipe->optional(WTokenType::END))
 			break;
+		
+		if (token_pipe->optional(WTokenType::FN))
+		{
+			auto function_name_token = token_pipe->require(WTokenType::IDENTIFIER);
+			NULL_CHECK(function_name_token);
+			auto function_name = function_name_token->value;
 
-		auto [name, type_node] = this->consume_identifier_type_pair();
-		members.insert({ name, type_node });
-
-		token_pipe->require(WTokenType::EOL);
+			auto [arguments, argument_types, optional_return_type, body] = parse_callable_definition();
+			TypeNode_ptr function_type = MAKE_TYPE(FunctionTypeNode(argument_types, optional_return_type));
+			
+			member_types.insert({ function_name, function_type });
+			function_body_map.insert({ function_name, body });
+			function_argument_names_map.insert({ function_name, arguments });
+		}
+		else 
+		{
+			auto [name, type_node] = this->consume_identifier_type_pair();
+			member_types.insert({ name, type_node });
+			token_pipe->require(WTokenType::EOL);
+		}
 	}
 
 	auto [parent_classes, interfaces] = this->parse_inheritance();
+	TypeNode_ptr class_type = MAKE_TYPE(ClassTypeNode(type_name, member_types, parent_classes, interfaces));
 
-	return MAKE_STATEMENT(ClassDefinition(is_public, identifier->value, members, parent_classes, interfaces));
+	return MAKE_STATEMENT(ClassDefinition(is_public, type_name, member_types, function_body_map, function_argument_names_map, parent_classes, interfaces, class_type));
 }

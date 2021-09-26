@@ -60,7 +60,6 @@ void SemanticAnalyzer::visit(Statement_ptr statement)
 		[&](DeconstructedForInLoop& stat) { visit(stat); },
 		[&](EnumDefinition& stat) { visit(stat); },
 		[&](FunctionDefinition& stat) { visit(stat); },
-		[&](MemberFunctionDefinition& stat) { visit(stat); },
 		[&](AliasDefinition& stat) { visit(stat); },
 		[&](ClassDefinition& stat) { visit(stat); },
 		[&](Import& stat) { visit(stat); },

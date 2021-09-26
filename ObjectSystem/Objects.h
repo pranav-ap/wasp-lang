@@ -59,12 +59,11 @@ struct BreakObject;
 struct IteratorObject;
 struct EnumMemberObject;
 struct FunctionDefinitionObject;
-struct MemberFunctionDefinitionObject;
 struct EnumDefinitionObject;
 struct BuiltInFunctionObject;
 struct AliasDefinitionObject;
 struct ClassDefinitionObject;
-//struct InstanceObject;
+struct InstanceObject;
 
 using Object = OBJECTSYSTEM_API std::variant<
 	std::monostate,
@@ -73,8 +72,8 @@ using Object = OBJECTSYSTEM_API std::variant<
 	ListObject, TupleObject, SetObject, MapObject, VariantObject,
 	ReturnObject, ErrorObject, RedoObject, BreakObject,
 	ContinueObject, IteratorObject, EnumDefinitionObject, EnumMemberObject,
-	FunctionDefinitionObject, BuiltInFunctionObject, MemberFunctionDefinitionObject,
-	AliasDefinitionObject, ClassDefinitionObject,
+	FunctionDefinitionObject, BuiltInFunctionObject, 
+	AliasDefinitionObject, ClassDefinitionObject, InstanceObject, 
 
 	AnyType, IntLiteralType, FloatLiteralType, StringLiteralType, BooleanLiteralType,
 	IntType, FloatType, StringType, BooleanType, ListType, TupleType, SetType,
@@ -291,14 +290,6 @@ struct OBJECTSYSTEM_API FunctionDefinitionObject : public DefinitionObject
 		: DefinitionObject(name), code(std::make_shared<CodeObject>(instructions)) {};
 };
 
-struct OBJECTSYSTEM_API MemberFunctionDefinitionObject : public FunctionDefinitionObject
-{
-	std::wstring type_name;
-
-	MemberFunctionDefinitionObject(std::wstring name, std::vector<std::byte> instructions, std::wstring type_name)
-		: FunctionDefinitionObject(name, instructions), type_name(type_name) {};
-};
-
 struct OBJECTSYSTEM_API BuiltInObject : public DefinitionObject
 {
 	std::wstring module_name;
@@ -335,6 +326,14 @@ struct OBJECTSYSTEM_API ClassDefinitionObject : public DefinitionObject
 	std::map<std::wstring, Object_ptr> members;
 
 	ClassDefinitionObject(std::wstring name, std::map<std::wstring, Object_ptr> members)
+		: DefinitionObject(name), members(members) {};
+};
+
+struct OBJECTSYSTEM_API InstanceObject : public DefinitionObject
+{
+	std::map<std::wstring, Object_ptr> members;
+
+	InstanceObject(std::wstring name, std::map<std::wstring, Object_ptr> members)
 		: DefinitionObject(name), members(members) {};
 };
 
@@ -463,20 +462,35 @@ struct OBJECTSYSTEM_API VariantType : public CompositeType
 
 struct OBJECTSYSTEM_API EnumType : public NamedDefinitionType
 {
-	EnumType(std::wstring name) 
-		: NamedDefinitionType(name) {};
+	std::map<std::wstring, int> members;
+
+	EnumType(std::wstring name, std::map<std::wstring, int> members)
+		: NamedDefinitionType(name), members(members) {};
 };
 
 struct OBJECTSYSTEM_API AliasType : public NamedDefinitionType
 {
-	AliasType(std::wstring name)
-		: NamedDefinitionType(name) {};
+	Object_ptr type;
+
+	AliasType(std::wstring name, Object_ptr type)
+		: NamedDefinitionType(name), type(type) {};
 };
 
 struct OBJECTSYSTEM_API ClassType : public NamedDefinitionType
 {
-	ClassType(std::wstring name)
-		: NamedDefinitionType(name) {};
+	std::map<std::wstring, Object_ptr> member_types;
+	std::vector<std::wstring> parent_classes;
+	std::vector<std::wstring> interfaces;
+
+	ClassType(
+		std::wstring name,
+		std::map<std::wstring, Object_ptr> member_types,
+		std::vector<std::wstring> parent_classes,
+		std::vector<std::wstring> interfaces)
+		: NamedDefinitionType(name),
+		member_types(member_types),
+		parent_classes(parent_classes),
+		interfaces(interfaces) {};
 };
 
 // Utils
