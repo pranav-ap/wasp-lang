@@ -59,13 +59,6 @@ void SemanticAnalyzer::visit(DeconstructedVariableDefinition& statement)
 	FATAL("TODO - SemanticAnalyzer - DeconstructedVariableDefinition");
 }
 
-void SemanticAnalyzer::visit(EnumDefinition& statement)
-{
-	auto type = MAKE_OBJECT_VARIANT(EnumType(statement.name, statement.members));
-	auto symbol = MAKE_SYMBOL(next_id++, statement.name, type, statement.is_public, CONST_SYMBOL);
-	current_scope->define(statement.name, symbol);
-}
-
 void SemanticAnalyzer::visit(FunctionDefinition& statement)
 {
 	auto type = visit(statement.type);
@@ -79,7 +72,7 @@ void SemanticAnalyzer::visit(FunctionDefinition& statement)
 
 	int arg_index = 0;
 
-	for (auto const arg_name : statement.arguments)
+	for (auto const arg_name : statement.argument_names)
 	{
 		Object_ptr type = function_type->input_types.at(arg_index);
 		auto symbol = MAKE_SYMBOL(next_id++, arg_name, type, PRIVATE_SYMBOL, MUTABLE_SYMBOL);
@@ -92,12 +85,19 @@ void SemanticAnalyzer::visit(FunctionDefinition& statement)
 	leave_scope();
 }
 
+void SemanticAnalyzer::visit(EnumDefinition& statement)
+{
+	auto type = MAKE_OBJECT_VARIANT(EnumType(statement.name, statement.members));
+	auto symbol = MAKE_SYMBOL(next_id++, statement.name, type, statement.is_public, CONST_SYMBOL);
+	current_scope->define(statement.name, symbol);
+}
+
 void SemanticAnalyzer::visit(AliasDefinition& statement)
 {
 	statement.scope = current_scope;
 
-	auto type = visit(statement.type);
-	auto symbol = MAKE_SYMBOL(next_id++, statement.name, type, statement.is_public, CONST_SYMBOL);
+	auto ref_type = visit(statement.ref_type);
+	auto symbol = MAKE_SYMBOL(next_id++, statement.name, ref_type, statement.is_public, CONST_SYMBOL);
 	current_scope->define(statement.name, symbol);
 }
 
@@ -105,7 +105,15 @@ void SemanticAnalyzer::visit(ClassDefinition& statement)
 {
 	statement.scope = current_scope;
 
-	auto type = visit(statement.type);
+	std::map<std::wstring, Object_ptr> members;
+
+	for (auto const [name, member_type] : statement.member_types)
+	{
+		Object_ptr type = visit(member_type);
+		members.insert({ name , type});
+	}
+
+	auto type = MAKE_OBJECT_VARIANT(ClassType(statement.name, statement.parent_classes, statement.interfaces, members));
 	auto symbol = MAKE_SYMBOL(next_id++, statement.name, type, statement.is_public, CONST_SYMBOL);
 	current_scope->define(statement.name, symbol);
 }

@@ -159,6 +159,11 @@ bool TypeSystem::is_alias_type(SymbolScope_ptr scope, const Object_ptr type) con
 	return holds_alternative<AliasType>(*type);
 }
 
+bool TypeSystem::is_class_type(SymbolScope_ptr scope, const Object_ptr type) const
+{
+	return holds_alternative<ClassType>(*type);
+}
+
 // assert type
 
 void TypeSystem::expect_boolean_type(const Object_ptr type) const
@@ -213,13 +218,6 @@ void TypeSystem::expect_key_type(SymbolScope_ptr scope, const Object_ptr type) c
 
 // extract 
 
-EnumType* TypeSystem::extract_enum_type(const Object_ptr type) const
-{
-	ASSERT(holds_alternative<EnumType>(*type), "Must be a EnumType");
-	auto inner_type = get_if<EnumType>(&*type);
-	return inner_type;
-}
-
 FunctionType* TypeSystem::extract_function_type(const Object_ptr type) const
 {
 	ASSERT(holds_alternative<FunctionType>(*type), "Must be a FunctionType");
@@ -227,9 +225,23 @@ FunctionType* TypeSystem::extract_function_type(const Object_ptr type) const
 	return inner_type;
 }
 
+EnumType* TypeSystem::extract_enum_type(const Object_ptr type) const
+{
+	ASSERT(holds_alternative<EnumType>(*type), "Must be a EnumType");
+	auto inner_type = get_if<EnumType>(&*type);
+	return inner_type;
+}
+
 AliasType* TypeSystem::extract_alias_type(const Object_ptr type) const
 {
 	ASSERT(holds_alternative<AliasType>(*type), "Must be a AliasType");
 	auto inner_type = get_if<AliasType>(&*type);
+	return inner_type;
+}
+
+ClassType* TypeSystem::extract_class_type(const Object_ptr type) const
+{
+	ASSERT(holds_alternative<ClassType>(*type), "Must be a ClassType");
+	auto inner_type = get_if<ClassType>(&*type);
 	return inner_type;
 }

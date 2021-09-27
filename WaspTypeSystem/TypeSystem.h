@@ -44,6 +44,7 @@ struct WASPTYPESYSTEM_API TypeSystem
 	bool is_key_type(SymbolScope_ptr scope, const Object_ptr type) const;
 	bool is_enum_type(SymbolScope_ptr scope, const Object_ptr type) const;
 	bool is_alias_type(SymbolScope_ptr scope, const Object_ptr type) const;
+	bool is_class_type(SymbolScope_ptr scope, const Object_ptr type) const;
 
 	// assert type
 
@@ -57,12 +58,13 @@ struct WASPTYPESYSTEM_API TypeSystem
 	void expect_spreadable_type(SymbolScope_ptr scope, const Object_ptr condition_type) const;
 	void expect_iterable_type(SymbolScope_ptr scope, const Object_ptr type) const;
 	void expect_key_type(SymbolScope_ptr scope, const Object_ptr type) const;
-
+	
 	// Extract
 
-	EnumType* extract_enum_type(const Object_ptr type) const;
 	FunctionType* extract_function_type(const Object_ptr type) const;
+	EnumType* extract_enum_type(const Object_ptr type) const;
 	AliasType* extract_alias_type(const Object_ptr type) const;
+	ClassType* extract_class_type(const Object_ptr type) const;
 
 	TypeSystem()
 		: type_pool(std::make_shared<ConstantPool>()) {};

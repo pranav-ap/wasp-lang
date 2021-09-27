@@ -309,17 +309,17 @@ struct AST_API Import : public AnnotatedNode
 		: names(names), module_name(module_name) {};
 };
 
-// Function
+// Definition
 
 struct AST_API FunctionDefinition : public Definition
 {
 	std::wstring name;
-	StringVector arguments;
 	TypeNode_ptr type;
+	StringVector argument_names;
 	Block body;
 
-	FunctionDefinition(bool is_public, std::wstring name, StringVector arguments, TypeNode_ptr type, Block body)
-		: Definition(is_public), name(name), arguments(arguments), type(type), body(body) {};
+	FunctionDefinition(bool is_public, std::wstring name, StringVector argument_names, TypeNode_ptr type, Block body)
+		: Definition(is_public), name(name), argument_names(argument_names), type(type), body(body) {};
 };
 
 struct AST_API EnumDefinition : public Definition
@@ -344,17 +344,15 @@ struct AST_API AliasDefinition : public Definition
 {
 	std::wstring name;
 	TypeNode_ptr ref_type;
-	TypeNode_ptr type;
 
 	AliasDefinition(bool is_public, std::wstring name,
-		TypeNode_ptr ref_type, TypeNode_ptr type)
-		: Definition(is_public), name(name), ref_type(ref_type), type(type) {};
+		TypeNode_ptr ref_type)
+		: Definition(is_public), name(name), ref_type(ref_type) {};
 };
 
 struct AST_API ClassDefinition : public Definition
 {
 	std::wstring name;
-	TypeNode_ptr type;
 	
 	std::map<std::wstring, TypeNode_ptr> member_types;
 	std::map<std::wstring, Block> function_body_map;
@@ -368,16 +366,14 @@ struct AST_API ClassDefinition : public Definition
 		std::map<std::wstring, Block> function_body_map,
 		std::map<std::wstring, StringVector> function_arguments_names_map, 
 		std::vector<std::wstring> parent_classes, 
-		std::vector<std::wstring> interfaces,
-		TypeNode_ptr type)
+		std::vector<std::wstring> interfaces)
 		: Definition(is_public), 
 		name(name), 
 		member_types(member_types), 
 		function_body_map(function_body_map),
 		function_arguments_names_map(function_arguments_names_map),
 		parent_classes(parent_classes), 
-		interfaces(interfaces),
-		type(type) {};
+		interfaces(interfaces) {};
 };
 
 // Native

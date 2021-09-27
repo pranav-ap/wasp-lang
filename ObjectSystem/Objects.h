@@ -383,7 +383,10 @@ struct OBJECTSYSTEM_API FunctionType : public AnyType
 
 struct OBJECTSYSTEM_API IntType : public ScalarType
 {
+	static std::vector<std::wstring> members;
 };
+
+std::vector<std::wstring> IntType::members = {L"to_string"};
 
 struct OBJECTSYSTEM_API FloatType : public ScalarType
 {
@@ -478,19 +481,20 @@ struct OBJECTSYSTEM_API AliasType : public NamedDefinitionType
 
 struct OBJECTSYSTEM_API ClassType : public NamedDefinitionType
 {
-	std::map<std::wstring, Object_ptr> member_types;
 	std::vector<std::wstring> parent_classes;
 	std::vector<std::wstring> interfaces;
 
+	std::map<std::wstring, Object_ptr> members;
+
 	ClassType(
 		std::wstring name,
-		std::map<std::wstring, Object_ptr> member_types,
 		std::vector<std::wstring> parent_classes,
-		std::vector<std::wstring> interfaces)
+		std::vector<std::wstring> interfaces,
+		std::map<std::wstring, Object_ptr> members)
 		: NamedDefinitionType(name),
-		member_types(member_types),
 		parent_classes(parent_classes),
-		interfaces(interfaces) {};
+		interfaces(interfaces),
+		members(members) {};
 };
 
 // Utils

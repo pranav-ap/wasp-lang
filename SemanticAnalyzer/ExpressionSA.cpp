@@ -223,10 +223,73 @@ Object_ptr SemanticAnalyzer::visit(Postfix& expr)
 Object_ptr SemanticAnalyzer::visit(Infix& expr)
 {
 	Object_ptr lhs_operand_type = visit(expr.left);
+
+	if (expr.op->type == WTokenType::DOT)
+	{
+		return infer_chain_member_type(lhs_operand_type, expr.right, false);
+	}
+	else if (expr.op->type == WTokenType::QUESTION_DOT)
+	{
+		return infer_chain_member_type(lhs_operand_type, expr.right, true);
+	}
+
 	Object_ptr rhs_operand_type = visit(expr.right);
 
 	Object_ptr result_type = type_system->infer(current_scope, lhs_operand_type, expr.op->type, rhs_operand_type);
 	return result_type;
+}
+
+Object_ptr SemanticAnalyzer::infer_chain_member_type(Object_ptr lhs_operand_type, Expression_ptr expr, bool null_check_access)
+{
+	auto none_type = type_system->type_pool->get_none_type();
+
+	//struct AnyType;
+	// 
+	//struct IntLiteralType;
+	//struct FloatLiteralType;
+	//struct StringLiteralType;
+	//struct BooleanLiteralType;
+	// 
+	//struct IntType;
+	//struct FloatType;
+	//struct StringType;
+	//struct BooleanType;
+	// 
+	//struct ListType;
+	//struct TupleType;
+	//struct SetType;
+	//struct MapType;
+	// 
+	//struct VariantType;
+	// 
+	//struct NoneType;
+	// 
+	//struct EnumType;
+	
+	Object_ptr return_type = std::visit(overloaded{
+		[&](ClassType const& left_type)
+		{
+			ASSERT(holds_alternative<Identifier>(*expr), "Must be an Identifier");
+			auto identifier = get_if<Identifier>(&*expr);
+
+			std::wstring member_name = identifier->name;
+			Object_ptr rhs_operand_type = left_type.members.at(member_name);
+
+			return rhs_operand_type;
+		},
+		[&](IntType const& left_type)
+		{
+		},
+		[&](auto)
+		{
+			FATAL("Unexpected dot operator");
+			return none_type;
+		}
+		}, *lhs_operand_type);
+
+	return null_check_access ?
+		MAKE_OBJECT_VARIANT(VariantType({ return_type, none_type }))
+		: return_type;
 }
 
 Object_ptr SemanticAnalyzer::visit(EnumMember& expr)

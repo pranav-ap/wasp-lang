@@ -160,7 +160,6 @@ Statement_ptr Parser::parse_function_definition(bool is_public)
 	auto function_name = function_name_token->value;
 
 	auto [arguments, argument_types, optional_return_type, body] = parse_callable_definition();
-
 	TypeNode_ptr function_type = MAKE_TYPE(FunctionTypeNode(argument_types, optional_return_type));
 	return MAKE_STATEMENT(FunctionDefinition(is_public, function_name, arguments, function_type, body));
 }
@@ -203,8 +202,7 @@ Statement_ptr Parser::parse_type_definition(bool is_public)
 		auto ref_type = this->parse_type();
 		token_pipe->require(WTokenType::EOL);
 
-		TypeNode_ptr alias_type = MAKE_TYPE(AliasTypeNode(type_name, ref_type));
-		return MAKE_STATEMENT(AliasDefinition(is_public, type_name, ref_type, alias_type));
+		return MAKE_STATEMENT(AliasDefinition(is_public, type_name, ref_type));
 	}
 
 	token_pipe->require(WTokenType::EOL);
@@ -240,7 +238,5 @@ Statement_ptr Parser::parse_type_definition(bool is_public)
 	}
 
 	auto [parent_classes, interfaces] = this->parse_inheritance();
-	TypeNode_ptr class_type = MAKE_TYPE(ClassTypeNode(type_name, member_types, parent_classes, interfaces));
-
-	return MAKE_STATEMENT(ClassDefinition(is_public, type_name, member_types, function_body_map, function_argument_names_map, parent_classes, interfaces, class_type));
+	return MAKE_STATEMENT(ClassDefinition(is_public, type_name, member_types, function_body_map, function_argument_names_map, parent_classes, interfaces));
 }

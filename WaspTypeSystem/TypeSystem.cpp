@@ -207,12 +207,12 @@ bool TypeSystem::assignable(SymbolScope_ptr scope, const Object_ptr lhs_type, co
 
 		[&](AliasType const& type_1, AliasType const& type_2)
 		{
-			return assignable(scope, type_1.type, type_2.type);
+			return assignable(scope, type_1.type, type_2.type); 
 		},
 
 		[&](ClassType const& type_1, ClassType const& type_2)
 		{
-			return assignable(scope, type_1.type, type_2.type);
+			return type_1.name.compare(type_2.name) == 0;
 		},
 
 		[](auto, auto) { return false; }
@@ -327,10 +327,6 @@ Object_ptr TypeSystem::infer(SymbolScope_ptr scope, Object_ptr left_type, WToken
 		}
 
 		return MAKE_OBJECT_VARIANT(VariantType({ left_type, right_type }));
-	}
-	case WTokenType::IS:
-	{
-		return type_pool->get_boolean_type();
 	}
 	default:
 	{

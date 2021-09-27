@@ -194,25 +194,10 @@ Object_ptr SemanticAnalyzer::visit(TypeIdentifierNode& expr)
 		},
 		[&](auto)
 		{
-			FATAL("Not a callable type");
+			FATAL("Expected an Enum or Alias or Class type");
 			return type_system->type_pool->get_none_type();
 		}
 		}, *symbol->type);
 
 	return type;
-}
-
-Object_ptr SemanticAnalyzer::visit(EnumTypeNode& expr)
-{
-	return Object_ptr();
-}
-
-Object_ptr SemanticAnalyzer::visit(ClassTypeNode& expr)
-{
-	return Object_ptr();
-}
-
-Object_ptr SemanticAnalyzer::visit(AliasTypeNode& expr)
-{
-	return MAKE_OBJECT_VARIANT(AliasTy(input_types));
 }

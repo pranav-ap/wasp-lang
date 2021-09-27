@@ -28,11 +28,8 @@ struct SetTypeNode;
 struct MapTypeNode;
 struct VariantTypeNode;
 struct NoneTypeNode;
-struct EnumTypeNode;
 struct TypeIdentifierNode;
 struct FunctionTypeNode;
-struct ClassTypeNode;
-struct AliasTypeNode;
 
 using TypeNode = AST_API std::variant<
 	std::monostate,
@@ -40,8 +37,8 @@ using TypeNode = AST_API std::variant<
 	IntLiteralTypeNode, FloatLiteralTypeNode, StringLiteralTypeNode, BooleanLiteralTypeNode,
 	IntTypeNode, FloatTypeNode, StringTypeNode, BooleanTypeNode,
 	ListTypeNode, TupleTypeNode, SetTypeNode, MapTypeNode,
-	VariantTypeNode, NoneTypeNode, EnumTypeNode, TypeIdentifierNode, 
-	FunctionTypeNode, ClassTypeNode, AliasTypeNode
+	VariantTypeNode, NoneTypeNode, TypeIdentifierNode, 
+	FunctionTypeNode
 >;
 
 using TypeNode_ptr = AST_API std::shared_ptr<TypeNode>;
@@ -67,35 +64,6 @@ struct AST_API CompositeTypeNode : public AnyTypeNode
 
 struct AST_API NoneTypeNode : public AnyTypeNode
 {
-};
-
-struct AST_API ClassTypeNode : public AnyTypeNode
-{
-	std::wstring name;
-
-	std::map<std::wstring, TypeNode_ptr> member_types;
-	std::vector<std::wstring> parent_classes;
-	std::vector<std::wstring> interfaces;
-
-	ClassTypeNode(
-		std::wstring name, 
-		std::map<std::wstring, TypeNode_ptr> member_types,
-		std::vector<std::wstring> parent_classes,
-		std::vector<std::wstring> interfaces) 
-		: name(name), 
-		member_types(member_types),
-		parent_classes(parent_classes), 
-		interfaces(interfaces) {};
-};
-
-struct AST_API AliasTypeNode : public AnyTypeNode
-{
-	std::wstring name;
-	TypeNode_ptr type;
-
-	AliasTypeNode(
-		std::wstring name,
-		TypeNode_ptr type) : name(name), type(type) {};
 };
 
 struct AST_API FunctionTypeNode : public AnyTypeNode
@@ -193,13 +161,3 @@ struct AST_API VariantTypeNode : public CompositeTypeNode
 	TypeNodeVector types;
 	VariantTypeNode(TypeNodeVector types) : types(types) {};
 };
-
-struct AST_API EnumTypeNode : public CompositeTypeNode
-{
-	std::wstring enum_name;
-	std::map<std::wstring, int> members;
-
-	EnumTypeNode(std::wstring enum_name, std::map<std::wstring, int> members)
-		: enum_name(enum_name), members(members) {};
-};
-
