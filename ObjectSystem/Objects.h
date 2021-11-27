@@ -383,10 +383,7 @@ struct OBJECTSYSTEM_API FunctionType : public AnyType
 
 struct OBJECTSYSTEM_API IntType : public ScalarType
 {
-	static std::vector<std::wstring> members;
 };
-
-std::vector<std::wstring> IntType::members = {L"to_string"};
 
 struct OBJECTSYSTEM_API FloatType : public ScalarType
 {

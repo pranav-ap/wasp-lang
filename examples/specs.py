@@ -24,12 +24,12 @@ else
 end
 
 
+while expr do a = a + 4
+
+
 while expr do
     a = a + 4
 end
-
-
-while expr do a = a + 4
 
 
 for x : int in [1, 2, 3] do x
@@ -71,8 +71,13 @@ end
 import { echo } from 'io'
 
 
-native io
+native module io
 	echo : (text : string) => string
+end
+
+
+native type IntType < AnyType
+	to_string : () => string
 end
 
 
@@ -113,9 +118,9 @@ generate call()
 
 defer call()
 
-defer {
+defer 
     x = 0
-}
+end
 
 let [a : int, ...b : string, c : string] = some_list
 [a, ...b, c] = some_list
@@ -126,10 +131,10 @@ try
 catch e is Animal 
     do_something()
 
-catch _
+catch e is Any
     do_something_else()
     
-ensure
+finally
     
 end
 

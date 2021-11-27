@@ -29,8 +29,8 @@ public:
 	BuiltinsManager();
 
 	void set_native_type(std::wstring module_name, std::wstring name, Object_ptr type);
-	Object_ptr get_native_type(std::wstring module_name, std::wstring name);
 
+	Object_ptr get_native_type(std::wstring module_name, std::wstring name);
 	Object_ptr get_native_object(std::wstring module_name, std::wstring name);
 
 	bool exists(std::wstring module_name, std::wstring name);
