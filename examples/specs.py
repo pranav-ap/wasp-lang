@@ -1,12 +1,14 @@
 ﻿# This is a comment
 
 
-local x : int = 34
-local x : string = "hello"
-local x : [int] = [ 1, 2, 3 ]
-local x : ⌊ string, string ⌋ = ⌊ "1", "hello" ⌋ # tuple
-local x : { string } = { "1", "hello" } # set
-local x : ⟨ string => string ⟩ = ⟨ "a" => "b", "c" => "d" ⟩
+let x : int = 34
+let x : string = "hello"
+let x : [int] = [ 1, 2, 3 ]
+let x : ⌊ string, string ⌋ = ⌊ "1", "hello" ⌋ # tuple
+let x : { string } = { "1", "hello" } # set
+let x : ⟨ string => string ⟩ = ⟨ "a" => "b", "c" => "d" ⟩
+
+const x : int = 34
 
 
 a = 1
@@ -40,18 +42,6 @@ for i : int in [34, 4, 12] do
 end
 
 
-enum Animal
-	Dog
-	Cat
-	enum Bird
-		Crow
-		Pigeon
-	end
-end
-
-Animal::Cat
-
-
 fn add(a : int, b : int) => int
     if a > b then
         return a
@@ -68,7 +58,33 @@ else
 end
 
 
-import { echo } from 'io'
+# Enum
+
+
+enum Animal
+	Dog
+	Cat
+	enum Bird
+		Crow
+		Pigeon
+	end
+end
+
+Animal::Cat
+Animal::Bird::Crow
+
+
+# Imports
+
+
+import io
+import echo from io
+import { echo, ask } from io
+import { send } from 'root/folder/sendmail'
+import { send } from './sendmail'
+
+
+# Native
 
 
 native module io
@@ -81,20 +97,7 @@ native type IntType < AnyType
 end
 
 
-type Castle < Building ~ Account
-    name : string
- 
-    fn new(name: string)
-        self.name = name
-    end
-
-    fn calc(num: int) => int
-        return num + 5 
-    end
-end
-
-
-local x = Castle.new("Bastille")
+# User Defined Data
 
 
 type length = int
@@ -102,15 +105,51 @@ type length = int | string
 type WindowStates = "open" | "closed" | "minimized"
 
 
+type Castle < Building
+    name : string
+ 
+    fn _init_(name: string)
+        self.name = name
+    end
+
+    fn _copyinit_(name: string)
+        self.name = name
+    end
+
+    fn _moveinit_(name: string)
+        self.name = name
+    end
+
+    fn _del_(name: string)
+        self.name = name
+    end
+    
+    fn _getitem_(index: int) -> int:
+        return self.value.get(index)
+    end
+    
+    fn __setitem__(index: int, value: int):
+        return self.value.data.store(i, val)
+    end
+
+    fn calc(num: int) => int
+        return num + 5 
+    end
+
+    operator < (other: Castle) => bool
+        return self.name < other.name
+    end
+end
+
+
+let x = Castle.new("Bastille")
+
+
 x.foo.age = 1
 x(123).foo(36, gg).age = 1
 
 
 # Planned Features
-
-interface Account
-    name : string
-end
 
 delete foo
 
@@ -125,16 +164,32 @@ end
 let [a : int, ...b : string, c : string] = some_list
 [a, ...b, c] = some_list
 
+# Exception Handling
+
 try 
     throw Error.new("...")
-
 catch e is Animal 
     do_something()
-
 catch e is Any
-    do_something_else()
-    
-finally
-    
+    do_something_else()   
+finally    
 end
+
+
+# Test Suite
+
+
+testsuite CastleTestSuite
+    description = ''
+    common_tolerance = 0.1
+ 
+    test testname
+        assert num > 5
+        assert_almost num > 5, 0.2
+    end
+end
+
+
+CastleTestSuite.run()
+CastleTestSuite.testname.run()
 
