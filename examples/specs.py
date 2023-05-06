@@ -1,4 +1,4 @@
-﻿# This is a comment
+# This is a comment
 
 
 let x : int = 34
@@ -26,6 +26,9 @@ else
 end
 
 
+case 
+
+
 while expr do a = a + 4
 
 
@@ -49,6 +52,10 @@ fn add(a : int, b : int) => int
 
     return b
 end
+
+
+add(12, 23)
+add(a: 12, b: 23)
 
 
 if x : int = call() then
@@ -104,8 +111,8 @@ type length = int
 type length = int | string
 type WindowStates = "open" | "closed" | "minimized"
 
-
-type Castle < Building
+ 
+class Castle < Building
     name : string
  
     fn _init_(name: string)
@@ -120,10 +127,6 @@ type Castle < Building
         self.name = name
     end
 
-    fn _del_(name: string)
-        self.name = name
-    end
-    
     fn _getitem_(index: int) -> int:
         return self.value.get(index)
     end
@@ -144,16 +147,27 @@ end
 
 let x = Castle.new("Bastille")
 
-
 x.foo.age = 1
 x(123).foo(36, gg).age = 1
+
+# Generics
+
+class Box[NameType]
+	name : NameType
+ 
+    fn _init_(name: NameType)
+        self.name = name
+    end
+end
+
+let box = Box[int].new(25)
 
 
 # Planned Features
 
-delete foo
+del foo # delete
 
-generate call()
+gen call() # generate
 
 defer call()
 
@@ -168,11 +182,12 @@ let [a : int, ...b : string, c : string] = some_list
 
 try 
     throw Error.new("...")
-catch e is Animal 
+rescue : AnimalException 
     do_something()
-catch e is Any
+rescue 
     do_something_else()   
-finally    
+ensure    
+  echo "Cleanup..."
 end
 
 
@@ -181,11 +196,11 @@ end
 
 testsuite CastleTestSuite
     description = ''
-    common_tolerance = 0.1
+	a_tolerance = 0.2
  
     test testname
         assert num > 5
-        assert_almost num > 5, 0.2
+        assert num > 5, 0.2
     end
 end
 
