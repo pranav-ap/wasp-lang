@@ -26,7 +26,14 @@ else
 end
 
 
-case 
+let g = match variable
+	case _, a:
+		echo a
+	case _, a, _:
+		echo a
+		return a
+	case _, a, _: a
+end
 
 
 while expr do a = a + 4
@@ -183,9 +190,9 @@ let [a : int, ...b : string, c : string] = some_list
 try 
     throw Error.new("...")
 rescue : AnimalException 
-    do_something()
+    do_something(e)
 rescue 
-    do_something_else()   
+    do_something_else(e)   
 ensure    
   echo "Cleanup..."
 end
@@ -196,7 +203,7 @@ end
 
 testsuite CastleTestSuite
     description = ''
-	a_tolerance = 0.2
+    a_tolerance = 0.2
  
     test testname
         assert num > 5
