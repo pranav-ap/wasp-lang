@@ -153,6 +153,7 @@ end
 
 
 let x = Castle.new("Bastille")
+let y = Castle.new(x) # copy init
 
 x.foo.age = 1
 x(123).foo(36, gg).age = 1
@@ -167,13 +168,13 @@ class Box[NameType]
     end
 end
 
+
 let box = Box[int].new(25)
 
 
 # Planned Features
 
 del foo # delete
-
 gen call() # generate
 
 defer call()
@@ -194,7 +195,7 @@ rescue : AnimalException
 rescue 
     do_something_else(e)   
 ensure    
-  echo "Cleanup..."
+ 	echo "Cleanup..."
 end
 
 
