@@ -52,6 +52,16 @@ for i : int in [34, 4, 12] do
 end
 
 
+if x : int = call() then
+    x = 1
+else
+    3
+end
+
+
+# Function
+
+
 fn add(a : int, b : int) => int
     if a > b then
         return a
@@ -63,13 +73,6 @@ end
 
 add(12, 23)
 add(a: 12, b: 23)
-
-
-if x : int = call() then
-    x = 1
-else
-    3
-end
 
 
 # Enum
@@ -126,14 +129,6 @@ class Castle < Building
         self.name = name
     end
 
-    fn _copyinit_(name: string)
-        self.name = name
-    end
-
-    fn _moveinit_(name: string)
-        self.name = name
-    end
-
     fn _getitem_(index: int) -> int:
         return self.value.get(index)
     end
@@ -145,10 +140,6 @@ class Castle < Building
     fn calc(num: int) => int
         return num + 5 
     end
-
-    operator < (other: Castle) => bool
-        return self.name < other.name
-    end
 end
 
 
@@ -157,6 +148,14 @@ let y = Castle.new(x) # copy init
 
 x.foo.age = 1
 x(123).foo(36, gg).age = 1
+
+# Operator Overloading
+
+
+operator < (other: Castle) => bool
+    return self.name < other.name
+end
+
 
 # Generics
 
@@ -190,11 +189,11 @@ let [a : int, ...b : string, c : string] = some_list
 
 try 
     throw Error.new("...")
-rescue : AnimalException 
+rescue e : AnimalException 
     do_something(e)
-rescue 
+rescue e : Exception
     do_something_else(e)   
-ensure    
+ensure
  	echo "Cleanup..."
 end
 
@@ -204,7 +203,7 @@ end
 
 testsuite CastleTestSuite
     description = ''
-    a_tolerance = 0.2
+    tolerance = 0.2
  
     test testname
         assert num > 5
