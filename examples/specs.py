@@ -14,6 +14,21 @@ const x : int = 34
 a = 1
 
 
+if x : int = call() then
+    x = 1
+else
+    3
+end
+
+
+# Null coalesce operator
+
+x = ifNotNullValue ?? otherwiseValue
+x ??= otherwiseValue
+
+
+# Conditional Flow
+
 if a > 3 then call() else 4
 
 
@@ -30,26 +45,40 @@ if let x = expr then
 	5344
 
 
+# Matching
+
+
 match expr
 	case 0:
-		echo 'zero'
+		print 'zero'
+	case [..., 0]:
+		print 'deconstruct a list'
+    case [let ...x, 0]:
+		print 'deconstruct a list'
 	case (0, 0):
-		echo 'zero tuple'
+		print 'deconstruct a tuple'
 	case (_, 0):
-		echo 'the _ is irrelavant'
+		print 'the _ is irrelavant'
 	case (let x, 0):
-		echo 'value binding : x is a new variable accessible here'
+		print 'value binding : x is a new variable accessible here'
 	case let (x, y):
-    	echo "x, y is just some arbitrary point"
+    	print "x, y is just some arbitrary point"
 	case let (x, y) where x == y:
-		echo "x, y hold the same value"
+		print "x, y hold the same value"
+    case ⟨ let name ⟩:
+        print "$name from a dictionary"
+    case ⟨ scores => [23, 28, let ...rest] ⟩:
+        print "$name from a dictionary"
 	case (let distance, 0), (0, let distance):
-	    echo "On an axis, {distance} from the origin"
+	    print "On an axis, $distance from the origin"
 	case "a", "e", "i", "o", "u":
-    	echo "It is a vowel"
+    	print "It is a vowel"
 	default:
-		reutrn a
+		return a
 end
+
+
+# Looping
 
 
 loop
@@ -78,13 +107,6 @@ for x : int in [1, 2, 3] do x
 
 for i : int in [34, 4, 12] do
     i
-end
-
-
-if x : int = call() then
-    x = 1
-else
-    3
 end
 
 
@@ -124,17 +146,21 @@ Animal::Bird::Crow
 
 
 import io
-import echo from io
-import { echo, ask } from io
+import print from io
+import { print, ask } from io
 import { send } from 'root/folder/sendmail'
 import { send } from './sendmail'
+
+export
+
+
 
 
 # Native
 
 
 native module io
-	echo : (text : string) => string
+	print : (text : string) => string
 end
 
 
@@ -187,15 +213,16 @@ x?foo.age
 # Operator Overloading
 
 
-operator < (other: Castle) => bool
-    return self.name < other.name
+operator left: Castle < right: Castle => bool
+    return left.cost < right.cost
 end
 
 
 # Generics
 
+
 class Box[NameType]
-	name : NameType
+	name: NameType
  
     fn _init_(name: NameType)
         self.name = name
@@ -207,6 +234,7 @@ let box = Box[int].new(25)
 
 
 # Planned Features
+
 
 del foo # delete
 gen call() # generate
@@ -220,16 +248,23 @@ end
 let [a : int, ...b : string, c : string] = some_list
 [a, ...b, c] = some_list
 
+
 # Exception Handling
 
-try 
+
+try
+    # do something
     throw Error.new("...")
 rescue e : AnimalException 
+    # handle exception
     do_something(e)
 rescue e : Exception
     do_something_else(e)   
+else
+    # do this if no exception was raised
 ensure
- 	echo "Cleanup..."
+    # do this whether or not an exception was raised
+ 	print "Cleanup..."
 end
 
 
