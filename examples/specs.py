@@ -26,13 +26,34 @@ else
 end
 
 
-let g = match variable
-	case _, a:
-		echo a
-	case _, a, _:
-		echo a
-		return a
-	case _, a, _: a
+if let x = expr then
+	5344
+
+
+match expr
+	case 0:
+		echo 'zero'
+	case (0, 0):
+		echo 'zero tuple'
+	case (_, 0):
+		echo 'the _ is irrelavant'
+	case (let x, 0):
+		echo 'value binding : x is a new variable accessible here'
+	case let (x, y):
+    	echo "x, y is just some arbitrary point"
+	case let (x, y) where x == y:
+		echo "x, y hold the same value"
+	case (let distance, 0), (0, let distance):
+	    echo "On an axis, {distance} from the origin"
+	case "a", "e", "i", "o", "u":
+    	echo "It is a vowel"
+	default:
+		reutrn a
+end
+
+
+loop
+break if expr	
 end
 
 
@@ -42,6 +63,14 @@ while expr do a = a + 4
 while expr do
     a = a + 4
 end
+
+
+until expr do
+    a = a + 4
+end
+
+
+until expr do a = a + 4
 
 
 for x : int in [1, 2, 3] do x
@@ -72,7 +101,7 @@ end
 
 
 add(12, 23)
-add(a: 12, b: 23)
+add(a:12, b:23)
 
 
 # Enum
@@ -90,7 +119,7 @@ end
 Animal::Cat
 Animal::Bird::Crow
 
-
+					
 # Imports
 
 
@@ -133,11 +162,16 @@ class Castle < Building
         return self.value.get(index)
     end
     
-    fn __setitem__(index: int, value: int):
+    fn _setitem_(index: int, value: int):
         return self.value.data.store(i, val)
     end
 
     fn calc(num: int) => int
+        return num + 5 
+    end
+	
+	@classmethod
+    fn another_calc(num: int) => int
         return num + 5 
     end
 end
@@ -148,6 +182,7 @@ let y = Castle.new(x) # copy init
 
 x.foo.age = 1
 x(123).foo(36, gg).age = 1
+x?foo.age
 
 # Operator Overloading
 
@@ -196,6 +231,9 @@ rescue e : Exception
 ensure
  	echo "Cleanup..."
 end
+
+
+let x = try? someThrowingFunction() # x is an optional value
 
 
 # Test Suite
