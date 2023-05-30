@@ -3,33 +3,20 @@
 
 let x : int = 34
 let x : string = "hello"
-let x : [int] = [ 1, 2, 3 ]
-let x : ⌊ string, string ⌋ = ⌊ "1", "hello" ⌋ # tuple
+let x : [int] = [ 1, 2, 3 ] # list
+let x : ⌊ roll: string, name: string ⌋ = ⌊ "1", "hello" ⌋ # tuple
 let x : { string } = { "1", "hello" } # set
-let x : ⟨ string => string ⟩ = ⟨ "a" => "b", "c" => "d" ⟩
+let x : ⟨ string => string ⟩ = ⟨ "a" => "b", "c" => "d" ⟩ # dict
+
 
 const x : int = 34
+let x : opt int = 34
 
 
-a = 1
-
-
-if x : int = call() then
-    x = 1
-else
-    3
-end
-
-
-# Null coalesce operator
-
-x = ifNotNullValue ?? otherwiseValue
-x ??= otherwiseValue
+x = 1
 
 
 # Conditional Flow
-
-if a > 3 then call() else 4
 
 
 if a > 3 then
@@ -41,8 +28,19 @@ else
 end
 
 
+x = if a > 3 then call() else 4
+
+
 if let x = expr then
 	5344
+
+    
+if x: int = call() then
+    x = 1
+else
+    3
+end
+
 
 
 # Matching
@@ -51,30 +49,39 @@ if let x = expr then
 match expr
 	case 0:
 		print 'zero'
-	case [..., 0]:
+
+	case [..., _, 0, x]: # can be set, list or tuple
 		print 'deconstruct a list'
-    case [let ...x, 0]:
-		print 'deconstruct a list'
-	case (0, 0):
-		print 'deconstruct a tuple'
-	case (_, 0):
-		print 'the _ is irrelavant'
-	case (let x, 0):
-		print 'value binding : x is a new variable accessible here'
-	case let (x, y):
-    	print "x, y is just some arbitrary point"
-	case let (x, y) where x == y:
+    case [let ...x, let y, let z: string]: 
+        print 'value binding : x, y, z are new variables accessible here'		
+    case let [x, y, ...z]:
+		print "value binding of all insiders"
+	case [x, y] where x <= y:
 		print "x, y hold the same value"
+
     case ⟨ let name ⟩:
         print "$name from a dictionary"
-    case ⟨ scores => [23, 28, let ...rest] ⟩:
-        print "$name from a dictionary"
-	case (let distance, 0), (0, let distance):
-	    print "On an axis, $distance from the origin"
+    case ⟨ scores => [23, 28, let math] ⟩:
+        print "$math from a dictionary"
+
+    case Click e:  # class
+        pass
+    case WebEvent::Click e: # class within enum
+        pass
+
 	case "a", "e", "i", "o", "u":
     	print "It is a vowel"
+
 	default:
 		return a
+end
+
+
+let x = match expr
+    case 1:
+        return 'a'
+    default:
+        return 'b'
 end
 
 
@@ -82,8 +89,11 @@ end
 
 
 loop
-break if expr	
+    something()
 end
+
+
+loop something()
 
 
 while expr do a = a + 4
@@ -113,7 +123,7 @@ end
 # Function
 
 
-fn add(a : int, b : int) => int
+fn add(a: int, b: int = 10): int
     if a > b then
         return a
     end
@@ -131,42 +141,32 @@ add(a:12, b:23)
 
 enum Animal
 	Dog
-	Cat
+	class Cat
+    type a_tuple
 	enum Bird
 		Crow
 		Pigeon
 	end
 end
 
+
 Animal::Cat
 Animal::Bird::Crow
 
-					
+
 # Imports
 
 
 import io
+import io as i
 import print from io
+import print as pr from io
 import { print, ask } from io
 import { send } from 'root/folder/sendmail'
 import { send } from './sendmail'
 
+
 export
-
-
-
-
-# Native
-
-
-native module io
-	print : (text : string) => string
-end
-
-
-native type IntType < AnyType
-	to_string : () => string
-end
 
 
 # User Defined Data
@@ -175,40 +175,46 @@ end
 type length = int
 type length = int | string
 type WindowStates = "open" | "closed" | "minimized"
+type a_tuple = ⌊ roll: string, name: string ⌋ 
 
+
+class Castle extends Building impl Iterable
+    name: string
+    name: static string
  
-class Castle < Building
-    name : string
- 
+    fn _staticinit_()
+        Castle.name = 'jon'
+    end
+
     fn _init_(name: string)
         self.name = name
     end
 
-    fn _getitem_(index: int) -> int:
+    fn _getitem_(index: int) = int
         return self.value.get(index)
     end
     
-    fn _setitem_(index: int, value: int):
+    fn _setitem_(index: int, value :int)
         return self.value.data.store(i, val)
     end
 
-    fn calc(num: int) => int
+    fn calc(num :int) :int
         return num + 5 
     end
 	
-	@classmethod
-    fn another_calc(num: int) => int
+    static fn another_calc(num: int): int
         return num + 5 
     end
 end
 
 
 let x = Castle.new("Bastille")
-let y = Castle.new(x) # copy init
+
 
 x.foo.age = 1
 x(123).foo(36, gg).age = 1
 x?foo.age
+
 
 # Operator Overloading
 
@@ -233,11 +239,28 @@ end
 let box = Box[int].new(25)
 
 
-# Planned Features
+# Interface
 
 
-del foo # delete
-gen call() # generate
+interface Iterator
+    nextIndex: int
+    
+    fn _init_(start: int = 0, end: int = Infinity, step: int = 1)
+        self.nextIndex = start
+    end
+
+    fn next()
+        pass
+        # nextIndex += step
+        # iterationCount++
+        # return { value: iterationCount, done: true }
+    end
+
+end
+
+
+# Defer
+
 
 defer call()
 
@@ -245,7 +268,15 @@ defer
     x = 0
 end
 
-let [a : int, ...b : string, c : string] = some_list
+
+# Memory
+
+del foo # delete from memory and remove reference
+
+# Deconstruction
+
+
+let [a: int, ...b: string, c: string] = some_list
 [a, ...b, c] = some_list
 
 
@@ -268,7 +299,9 @@ ensure
 end
 
 
-let x = try? someThrowingFunction() # x is an optional value
+let x = try someThrowingFunction() 
+# x is an optional value if someThrowingFunction raises error
+# use if you don't care about error type
 
 
 # Test Suite
@@ -287,4 +320,18 @@ end
 
 CastleTestSuite.run()
 CastleTestSuite.testname.run()
+
+
+
+# Native
+
+
+native module io
+	print: (text : string): string
+end
+
+
+native type IntType < AnyType
+	to_string : (): string
+end
 
