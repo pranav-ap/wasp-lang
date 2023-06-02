@@ -10,10 +10,38 @@ let x : ⟨ string => string ⟩ = ⟨ "a" => "b", "c" => "d" ⟩ # dict
 
 
 const x : int = 34
-let x : opt int = 34
-
 
 x = 1
+
+
+# Option
+
+
+let x : opt int = 34
+
+if x.has_value() then
+    pass
+else
+    pass
+
+
+match x
+    case Some:
+        pass    
+    case None:
+        pass
+end
+
+
+match x
+    case Some:
+        pass    
+    case Exception e:
+        pass
+    case AnotherException e:
+        pass
+end
+
 
 
 # Conditional Flow
@@ -31,16 +59,11 @@ end
 x = if a > 3 then call() else 4
 
 
-if let x = expr then
+if let x: int = expr then
 	5344
-
-    
-if x: int = call() then
-    x = 1
 else
     3
 end
-
 
 
 # Matching
@@ -69,7 +92,7 @@ match expr
     case WebEvent::Click e: # class within enum
         pass
 
-	case "a", "e", "i", "o", "u":
+	case "a" | "e" | "i" | "o" | "u":
     	print "It is a vowel"
 
 	default:
@@ -86,14 +109,6 @@ end
 
 
 # Looping
-
-
-loop
-    something()
-end
-
-
-loop something()
 
 
 while expr do a = a + 4
@@ -123,7 +138,7 @@ end
 # Function
 
 
-fn add(a: int, b: int = 10): int
+fn add(a: int, b: int = 10) -> int
     if a > b then
         return a
     end
@@ -133,7 +148,7 @@ end
 
 
 add(12, 23)
-add(a:12, b:23)
+add(a=12, b=23)
 
 
 # Enum
@@ -141,12 +156,21 @@ add(a:12, b:23)
 
 enum Animal
 	Dog
-	class Cat
-    type a_tuple
+    
+    Item : ⌊ CatClass, UserDefinedType ⌋
+    Cat : CatClass
+    Cat : CatType
+
 	enum Bird
 		Crow
 		Pigeon
 	end
+end
+
+
+enum Result[X, Y]
+    Ok: X
+    Err: Y
 end
 
 
@@ -178,31 +202,23 @@ type WindowStates = "open" | "closed" | "minimized"
 type a_tuple = ⌊ roll: string, name: string ⌋ 
 
 
-class Castle extends Building impl Iterable
+@iterable
+class Castle extends Building
     name: string
-    name: static string
- 
-    fn _staticinit_()
-        Castle.name = 'jon'
-    end
 
     fn _init_(name: string)
         self.name = name
     end
 
-    fn _getitem_(index: int) = int
+    fn _getitem_(index: int) -> int
         return self.value.get(index)
     end
     
-    fn _setitem_(index: int, value :int)
+    fn _setitem_(index: int, value: int)
         return self.value.data.store(i, val)
     end
 
-    fn calc(num :int) :int
-        return num + 5 
-    end
-	
-    static fn another_calc(num: int): int
+    fn calc(num: int) -> int
         return num + 5 
     end
 end
@@ -219,7 +235,7 @@ x?foo.age
 # Operator Overloading
 
 
-operator left: Castle < right: Castle => bool
+operator left: Castle < right: Castle -> bool
     return left.cost < right.cost
 end
 
@@ -227,7 +243,7 @@ end
 # Generics
 
 
-class Box[NameType]
+class Box[NameType, AnotherType extends HouseClass]
 	name: NameType
  
     fn _init_(name: NameType)
@@ -322,16 +338,15 @@ CastleTestSuite.run()
 CastleTestSuite.testname.run()
 
 
-
 # Native
 
 
 native module io
-	print: (text : string): string
+	print : (text :string) -> string
 end
 
 
-native type IntType < AnyType
-	to_string : (): string
+native type IntType extends AnyType
+	to_string : () -> string
 end
 
