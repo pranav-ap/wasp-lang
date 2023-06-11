@@ -100,11 +100,10 @@ vector<Token_ptr> Lexer::run(std::wstring raw_source)
 			switch (current_char)
 			{
 			case '\\':
-			case '#':
 			case '@':
 			case '$':
-			case '~':
 			case ',':
+			case '#':
 			case '(':
 			case ')':
 			case '{':
@@ -136,8 +135,6 @@ vector<Token_ptr> Lexer::run(std::wstring raw_source)
 				CASE_BODY(consume_bang());
 			case '.':
 				CASE_BODY(consume_dot());
-			case '?':
-				CASE_BODY(consume_question());
 			case '|':
 				CASE_BODY(consume_vertical_bar());
 			case '<':
@@ -262,6 +259,8 @@ Token_ptr Lexer::consume_minus()
 {
 	if (expect_current_char('='))
 		return MAKE_TOKEN(WTokenType::MINUS_EQUAL, L"-=", LINE_NUM, COL_NUM);
+	else if (expect_current_char('>'))
+		return MAKE_TOKEN(WTokenType::ARROW, L"->", LINE_NUM, COL_NUM);
 
 	return MAKE_TOKEN(WTokenType::MINUS, L"-", LINE_NUM, COL_NUM);
 }
@@ -312,24 +311,8 @@ Token_ptr Lexer::consume_equal()
 {
 	if (expect_current_char('='))
 		return MAKE_TOKEN(WTokenType::EQUAL_EQUAL, L"==", LINE_NUM, COL_NUM);
-	else if (expect_current_char('>'))
-		return MAKE_TOKEN(WTokenType::ARROW, L"=>", LINE_NUM, COL_NUM);
 
 	return MAKE_TOKEN(WTokenType::EQUAL, L"=", LINE_NUM, COL_NUM);
-}
-
-Token_ptr Lexer::consume_question()
-{
-	if (expect_current_char('.'))
-	{
-		return MAKE_TOKEN(WTokenType::QUESTION_DOT, L"?.", LINE_NUM, COL_NUM);
-	}
-	else if (expect_current_char('?'))
-	{
-		return MAKE_TOKEN(WTokenType::QUESTION_QUESTION, L"??", LINE_NUM, COL_NUM);
-	}
-
-	return MAKE_TOKEN(WTokenType::QUESTION, L"?", LINE_NUM, COL_NUM);
 }
 
 Token_ptr Lexer::consume_greater_than()
@@ -365,6 +348,16 @@ Token_ptr Lexer::consume_dot()
 	return MAKE_TOKEN(WTokenType::DOT, L".", LINE_NUM, COL_NUM);
 }
 
+Token_ptr Lexer::consume_question()
+{
+	if (expect_current_char('.'))
+	{
+		return MAKE_TOKEN(WTokenType::QUESTION_DOT, L"?.", LINE_NUM, COL_NUM);
+	}
+
+	return MAKE_TOKEN(WTokenType::QUESTION, L"?", LINE_NUM, COL_NUM);
+}
+
 Token_ptr Lexer::consume_vertical_bar()
 {
 	return MAKE_TOKEN(WTokenType::VERTICAL_BAR, L"|", LINE_NUM, COL_NUM);
@@ -391,8 +384,6 @@ Token_ptr Lexer::consume_single_char_punctuation(wchar_t ch)
 		return MAKE_TOKEN(WTokenType::DOLLAR, L"$", LINE_NUM, COL_NUM);
 	case '@':
 		return MAKE_TOKEN(WTokenType::AT_SIGN, L"@", LINE_NUM, COL_NUM);
-	case '~':
-		return MAKE_TOKEN(WTokenType::TILDE, L"~", LINE_NUM, COL_NUM);
 	case ',':
 		return MAKE_TOKEN(WTokenType::COMMA, L",", LINE_NUM, COL_NUM);
 	case '(':

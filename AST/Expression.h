@@ -18,6 +18,8 @@
 
 struct TernaryCondition;
 struct TypePattern;
+struct LetExpression;
+struct ConstExpression;
 struct UntypedAssignment;
 struct TypedAssignment;
 struct ListLiteral;
@@ -39,7 +41,10 @@ using Expression = AST_API std::variant<
 	std::monostate,
 	int, double, std::wstring, bool,
 	ListLiteral, TupleLiteral, SetLiteral, MapLiteral, Identifier,
-	UntypedAssignment, TypedAssignment, Prefix, Infix, Postfix, TypePattern,
+	LetExpression, ConstExpression,
+	UntypedAssignment, TypedAssignment, 
+	Prefix, Infix, Postfix, 
+	TypePattern,
 	TernaryCondition, Call, EnumMember, Spread, TypeOf, Is, As
 >;
 
@@ -51,6 +56,22 @@ struct AST_API Identifier
 {
 	std::wstring name;
 	Identifier(std::wstring name) : name(name) {};
+};
+
+struct AST_API LetExpression
+{
+	Expression_ptr assignment;
+
+	LetExpression(Expression_ptr assignment)
+		: assignment(assignment) {};
+};
+
+struct AST_API ConstExpression
+{
+	Expression_ptr assignment;
+
+	ConstExpression(Expression_ptr assignment)
+		: assignment(assignment) {};
 };
 
 struct AST_API Assignment

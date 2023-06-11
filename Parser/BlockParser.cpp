@@ -100,6 +100,13 @@ Statement_ptr Parser::parse_else()
 
 Statement_ptr Parser::parse_branching(WTokenType token_type)
 {
+	bool let_present = false;
+
+	if (token_pipe->optional(WTokenType::LET))
+	{
+		let_present = true;
+	}
+
 	auto condition = parse_expression();
 	token_pipe->require(WTokenType::THEN);
 
@@ -271,6 +278,55 @@ Statement_ptr Parser::parse_while_loop()
 	auto statement = parse_non_block_statement();
 	auto body = { statement };
 	return MAKE_STATEMENT(SimpleWhileLoop(body, condition));
+}
+
+Statement_ptr Parser::parse_until_loop() 
+{
+	auto condition = parse_expression();
+	NULL_CHECK(condition);
+
+	token_pipe->require(WTokenType::DO);
+
+	if (holds_alternative<TypedAssignment>(*condition))
+	{
+		auto [lhs, rhs, type_node] = deconstruct_TypedAssignment(condition);
+
+		if (token_pipe->optional(WTokenType::EOL))
+		{
+			auto body = parse_block();
+			return MAKE_STATEMENT(AssignedUntilLoop(body, lhs, rhs, type_node));
+		}
+
+		auto statement = parse_non_block_statement();
+		auto body = { statement };
+		return MAKE_STATEMENT(AssignedUntilLoop(body, lhs, rhs, type_node));
+	}
+	else if (holds_alternative<UntypedAssignment>(*condition))
+	{
+		auto [lhs, rhs] = deconstruct_UntypedAssignment(condition);
+
+		if (token_pipe->optional(WTokenType::EOL))
+		{
+			auto body = parse_block();
+			return MAKE_STATEMENT(AssignedUntilLoop(body, lhs, rhs));
+		}
+
+		auto statement = parse_non_block_statement();
+		auto body = { statement };
+		return MAKE_STATEMENT(AssignedUntilLoop(body, lhs, rhs));
+	}
+
+	// Simple Until Loop
+
+	if (token_pipe->optional(WTokenType::EOL))
+	{
+		auto body = parse_block();
+		return MAKE_STATEMENT(SimpleUntilLoop(body, condition));
+	}
+
+	auto statement = parse_non_block_statement();
+	auto body = { statement };
+	return MAKE_STATEMENT(SimpleUntilLoop(body, condition));
 }
 
 Statement_ptr Parser::parse_for_in_loop()

@@ -19,7 +19,7 @@ using std::wstring;
 
 // ECHO
 
-Object_ptr io::echo(std::vector<Object_ptr> arguments)
+Object_ptr io::print(std::vector<Object_ptr> arguments)
 {
 	if (!arguments.size() == 1)
 	{
@@ -37,7 +37,7 @@ Object_ptr io::echo(std::vector<Object_ptr> arguments)
 BuiltinsManager::BuiltinsManager()
 {
 	Builtins_ObjectTable io_object_table = {
-	   { L"echo", MAKE_OBJECT_VARIANT(BuiltInFunctionObject(L"io", L"echo", io::echo)) }
+	   { L"print", MAKE_OBJECT_VARIANT(BuiltInFunctionObject(L"io", L"print", io::print)) }
 	};
 
 	Builtins_ObjectTable math_object_table = {

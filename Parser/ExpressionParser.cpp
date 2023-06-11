@@ -58,6 +58,17 @@ Expression_ptr Parser::parse_expression(int precedence)
 	{
 		return nullptr;
 	}
+	
+	if (token.value()->type == WTokenType::LET)
+	{
+		Expression_ptr expr = this->parse_expression();
+		return MAKE_EXPRESSION(LetExpression(expr));
+	}
+	else if (token.value()->type == WTokenType::CONST_KEYWORD)
+	{
+		Expression_ptr expr = this->parse_expression();
+		return MAKE_EXPRESSION(ConstExpression(expr));
+	}
 
 	IPrefixParselet_ptr prefix_parselet = prefix_parselets.at(token.value()->type);
 	NULL_CHECK(prefix_parselet);

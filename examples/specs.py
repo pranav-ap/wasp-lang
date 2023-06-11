@@ -4,10 +4,9 @@
 let x : int = 34
 let x : string = "hello"
 let x : [int] = [ 1, 2, 3 ] # list
-let x : ⌊ roll: string, name: string ⌋ = ⌊ "1", "hello" ⌋ # tuple
+let x : ⌊ string, string ⌋ = ⌊ "1", "hello" ⌋ # tuple
 let x : { string } = { "1", "hello" } # set
-let x : ⟨ string => string ⟩ = ⟨ "a" => "b", "c" => "d" ⟩ # dict
-
+let x : ⟨ string -> string ⟩ = ⟨ "a" -> "b", "c" -> "d" ⟩ # dict
 
 const x : int = 34
 
@@ -19,29 +18,21 @@ x = 1
 
 let x : opt int = 34
 
-if x.has_value() then
+
+if some x then
     pass
-else
+elif no x then
     pass
 
 
 match x
-    case Some:
+    case [x, y] then
         pass    
-    case None:
+    case none then
         pass
+    case opt y then
+        print 'expr is a nested optional variable'
 end
-
-
-match x
-    case Some:
-        pass    
-    case Exception e:
-        pass
-    case AnotherException e:
-        pass
-end
-
 
 
 # Conditional Flow
@@ -56,7 +47,7 @@ else
 end
 
 
-x = if a > 3 then call() else 4
+x = if a > 3 then call() elif a > 6 then 2 else 4
 
 
 if let x: int = expr then
@@ -70,40 +61,51 @@ end
 
 
 match expr
-	case 0:
+	case 0 then
+		print 'zero'
+    case 0 as x then
 		print 'zero'
 
-	case [..., _, 0, x]: # can be set, list or tuple
+	case [..., _, 0, x] then # can be set, list or tuple
 		print 'deconstruct a list'
-    case [let ...x, let y, let z: string]: 
+    case [let ...x, let y, let z: string] then 
         print 'value binding : x, y, z are new variables accessible here'		
-    case let [x, y, ...z]:
+    case let [x, y, ...z] then
 		print "value binding of all insiders"
-	case [x, y] where x <= y:
+
+	case [x, y] where x <= y then
+		print "x, y hold the same value"
+    case [x, y] as z where x <= y then
 		print "x, y hold the same value"
 
-    case ⟨ let name ⟩:
+    case ⟨ let name ⟩ then
         print "$name from a dictionary"
-    case ⟨ scores => [23, 28, let math] ⟩:
+    case ⟨ scores => [23, 28, let math] ⟩ then
         print "$math from a dictionary"
 
-    case Click e:  # class
+    case str then
         pass
-    case WebEvent::Click e: # class within enum
+    case str as x then  # x is the result of expr
         pass
 
-	case "a" | "e" | "i" | "o" | "u":
+    case Click then  # class
+        pass
+
+    case WebEvent::Click then # enum
+        pass
+
+	case ["a", "e", "i", "o", "u"] as x then
     	print "It is a vowel"
 
-	default:
-		return a
+	case _ then
+		print 'default'
 end
 
 
 let x = match expr
-    case 1:
+    case 1 then
         return 'a'
-    default:
+	case _ then
         return 'b'
 end
 
@@ -112,6 +114,7 @@ end
 
 
 while expr do a = a + 4
+while let x = expr do a = x + 4
 
 
 while expr do
@@ -138,7 +141,11 @@ end
 # Function
 
 
-fn add(a: int, b: int = 10) -> int
+fn add(a: int, b: int) -> int
+    defaults
+        b = 10
+    end
+
     if a > b then
         return a
     end
@@ -156,11 +163,6 @@ add(a=12, b=23)
 
 enum Animal
 	Dog
-    
-    Item : ⌊ CatClass, UserDefinedType ⌋
-    Cat : CatClass
-    Cat : CatType
-
 	enum Bird
 		Crow
 		Pigeon
@@ -168,23 +170,16 @@ enum Animal
 end
 
 
-enum Result[X, Y]
-    Ok: X
-    Err: Y
-end
-
-
 Animal::Cat
 Animal::Bird::Crow
-
 
 # Imports
 
 
 import io
 import io as i
-import print from io
-import print as pr from io
+import { print } from io
+import { print as pr } from io
 import { print, ask } from io
 import { send } from 'root/folder/sendmail'
 import { send } from './sendmail'
@@ -199,10 +194,11 @@ export
 type length = int
 type length = int | string
 type WindowStates = "open" | "closed" | "minimized"
-type a_tuple = ⌊ roll: string, name: string ⌋ 
+type a_tuple = ⌊ string, string ⌋ 
 
 
-@iterable
+@list ndim
+@map string
 class Castle extends Building
     name: string
 
@@ -211,6 +207,10 @@ class Castle extends Building
     end
 
     fn _getitem_(index: int) -> int
+        return self.value.get(index)
+    end
+
+    fn _getitem_(index: Index) -> int
         return self.value.get(index)
     end
     
@@ -229,7 +229,7 @@ let x = Castle.new("Bastille")
 
 x.foo.age = 1
 x(123).foo(36, gg).age = 1
-x?foo.age
+x?.foo.age
 
 
 # Operator Overloading
@@ -255,26 +255,6 @@ end
 let box = Box[int].new(25)
 
 
-# Interface
-
-
-interface Iterator
-    nextIndex: int
-    
-    fn _init_(start: int = 0, end: int = Infinity, step: int = 1)
-        self.nextIndex = start
-    end
-
-    fn next()
-        pass
-        # nextIndex += step
-        # iterationCount++
-        # return { value: iterationCount, done: true }
-    end
-
-end
-
-
 # Defer
 
 
@@ -287,7 +267,9 @@ end
 
 # Memory
 
+
 del foo # delete from memory and remove reference
+
 
 # Deconstruction
 
@@ -302,10 +284,10 @@ let [a: int, ...b: string, c: string] = some_list
 try
     # do something
     throw Error.new("...")
-rescue e : AnimalException 
+rescue AnimalException as e
     # handle exception
     do_something(e)
-rescue e : Exception
+rescue Exception as e
     do_something_else(e)   
 else
     # do this if no exception was raised
@@ -315,7 +297,7 @@ ensure
 end
 
 
-let x = try someThrowingFunction() 
+let x : opt = try someThrowingFunction() 
 # x is an optional value if someThrowingFunction raises error
 # use if you don't care about error type
 
@@ -342,7 +324,7 @@ CastleTestSuite.testname.run()
 
 
 native module io
-	print : (text :string) -> string
+	print : (text: string) -> string
 end
 
 

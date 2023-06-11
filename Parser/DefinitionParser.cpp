@@ -173,38 +173,24 @@ std::pair<std::wstring, TypeNode_ptr> Parser::consume_identifier_type_pair()
 	return make_pair(identifier->value, move(type));
 }
 
-std::pair<StringVector, StringVector> Parser::parse_inheritance()
+StringVector Parser::parse_inheritance()
 {
 	StringVector parent_classes;
 
-	if (token_pipe->optional(WTokenType::LESSER_THAN))
+	if (token_pipe->optional(WTokenType::EXTENDS))
 	{
 		parent_classes = this->parse_comma_separated_identifiers();
 	}
 
-	StringVector interfaces;
-
-	if (token_pipe->optional(WTokenType::TILDE))
-	{
-		interfaces = this->parse_comma_separated_identifiers();
-	}
-
-	return make_pair(parent_classes, interfaces);
+	return parent_classes;
 }
 
-Statement_ptr Parser::parse_type_definition(bool is_public)
+Statement_ptr Parser::parse_class_definition(bool is_public)
 {
 	auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
 	auto type_name = identifier->value;
 
-	if (token_pipe->optional(WTokenType::EQUAL))
-	{
-		auto ref_type = this->parse_type();
-		token_pipe->require(WTokenType::EOL);
-
-		return MAKE_STATEMENT(AliasDefinition(is_public, type_name, ref_type));
-	}
-
+	auto parent_classes = this->parse_inheritance();
 	token_pipe->require(WTokenType::EOL);
 
 	std::map<std::wstring, TypeNode_ptr> member_types;
@@ -215,7 +201,7 @@ Statement_ptr Parser::parse_type_definition(bool is_public)
 	{
 		if (token_pipe->optional(WTokenType::END))
 			break;
-		
+
 		if (token_pipe->optional(WTokenType::FN))
 		{
 			auto function_name_token = token_pipe->require(WTokenType::IDENTIFIER);
@@ -224,12 +210,12 @@ Statement_ptr Parser::parse_type_definition(bool is_public)
 
 			auto [arguments, argument_types, optional_return_type, body] = parse_callable_definition();
 			TypeNode_ptr function_type = MAKE_TYPE(FunctionTypeNode(argument_types, optional_return_type));
-			
+
 			member_types.insert({ function_name, function_type });
 			function_body_map.insert({ function_name, body });
 			function_argument_names_map.insert({ function_name, arguments });
 		}
-		else 
+		else
 		{
 			auto [name, type_node] = this->consume_identifier_type_pair();
 			member_types.insert({ name, type_node });
@@ -237,6 +223,17 @@ Statement_ptr Parser::parse_type_definition(bool is_public)
 		}
 	}
 
-	auto [parent_classes, interfaces] = this->parse_inheritance();
-	return MAKE_STATEMENT(ClassDefinition(is_public, type_name, member_types, function_body_map, function_argument_names_map, parent_classes, interfaces));
+	return MAKE_STATEMENT(ClassDefinition(is_public, type_name, member_types, function_body_map, function_argument_names_map, parent_classes));
+}
+
+Statement_ptr Parser::parse_type_definition(bool is_public)
+{
+	auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
+	auto type_name = identifier->value;
+	token_pipe->require(WTokenType::EQUAL);
+
+	auto ref_type = this->parse_type();
+	token_pipe->require(WTokenType::EOL);
+
+	return MAKE_STATEMENT(AliasDefinition(is_public, type_name, ref_type));
 }

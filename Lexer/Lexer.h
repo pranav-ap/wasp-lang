@@ -26,21 +26,21 @@ const std::map<std::wstring, WTokenType> keyword_map =
 	{ L"and", WTokenType::AND },
 	{ L"or", WTokenType::OR },
 
+	{ L"export", WTokenType::EXPORT },
 	{ L"import", WTokenType::IMPORT },
 	{ L"from", WTokenType::FROM },
 
-	{ L"local", WTokenType::LOCAL },
+	{ L"let", WTokenType::LET },
 	{ L"const", WTokenType::CONST_KEYWORD },
 
 	{ L"while", WTokenType::WHILE },
+	{ L"until", WTokenType::UNTIL },
 	{ L"for", WTokenType::FOR },
 	{ L"in", WTokenType::IN_KEYWORD },
 	{ L"break", WTokenType::BREAK },
 	{ L"continue", WTokenType::CONTINUE },
 	{ L"redo", WTokenType::REDO },
 
-	{ L"public", WTokenType::PUBLIC },
-	{ L"interface", WTokenType::INTERFACE },
 	{ L"fn", WTokenType::FN },
 	{ L"return", WTokenType::RETURN_KEYWORD },
 
@@ -55,6 +55,9 @@ const std::map<std::wstring, WTokenType> keyword_map =
 	{ L"as", WTokenType::AS },
 
 	{ L"type", WTokenType::TYPE },
+	{ L"class", WTokenType::CLASS},
+	{ L"extends", WTokenType::EXTENDS },
+
 	{ L"int", WTokenType::INT },
 	{ L"float", WTokenType::FLOAT },
 	{ L"string", WTokenType::STRING_KEYWORD },
@@ -102,10 +105,10 @@ class LEXER_API Lexer
 	Token_ptr consume_power();
 	Token_ptr consume_bang();
 	Token_ptr consume_equal();
-	Token_ptr consume_question();
 	Token_ptr consume_vertical_bar();
 	Token_ptr consume_colon();
 	Token_ptr consume_dot();
+	Token_ptr consume_question();
 	Token_ptr consume_greater_than();
 	Token_ptr consume_lesser_than();
 	Token_ptr consume_single_char_punctuation(wchar_t ch);

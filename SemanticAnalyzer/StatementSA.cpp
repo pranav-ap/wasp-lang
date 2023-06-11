@@ -113,6 +113,21 @@ void SemanticAnalyzer::visit(AssignedWhileLoop& statement)
 {
 }
 
+void SemanticAnalyzer::visit(SimpleUntilLoop& statement)
+{
+	Object_ptr condition_type = visit(statement.test);
+	type_system->expect_condition_type(current_scope, condition_type);
+
+	enter_scope(ScopeType::LOOP);
+	statement.scope = current_scope;
+	visit(statement.body);
+	leave_scope();
+}
+
+void SemanticAnalyzer::visit(AssignedUntilLoop& statement)
+{
+}
+
 // Looping - for loop
 
 void SemanticAnalyzer::visit(SimpleForInLoop& statement)

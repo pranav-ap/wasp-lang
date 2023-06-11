@@ -6,7 +6,6 @@ enum class Precedence : int
 	ASSIGNMENT,
 	TERNARY_CONDITION,
 	TYPE_PATTERN, // :
-	COALESE, // ??
 	OR,
 	AND,
 	EQUALITY, // == !=
@@ -17,5 +16,5 @@ enum class Precedence : int
 	PREFIX, // + - ! typeof ...
 	POSTFIX,
 	CALL, // call() new
-	MEMBER_ACCESS // . ?. :: ~
+	MEMBER_ACCESS // . ?. :: 
 };

@@ -56,9 +56,10 @@ Statement_ptr Parser::parse_statement(bool is_public)
 
 	switch (token.value()->type)
 	{
-		CASE(WTokenType::LOCAL, parse_variable_definition(is_public, true));
+		CASE(WTokenType::LET, parse_variable_definition(is_public, true));
 		CASE(WTokenType::CONST_KEYWORD, parse_variable_definition(is_public, false));
 		CASE(WTokenType::TYPE, parse_type_definition(is_public));
+		CASE(WTokenType::CLASS, parse_class_definition(is_public));
 		CASE(WTokenType::IF, parse_branching(token.value()->type));
 		CASE(WTokenType::RETURN_KEYWORD, parse_return());
 		CASE(WTokenType::ASSERT, parse_assert());
@@ -68,12 +69,13 @@ Statement_ptr Parser::parse_statement(bool is_public)
 		CASE(WTokenType::CONTINUE, parse_continue());
 		CASE(WTokenType::REDO, parse_redo());
 		CASE(WTokenType::WHILE, parse_while_loop());
+		CASE(WTokenType::UNTIL, parse_until_loop());
 		CASE(WTokenType::FOR, parse_for_in_loop());
 		CASE(WTokenType::ENUM, parse_enum_definition(is_public));
 		CASE(WTokenType::FN, parse_function_definition(is_public));
 		CASE(WTokenType::IMPORT, parse_import());
 		CASE(WTokenType::NATIVE, parse_native());
-		CASE(WTokenType::PUBLIC, parse_public_statement());
+		CASE(WTokenType::EXPORT, parse_public_statement());
 
 	default:
 	{
@@ -94,11 +96,12 @@ Statement_ptr Parser::parse_public_statement()
 
 	switch (token.value()->type)
 	{
-		CASE(WTokenType::LOCAL, parse_variable_definition(is_public, true));
+		CASE(WTokenType::LET, parse_variable_definition(is_public, true));
 		CASE(WTokenType::CONST_KEYWORD, parse_variable_definition(is_public, false));
 		CASE(WTokenType::ENUM, parse_enum_definition(is_public));
 		CASE(WTokenType::FN, parse_function_definition(is_public));
 		CASE(WTokenType::TYPE, parse_type_definition(is_public));
+		CASE(WTokenType::CLASS, parse_class_definition(is_public));
 
 	default:
 	{
@@ -112,11 +115,22 @@ Statement_ptr Parser::parse_import()
 	token_pipe->require(WTokenType::OPEN_CURLY_BRACE);
 
 	StringVector goods;
+	StringVector nicknames;
 
 	while (true)
 	{
 		auto identifier = token_pipe->require(WTokenType::IDENTIFIER);
 		goods.push_back(identifier->value);
+
+		if (token_pipe->optional(WTokenType::AS))
+		{
+			auto nickname = token_pipe->require(WTokenType::IDENTIFIER);
+			nicknames.push_back(nickname->value);
+		}
+		else 
+		{
+			nicknames.push_back(L"");
+		}
 
 		if (token_pipe->optional(WTokenType::CLOSE_CURLY_BRACE))
 			break;
@@ -126,10 +140,26 @@ Statement_ptr Parser::parse_import()
 
 	token_pipe->require(WTokenType::FROM);
 
-	auto path = token_pipe->require(WTokenType::STRING_LITERAL);
+	auto from_where = token_pipe->current();
+	OPT_CHECK(from_where);
+	auto from_where_token = from_where.value();
+
+	switch (from_where_token->type)
+	{
+	case WTokenType::STRING_LITERAL:
+	case WTokenType::IDENTIFIER:
+	{
+		token_pipe->advance_pointer();
+	}
+	default:
+	{
+		FATAL("Expected Identifier or String Literal");
+	}
+	}
+
 	token_pipe->require(WTokenType::EOL);
 
-	return MAKE_STATEMENT(Import(goods, path->value));
+	return MAKE_STATEMENT(Import(goods, nicknames, from_where_token->value));
 }
 
 Statement_ptr Parser::parse_native()

@@ -84,7 +84,6 @@ Parser::Parser()
 	register_infix_left(WTokenType::GREATER_THAN_EQUAL, Precedence::COMPARISON);
 	register_infix_left(WTokenType::IN_KEYWORD, Precedence::COMPARISON);
 	register_infix_left(WTokenType::IS, Precedence::COMPARISON);
-	register_infix_left(WTokenType::QUESTION_QUESTION, Precedence::COALESE);
 	register_infix_left(WTokenType::AND, Precedence::AND);
 	register_infix_left(WTokenType::OR, Precedence::OR);
 

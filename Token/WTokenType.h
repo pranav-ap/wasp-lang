@@ -31,15 +31,12 @@ enum class TOKEN_API WTokenType
 	COLON,
 	COLON_COLON,
 	VERTICAL_BAR,
-	ARROW,
+	ARROW, // ->
 	DOT,
 	DOT_DOT_DOT,
 	QUESTION,
-	QUESTION_QUESTION,
 	QUESTION_DOT,
 
-	HASH,
-	TILDE,
 	AT_SIGN,
 	DOLLAR,
 
@@ -73,15 +70,16 @@ enum class TOKEN_API WTokenType
 	ELIF,
 	ELSE,
 	THEN,
-	DO,
 
 	AND,
 	OR,
 
-	LOCAL,
+	LET,
 	CONST_KEYWORD,
 
+	DO,
 	WHILE,
+	UNTIL,
 	FOR,
 	BREAK,
 	CONTINUE,
@@ -108,10 +106,11 @@ enum class TOKEN_API WTokenType
 
 	NATIVE,
 
-	PUBLIC,
-
-	INTERFACE,
+	CLASS,
+	EXTENDS,
 	TYPE,
+	EXPORT,
+
 	NONE,
 	INT,
 	FLOAT,

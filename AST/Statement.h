@@ -19,8 +19,7 @@
 #include <utility>
 
 struct Module;
-struct SingleVariableDefinition;
-struct DeconstructedVariableDefinition;
+struct VariableDefinition;
 struct ExpressionStatement;
 struct SimpleIfBranch;
 struct AssignedIfBranch;
@@ -47,7 +46,7 @@ using Statement = AST_API std::variant<
 	std::monostate,
 
 	Module,
-	SingleVariableDefinition, DeconstructedVariableDefinition,
+	VariableDefinition,
 	ExpressionStatement, SimpleIfBranch, AssignedIfBranch, ElseBranch,
 	SimpleWhileLoop, AssignedWhileLoop, Break, Continue, Redo,
 	Return, Assert, Implore, Swear,
@@ -72,37 +71,10 @@ struct AST_API Definition : public AnnotatedNode
 
 struct AST_API VariableDefinition : public Definition
 {
-	bool is_mutable;
-	std::optional<TypeNode_ptr> type;
-	Expression_ptr rhs_expression;
+	Expression_ptr expression;
 
-	VariableDefinition(bool is_public, bool is_mutable, Expression_ptr rhs_expression)
-		: Definition(is_public), is_mutable(is_mutable), rhs_expression(rhs_expression), type(std::nullopt) {};
-
-	VariableDefinition(bool is_public, bool is_mutable, Expression_ptr rhs_expression, TypeNode_ptr type)
-		: Definition(is_public), is_mutable(is_mutable), rhs_expression(rhs_expression), type(std::make_optional(type)) {};
-};
-
-struct AST_API SingleVariableDefinition : public VariableDefinition
-{
-	std::wstring name;
-
-	SingleVariableDefinition(bool is_public, bool is_mutable, std::wstring name, Expression_ptr rhs_expression)
-		: VariableDefinition(is_public, is_mutable, rhs_expression), name(name) {};
-
-	SingleVariableDefinition(bool is_public, bool is_mutable, std::wstring name, Expression_ptr rhs_expression, TypeNode_ptr type)
-		: VariableDefinition(is_public, is_mutable, rhs_expression, type), name(name) {};
-};
-
-struct AST_API DeconstructedVariableDefinition : public VariableDefinition
-{
-	Expression_ptr deconstruction;
-
-	DeconstructedVariableDefinition(bool is_public, bool is_mutable, Expression_ptr deconstruction, Expression_ptr rhs_expression)
-		: VariableDefinition(is_public, is_mutable, rhs_expression), deconstruction(std::move(deconstruction)) {};
-
-	DeconstructedVariableDefinition(bool is_public, bool is_mutable, Expression_ptr deconstruction, Expression_ptr rhs_expression, TypeNode_ptr type)
-		: VariableDefinition(is_public, is_mutable, rhs_expression, type), deconstruction(std::move(deconstruction)) {};
+	VariableDefinition(bool is_public, Expression_ptr expression)
+		: Definition(is_public), expression(expression) {};
 };
 
 // Branching
@@ -187,6 +159,43 @@ struct AST_API AssignedWhileLoop : public WhileLoop
 
 	AssignedWhileLoop(Block body, Expression_ptr lhs_expression, Expression_ptr rhs_expression, TypeNode_ptr type_node)
 		: WhileLoop(body),
+		lhs_expression(std::move(lhs_expression)),
+		rhs_expression(std::move(rhs_expression)),
+		type_node(std::make_optional(type_node)) {};
+};
+
+// Looping - Until
+
+struct AST_API UntilLoop : public AnnotatedNode
+{
+	Block body;
+
+	UntilLoop(Block body)
+		: body(body) {};
+};
+
+struct AST_API SimpleUntilLoop : public UntilLoop
+{
+	Expression_ptr test;
+
+	SimpleUntilLoop(Block body, Expression_ptr test)
+		: UntilLoop(body), test(std::move(test)) {};
+};
+
+struct AST_API AssignedUntilLoop : public UntilLoop
+{
+	Expression_ptr lhs_expression;
+	Expression_ptr rhs_expression;
+	std::optional<TypeNode_ptr> type_node;
+
+	AssignedUntilLoop(Block body, Expression_ptr lhs_expression, Expression_ptr rhs_expression)
+		: UntilLoop(body),
+		lhs_expression(std::move(lhs_expression)),
+		rhs_expression(std::move(rhs_expression)),
+		type_node(std::nullopt) {};
+
+	AssignedUntilLoop(Block body, Expression_ptr lhs_expression, Expression_ptr rhs_expression, TypeNode_ptr type_node)
+		: UntilLoop(body),
 		lhs_expression(std::move(lhs_expression)),
 		rhs_expression(std::move(rhs_expression)),
 		type_node(std::make_optional(type_node)) {};
@@ -303,10 +312,11 @@ struct AST_API Redo : public AnnotatedNode
 struct AST_API Import : public AnnotatedNode
 {
 	std::vector<std::wstring> names;
+	std::vector<std::wstring> nicknames;
 	std::wstring module_name;
 
-	Import(std::vector<std::wstring> names, std::wstring module_name)
-		: names(names), module_name(module_name) {};
+	Import(std::vector<std::wstring> names, std::vector<std::wstring> nicknames, std::wstring module_name)
+		: names(names), nicknames(nicknames), module_name(module_name) {};
 };
 
 // Definition
@@ -359,21 +369,18 @@ struct AST_API ClassDefinition : public Definition
 	std::map<std::wstring, StringVector> function_arguments_names_map;
 
 	std::vector<std::wstring> parent_classes;
-	std::vector<std::wstring> interfaces;
 
 	ClassDefinition(bool is_public, std::wstring name, 
 		std::map<std::wstring, TypeNode_ptr> member_types, 
 		std::map<std::wstring, Block> function_body_map,
 		std::map<std::wstring, StringVector> function_arguments_names_map, 
-		std::vector<std::wstring> parent_classes, 
-		std::vector<std::wstring> interfaces)
+		std::vector<std::wstring> parent_classes)
 		: Definition(is_public), 
 		name(name), 
 		member_types(member_types), 
 		function_body_map(function_body_map),
 		function_arguments_names_map(function_arguments_names_map),
-		parent_classes(parent_classes), 
-		interfaces(interfaces) {};
+		parent_classes(parent_classes) {};
 };
 
 // Native

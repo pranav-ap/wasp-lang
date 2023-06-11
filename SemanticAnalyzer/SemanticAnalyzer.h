@@ -39,6 +39,8 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 	void visit(ElseBranch& statement);
 	void visit(SimpleWhileLoop& statement);
 	void visit(AssignedWhileLoop& statement);
+	void visit(SimpleUntilLoop& statement);
+	void visit(AssignedUntilLoop& statement);
 	void visit(Break& statement);
 	void visit(Continue& statement);
 	void visit(Redo& statement);

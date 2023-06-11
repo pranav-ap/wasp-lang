@@ -14,7 +14,7 @@
 
 namespace io
 {
-	OBJECTSYSTEM_API Object_ptr echo(std::vector<Object_ptr> arguments);
+	OBJECTSYSTEM_API Object_ptr print(std::vector<Object_ptr> arguments);
 }
 
 using Builtins_ObjectTable = std::map<std::wstring, Object_ptr>;
