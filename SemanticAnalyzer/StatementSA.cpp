@@ -31,6 +31,7 @@ using std::vector;
 using std::make_shared;
 using std::move;
 
+
 void SemanticAnalyzer::visit(ExpressionStatement& statement)
 {
 	Object_ptr type = visit(statement.expression);
@@ -38,7 +39,7 @@ void SemanticAnalyzer::visit(ExpressionStatement& statement)
 
 // Branching
 
-void SemanticAnalyzer::visit(SimpleIfBranch& statement)
+void SemanticAnalyzer::visit(IfBranch& statement)
 {
 	enter_scope(ScopeType::BRANCH);
 	statement.scope = current_scope;
@@ -98,7 +99,7 @@ void SemanticAnalyzer::visit(ElseBranch& statement)
 
 // Looping
 
-void SemanticAnalyzer::visit(SimpleWhileLoop& statement)
+void SemanticAnalyzer::visit(WhileLoop& statement)
 {
 	Object_ptr condition_type = visit(statement.test);
 	type_system->expect_condition_type(current_scope, condition_type);
@@ -109,11 +110,7 @@ void SemanticAnalyzer::visit(SimpleWhileLoop& statement)
 	leave_scope();
 }
 
-void SemanticAnalyzer::visit(AssignedWhileLoop& statement)
-{
-}
-
-void SemanticAnalyzer::visit(SimpleUntilLoop& statement)
+void SemanticAnalyzer::visit(UntilLoop& statement)
 {
 	Object_ptr condition_type = visit(statement.test);
 	type_system->expect_condition_type(current_scope, condition_type);
@@ -124,13 +121,7 @@ void SemanticAnalyzer::visit(SimpleUntilLoop& statement)
 	leave_scope();
 }
 
-void SemanticAnalyzer::visit(AssignedUntilLoop& statement)
-{
-}
-
-// Looping - for loop
-
-void SemanticAnalyzer::visit(SimpleForInLoop& statement)
+void SemanticAnalyzer::visit(ForInLoop& statement)
 {
 	Object_ptr right_type = visit(statement.iterable_expression);
 	type_system->expect_iterable_type(current_scope, right_type);
@@ -157,10 +148,8 @@ void SemanticAnalyzer::visit(SimpleForInLoop& statement)
 	leave_scope();
 }
 
-void SemanticAnalyzer::visit(DeconstructedForInLoop& statement)
-{
-	// TODO
-}
+// Other
+
 
 void SemanticAnalyzer::visit(Import& statement)
 {
@@ -218,18 +207,6 @@ void SemanticAnalyzer::visit(Return& statement)
 }
 
 void SemanticAnalyzer::visit(Assert& statement)
-{
-	Object_ptr type = visit(statement.expression);
-	type_system->expect_condition_type(current_scope, type);
-}
-
-void SemanticAnalyzer::visit(Implore& statement)
-{
-	Object_ptr type = visit(statement.expression);
-	type_system->expect_condition_type(current_scope, type);
-}
-
-void SemanticAnalyzer::visit(Swear& statement)
 {
 	Object_ptr type = visit(statement.expression);
 	type_system->expect_condition_type(current_scope, type);

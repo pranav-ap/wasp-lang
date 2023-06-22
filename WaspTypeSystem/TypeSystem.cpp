@@ -84,7 +84,9 @@ bool TypeSystem::equal(SymbolScope_ptr scope, const Object_ptr type_1, const Obj
 
 		[&](ClassType const& type_1, ClassType const& type_2)
 		{
-			return equal(scope, type_1.type, type_2.type);
+			bool same_name = type_1.name.compare(type_2.name) == 0;
+			bool exists_in_scope = scope->lookup_success(type_1.name) && scope->lookup_success(type_2.name);
+			return same_name && exists_in_scope;
 		},
 
 		[&](NoneType const& type_1, NoneType const& type_2) { return true; },
@@ -319,15 +321,6 @@ Object_ptr TypeSystem::infer(SymbolScope_ptr scope, Object_ptr left_type, WToken
 		expect_boolean_type(right_type);
 		return type_pool->get_boolean_type();
 	}
-	case WTokenType::QUESTION_QUESTION:
-	{
-		if (equal(scope, left_type, right_type))
-		{
-			return left_type;
-		}
-
-		return MAKE_OBJECT_VARIANT(VariantType({ left_type, right_type }));
-	}
 	default:
 	{
 		FATAL("What the hell is this Binary statement?");
@@ -348,7 +341,7 @@ Object_ptr TypeSystem::infer(SymbolScope_ptr scope, Object_ptr operand_type, WTo
 		expect_number_type(operand_type);
 		return is_int_type(operand_type) ? type_pool->get_int_type() : type_pool->get_float_type();
 	}
-	case WTokenType::BANG:
+	case WTokenType::NOT:
 	{
 		expect_boolean_type(operand_type);
 		return type_pool->get_boolean_type();

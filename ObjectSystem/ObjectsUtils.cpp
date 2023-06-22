@@ -187,7 +187,6 @@ std::wstring stringify_object(Object_ptr value)
 		[&](EnumMemberObject const& obj) { return wstring(L"enum member" + obj.value); },
 		[&](FunctionDefinitionObject const& obj) { return wstring(L"function " + obj.name); },
 		[&](BuiltInFunctionObject const& obj) { return wstring(L"builtin " + obj.name); },
-		[&](MemberFunctionDefinitionObject const& obj) { return wstring(L"member function"); },
 		[&](AliasDefinitionObject const& obj) { return wstring(L"alias definition object"); },
 		[&](ClassDefinitionObject const& obj) { return wstring(L"class definition object"); },
 
@@ -209,7 +208,6 @@ std::wstring stringify_object(Object_ptr value)
 		[&](VariantType const& obj) { return wstring(L"variant type"); },
 		[&](NoneType const& obj) { return wstring(L"none type"); },
 		[&](FunctionType const& obj) { return wstring(L"function type"); },
-		[&](MemberFunctionType const& obj) { return wstring(L"member function type"); },
 		[&](AliasType const& obj) { return wstring(L"alias type"); },
 		[&](ClassType const& obj) { return wstring(L"class type"); },
 		

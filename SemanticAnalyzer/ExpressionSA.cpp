@@ -42,7 +42,8 @@ Object_ptr SemanticAnalyzer::visit(const Expression_ptr expression)
 		[&](TupleLiteral& expr) {return  visit(expr); },
 		[&](MapLiteral& expr) { return visit(expr); },
 		[&](SetLiteral& expr) { return visit(expr); },
-		[&](TernaryCondition& expr) { return visit(expr); },
+		[&](IfTernaryBranch& expr) { return visit(expr); },
+		[&](ElseTernaryBranch& expr) { return visit(expr); },
 		[&](Identifier& expr) { return visit(expr); },
 		[&](Prefix& expr) { return visit(expr); },
 		[&](Infix& expr) { return visit(expr); },
@@ -56,6 +57,8 @@ Object_ptr SemanticAnalyzer::visit(const Expression_ptr expression)
 		[&](TypeOf& expr) { return visit(expr); },
 		[&](Is& expr) { return visit(expr); },
 		[&](As& expr) { return visit(expr); },
+		[&](LetExpression& expr) { return visit(expr); },
+		[&](ConstExpression& expr) { return visit(expr); },
 
 		[&](auto)
 		{
@@ -139,6 +142,30 @@ Object_ptr SemanticAnalyzer::visit(SetLiteral& expr)
 	return set_type;
 }
 
+Object_ptr SemanticAnalyzer::visit(IfTernaryBranch& expr)
+{
+	enter_scope(ScopeType::EXPRESSION);
+	expr.scope = current_scope;
+
+	Object_ptr condition_type = visit(expr.test);
+	type_system->expect_condition_type(current_scope, condition_type);
+
+	Object_ptr true_type = visit(expr.true_expression);
+	Object_ptr false_type = visit(expr.alternative);
+
+	if (type_system->equal(current_scope, true_type, false_type))
+	{
+		return true_type;
+	}
+
+	return MAKE_OBJECT_VARIANT(VariantType({ true_type, false_type }));
+}
+
+Object_ptr SemanticAnalyzer::visit(ElseTernaryBranch& expr)
+{
+	return Object_ptr();
+}
+
 Object_ptr SemanticAnalyzer::visit(MapLiteral& expr)
 {
 	ObjectVector key_types;
@@ -162,25 +189,6 @@ Object_ptr SemanticAnalyzer::visit(MapLiteral& expr)
 
 	Object_ptr map_type = MAKE_OBJECT_VARIANT(MapType(key_type, value_type));
 	return map_type;
-}
-
-Object_ptr SemanticAnalyzer::visit(TernaryCondition& expression)
-{
-	enter_scope(ScopeType::EXPRESSION);
-	expression.scope = current_scope;
-
-	Object_ptr condition_type = visit(expression.condition);
-	type_system->expect_condition_type(current_scope, condition_type);
-
-	Object_ptr true_type = visit(expression.true_expression);
-	Object_ptr false_type = visit(expression.false_expression);
-
-	if (type_system->equal(current_scope, true_type, false_type))
-	{
-		return true_type;
-	}
-
-	return MAKE_OBJECT_VARIANT(VariantType({ true_type, false_type }));
 }
 
 Object_ptr SemanticAnalyzer::visit(TypePattern& expr)
@@ -398,4 +406,14 @@ Object_ptr SemanticAnalyzer::visit(As& expr)
 	current_scope->define(name, symbol);
 
 	return right_type;
+}
+
+Object_ptr SemanticAnalyzer::visit(LetExpression& expr)
+{
+	return Object_ptr();
+}
+
+Object_ptr SemanticAnalyzer::visit(ConstExpression& expr)
+{
+	return Object_ptr();
 }

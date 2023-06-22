@@ -48,29 +48,12 @@ Statement_ptr Parser::parse_variable_definition(bool is_public, bool is_mutable)
 	auto expression = parse_expression();
 	token_pipe->require(WTokenType::EOL);
 
-	if (holds_alternative<UntypedAssignment>(*expression))
+	if (is_mutable)
 	{
-		auto [lhs, rhs] = deconstruct_UntypedAssignment(expression);
-
-		if (holds_alternative<Identifier>(*lhs))
-		{
-			auto identifier = get_if<Identifier>(&*lhs);
-			return MAKE_STATEMENT(SingleVariableDefinition(is_public, is_mutable, identifier->name, move(rhs)));
-		}
-
-		return MAKE_STATEMENT(DeconstructedVariableDefinition(is_public, is_mutable, lhs, move(rhs)));
+		return MAKE_STATEMENT(LetDefinition(is_public, expression));
 	}
 
-	ASSERT(holds_alternative<TypedAssignment>(*expression), "Must be an TypedAssignment");
-	auto [lhs, rhs, type_node] = deconstruct_TypedAssignment(expression);
-
-	if (holds_alternative<Identifier>(*lhs))
-	{
-		auto identifier = get_if<Identifier>(&*lhs);
-		return MAKE_STATEMENT(SingleVariableDefinition(is_public, is_mutable, identifier->name, move(rhs), type_node));
-	}
-
-	return MAKE_STATEMENT(DeconstructedVariableDefinition(is_public, is_mutable, lhs, move(rhs), type_node));
+	return MAKE_STATEMENT(ConstDefinition(is_public, expression));
 }
 
 // Enum
@@ -172,6 +155,10 @@ std::pair<std::wstring, TypeNode_ptr> Parser::consume_identifier_type_pair()
 
 	return make_pair(identifier->value, move(type));
 }
+
+
+// Class
+
 
 StringVector Parser::parse_inheritance()
 {

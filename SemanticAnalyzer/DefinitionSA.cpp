@@ -30,11 +30,11 @@ using std::vector;
 using std::make_shared;
 using std::move;
 
-void SemanticAnalyzer::visit(SingleVariableDefinition& statement)
+void SemanticAnalyzer::visit(VariableDefinition& statement)
 {
 	statement.scope = current_scope;
 
-	Object_ptr rhs_type = visit(statement.rhs_expression);
+	Object_ptr rhs_type = visit(statement.expression);
 	Object_ptr type;
 
 	if (statement.type.has_value())
@@ -49,14 +49,6 @@ void SemanticAnalyzer::visit(SingleVariableDefinition& statement)
 
 	auto symbol = MAKE_SYMBOL(next_id++, statement.name, type, statement.is_public, statement.is_mutable);
 	current_scope->define(statement.name, symbol);
-}
-
-void SemanticAnalyzer::visit(DeconstructedVariableDefinition& statement)
-{
-	statement.scope = current_scope;
-
-	// TODO
-	FATAL("TODO - SemanticAnalyzer - DeconstructedVariableDefinition");
 }
 
 void SemanticAnalyzer::visit(FunctionDefinition& statement)

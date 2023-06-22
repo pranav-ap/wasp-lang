@@ -43,17 +43,61 @@ using std::optional;
 using std::make_optional;
 using std::holds_alternative;
 
-Expression_ptr Parser::parse_ternary_condition(Expression_ptr condition)
+// Branching
+
+Expression_ptr Parser::parse_ternary_condition(WTokenType token_type, Expression_ptr prev_condition)
 {
 	Expression_ptr then_arm = parse_expression();
 
-	token_pipe->require(WTokenType::ELSE);
-	Expression_ptr else_arm = parse_expression((int)Precedence::TERNARY_CONDITION - 1);
+	if (token_pipe->optional(WTokenType::ELIF))
+	{
+		auto elif_condition = parse_expression();
+		token_pipe->require(WTokenType::THEN);
 
-	return MAKE_EXPRESSION(TernaryCondition(condition, then_arm, else_arm));
+		auto elif_arm = parse_ternary_condition(WTokenType::ELIF, elif_condition);
+		return MAKE_EXPRESSION(IfTernaryBranch(prev_condition, then_arm, elif_arm));
+	}
+
+	token_pipe->require(WTokenType::ELSE);
+
+	auto expression = parse_expression();
+	auto else_arm = MAKE_EXPRESSION(ElseTernaryBranch(expression));
+	return MAKE_EXPRESSION(IfTernaryBranch(prev_condition, then_arm, else_arm));
 }
 
-// Branching
+Statement_ptr Parser::parse_branching(WTokenType token_type)
+{
+	auto condition = parse_expression();
+	token_pipe->require(WTokenType::THEN);
+
+	// Ternary 
+
+	if (token_type == WTokenType::IF && !token_pipe->optional(WTokenType::EOL))
+	{
+		Expression_ptr ternary = parse_ternary_condition(WTokenType::IF, condition);
+		token_pipe->require(WTokenType::EOL);
+
+		return MAKE_STATEMENT(ExpressionStatement(move(ternary)));
+	}
+
+	// If Block
+
+	Block body = parse_conditional_block();
+
+	if (token_pipe->optional(WTokenType::ELIF))
+	{
+		auto alternative = parse_branching(WTokenType::ELIF);
+		return MAKE_STATEMENT(IfBranch(condition, body, alternative));
+	}
+	else if (token_pipe->optional(WTokenType::ELSE))
+	{
+		auto alternative = parse_else_block();
+		return MAKE_STATEMENT(IfBranch(condition, body, alternative));
+	}
+
+	token_pipe->require(WTokenType::END);
+	return MAKE_STATEMENT(IfBranch(condition, body));
+}
 
 Block Parser::parse_conditional_block()
 {
@@ -89,91 +133,13 @@ Block Parser::parse_conditional_block()
 	return statements;
 }
 
-Statement_ptr Parser::parse_else()
+Statement_ptr Parser::parse_else_block()
 {
 	token_pipe->require(WTokenType::EOL);
 	Block else_block = parse_conditional_block();
 	token_pipe->require(WTokenType::END);
 
 	return MAKE_STATEMENT(ElseBranch(else_block));
-}
-
-Statement_ptr Parser::parse_branching(WTokenType token_type)
-{
-	bool let_present = false;
-
-	if (token_pipe->optional(WTokenType::LET))
-	{
-		let_present = true;
-	}
-
-	auto condition = parse_expression();
-	token_pipe->require(WTokenType::THEN);
-
-	if (token_type == WTokenType::IF && !token_pipe->optional(WTokenType::EOL))
-	{
-		Expression_ptr ternary = parse_ternary_condition(condition);
-		token_pipe->require(WTokenType::EOL);
-
-		return MAKE_STATEMENT(ExpressionStatement(move(ternary)));
-	}
-
-	Block body = parse_conditional_block();
-
-	if (holds_alternative<TypedAssignment>(*condition))
-	{
-		auto [lhs, rhs, type_node] = deconstruct_TypedAssignment(condition);
-		auto name = extract_identifier_string(lhs);
-
-		if (token_pipe->optional(WTokenType::ELIF))
-		{
-			auto alternative = parse_branching(WTokenType::ELIF);
-			return MAKE_STATEMENT(AssignedIfBranch(name, rhs, body, type_node, alternative));
-		}
-		else if (token_pipe->optional(WTokenType::ELSE))
-		{
-			auto alternative = parse_else();
-			return MAKE_STATEMENT(AssignedIfBranch(name, rhs, body, alternative));
-		}
-
-		token_pipe->require(WTokenType::END);
-		return MAKE_STATEMENT(AssignedIfBranch(name, rhs, body, type_node));
-	}
-	else if (holds_alternative<UntypedAssignment>(*condition))
-	{
-		auto [lhs, rhs] = deconstruct_UntypedAssignment(condition);
-		auto name = extract_identifier_string(lhs);
-
-		if (token_pipe->optional(WTokenType::ELIF))
-		{
-			auto alternative = parse_branching(WTokenType::ELIF);
-			return MAKE_STATEMENT(AssignedIfBranch(name, rhs, body, alternative));
-		}
-		else if (token_pipe->optional(WTokenType::ELSE))
-		{
-			auto alternative = parse_else();
-			return MAKE_STATEMENT(AssignedIfBranch(name, rhs, body, alternative));
-		}
-
-		token_pipe->require(WTokenType::END);
-		return MAKE_STATEMENT(AssignedIfBranch(name, rhs, body));
-	}
-
-	// Simple If Branch
-
-	if (token_pipe->optional(WTokenType::ELIF))
-	{
-		auto alternative = parse_branching(WTokenType::ELIF);
-		return MAKE_STATEMENT(SimpleIfBranch(condition, body, alternative));
-	}
-	else if (token_pipe->optional(WTokenType::ELSE))
-	{
-		auto alternative = parse_else();
-		return MAKE_STATEMENT(SimpleIfBranch(condition, body, alternative));
-	}
-
-	token_pipe->require(WTokenType::END);
-	return MAKE_STATEMENT(SimpleIfBranch(condition, body));
 }
 
 // Looping
@@ -187,13 +153,7 @@ Statement_ptr Parser::parse_non_block_statement()
 
 	switch (token.value()->type)
 	{
-		CASE(WTokenType::RETURN_KEYWORD, parse_return());
-		CASE(WTokenType::BREAK, parse_break());
-		CASE(WTokenType::CONTINUE, parse_continue());
-		CASE(WTokenType::REDO, parse_redo());
 		CASE(WTokenType::ASSERT, parse_assert());
-		CASE(WTokenType::IMPLORE, parse_implore());
-		CASE(WTokenType::SWEAR, parse_swear());
 
 	default:
 	{
@@ -237,47 +197,16 @@ Statement_ptr Parser::parse_while_loop()
 	NULL_CHECK(condition);
 
 	token_pipe->require(WTokenType::DO);
-
-	if (holds_alternative<TypedAssignment>(*condition))
-	{
-		auto [lhs, rhs, type_node] = deconstruct_TypedAssignment(condition);
-
-		if (token_pipe->optional(WTokenType::EOL))
-		{
-			auto body = parse_block();
-			return MAKE_STATEMENT(AssignedWhileLoop(body, lhs, rhs, type_node));
-		}
-
-		auto statement = parse_non_block_statement();
-		auto body = { statement };
-		return MAKE_STATEMENT(AssignedWhileLoop(body, lhs, rhs, type_node));
-	}
-	else if (holds_alternative<UntypedAssignment>(*condition))
-	{
-		auto [lhs, rhs] = deconstruct_UntypedAssignment(condition);
-
-		if (token_pipe->optional(WTokenType::EOL))
-		{
-			auto body = parse_block();
-			return MAKE_STATEMENT(AssignedWhileLoop(body, lhs, rhs));
-		}
-
-		auto statement = parse_non_block_statement();
-		auto body = { statement };
-		return MAKE_STATEMENT(AssignedWhileLoop(body, lhs, rhs));
-	}
-
-	// Simple While Loop
-
+	
 	if (token_pipe->optional(WTokenType::EOL))
 	{
 		auto body = parse_block();
-		return MAKE_STATEMENT(SimpleWhileLoop(body, condition));
+		return MAKE_STATEMENT(WhileLoop(body, condition));
 	}
 
 	auto statement = parse_non_block_statement();
 	auto body = { statement };
-	return MAKE_STATEMENT(SimpleWhileLoop(body, condition));
+	return MAKE_STATEMENT(WhileLoop(body, condition));
 }
 
 Statement_ptr Parser::parse_until_loop() 
@@ -287,46 +216,15 @@ Statement_ptr Parser::parse_until_loop()
 
 	token_pipe->require(WTokenType::DO);
 
-	if (holds_alternative<TypedAssignment>(*condition))
-	{
-		auto [lhs, rhs, type_node] = deconstruct_TypedAssignment(condition);
-
-		if (token_pipe->optional(WTokenType::EOL))
-		{
-			auto body = parse_block();
-			return MAKE_STATEMENT(AssignedUntilLoop(body, lhs, rhs, type_node));
-		}
-
-		auto statement = parse_non_block_statement();
-		auto body = { statement };
-		return MAKE_STATEMENT(AssignedUntilLoop(body, lhs, rhs, type_node));
-	}
-	else if (holds_alternative<UntypedAssignment>(*condition))
-	{
-		auto [lhs, rhs] = deconstruct_UntypedAssignment(condition);
-
-		if (token_pipe->optional(WTokenType::EOL))
-		{
-			auto body = parse_block();
-			return MAKE_STATEMENT(AssignedUntilLoop(body, lhs, rhs));
-		}
-
-		auto statement = parse_non_block_statement();
-		auto body = { statement };
-		return MAKE_STATEMENT(AssignedUntilLoop(body, lhs, rhs));
-	}
-
-	// Simple Until Loop
-
 	if (token_pipe->optional(WTokenType::EOL))
 	{
 		auto body = parse_block();
-		return MAKE_STATEMENT(SimpleUntilLoop(body, condition));
+		return MAKE_STATEMENT(UntilLoop(body, condition));
 	}
 
 	auto statement = parse_non_block_statement();
 	auto body = { statement };
-	return MAKE_STATEMENT(SimpleUntilLoop(body, condition));
+	return MAKE_STATEMENT(UntilLoop(body, condition));
 }
 
 Statement_ptr Parser::parse_for_in_loop()
@@ -343,101 +241,86 @@ Statement_ptr Parser::parse_for_in_loop()
 
 	token_pipe->require(WTokenType::DO);
 
-	// type annotation is present
-
-	if (holds_alternative<TypePattern>(*lhs))
-	{
-		auto [deconstruction, type_node] = deconstruct_type_pattern(lhs);
-
-		if (holds_alternative<Identifier>(*deconstruction))
-		{
-			auto identifier = get_if<Identifier>(&*deconstruction);
-
-			if (token_pipe->optional(WTokenType::EOL))
-			{
-				auto body = parse_block();
-				return MAKE_STATEMENT(SimpleForInLoop(body, identifier->name, iterable_expression, type_node));
-			}
-
-			auto statement = parse_non_block_statement();
-			return MAKE_STATEMENT(SimpleForInLoop({ statement }, identifier->name, iterable_expression, type_node));
-		}
-
-		if (token_pipe->optional(WTokenType::EOL))
-		{
-			auto body = parse_block();
-			return MAKE_STATEMENT(DeconstructedForInLoop(body, deconstruction, iterable_expression, type_node));
-		}
-
-		auto statement = parse_non_block_statement();
-		auto body = { statement };
-		return MAKE_STATEMENT(DeconstructedForInLoop(body, deconstruction, iterable_expression, type_node));
-	}
-
-	// type annotation is absent
-
-	else if (holds_alternative<Identifier>(*lhs))
-	{
-		auto identifier = get_if<Identifier>(&*lhs);
-
-		if (token_pipe->optional(WTokenType::EOL))
-		{
-			auto body = parse_block();
-			return MAKE_STATEMENT(SimpleForInLoop(body, identifier->name, iterable_expression));
-		}
-
-		auto statement = parse_non_block_statement();
-		return MAKE_STATEMENT(SimpleForInLoop({ statement }, identifier->name, iterable_expression));
-	}
-
 	if (token_pipe->optional(WTokenType::EOL))
 	{
 		auto body = parse_block();
-		return MAKE_STATEMENT(DeconstructedForInLoop(body, lhs, iterable_expression));
+		return MAKE_STATEMENT(ForInLoop(body, lhs, iterable_expression));
 	}
 
 	auto statement = parse_non_block_statement();
 	auto body = { statement };
-	return MAKE_STATEMENT(DeconstructedForInLoop(body, lhs, iterable_expression));
+	return MAKE_STATEMENT(ForInLoop(body, lhs, iterable_expression));
 }
+
+// Matching
+/*
+Statement_ptr Parser::parse_match()
+{
+	auto match_top_expression = parse_expression();
+	token_pipe->require(WTokenType::WITH);
+
+	std::vector<Expression_ptr> case_expressions;
+	std::vector<Block> case_blocks;
+
+	if (token_pipe->optional(WTokenType::EOL))
+	{
+		auto body = parse_match_cases();
+		token_pipe->require(WTokenType::END);
+		return MAKE_STATEMENT(Matching(match_top_expression, case_expressions, case_blocks));
+	}
+
+	// parse withs
+
+	auto statement = parse_with_expression();
+	auto body = { statement };
+	return MAKE_STATEMENT(Matching(match_expression, case_expressions, case_blocks));
+}
+
+std::pair<Expression_ptr, Block> Parser::parse_match_cases()
+{
+	auto case_expression = parse_expression();
+	token_pipe->require(WTokenType::THEN);
+
+	if (token_pipe->optional(WTokenType::EOL))
+	{
+		auto body = parse_match_case_block();
+		return make_pair(case_expression, body);
+	}
+
+	auto statement = parse_non_block_statement();
+	auto body = { statement };
+	return make_pair(case_expression, body);
+}
+
+Block Parser::parse_match_case_block()
+{
+	Block statements;
+
+	while (true)
+	{
+		token_pipe->ignore_whitespace();
+
+		auto token = token_pipe->current();
+		OPT_CHECK(token);
+
+		if (token.value()->type == WTokenType::CASE)
+		{
+			token_pipe->advance_pointer();
+			break;
+		}
+
+		auto statement = parse_statement(false);
+
+		if (!statement)
+			break;
+
+		statements.push_back(move(statement));
+	}
+
+	return statements;
+}*/
 
 // Utils
-
-tuple<Expression_ptr, Expression_ptr, TypeNode_ptr> Parser::deconstruct_TypedAssignment(Expression_ptr expr)
-{
-	auto typed_assignment = get_if<TypedAssignment>(&*expr);
-
-	auto lhs = typed_assignment->lhs_expression;
-	auto rhs = typed_assignment->rhs_expression;
-	auto type_node = typed_assignment->type_node;
-
-	return make_tuple(lhs, rhs, type_node);
-}
-
-tuple<Expression_ptr, Expression_ptr> Parser::deconstruct_UntypedAssignment(Expression_ptr expr)
-{
-	auto untyped_assignment = get_if<UntypedAssignment>(&*expr);
-
-	auto lhs = untyped_assignment->lhs_expression;
-	auto rhs = untyped_assignment->rhs_expression;
-
-	return make_tuple(lhs, rhs);
-}
-
-tuple<Expression_ptr, TypeNode_ptr> Parser::deconstruct_type_pattern(Expression_ptr expression)
-{
-	ASSERT(holds_alternative<TypePattern>(*expression), "Expected a TypePattern");
-	auto type_pattern = get_if<TypePattern>(&*expression);
-
-	return std::make_tuple(type_pattern->expression, type_pattern->type_node);
-}
-
-std::wstring Parser::extract_identifier_string(Expression_ptr expr)
-{
-	ASSERT(holds_alternative<Identifier>(*expr), "Expected an Identifier");
-	auto identifier = get_if<Identifier>(&*expr);
-	return identifier->name;
-}
 
 StringVector Parser::parse_comma_separated_identifiers()
 {

@@ -23,8 +23,13 @@ const std::map<std::wstring, WTokenType> keyword_map =
 	{ L"elif", WTokenType::ELIF },
 	{ L"else", WTokenType::ELSE },
 
+	{ L"not", WTokenType::NOT },
 	{ L"and", WTokenType::AND },
 	{ L"or", WTokenType::OR },
+	{ L"or with", WTokenType::OR_WITH },
+
+	{ L"no", WTokenType::NO },
+	{ L"some", WTokenType::SOME },
 
 	{ L"export", WTokenType::EXPORT },
 	{ L"import", WTokenType::IMPORT },
@@ -57,6 +62,7 @@ const std::map<std::wstring, WTokenType> keyword_map =
 	{ L"type", WTokenType::TYPE },
 	{ L"class", WTokenType::CLASS},
 	{ L"extends", WTokenType::EXTENDS },
+	{ L"operator", WTokenType::OPERATOR },
 
 	{ L"int", WTokenType::INT },
 	{ L"float", WTokenType::FLOAT },
@@ -68,15 +74,24 @@ const std::map<std::wstring, WTokenType> keyword_map =
 	{ L"none", WTokenType::NONE },
 
 	{ L"match", WTokenType::MATCH },
+	{ L"with", WTokenType::WITH },
 	{ L"case", WTokenType::CASE },
+	{ L"where", WTokenType::WHERE },
 	{ L"end", WTokenType::END },
 
-	{ L"implore", WTokenType::IMPLORE },
-	{ L"swear", WTokenType::SWEAR },
 	{ L"assert", WTokenType::ASSERT },
+	{ L"defer", WTokenType::DEFER },
+	{ L"del", WTokenType::DEL },
+
+	{ L"try", WTokenType::TRY },
+	{ L"rescue", WTokenType::RESCUE },
+	{ L"ensure", WTokenType::ENSURE },
 
 	{ L"then", WTokenType::THEN },
 	{ L"do", WTokenType::DO },
+
+	{ L"testsuite", WTokenType::TESTSUITE },
+	{ L"test", WTokenType::TEST },
 
 	{ L"true", WTokenType::TRUE_KEYWORD },
 	{ L"false", WTokenType::FALSE_KEYWORD }
@@ -105,7 +120,6 @@ class LEXER_API Lexer
 	Token_ptr consume_power();
 	Token_ptr consume_bang();
 	Token_ptr consume_equal();
-	Token_ptr consume_vertical_bar();
 	Token_ptr consume_colon();
 	Token_ptr consume_dot();
 	Token_ptr consume_question();

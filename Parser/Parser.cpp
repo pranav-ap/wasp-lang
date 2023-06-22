@@ -64,7 +64,7 @@ Parser::Parser()
 
 	register_prefix(WTokenType::PLUS, Precedence::PREFIX);
 	register_prefix(WTokenType::MINUS, Precedence::PREFIX);
-	register_prefix(WTokenType::BANG, Precedence::PREFIX);
+	register_prefix(WTokenType::NOT, Precedence::PREFIX);
 	register_prefix(WTokenType::TYPE_OF, Precedence::PREFIX);
 	register_prefix(WTokenType::AT_SIGN, Precedence::PREFIX);
 	register_prefix(WTokenType::DOT_DOT_DOT, Precedence::PREFIX);

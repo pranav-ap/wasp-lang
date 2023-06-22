@@ -31,25 +31,18 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 	void visit(const Statement_ptr statement);
 	void visit(std::vector<Statement_ptr>& statements);
 
-	void visit(SingleVariableDefinition& statement);
-	void visit(DeconstructedVariableDefinition& statement);
+	void visit(VariableDefinition& statement);
 	void visit(ExpressionStatement& statement);
-	void visit(SimpleIfBranch& statement);
-	void visit(AssignedIfBranch& statement);
+	void visit(IfBranch& statement);
 	void visit(ElseBranch& statement);
-	void visit(SimpleWhileLoop& statement);
-	void visit(AssignedWhileLoop& statement);
-	void visit(SimpleUntilLoop& statement);
-	void visit(AssignedUntilLoop& statement);
+	void visit(WhileLoop& statement);
+	void visit(UntilLoop& statement);
+	void visit(ForInLoop& statement);
 	void visit(Break& statement);
 	void visit(Continue& statement);
 	void visit(Redo& statement);
 	void visit(Return& statement);
 	void visit(Assert& statement);
-	void visit(Implore& statement);
-	void visit(Swear& statement);
-	void visit(SimpleForInLoop& statement);
-	void visit(DeconstructedForInLoop& statement);
 	void visit(EnumDefinition& statement);
 	void visit(FunctionDefinition& statement);
 	void visit(AliasDefinition& statement);
@@ -70,7 +63,8 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 	Object_ptr visit(TupleLiteral& expr);
 	Object_ptr visit(MapLiteral& expr);
 	Object_ptr visit(SetLiteral& expr);
-	Object_ptr visit(TernaryCondition& expr);
+	Object_ptr visit(IfTernaryBranch& expr);
+	Object_ptr visit(ElseTernaryBranch& expr);
 	Object_ptr visit(TypePattern& expr);
 	Object_ptr visit(UntypedAssignment& expr);
 	Object_ptr visit(TypedAssignment& expr);
@@ -84,6 +78,8 @@ class SEMANTICANALYZER_API SemanticAnalyzer
 	Object_ptr visit(TypeOf& expr);
 	Object_ptr visit(Is& expr);
 	Object_ptr visit(As& expr);
+	Object_ptr visit(LetExpression& expr);
+	Object_ptr visit(ConstExpression& expr);
 
 	Object_ptr infer_chain_member_type(Object_ptr lhs_operand_type, Expression_ptr expr, bool null_check_access);
 

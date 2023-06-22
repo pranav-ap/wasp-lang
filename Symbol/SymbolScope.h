@@ -21,8 +21,7 @@ enum class SYMBOL_API ScopeType
 	EXPRESSION,
 	LOOP,
 	BRANCH,
-	FUNCTION,
-	TEST
+	FUNCTION
 };
 
 struct SymbolScope;
@@ -59,7 +58,9 @@ struct SYMBOL_API SymbolScope
 		code_object(std::make_shared<CodeObject>()) {};
 
 	void define(std::wstring name, Symbol_ptr symbol);
+	
 	Symbol_ptr lookup(std::wstring name);
+	bool lookup_success(std::wstring name);
 
 	bool enclosed_in(ScopeType type);
 	bool enclosed_in(std::vector<ScopeType> types);

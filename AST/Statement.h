@@ -19,38 +19,38 @@
 #include <utility>
 
 struct Module;
-struct VariableDefinition;
+struct LetDefinition;
+struct ConstDefinition;
 struct ExpressionStatement;
-struct SimpleIfBranch;
-struct AssignedIfBranch;
+struct IfBranch;
 struct ElseBranch;
-struct SimpleWhileLoop;
-struct AssignedWhileLoop;
+struct WhileLoop;
+struct UntilLoop;
+struct ForInLoop;
 struct Break;
 struct Continue;
 struct Redo;
 struct Return;
 struct Assert;
-struct Implore;
-struct Swear;
-struct SimpleForInLoop;
-struct DeconstructedForInLoop;
 struct EnumDefinition;
 struct FunctionDefinition;
 struct AliasDefinition;
 struct ClassDefinition;
 struct Import;
 struct Native;
+struct Matching;
 
 using Statement = AST_API std::variant<
 	std::monostate,
 
 	Module,
-	VariableDefinition,
-	ExpressionStatement, SimpleIfBranch, AssignedIfBranch, ElseBranch,
-	SimpleWhileLoop, AssignedWhileLoop, Break, Continue, Redo,
-	Return, Assert, Implore, Swear,
-	SimpleForInLoop, DeconstructedForInLoop, 
+	LetDefinition, ConstDefinition,
+	ExpressionStatement, 
+	IfBranch, ElseBranch,
+	WhileLoop, ForInLoop, UntilLoop, 
+	Matching,
+	Break, Continue, Redo,
+	Return, Assert, 
 	EnumDefinition, FunctionDefinition,  
 	Import, Native,
 	AliasDefinition, ClassDefinition
@@ -69,11 +69,19 @@ struct AST_API Definition : public AnnotatedNode
 
 // Variable Definitions
 
-struct AST_API VariableDefinition : public Definition
+struct AST_API LetDefinition : public Definition
 {
 	Expression_ptr expression;
 
-	VariableDefinition(bool is_public, Expression_ptr expression)
+	LetDefinition(bool is_public, Expression_ptr expression)
+		: Definition(is_public), expression(expression) {};
+};
+
+struct AST_API ConstDefinition : public Definition
+{
+	Expression_ptr expression;
+
+	ConstDefinition(bool is_public, Expression_ptr expression)
 		: Definition(is_public), expression(expression) {};
 };
 
@@ -82,43 +90,14 @@ struct AST_API VariableDefinition : public Definition
 struct AST_API IfBranch : public AnnotatedNode
 {
 	Block body;
+	Expression_ptr test;
 	std::optional<Statement_ptr> alternative;
 
-	IfBranch(Block body)
-		: body(body), alternative(std::nullopt) {};
+	IfBranch(Expression_ptr test, Block body)
+		: body(body), test(test), alternative(std::nullopt) {};
 
-	IfBranch(Block body, Statement_ptr alternative)
-		: body(body), alternative(std::make_optional(alternative)) {};
-};
-
-struct AST_API SimpleIfBranch : public IfBranch
-{
-	Expression_ptr test;
-
-	SimpleIfBranch(Expression_ptr test, Block body)
-		: IfBranch(body), test(test) {};
-
-	SimpleIfBranch(Expression_ptr test, Block body, Statement_ptr alternative)
-		: IfBranch(body, alternative), test(test) {};
-};
-
-struct AST_API AssignedIfBranch : public IfBranch
-{
-	std::wstring name;
-	Expression_ptr rhs_expression;
-	std::optional<TypeNode_ptr> type_node;
-
-	AssignedIfBranch(std::wstring name, Expression_ptr rhs_expression, Block body)
-		: IfBranch(body), name(name), rhs_expression(rhs_expression), type_node(std::nullopt) {};
-
-	AssignedIfBranch(std::wstring name, Expression_ptr rhs_expression, Block body, TypeNode_ptr type_node)
-		: IfBranch(body), name(name), rhs_expression(rhs_expression), type_node(type_node) {};
-
-	AssignedIfBranch(std::wstring name, Expression_ptr rhs_expression, Block body, Statement_ptr alternative)
-		: IfBranch(body, alternative), name(name), rhs_expression(rhs_expression), type_node(std::nullopt) {};
-
-	AssignedIfBranch(std::wstring name, Expression_ptr rhs_expression, Block body, TypeNode_ptr type_node, Statement_ptr alternative)
-		: IfBranch(body, alternative), name(name), rhs_expression(rhs_expression), type_node(type_node) {};
+	IfBranch(Expression_ptr test, Block body, Statement_ptr alternative)
+		: body(body), test(test), alternative(std::make_optional(alternative)) {};
 };
 
 struct AST_API ElseBranch : public AnnotatedNode
@@ -127,121 +106,52 @@ struct AST_API ElseBranch : public AnnotatedNode
 	ElseBranch(Block body) : body(body) {};
 };
 
-// Looping - While
+// Looping
 
 struct AST_API WhileLoop : public AnnotatedNode
 {
 	Block body;
-
-	WhileLoop(Block body)
-		: body(body) {};
-};
-
-struct AST_API SimpleWhileLoop : public WhileLoop
-{
 	Expression_ptr test;
 
-	SimpleWhileLoop(Block body, Expression_ptr test)
-		: WhileLoop(body), test(std::move(test)) {};
+	WhileLoop(Block body, Expression_ptr test)
+		: body(body), test(std::move(test)) {};
 };
-
-struct AST_API AssignedWhileLoop : public WhileLoop
-{
-	Expression_ptr lhs_expression;
-	Expression_ptr rhs_expression;
-	std::optional<TypeNode_ptr> type_node;
-
-	AssignedWhileLoop(Block body, Expression_ptr lhs_expression, Expression_ptr rhs_expression)
-		: WhileLoop(body),
-		lhs_expression(std::move(lhs_expression)),
-		rhs_expression(std::move(rhs_expression)),
-		type_node(std::nullopt) {};
-
-	AssignedWhileLoop(Block body, Expression_ptr lhs_expression, Expression_ptr rhs_expression, TypeNode_ptr type_node)
-		: WhileLoop(body),
-		lhs_expression(std::move(lhs_expression)),
-		rhs_expression(std::move(rhs_expression)),
-		type_node(std::make_optional(type_node)) {};
-};
-
-// Looping - Until
 
 struct AST_API UntilLoop : public AnnotatedNode
 {
 	Block body;
-
-	UntilLoop(Block body)
-		: body(body) {};
-};
-
-struct AST_API SimpleUntilLoop : public UntilLoop
-{
 	Expression_ptr test;
 
-	SimpleUntilLoop(Block body, Expression_ptr test)
-		: UntilLoop(body), test(std::move(test)) {};
+	UntilLoop(Block body, Expression_ptr test)
+		: body(body), test(std::move(test)) {};
 };
-
-struct AST_API AssignedUntilLoop : public UntilLoop
-{
-	Expression_ptr lhs_expression;
-	Expression_ptr rhs_expression;
-	std::optional<TypeNode_ptr> type_node;
-
-	AssignedUntilLoop(Block body, Expression_ptr lhs_expression, Expression_ptr rhs_expression)
-		: UntilLoop(body),
-		lhs_expression(std::move(lhs_expression)),
-		rhs_expression(std::move(rhs_expression)),
-		type_node(std::nullopt) {};
-
-	AssignedUntilLoop(Block body, Expression_ptr lhs_expression, Expression_ptr rhs_expression, TypeNode_ptr type_node)
-		: UntilLoop(body),
-		lhs_expression(std::move(lhs_expression)),
-		rhs_expression(std::move(rhs_expression)),
-		type_node(std::make_optional(type_node)) {};
-};
-
-// Looping - For
 
 struct AST_API ForInLoop : public AnnotatedNode
 {
-	Block body;
+	Expression_ptr lhs;
 	Expression_ptr iterable_expression;
-	std::optional<TypeNode_ptr> type_node;
+	Block body;
 
-	ForInLoop(Block body, Expression_ptr iterable_expression)
+	ForInLoop(Block body, Expression_ptr lhs, Expression_ptr iterable_expression)
 		: body(body),
-		iterable_expression(std::move(iterable_expression)),
-		type_node(std::nullopt) {};
-
-	ForInLoop(Block body, Expression_ptr iterable_expression, TypeNode_ptr type_node)
-		: body(body),
-		iterable_expression(std::move(iterable_expression)),
-		type_node(std::make_optional(type_node)) {};
+		lhs(std::move(lhs)),
+		iterable_expression(std::move(iterable_expression)) {};
 };
 
-struct AST_API SimpleForInLoop : public ForInLoop
+// Matching
+
+struct AST_API Matching : public AnnotatedNode
 {
-	std::wstring name;
+	Expression_ptr match_expression;
+	std::vector<Expression_ptr> case_expressions;
+	std::vector<Block> case_blocks;
 
-	SimpleForInLoop(Block body, std::wstring name, Expression_ptr iterable_expression)
-		: ForInLoop(body, iterable_expression), name(name) {};
-
-	SimpleForInLoop(Block body, std::wstring name, Expression_ptr iterable_expression, TypeNode_ptr type_node)
-		: ForInLoop(body, iterable_expression, type_node), name(name) {};
-};
-
-struct AST_API DeconstructedForInLoop : public ForInLoop
-{
-	Expression_ptr deconstruction;
-
-	DeconstructedForInLoop(Block body, Expression_ptr deconstruction, Expression_ptr iterable_expression)
-		: ForInLoop(body, iterable_expression),
-		deconstruction(std::move(deconstruction)) {};
-
-	DeconstructedForInLoop(Block body, Expression_ptr deconstruction, Expression_ptr rhs_expression, TypeNode_ptr type_node)
-		: ForInLoop(body, iterable_expression, type_node),
-		deconstruction(std::move(deconstruction)) {};
+	Matching(Expression_ptr match_expression,
+			std::vector<Expression_ptr> case_expressions,
+			std::vector<Block> case_blocks)
+		: match_expression(std::move(match_expression)),
+		case_expressions(case_expressions),
+		case_blocks(case_blocks) {};
 };
 
 // Single Expression Statement
@@ -263,18 +173,6 @@ struct AST_API ExpressionStatement : public SingleExpressionStatement
 struct AST_API Assert : public SingleExpressionStatement
 {
 	Assert(Expression_ptr expression)
-		: SingleExpressionStatement(std::move(expression)) {};
-};
-
-struct AST_API Implore : public SingleExpressionStatement
-{
-	Implore(Expression_ptr expression)
-		: SingleExpressionStatement(std::move(expression)) {};
-};
-
-struct AST_API Swear : public SingleExpressionStatement
-{
-	Swear(Expression_ptr expression)
 		: SingleExpressionStatement(std::move(expression)) {};
 };
 
@@ -337,7 +235,11 @@ struct AST_API EnumDefinition : public Definition
 	std::wstring name;
 	std::map<std::wstring, int> members;
 
-	EnumDefinition(bool is_public, std::wstring name, StringVector member_list) : Definition(is_public)
+	EnumDefinition(
+		bool is_public, 
+		std::wstring name, 
+		StringVector member_list) 
+		: Definition(is_public)
 	{
 		this->name = name;
 		int index = 0;
@@ -393,3 +295,20 @@ struct AST_API Native : public AnnotatedNode
 	Native(std::wstring module_name, std::map<std::wstring, TypeNode_ptr> members)
 		: module_name(module_name), members(members) {};
 };
+
+// Match
+
+struct AST_API Match : public AnnotatedNode
+{
+	Expression_ptr test;
+	std::vector<CaseTest> case_tests;
+	std::vector<Block> case_blocks;
+
+	Match(Expression_ptr test,
+		std::vector<CaseTest> case_tests,
+		std::vector<Block> case_blocks)
+		: test(std::move(test)),
+		case_tests(case_tests),
+		case_blocks(case_blocks) {};
+};
+

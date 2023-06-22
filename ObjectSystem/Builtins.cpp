@@ -17,7 +17,6 @@ using std::cin;
 using std::endl;
 using std::wstring;
 
-// ECHO
 
 Object_ptr io::print(std::vector<Object_ptr> arguments)
 {

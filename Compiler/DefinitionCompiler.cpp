@@ -40,11 +40,6 @@ void Compiler::visit(SingleVariableDefinition const& statement)
 	id_map[symbol_id] = id;
 }
 
-void Compiler::visit(DeconstructedVariableDefinition const& statement)
-{
-	// TODO
-}
-
 void Compiler::visit(EnumDefinition const& statement)
 {
 	int symbol_id = current_scope->lookup(statement.name)->id;

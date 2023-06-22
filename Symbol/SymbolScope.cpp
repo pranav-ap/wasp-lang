@@ -36,6 +36,23 @@ Symbol_ptr SymbolScope::lookup(std::wstring name)
 	FATAL("Name does not exist!");
 }
 
+bool SymbolScope::lookup_success(std::wstring name)
+{
+	if (symbols.contains(name))
+	{
+		auto symbol = symbols.at(name);
+		NULL_CHECK(symbol);
+		return true;
+	}
+
+	if (enclosing_scope.has_value())
+	{
+		return enclosing_scope.value()->lookup_success(name);
+	}
+
+	return false;
+}
+
 bool SymbolScope::enclosed_in(ScopeType type)
 {
 	if (scope_type == type)

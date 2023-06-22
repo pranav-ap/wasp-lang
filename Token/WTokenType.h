@@ -31,14 +31,15 @@ enum class TOKEN_API WTokenType
 	COLON,
 	COLON_COLON,
 	VERTICAL_BAR,
+	UNDERSCORE,
+	DOLLAR,
+	TILDE,
+	AT_SIGN,
 	ARROW, // ->
+
 	DOT,
 	DOT_DOT_DOT,
-	QUESTION,
 	QUESTION_DOT,
-
-	AT_SIGN,
-	DOLLAR,
 
 	PLUS,
 	PLUS_EQUAL,
@@ -54,7 +55,6 @@ enum class TOKEN_API WTokenType
 	POWER_EQUAL,
 	EQUAL,
 	EQUAL_EQUAL,
-	BANG,
 	BANG_EQUAL,
 	LESSER_THAN,
 	LESSER_THAN_EQUAL,
@@ -71,6 +71,10 @@ enum class TOKEN_API WTokenType
 	ELSE,
 	THEN,
 
+	NO,
+	SOME,
+
+	NOT,
 	AND,
 	OR,
 
@@ -86,12 +90,15 @@ enum class TOKEN_API WTokenType
 	REDO,
 	IN_KEYWORD,
 	MATCH,
+	WITH,
+	OR_WITH,
 	CASE,
+	WHERE,
 	END,
 
 	ASSERT,
-	IMPLORE,
-	SWEAR,
+	DEFER,
+	DEL,
 
 	TYPE_OF,
 	IS,
@@ -110,6 +117,7 @@ enum class TOKEN_API WTokenType
 	EXTENDS,
 	TYPE,
 	EXPORT,
+	OPERATOR,
 
 	NONE,
 	INT,
@@ -122,6 +130,13 @@ enum class TOKEN_API WTokenType
 
 	TRUE_KEYWORD,
 	FALSE_KEYWORD,
+
+	TRY,
+	RESCUE,
+	ENSURE,
+
+	TESTSUITE,
+	TEST,
 
 	// Whitespace
 

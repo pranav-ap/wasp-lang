@@ -29,9 +29,8 @@ class PARSER_API Parser
 
 	// Block parsers
 
-	Expression_ptr parse_ternary_condition(Expression_ptr condition);
 	Block parse_conditional_block();
-	Statement_ptr parse_else();
+	Statement_ptr parse_else_block();
 	Statement_ptr parse_branching(WTokenType token_type);
 
 	Statement_ptr parse_non_block_statement();
@@ -40,14 +39,18 @@ class PARSER_API Parser
 	Statement_ptr parse_while_loop();
 	Statement_ptr parse_until_loop();
 	Statement_ptr parse_for_in_loop();
-
+	/*
+	Statement_ptr parse_match();
+	Statement_ptr parse_match_block();
+	Expression_ptr parse_match_expression();
+	std::pair<Expression_ptr, Block> parse_match_case_expression();
+	Block parse_match_case_block();
+	*/
 	Statement_ptr parse_import();
 	Statement_ptr parse_native();
 
 	Statement_ptr parse_return();
 	Statement_ptr parse_assert();
-	Statement_ptr parse_implore();
-	Statement_ptr parse_swear();
 	Statement_ptr parse_break();
 	Statement_ptr parse_continue();
 	Statement_ptr parse_redo();
@@ -96,10 +99,6 @@ class PARSER_API Parser
 
 	// Utils
 
-	std::tuple<Expression_ptr, TypeNode_ptr> deconstruct_type_pattern(Expression_ptr expr);
-	std::tuple<Expression_ptr, Expression_ptr> deconstruct_UntypedAssignment(Expression_ptr expr);
-	std::tuple<Expression_ptr, Expression_ptr, TypeNode_ptr> deconstruct_TypedAssignment(Expression_ptr expr);
-	std::wstring extract_identifier_string(Expression_ptr expr);
 	StringVector parse_comma_separated_identifiers();
 
 public:
@@ -111,6 +110,7 @@ public:
 	Expression_ptr parse_expression();
 	Expression_ptr parse_expression(int precedence);
 	ExpressionVector parse_expressions();
+	Expression_ptr parse_ternary_condition(WTokenType token_type, Expression_ptr condition);
 
 	Module_ptr run(std::vector<Token_ptr>& tokens);
 };

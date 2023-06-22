@@ -43,8 +43,6 @@ OBJECTSYSTEM_API int get_opcode_arity(OpCode opcode)
 	case OpCode::PUSH_CONSTANT_TRUE:
 	case OpCode::PUSH_CONSTANT_FALSE:
 	case OpCode::ASSERT:
-	case OpCode::SWEAR:
-	case OpCode::IMPLORE:
 	case OpCode::MAKE_ITERABLE:
 	case OpCode::CONVERT_TYPE:
 	{
@@ -266,14 +264,6 @@ OBJECTSYSTEM_API std::wstring stringify_opcode(OpCode opcode)
 	case OpCode::ASSERT:
 	{
 		return L"ASSERT";
-	}
-	case OpCode::SWEAR:
-	{
-		return L"SWEAR";
-	}
-	case OpCode::IMPLORE:
-	{
-		return L"IMPLORE";
 	}
 	case OpCode::MAKE_ITERABLE:
 	{

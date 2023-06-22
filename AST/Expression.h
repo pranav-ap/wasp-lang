@@ -16,7 +16,8 @@
 #include <memory>
 #include <variant>
 
-struct TernaryCondition;
+struct IfTernaryBranch;
+struct ElseTernaryBranch;
 struct TypePattern;
 struct LetExpression;
 struct ConstExpression;
@@ -45,7 +46,8 @@ using Expression = AST_API std::variant<
 	UntypedAssignment, TypedAssignment, 
 	Prefix, Infix, Postfix, 
 	TypePattern,
-	TernaryCondition, Call, EnumMember, Spread, TypeOf, Is, As
+	IfTernaryBranch, ElseTernaryBranch,
+	Call, EnumMember, Spread, TypeOf, Is, As
 >;
 
 using Expression_ptr = AST_API std::shared_ptr<Expression>;
@@ -158,16 +160,22 @@ struct AST_API Postfix
 		: operand(std::move(operand)), op(std::move(op)) {};
 };
 
-struct AST_API TernaryCondition : public AnnotatedNode
+struct AST_API IfTernaryBranch : public AnnotatedNode
 {
-	Expression_ptr condition;
+	Expression_ptr test;
 	Expression_ptr true_expression;
-	Expression_ptr false_expression;
+	Expression_ptr alternative; // IfTernaryBranch or ElseTernaryBranch
 
-	TernaryCondition(Expression_ptr condition, Expression_ptr true_expression, Expression_ptr false_expression)
-		: condition(std::move(condition)),
-		true_expression(std::move(true_expression)),
-		false_expression(std::move(false_expression)) {};
+	IfTernaryBranch(Expression_ptr test, Expression_ptr true_expression, Expression_ptr alternative)
+		: true_expression(true_expression), test(test), alternative(alternative) {};
+};
+
+struct AST_API ElseTernaryBranch : public AnnotatedNode
+{
+	Expression_ptr expression;
+
+	ElseTernaryBranch(Expression_ptr expression) 
+		: expression(expression) {};
 };
 
 struct AST_API TypePattern
@@ -244,3 +252,42 @@ struct AST_API As
 	As(Expression_ptr left, TypeNode_ptr right)
 		: left(left), right(right) {};
 };
+
+// Matching
+
+struct AST_API MatchExpression : public AnnotatedNode
+{
+	Expression_ptr test;
+	std::vector<CaseTest> case_tests;
+	std::vector<Expression_ptr> case_expressions;
+
+	MatchExpression(Expression_ptr test,
+		std::vector<CaseTest> case_tests,
+		std::vector<Expression_ptr> case_blocks)
+		: test(test),
+		case_tests(case_tests),
+		case_expressions(case_expressions) {};
+};
+
+struct AST_API CaseTest
+{
+	Expression_ptr top_expr;
+	std::wstring as_name;
+	Expression_ptr where_expr;
+
+	CaseTest(Expression_ptr top_expr,
+		std::wstring as_name,
+		Expression_ptr where_expr)
+		: top_expr(top_expr), 
+			as_name(as_name),
+			where_expr(where_expr) {};
+};
+
+struct AST_API CaseExpression
+{
+	Expression_ptr expression;
+
+	CaseExpression(Expression_ptr expression)
+		: expression(expression) {};
+};
+

@@ -25,7 +25,7 @@ elif no x then
     pass
 
 
-match x
+match x with
     case [x, y] then
         pass    
     case none then
@@ -33,6 +33,8 @@ match x
     case opt y then
         print 'expr is a nested optional variable'
 end
+
+let x : bool = match x with [x, y] where x > 43 or with [x, y, z]
 
 
 # Conditional Flow
@@ -60,7 +62,7 @@ end
 # Matching
 
 
-match expr
+match expr with
 	case 0 then
 		print 'zero'
     case 0 as x then
@@ -80,7 +82,7 @@ match expr
 
     case ⟨ let name ⟩ then
         print "$name from a dictionary"
-    case ⟨ scores => [23, 28, let math] ⟩ then
+    case ⟨ scores -> [23, 28, let math] ⟩ then
         print "$math from a dictionary"
 
     case str then
@@ -102,7 +104,7 @@ match expr
 end
 
 
-let x = match expr
+let x = match expr with
     case 1 then
         return 'a'
 	case _ then
@@ -142,9 +144,7 @@ end
 
 
 fn add(a: int, b: int) -> int
-    defaults
-        b = 10
-    end
+    ~ b = 10
 
     if a > b then
         return a
@@ -173,8 +173,8 @@ end
 Animal::Cat
 Animal::Bird::Crow
 
-# Imports
 
+# Imports
 
 import io
 import io as i

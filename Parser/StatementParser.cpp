@@ -63,8 +63,6 @@ Statement_ptr Parser::parse_statement(bool is_public)
 		CASE(WTokenType::IF, parse_branching(token.value()->type));
 		CASE(WTokenType::RETURN_KEYWORD, parse_return());
 		CASE(WTokenType::ASSERT, parse_assert());
-		CASE(WTokenType::IMPLORE, parse_implore());
-		CASE(WTokenType::SWEAR, parse_swear());
 		CASE(WTokenType::BREAK, parse_break());
 		CASE(WTokenType::CONTINUE, parse_continue());
 		CASE(WTokenType::REDO, parse_redo());
@@ -210,24 +208,6 @@ Statement_ptr Parser::parse_assert()
 
 	token_pipe->require(WTokenType::EOL);
 	return MAKE_STATEMENT(Assert(move(expression)));
-}
-
-Statement_ptr Parser::parse_implore()
-{
-	auto expression = parse_expression();
-	NULL_CHECK(expression);
-
-	token_pipe->require(WTokenType::EOL);
-	return MAKE_STATEMENT(Implore(move(expression)));
-}
-
-Statement_ptr Parser::parse_swear()
-{
-	auto expression = parse_expression();
-	NULL_CHECK(expression);
-
-	token_pipe->require(WTokenType::EOL);
-	return MAKE_STATEMENT(Swear(move(expression)));
 }
 
 Statement_ptr Parser::parse_break()

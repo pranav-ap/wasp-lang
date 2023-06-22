@@ -72,8 +72,8 @@ using Object = OBJECTSYSTEM_API std::variant<
 	ListObject, TupleObject, SetObject, MapObject, VariantObject,
 	ReturnObject, ErrorObject, RedoObject, BreakObject,
 	ContinueObject, IteratorObject, EnumDefinitionObject, EnumMemberObject,
-	FunctionDefinitionObject, BuiltInFunctionObject, 
-	AliasDefinitionObject, ClassDefinitionObject, InstanceObject, 
+	FunctionDefinitionObject, BuiltInFunctionObject,
+	AliasDefinitionObject, ClassDefinitionObject, InstanceObject,
 
 	AnyType, IntLiteralType, FloatLiteralType, StringLiteralType, BooleanLiteralType,
 	IntType, FloatType, StringType, BooleanType, ListType, TupleType, SetType,
@@ -108,7 +108,7 @@ struct OBJECTSYSTEM_API NoneObject : public AbstractObject
 struct OBJECTSYSTEM_API DefinitionObject : public AbstractObject
 {
 	std::wstring name;
-	DefinitionObject(std::wstring name) 
+	DefinitionObject(std::wstring name)
 		: name(name) {};
 };
 
