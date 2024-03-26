@@ -62,33 +62,22 @@ end
 # Matching
 
 
-match expr with
+match expr as e with
 	case 0 then
 		print 'zero'
-    case 0 as x then
-		print 'zero'
-
-	case [..., _, 0, x] then # can be set, list or tuple
+    case str then
+        pass
+    
+	case [..., _, 0, let y, let y : string, let ...y] then # can be set, list or tuple
 		print 'deconstruct a list'
-    case [let ...x, let y, let z: string] then 
-        print 'value binding : x, y, z are new variables accessible here'		
-    case let [x, y, ...z] then
-		print "value binding of all insiders"
 
-	case [x, y] where x <= y then
-		print "x, y hold the same value"
-    case [x, y] as z where x <= y then
+    case [let x, let y] as z where x <= y then
 		print "x, y hold the same value"
 
-    case ⟨ let name ⟩ then
+    case ⟨ name ⟩ then
         print "$name from a dictionary"
     case ⟨ scores -> [23, 28, let math] ⟩ then
         print "$math from a dictionary"
-
-    case str then
-        pass
-    case str as x then  # x is the result of expr
-        pass
 
     case Click then  # class
         pass
@@ -143,9 +132,7 @@ end
 # Function
 
 
-fn add(a: int, b: int) -> int
-    ~ b = 10
-
+fn add(a: int, b: int where b > 29) -> int
     if a > b then
         return a
     end
